@@ -1,6 +1,10 @@
 // https://developer.amazon.com/en-US/docs/alexa/alexa-skills-kit-sdk-for-nodejs/develop-your-first-skill.html
 
+"use strict";
+const AWS = require('aws-sdk');
 const Alexa = require('ask-sdk-core');
+
+const docClient = new AWS.DynamoDB.DocumentClient();
 
 const LaunchRequestHandler = {  // need to update speechText
     canHandle(handlerInput) {
@@ -22,8 +26,57 @@ const AskWeatherIntentHandler = {   // need to update speechText
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
             && Alexa.getIntentName(handlerInput.requestEnvelope) === 'AskWeatherIntent';
     },
-    handle(handlerInput) {
-        const speechText = 'The weather today is sunny.';
+    async handle(handlerInput) {
+
+        let table = "anantherraSelfHosted2";
+        let year = 2015;
+        let title = "The Big New Movie" + Math.random() * 10;
+        let params = {
+            TableName: table,
+            Item: {
+                "year": year,
+                "id": title,
+                "info": {
+                    "plot": "Nothing happens at all",
+                    "rating": 0
+                }
+            }
+        }
+        let insertMsg = '';
+        try {
+            let result = await docClient.put(params).promise();
+            if (result) {
+                console.log(">>>>>>>>>", result);
+                insertMsg = JSON.stringify(result);;
+            }
+        } catch (error) {
+            console.log(error);
+            return error;
+        }
+
+
+
+        let getMsg = '';
+        params = {
+            TableName: table,
+            Key: {
+                //   "year": year,
+                "id": title
+            }
+        }
+
+        try {
+            let result = await docClient.get(params).promise();
+            if (result) {
+                console.log(">>>>>>>>>", result);
+                getMsg = JSON.stringify(result);
+            }
+        } catch (error) {
+            console.log(error);
+            return error;
+        }
+
+        const speechText = insertMsg + 'The weather today is sunny.' + getMsg;
 
         return handlerInput.responseBuilder
             .speak(speechText)
