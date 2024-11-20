@@ -26,7 +26,12 @@ const AskWeatherIntentHandler = {   // need to update speechText
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
             && Alexa.getIntentName(handlerInput.requestEnvelope) === 'AskWeatherIntent';
     },
+
     async handle(handlerInput) {
+
+        console.log(JSON.stringify(handlerInput))
+        console.log(JSON.stringify(handlerInput.request_envelope))
+
 
         let table = "anantherraSelfHosted2";
         let year = 2015;
@@ -77,6 +82,28 @@ const AskWeatherIntentHandler = {   // need to update speechText
         }
 
         const speechText = insertMsg + 'The weather today is sunny.' + getMsg;
+
+
+
+        try {
+            params = {
+                TableName: table,
+                Item: {
+                    "year": 1900,
+                    "id": title,
+                    "info": {
+                        "plot": "shaata happens",
+                        "rating": 0
+                    }
+                }
+            }
+            docClient.put(params).promise();
+
+        } catch (error) {
+            console.log(error);
+            return error;
+        }
+
 
         return handlerInput.responseBuilder
             .speak(speechText)
