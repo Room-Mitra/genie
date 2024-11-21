@@ -12,7 +12,11 @@ const Intents = require("./Intents/index.js");
 const { MandatoryIntents } = Intents;
 const { LaunchRequestHandler } = MandatoryIntents;
 
+const { languageStrings } = require("./Constants/Language.constants.js");
+const i18n = require('i18next');
+
 const docClient = new AWS.DynamoDB.DocumentClient();
+
 
 
 const AskWeatherIntentHandler = {   // need to update speechText
@@ -164,8 +168,21 @@ const ErrorHandler = {
     }
 };
 
+const localizationRequestInterceptor = {
+    process(handlerInput) {
+        i18n.init({
+            lng: Alexa.getLocale(handlerInput.requestEnvelope),
+            resources: languageStrings
+        }).then((t) => {
+            handlerInput.t = (...args) => t(...args)
+        })
+    }
+}
 exports.handler = Alexa.SkillBuilders.custom()
     .withSkillId(SKILL_ID)
+    .addRequestInterceptors(
+        localizationRequestInterceptor
+    )
     .addRequestHandlers(
         LaunchRequestHandler,
         AskWeatherIntentHandler,
