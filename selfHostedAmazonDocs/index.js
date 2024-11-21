@@ -5,15 +5,19 @@
 
 const AWS = require('aws-sdk');
 const Alexa = require('ask-sdk-core');
-
-const { SKILL_ID } = require("./Constants/Skill.constants.js");
-
-const Intents = require("./Intents/index.js");
-const { MandatoryIntents } = Intents;
-const { LaunchRequestHandler } = MandatoryIntents;
+const i18n = require('i18next');
 
 const { languageStrings } = require("./Constants/Language.constants.js");
-const i18n = require('i18next');
+const { SKILL_ID } = require("./Constants/Skill.constants.js");
+
+
+const Intents = require("./Intents/index.js");
+
+const Handlers = require("./Handlers/index.js");
+const { RequestHandlers } = Handlers;
+const { LaunchRequestHandler } = RequestHandlers;
+
+
 
 const docClient = new AWS.DynamoDB.DocumentClient();
 
