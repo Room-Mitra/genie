@@ -1,8 +1,10 @@
 
 const { LaunchRequestHandler } = require("./LaunchRequestHandler.js");
+const { SessionEndedRequestHandler } = require("./SessionEndedRequestHandler.js");
 
-const MandatoryRequestHandlers = {
-    LaunchRequestHandler
+const RequestHandlers = {
+    LaunchRequestHandler,
+    SessionEndedRequestHandler
 };
 
-module.exports = MandatoryRequestHandlers;
+module.exports = RequestHandlers;

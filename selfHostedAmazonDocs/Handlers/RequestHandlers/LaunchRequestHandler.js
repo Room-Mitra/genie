@@ -5,7 +5,7 @@ const LaunchRequestHandler = {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
     },
     handle(handlerInput) {
-        const speechText = handlerInput.t('MandatoryIntent_LaunchRequestHandler_WelcomeMsg')
+        const speechText = handlerInput.t('LaunchRequestHandler_WelcomeMsg')
 
         return handlerInput.responseBuilder
             .speak(speechText)

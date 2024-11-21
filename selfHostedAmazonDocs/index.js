@@ -11,12 +11,11 @@ const { languageStrings } = require("./Constants/Language.constants.js");
 const { SKILL_ID } = require("./Constants/Skill.constants.js");
 
 
-const Intents = require("./Intents/index.js");
 
 const Handlers = require("./Handlers/index.js");
-const { RequestHandlers } = Handlers;
-const { LaunchRequestHandler } = RequestHandlers;
-
+const { RequestHandlers, ErrorHandlers } = Handlers;
+const { LaunchRequestHandler, SessionEndedRequestHandler } = RequestHandlers;
+const { ErrorHandler } = ErrorHandlers;
 
 
 const docClient = new AWS.DynamoDB.DocumentClient();
@@ -148,29 +147,7 @@ const CancelAndStopIntentHandler = {
     }
 };
 
-const SessionEndedRequestHandler = {
-    canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'SessionEndedRequest';
-    },
-    handle(handlerInput) {
-        // Any clean-up logic goes here.
-        return handlerInput.responseBuilder.getResponse();
-    }
-};
 
-const ErrorHandler = {
-    canHandle() {
-        return true;
-    },
-    handle(handlerInput, error) {
-        console.log(`Error handled: ${error.message}`);
-
-        return handlerInput.responseBuilder
-            .speak('Sorry, I don\'t understand your command. Please say it again.')
-            .reprompt('Sorry, I don\'t understand your command. Please say it again.')
-            .getResponse();
-    }
-};
 
 const localizationRequestInterceptor = {
     process(handlerInput) {
