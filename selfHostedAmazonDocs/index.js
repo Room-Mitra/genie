@@ -1,25 +1,19 @@
 // https://developer.amazon.com/en-US/docs/alexa/alexa-skills-kit-sdk-for-nodejs/develop-your-first-skill.html
+// https://dev.to/rajandmr/dynamodb-crud-with-nodejs-and-lambda-inn
 
 "use strict";
+
 const AWS = require('aws-sdk');
 const Alexa = require('ask-sdk-core');
 
+const { SKILL_ID } = require("./Constants/Skill.constants.js");
+
+const Intents = require("./Intents/index.js");
+const { MandatoryIntents } = Intents;
+const { LaunchRequestHandler } = MandatoryIntents;
+
 const docClient = new AWS.DynamoDB.DocumentClient();
 
-const LaunchRequestHandler = {  // need to update speechText
-    canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
-    },
-    handle(handlerInput) {
-        const speechText = 'Welcome to your SDK weather skill. Ask me the weather!';
-
-        return handlerInput.responseBuilder
-            .speak(speechText)
-            .reprompt(speechText)
-            .withSimpleCard('Welcome to your SDK weather skill. Ask me the weather!', speechText)
-            .getResponse();
-    }
-};
 
 const AskWeatherIntentHandler = {   // need to update speechText
     canHandle(handlerInput) {
@@ -171,6 +165,7 @@ const ErrorHandler = {
 };
 
 exports.handler = Alexa.SkillBuilders.custom()
+    .withSkillId(SKILL_ID)
     .addRequestHandlers(
         LaunchRequestHandler,
         AskWeatherIntentHandler,
