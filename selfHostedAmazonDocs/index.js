@@ -5,21 +5,19 @@
 
 const AWS = require('aws-sdk');
 const Alexa = require('ask-sdk-core');
-const i18n = require('i18next');
 
-const { languageStrings } = require("./Constants/Language.constants.js");
 const { SKILL_ID } = require("./Constants/Skill.constants.js");
 
-
-
 const Handlers = require("./Handlers/index.js");
-const { RequestHandlers, ErrorHandlers } = Handlers;
+const { RequestHandlers, ErrorHandlers, IntentHandlers } = Handlers;
 const { LaunchRequestHandler, SessionEndedRequestHandler } = RequestHandlers;
 const { ErrorHandler } = ErrorHandlers;
+const { MandatoryIntentHandlers } = IntentHandlers;
+const { HelpIntentHandler, CancelAndStopIntentHandler } = MandatoryIntentHandlers;
 
-
-const docClient = new AWS.DynamoDB.DocumentClient();
-
+const { Interceptors } = require("./Interceptors/index.js");
+const { RequestInterceptor } = Interceptors;
+const { LocalizationRequestInterceptor } = RequestInterceptor;
 
 
 const AskWeatherIntentHandler = {   // need to update speechText
@@ -29,6 +27,7 @@ const AskWeatherIntentHandler = {   // need to update speechText
     },
 
     async handle(handlerInput) {
+        const docClient = new AWS.DynamoDB.DocumentClient();
 
         console.log(JSON.stringify(handlerInput))
         console.log(JSON.stringify(handlerInput.request_envelope))
@@ -113,56 +112,10 @@ const AskWeatherIntentHandler = {   // need to update speechText
     }
 };
 
-const HelpIntentHandler = { // need to update speechText
-    canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.HelpIntent';
-    },
-    handle(handlerInput) {
-        const speechText = 'You can ask me the weather!';
-
-        return handlerInput.responseBuilder
-            .speak(speechText)
-            .reprompt(speechText)
-            .withSimpleCard('You can ask me the weather!', speechText)
-            .getResponse();
-    }
-};
-
-
-const CancelAndStopIntentHandler = {
-    canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && (Alexa.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.CancelIntent'
-                || Alexa.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.StopIntent');
-    },
-    handle(handlerInput) {
-        const speechText = 'Goodbye!';
-
-        return handlerInput.responseBuilder
-            .speak(speechText)
-            .withSimpleCard('Goodbye!', speechText)
-            .withShouldEndSession(true)
-            .getResponse();
-    }
-};
-
-
-
-const localizationRequestInterceptor = {
-    process(handlerInput) {
-        i18n.init({
-            lng: Alexa.getLocale(handlerInput.requestEnvelope),
-            resources: languageStrings
-        }).then((t) => {
-            handlerInput.t = (...args) => t(...args)
-        })
-    }
-}
 exports.handler = Alexa.SkillBuilders.custom()
     .withSkillId(SKILL_ID)
     .addRequestInterceptors(
-        localizationRequestInterceptor
+        LocalizationRequestInterceptor
     )
     .addRequestHandlers(
         LaunchRequestHandler,
