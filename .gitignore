@@ -1,2 +1,4 @@
-selfHostedAmazonDocs/node_modules/
-selfHostedAmazonDocs/*.zip
+Lambda/node_modules/
+EC2/node_modules/
+Lambda/*.zip
+EC2/config/*.pem
