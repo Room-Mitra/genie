@@ -5,7 +5,7 @@ const router = express.Router();
     {
         id: 1, //PK
         deviceType: "Echo",
-        roomId: "302",
+        roomId: "302", //SK
         location: {
             propertyName: "Vivanta Mysore",
             floor: "3",
@@ -43,5 +43,7 @@ router.get('/', (req, res) => {
 // find devices by roomType/room tags
 // find devices by tag
 // get room details by room number
+// edit device by id/room number
+// delete device by id/room number
 
 export default router;
