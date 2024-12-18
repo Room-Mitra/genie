@@ -1,6 +1,8 @@
 // https://developer.amazon.com/en-US/docs/alexa/alexa-skills-kit-sdk-for-nodejs/develop-your-first-skill.html
 // https://dev.to/rajandmr/dynamodb-crud-with-nodejs-and-lambda-inn
 
+
+// Add ec2 and lambda to same vpc
 "use strict";
 
 const AWS = require('aws-sdk');
@@ -12,8 +14,9 @@ const Handlers = require("./Handlers/index.js");
 const { RequestHandlers, ErrorHandlers, IntentHandlers } = Handlers;
 const { LaunchRequestHandler, SessionEndedRequestHandler } = RequestHandlers;
 const { ErrorHandler } = ErrorHandlers;
-const { MandatoryIntentHandlers } = IntentHandlers;
+const { MandatoryIntentHandlers, DeviceIntentHandlers } = IntentHandlers;
 const { HelpIntentHandler, CancelAndStopIntentHandler } = MandatoryIntentHandlers;
+const { RegisterDeviceHandler } = DeviceIntentHandlers;
 
 const { Interceptors } = require("./Interceptors/index.js");
 const { RequestInterceptor } = Interceptors;
@@ -119,7 +122,8 @@ exports.handler = Alexa.SkillBuilders.custom()
     )
     .addRequestHandlers(
         LaunchRequestHandler,
-        AskWeatherIntentHandler,
+        RegisterDeviceHandler,
+        // AskWeatherIntentHandler,
         HelpIntentHandler,
         CancelAndStopIntentHandler,
         SessionEndedRequestHandler)

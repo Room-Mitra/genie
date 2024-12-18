@@ -9,7 +9,8 @@ const languageStrings = {
             HelpIntentHandler_HelpText: 'English: You can ask me the weather!',
             HelpIntentHandler_HelpTextDesc: 'English: DESC : You can ask me the weather!',
             CancelAndStopIntentHandler_short: 'English: Goodbye!',
-            CancelAndStopIntentHandler_Desc: 'English: Goodbye!!!'
+            CancelAndStopIntentHandler_Desc: 'English: Goodbye!!!',
+            RedgisterDeviceHandler_DeviceRegistered: 'English: Device Registered Successfully',
         }
     },
     'hi': {
@@ -20,7 +21,8 @@ const languageStrings = {
             HelpIntentHandler_HelpText: 'Hindi: You can ask me the weather!',
             HelpIntentHandler_HelpTextDesc: 'Hindi: DESC : You can ask me the weather!',
             CancelAndStopIntentHandler_short: 'Hindi : Goodbye!',
-            CancelAndStopIntentHandler_Desc: 'Hindi: Goodbye!!!'
+            CancelAndStopIntentHandler_Desc: 'Hindi: Goodbye!!!',
+            RedgisterDeviceHandler_DeviceRegistered: 'Hindi: Device Registered Successfully',
 
         }
     }
