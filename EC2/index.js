@@ -4,7 +4,7 @@
 import cors from 'cors';
 import express from 'express';
 import bodyParser from 'body-parser';
-import deviceRoutes from './routes/Device.js';
+import deviceRoutes from './routes/Device/Device.controller.js';
 
 const app = express();
 const PORT = 3000
