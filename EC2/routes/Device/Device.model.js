@@ -1,7 +1,7 @@
 export class Device {
     constructor(id, roomId, deviceType = defaultDeviceType, location = defaultLocation, deviceTags = defaultDeviceTags) {
         this.id = id;
-        this.roomId = roomId;
+        this.roomId = roomId; //pk
         this.deviceType = deviceType;
         this.location = location;
         this.deviceTags = deviceTags;
