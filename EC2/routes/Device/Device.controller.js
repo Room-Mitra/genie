@@ -1,4 +1,5 @@
-import express from 'express';
+const express = require('express');
+const { registerDevice, getAllDevices } = require('./Device.service.js');
 const router = express.Router();
 
 /*const devices = [
@@ -21,7 +22,7 @@ const devices = [];
 // register device
 router.post('/', (req, res) => {
     const device = req.body;
-    devices.push({ ...device });
+    registerDevice(device);
     res.send(`${JSON.stringify(device)} has been added to the Database`);
 })
 
@@ -31,7 +32,7 @@ router.post('/', (req, res) => {
 
 // get all devices
 router.get('/', (req, res) => {
-    res.send(devices);
+    res.send(getAllDevices());
 })
 
 
@@ -46,4 +47,4 @@ router.get('/', (req, res) => {
 // edit device by id/room number
 // delete device by id/room number
 
-export default router;
+module.exports = router;

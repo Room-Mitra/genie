@@ -1,5 +1,6 @@
 Lambda/node_modules/
 EC2/node_modules/
+EC2/.env
 webapp/node_modules/
 Lambda/*.zip
 EC2/config/*.pem
