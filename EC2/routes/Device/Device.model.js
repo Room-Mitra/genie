@@ -1,21 +1,26 @@
-export class Device {
-    constructor(id, roomId, deviceType = defaultDeviceType, location = defaultLocation, deviceTags = defaultDeviceTags) {
-        this.id = id;
-        this.roomId = roomId; //pk
-        this.deviceType = deviceType;
-        this.location = location;
-        this.deviceTags = deviceTags;
+class Device {
+    constructor(deviceId, roomId, roomInfo = defaultRoomInfo, deviceInfo = defaultDeviceInfo) {
+        this.deviceId = deviceId;
+        this.roomId = roomId;
+        this.roomInfo = roomInfo;
+        this.deviceInfo = deviceInfo;
     }
 }
 
-const defaultDeviceType = "";
 
-const defaultLocation = {
-    propertyName: "",
-    floor: "",
-    room: "",
-    roomTags: []
+const defaultRoomInfo = {
+    propertyName: "", // Vivanta Chennai
+    floor: "", // 5
+    room: "", // 504
+    roomTags: [], // SeaView, Deluxe
+    details: {}
 }
 
-const defaultDeviceTags = [];
+const defaultDeviceInfo = {
+    deviceType: "",
+    deviceTags: [], // video
+    details: {}
+}
+
+module.exports = { Device };
 

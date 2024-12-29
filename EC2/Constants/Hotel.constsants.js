@@ -1,1 +1,5 @@
-export const HOTEL_NAME = "Taj Vivanta";
+const HOTEL_NAME = "Taj Vivanta";
+
+module.exports = {
+    HOTEL_NAME
+}
