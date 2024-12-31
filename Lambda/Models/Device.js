@@ -4,6 +4,7 @@ class Device {
         this.roomId = roomId;
         this.roomInfo = roomInfo;
         this.deviceInfo = deviceInfo;
+        this.registeredAtUTC = new Date().toISOString();
     }
 }
 
