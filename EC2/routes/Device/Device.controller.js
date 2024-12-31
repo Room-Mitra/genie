@@ -2,23 +2,6 @@ const express = require('express');
 const { registerDevice, getAllDevices } = require('./Device.service.js');
 const router = express.Router();
 
-/*const devices = [
-    {
-        id: 1, //PK
-        deviceType: "Echo",
-        roomId: "302", //SK
-        location: {
-            propertyName: "Vivanta Mysore",
-            floor: "3",
-            room: "302",
-            roomTags: ["Deluxe", "sea facing"]
-        },
-        deviceTags: ["abc", "def"]
-    }
-];*/
-
-const devices = [];
-
 // register device
 router.post('/', (req, res) => {
     const device = req.body;

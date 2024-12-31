@@ -2,11 +2,8 @@ const { registerNewDevice: addDeviceToCache, getDevices: getAllDevicesFromCache 
 const { registerNewDevice: addDeviceToDB } = require("./Device.repository.js")
 
 const registerDevice = async (deviceDetails) => {
-    console.log("BEFORE :: ", getAllDevicesFromCache())
+
     addDeviceToCache(deviceDetails);
-    console.log("AFTER :: ", getAllDevicesFromCache())
-
-
     addDeviceToDB(deviceDetails);
 
 }

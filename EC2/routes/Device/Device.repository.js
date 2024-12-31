@@ -8,6 +8,7 @@ const registerNewDevice = async (device) => {
             roomId: device.roomId,
             roomInfo: device.roomInfo,
             deviceInfo: device.deviceInfo,
+            registeredAtUTC: device.registeredAtUTC
         },
     };
 
