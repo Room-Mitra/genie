@@ -1,7 +1,7 @@
 class Device {
     constructor(deviceId, roomId, roomInfo = defaultRoomInfo, deviceInfo = defaultDeviceInfo) {
         this.deviceId = deviceId;
-        this.roomId = roomId;
+        this.roomId = roomId; // shouldnt be sort key (no benefit)
         this.roomInfo = roomInfo;
         this.deviceInfo = deviceInfo;
         this.registeredAtUTC = new Date().toISOString();
