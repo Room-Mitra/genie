@@ -7,7 +7,6 @@ const warmCache = async () => {
     ALL_DEVICES = [...devices];
     console.log("DEVICES CACHE HAS BEEN WARMED  :  ", JSON.stringify(ALL_DEVICES));
 };
-warmCache();
 
 const registerNewDevice = (device) => {
     const deviceId = device.deviceId;
@@ -24,4 +23,4 @@ const getDevices = () => {
     return ALL_DEVICES;
 };
 
-module.exports = { registerNewDevice, getDevices };
+module.exports = { registerNewDevice, getDevices, warmCache };

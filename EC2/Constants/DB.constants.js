@@ -1,4 +1,4 @@
-const DEVICES_TABLE_NAME = "Devices";;
+const DEVICES_TABLE_NAME = "DEVICES";;
 
 module.exports = {
     DEVICES_TABLE_NAME
