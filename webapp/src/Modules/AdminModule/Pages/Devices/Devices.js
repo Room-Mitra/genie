@@ -8,7 +8,7 @@ const Devices = () => {
 
     return (
         <div>
-            <h1>Device</h1>
+            <h1>Devices</h1>
         </div>
     );
 }
