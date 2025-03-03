@@ -3,14 +3,15 @@ import cacheInstance from "./APICache";
 
 export const httpGet = async (url, bypassCache = false) => {
     if (bypassCache) {
-        return httpGetUncached(url);
+        const response = await httpGetUncached(url);
+        return response.data;
     }
 
     const cachedValue = await cacheInstance.get(url);
     if (!cachedValue) {
         const response = await httpGetUncached(url);
-        cacheInstance.put(url, response); // TODO: handle error in response);
-        return response;
+        cacheInstance.put(url, response.data); // TODO: handle error in response);
+        return response.data;
     }
     console.log("CACHED RESPONSE :: ", url, cachedValue);
     return cachedValue;

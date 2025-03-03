@@ -2,32 +2,44 @@
 import { useEffect, useState } from "react";
 import { httpGet } from "../../../../Services/APIService";
 import DataTable from "../../../../Common/DataTable/DataTable";
+import { EC2_API_ENDPOINT } from "../../../../Constants/Environment.constants";
 
 
 const Devices = () => {
 
+    const [allDevices, setAllDevices] = useState(null);
+
     useEffect(() => {
-        httpGet('http://34.240.95.34:3000/devices');
-        console.log("******")
+        const devicesPromise = httpGet(EC2_API_ENDPOINT + '/devices');
+        devicesPromise.then((devices) => {
+            setAllDevices(devices);
+            const rowData = devices.map((device) => {
+                return {
+                    deviceId: device.deviceId,
+                    roomId: device.roomId
+                }
+            })
+            setRowData(rowData);
+        })
     }, []);
 
-    // const allDevices = httpGet('http://34.240.95.34:3000/devices');
-
+    const CustomButtonComponent = (props) => {
+        return <button onClick={(x) => console.log(props, x)}>View/Edit Details</button>;
+    };
 
     // Row Data: The data to be displayed.
-    const [rowData, setRowData] = useState([
-        { make: "Tesla", model: "Model Y", price: 64950, electric: true },
-        { make: "Ford", model: "F-Series", price: 33850, electric: false },
-        { make: "Toyota", model: "Corolla", price: 29600, electric: false },
-    ]);
+    const [rowData, setRowData] = useState(null);
 
     // Column Definitions: Defines the columns to be displayed.
     const [colDefs, setColDefs] = useState([
-        { field: "make" },
-        { field: "model" },
-        { field: "price" },
-        { field: "electric" }
+        { headerName: "Room ID", field: "deviceId" },
+        { headerName: "Device ID", field: "roomId" },
+        { headerName: " ", cellRenderer: CustomButtonComponent }
     ]);
+
+    if (!allDevices) {
+        return (<div>Loading Devices...</div>); // TODO :: add loader
+    }
 
     return (
         <div>
