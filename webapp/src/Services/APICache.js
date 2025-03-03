@@ -36,7 +36,7 @@ class Cache {
 
     async put(url, response) {
         const cache = await this.openCache();
-        const responseToCache = new Response(JSON.stringify(response.data), {
+        const responseToCache = new Response(JSON.stringify(response), {
             status: 200,
             statusText: 'OK',
             headers: {
