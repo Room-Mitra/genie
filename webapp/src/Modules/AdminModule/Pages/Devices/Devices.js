@@ -1,12 +1,17 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { httpGet } from "../../../../Services/APIService";
 import DataTable from "../../../../Common/DataTable/DataTable";
 
 
 const Devices = () => {
 
-    const allDevices = httpGet('http://34.240.95.34:3000/devices');
+    useEffect(() => {
+        httpGet('http://34.240.95.34:3000/devices');
+        console.log("******")
+    }, []);
+
+    // const allDevices = httpGet('http://34.240.95.34:3000/devices');
 
 
     // Row Data: The data to be displayed.
