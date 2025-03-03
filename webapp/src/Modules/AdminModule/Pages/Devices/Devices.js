@@ -15,8 +15,12 @@ const Devices = () => {
             setAllDevices(devices);
             const rowData = devices.map((device) => {
                 return {
+                    roomId: device.roomId,
                     deviceId: device.deviceId,
-                    roomId: device.roomId
+                    deviceType: device.deviceInfo.deviceType,
+                    deviceTags: device.deviceInfo.deviceTags,
+                    roomFloor: device.roomInfo.floor,
+                    roomTags: device.roomInfo.roomTags
                 }
             })
             setRowData(rowData);
@@ -24,7 +28,7 @@ const Devices = () => {
     }, []);
 
     const CustomButtonComponent = (props) => {
-        return <button onClick={(x) => console.log(props, x)}>View/Edit Details</button>;
+        return <button onClick={(x) => console.log(props, x)}>Save Changes</button>;
     };
 
     // Row Data: The data to be displayed.
@@ -32,8 +36,13 @@ const Devices = () => {
 
     // Column Definitions: Defines the columns to be displayed.
     const [colDefs, setColDefs] = useState([
-        { headerName: "Room ID", field: "deviceId" },
-        { headerName: "Device ID", field: "roomId" },
+        { headerName: "Room ID", field: "roomId", filter: true, editable: true },
+        { headerName: "Device Type", field: "deviceType", filter: true, editable: true },
+        { headerName: "Device Tags", field: "deviceTags", filter: true, editable: true },
+        { headerName: "Property Name", field: "propertyName", filter: true, editable: true },
+        { headerName: "Room in Floor", field: "roomFloor", filter: true, editable: true },
+        { headerName: "Room Tags", field: "roomTags", filter: true, editable: true },
+        { headerName: "Device ID", field: "deviceId" },
         { headerName: " ", cellRenderer: CustomButtonComponent }
     ]);
 
