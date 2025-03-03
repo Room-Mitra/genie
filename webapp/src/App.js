@@ -4,10 +4,13 @@ import {
   Routes,
   Route,
 } from "react-router-dom";
-
-import Devices from './Modules/AdminModule/Pages/Devices/index';
-import Sidebar from './Common/SideBar/Sidebar';
+import { Suspense, lazy } from "react";
+// import Devices from './Modules/AdminModule/Pages/Devices/index';
+// import Sidebar from './Common/SideBar/Sidebar';
 // import Devices from "./Modules/AdminModule/Pages/Devices"
+
+const Devices = lazy(() => import('./Modules/AdminModule/Pages/Devices/index'));
+const Sidebar = lazy(() => import('./Common/SideBar/Sidebar'));
 
 function App() {
 
@@ -15,13 +18,17 @@ function App() {
     <Router>
       <Sidebar />
       <Routes>
+
         <Route
           path="/admin"
           element={<Devices />}
         />
         <Route
           path="/admin/devices"
-          element={<Devices />}
+          element={
+            <Suspense fallback={<div>Devices are loading please wait...</div>} >
+              <Devices />
+            </Suspense>}
         />
         {/* <Route
             path="/about-us/vision"
