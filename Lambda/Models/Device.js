@@ -13,14 +13,14 @@ const defaultRoomInfo = {
     propertyName: "", // Vivanta Chennai
     floor: "", // 5
     room: "", // 504
-    roomTags: [], // SeaView, Deluxe
-    details: {}
+    roomTags: "", // SeaView, Deluxe
+    notes: ""
 }
 
 const defaultDeviceInfo = {
     deviceType: "",
-    deviceTags: [], // video
-    details: {}
+    deviceTags: "", // video
+    notes: ""
 }
 
 module.exports = Device;

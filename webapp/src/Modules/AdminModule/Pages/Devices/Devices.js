@@ -19,8 +19,10 @@ const Devices = () => {
                     deviceId: device.deviceId,
                     deviceType: device.deviceInfo.deviceType,
                     deviceTags: device.deviceInfo.deviceTags,
+                    deviceNotes: device.deviceInfo.details,
                     roomFloor: device.roomInfo.floor,
-                    roomTags: device.roomInfo.roomTags
+                    roomTags: device.roomInfo.roomTags,
+                    roomNotest: device.roomInfo.details
                 }
             })
             setRowData(rowData);
@@ -42,6 +44,8 @@ const Devices = () => {
         { headerName: "Property Name", field: "propertyName", filter: true, editable: true },
         { headerName: "Room in Floor", field: "roomFloor", filter: true, editable: true },
         { headerName: "Room Tags", field: "roomTags", filter: true, editable: true },
+        { headerName: "Room Notes", field: "roomNotest", filter: true, editable: true },
+        { headerName: "Device Notes", field: "deviceNotes", filter: true, editable: true },
         { headerName: "Device ID", field: "deviceId" },
         { headerName: " ", cellRenderer: CustomButtonComponent }
     ]);

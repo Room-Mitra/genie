@@ -22,7 +22,9 @@ ssh -i "ireland-adithya-macAir.pem" ubuntu@ec2-34-240-95-34.eu-west-1.compute.am
 
 
 Changes to be made ::
-. Devices Table - remove secondary index
+. Provide button in webapp to clear ec2 cache
+. EC2 cache should have TTL
+. Uncached Webapp api calls should get uncached EC2 results
 . Download intents CSV & maintain here
 . CICD pipeline
 . 
