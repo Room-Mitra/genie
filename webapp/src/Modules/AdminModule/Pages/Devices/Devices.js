@@ -13,23 +13,34 @@ const Devices = () => {
         const devicesPromise = httpGet(EC2_API_ENDPOINT + '/devices');
         devicesPromise.then((devices) => {
             setAllDevices(devices);
-            const rowData = devices.map((device) => {
+            setRowData(devices);
+            /*const rowData = devices.map((device) => {
                 return {
                     roomId: device.roomId,
                     deviceId: device.deviceId,
-                    deviceType: device.deviceInfo.deviceType,
-                    deviceTags: device.deviceInfo.deviceTags,
-                    deviceNotes: device.deviceInfo.details,
-                    roomFloor: device.roomInfo.floor,
-                    roomTags: device.roomInfo.roomTags,
-                    roomNotest: device.roomInfo.details
+                    deviceType: device.deviceType,
+                    deviceTags: device.deviceTags,
+                    deviceNotes: device.deviceNotes,
+                    propertyName: device.propertyName,
+                    floor: device.floor,
+                    room: device.room,
+                    roomTags: device.roomTags,
+                    roomNotes: device.roomNotes,
+                    registeredAtUTC: device.registeredAtUTC,
+                    // roomId: device.roomInfo.roomId,
+                    // deviceType: device.deviceInfo.deviceType,
+                    // deviceTags: device.deviceInfo.deviceTags,
+                    // deviceNotes: device.deviceInfo.details,
+                    // roomFloor: device.roomInfo.floor,
+                    // roomTags: device.roomInfo.roomTags,
+                    // roomNotest: device.roomInfo.details
                 }
             })
-            setRowData(rowData);
+            setRowData(rowData);*/
         })
     }, []);
 
-    const CustomButtonComponent = (props) => {
+    const SaveChangesButtonComponent = (props) => {
         return <button onClick={(x) => console.log(props, x)}>Save Changes</button>;
     };
 
@@ -47,7 +58,7 @@ const Devices = () => {
         { headerName: "Room Notes", field: "roomNotest", filter: true, editable: true },
         { headerName: "Device Notes", field: "deviceNotes", filter: true, editable: true },
         { headerName: "Device ID", field: "deviceId" },
-        { headerName: " ", cellRenderer: CustomButtonComponent }
+        { headerName: " ", cellRenderer: SaveChangesButtonComponent }
     ]);
 
     if (!allDevices) {

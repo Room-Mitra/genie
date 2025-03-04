@@ -5,12 +5,20 @@ const registerNewDevice = async (device) => {
     const params = {
         TableName: DEVICES_TABLE_NAME,
         Item: {
-            deviceId: device.deviceId,
-            roomId: device.roomId,
-            roomInfo: device.roomInfo,
-            deviceInfo: device.deviceInfo,
-            registeredAtUTC: device.registeredAtUTC
+            ...device
+            // deviceId: device.deviceId,
+            // roomId: device.roomId,
+            // propertyName: device.propertyName,
+            // floor: device.floor,
+            // room: device.room,
+            // roomTags: device.roomTags,
+            // roomNotes: device.roomNotes,
+            // deviceType: device.deviceType,
+            // deviceTags: device.deviceTags,
+            // deviceNotes: device.deviceNotes,
+            // registeredAtUTC: device.registeredAtUTC
         },
+
     };
 
     await DDB.put(params).promise();
