@@ -9,18 +9,34 @@ const warmCache = async () => {
 };
 
 const registerNewDevice = (device) => {
+    removeDeviceIfExists(device)
+    addDeviceToCache(device)
+};
+
+const removeDeviceIfExists = (device) => {
     const deviceId = device.deviceId;
     const deviceIndex = ALL_DEVICES.findIndex((device) => device.deviceId === deviceId);
-    console.log("deviceIndex", deviceIndex);
+
     if (deviceIndex !== -1) {
         ALL_DEVICES.splice(deviceIndex, 1);
     }
+}
 
+const addDeviceToCache = (device) => {
     ALL_DEVICES.push(device);
-};
+}
+
+const updateDevice = (device) => {
+    removeDeviceIfExists(device)
+    addDeviceToCache(device)
+}
+
+const updateMultipleDevices = (devices) => {
+    devices.forEach(device => updateDevice(device));
+}
 
 const getDevices = () => {
     return ALL_DEVICES;
 };
 
-module.exports = { registerNewDevice, getDevices, warmCache };
+module.exports = { registerNewDevice, getDevices, updateMultipleDevices, warmCache };
