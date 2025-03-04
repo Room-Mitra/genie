@@ -56,6 +56,11 @@ class Cache {
         return null;
     }
 
+    async delete(url) {
+        const cache = await this.openCache();
+        await cache.delete(url);
+    }
+
     static getInstance() {
         if (!Cache.instance) {
             Cache.instance = new Cache();

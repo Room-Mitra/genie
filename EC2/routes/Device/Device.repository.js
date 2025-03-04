@@ -4,24 +4,11 @@ const DDB = require("../../config/DynamoDb.config.js");
 const registerNewDevice = async (device) => {
     const params = {
         TableName: DEVICES_TABLE_NAME,
-        Item: {
-            ...device
-            // deviceId: device.deviceId,
-            // roomId: device.roomId,
-            // propertyName: device.propertyName,
-            // floor: device.floor,
-            // room: device.room,
-            // roomTags: device.roomTags,
-            // roomNotes: device.roomNotes,
-            // deviceType: device.deviceType,
-            // deviceTags: device.deviceTags,
-            // deviceNotes: device.deviceNotes,
-            // registeredAtUTC: device.registeredAtUTC
-        },
+        Item: { ...device },
 
     };
 
-    await DDB.put(params).promise();
+    await DDB.put(params).promise();// TODO :: Handle Error
     return params.Item;
 };
 
@@ -30,12 +17,34 @@ const getAllDevices = async () => {
         TableName: DEVICES_TABLE_NAME,
     };
 
-    const devices = await DDB.scan(params).promise();
+    const devices = await DDB.scan(params).promise();// TODO :: Handle Error
     console.log(devices);
     return devices.Items;
 };
 
+const updateDevice = async (device) => {
+    const params = {
+        TableName: DEVICES_TABLE_NAME,
+        Item: { ...device },
+
+    };
+
+    await DDB.put(params).promise(); // TODO :: Handle Error
+    return params.Item;
+}
+
+const updateMultipleDevices = async (devices) => {
+    const updatedDeviceData = [];
+    devices.forEach(async (device) => {
+        const updatedData = await updateDevice(device)
+        updatedDeviceData.push(updatedData)
+    });
+    return updatedDeviceData;
+
+}
+
 module.exports = {
     registerNewDevice,
-    getAllDevices
+    getAllDevices,
+    updateMultipleDevices
 };

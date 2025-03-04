@@ -29,5 +29,6 @@ const httpGetUncached = async (url, bypassServerCache = false) => {
 export const httpPut = async (url, data) => {
     const response = await axios.put(url, data);  // TODO: handle error
     console.log("API RESPONSE :: ", url, response);
+    cacheInstance.delete(url);
     return response;
 }

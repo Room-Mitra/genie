@@ -1,47 +1,34 @@
 
 import { useEffect, useState } from "react";
-import { httpGet } from "../../../../Services/APIService";
+import { httpGet, httpPut } from "../../../../Services/APIService";
 import DataTable from "../../../../Common/DataTable/DataTable";
 import { EC2_API_ENDPOINT } from "../../../../Constants/Environment.constants";
 
+const DEVICES_API_URI = '/devices';
 
 const Devices = () => {
 
     const [allDevices, setAllDevices] = useState(null);
 
     useEffect(() => {
-        const devicesPromise = httpGet(EC2_API_ENDPOINT + '/devices');
-        devicesPromise.then((devices) => {
-            setAllDevices(devices);
-            setRowData(devices);
-            /*const rowData = devices.map((device) => {
-                return {
-                    roomId: device.roomId,
-                    deviceId: device.deviceId,
-                    deviceType: device.deviceType,
-                    deviceTags: device.deviceTags,
-                    deviceNotes: device.deviceNotes,
-                    propertyName: device.propertyName,
-                    floor: device.floor,
-                    room: device.room,
-                    roomTags: device.roomTags,
-                    roomNotes: device.roomNotes,
-                    registeredAtUTC: device.registeredAtUTC,
-                    // roomId: device.roomInfo.roomId,
-                    // deviceType: device.deviceInfo.deviceType,
-                    // deviceTags: device.deviceInfo.deviceTags,
-                    // deviceNotes: device.deviceInfo.details,
-                    // roomFloor: device.roomInfo.floor,
-                    // roomTags: device.roomInfo.roomTags,
-                    // roomNotest: device.roomInfo.details
-                }
-            })
-            setRowData(rowData);*/
-        })
+        getAllDevicesData()
     }, []);
 
-    const SaveChangesButtonComponent = (props) => {
-        return <button onClick={(x) => console.log(props, x)}>Save Changes</button>;
+    const getAllDevicesData = async () => {
+        const devices = await httpGet(EC2_API_ENDPOINT + DEVICES_API_URI);
+        setAllDevices(devices);
+        setRowData(devices);
+    }
+
+    const SaveChangesButtonComponent = (rowInfo) => {
+
+        const handleClick = async (rowInfo, eventObj) => {
+            await httpPut(EC2_API_ENDPOINT + DEVICES_API_URI, [rowInfo.data])
+            getAllDevicesData();
+            alert("Data updated")
+        }
+
+        return <button onClick={(eventObj) => handleClick(rowInfo, eventObj)}>Save Changes</button>;
     };
 
     // Row Data: The data to be displayed.
@@ -58,6 +45,7 @@ const Devices = () => {
         { headerName: "Room Notes", field: "roomNotest", filter: true, editable: true },
         { headerName: "Device Notes", field: "deviceNotes", filter: true, editable: true },
         { headerName: "Device ID", field: "deviceId" },
+        { headerName: "Device Registered On", valueGetter: p => new Date(p.data.registeredAtUTC).toLocaleString() },
         { headerName: " ", cellRenderer: SaveChangesButtonComponent }
     ]);
 

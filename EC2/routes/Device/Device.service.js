@@ -1,5 +1,5 @@
-const { registerNewDevice: addDeviceToCache, getDevices: getAllDevicesFromCache } = require("./Device.cache.js")
-const { registerNewDevice: addDeviceToDB } = require("./Device.repository.js")
+const { registerNewDevice: addDeviceToCache, getDevices: getAllDevicesFromCache, updateMultipleDevices: updateCache } = require("./Device.cache.js")
+const { registerNewDevice: addDeviceToDB, updateMultipleDevices: updateDB } = require("./Device.repository.js")
 
 const registerDevice = async (deviceDetails) => {
 
@@ -13,4 +13,9 @@ const getAllDevices = () => {
     return getAllDevicesFromCache();
 }
 
-module.exports = { registerDevice, getAllDevices };
+const updatedDevices = async (updatedDevicesData) => {
+    updateCache(updatedDevicesData);
+    updateDB(updatedDevicesData)
+}
+
+module.exports = { registerDevice, getAllDevices, updatedDevices };

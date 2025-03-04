@@ -1,5 +1,5 @@
 const express = require('express');
-const { registerDevice, getAllDevices } = require('./Device.service.js');
+const { registerDevice, getAllDevices, updatedDevices } = require('./Device.service.js');
 const router = express.Router();
 
 // register device
@@ -16,6 +16,12 @@ router.post('/', (req, res) => {
 // get all devices
 router.get('/', (req, res) => {
     res.send(getAllDevices());
+})
+
+// update devices data
+router.put('/', async (req, res) => {
+    await updatedDevices(req.body)
+    res.send("Updated successfully");
 })
 
 
