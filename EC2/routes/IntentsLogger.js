@@ -4,7 +4,7 @@
 // const IntentLog = [
 //     {
 //         timeStamp: "TIMESTAMP", //PK
-//         roomId: "301",//SK
+//         roomId: "301",//SK?
 //         intentName: "SPA_TIMINGS",
 //         intentTags: ["Paid/Free", "Informational", "Dining", "By_Employees"],
 //         currentGuestDetails: {
