@@ -14,9 +14,10 @@ const Handlers = require("./Handlers/index.js");
 const { RequestHandlers, ErrorHandlers, IntentHandlers } = Handlers;
 const { LaunchRequestHandler, SessionEndedRequestHandler } = RequestHandlers;
 const { ErrorHandler } = ErrorHandlers;
-const { MandatoryIntentHandlers, DeviceIntentHandlers } = IntentHandlers;
+const { MandatoryIntentHandlers, DeviceIntentHandlers, HospatalityIntentHandlers } = IntentHandlers;
 const { HelpIntentHandler, CancelAndStopIntentHandler } = MandatoryIntentHandlers;
 const { RegisterDeviceHandler } = DeviceIntentHandlers;
+const { Hospitality_DentalKit_Handler } = HospatalityIntentHandlers;
 
 const { Interceptors } = require("./Interceptors/index.js");
 const { RequestInterceptor } = Interceptors;
@@ -30,7 +31,11 @@ exports.handler = Alexa.SkillBuilders.custom()
     )
     .addRequestHandlers(
         LaunchRequestHandler,
+
         RegisterDeviceHandler,
+
+        Hospitality_DentalKit_Handler,
+
         HelpIntentHandler,
         CancelAndStopIntentHandler,
         SessionEndedRequestHandler)

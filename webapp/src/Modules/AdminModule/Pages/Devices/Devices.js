@@ -40,12 +40,12 @@ const Devices = () => {
         { headerName: "Device Type", field: "deviceType", filter: true, editable: true },
         { headerName: "Device Tags", field: "deviceTags", filter: true, editable: true },
         { headerName: "Property Name", field: "propertyName", filter: true, editable: true },
-        { headerName: "Room in Floor", field: "roomFloor", filter: true, editable: true },
+        { headerName: "Room in Floor", field: "roomFloor", filter: true, editable: true, cellDataType: 'number' },
         { headerName: "Room Tags", field: "roomTags", filter: true, editable: true },
         { headerName: "Room Notes", field: "roomNotest", filter: true, editable: true },
         { headerName: "Device Notes", field: "deviceNotes", filter: true, editable: true },
         { headerName: "Device ID", field: "deviceId" },
-        { headerName: "Device Registered On", valueGetter: p => new Date(p.data.registeredAtUTC).toLocaleString() },
+        { headerName: "Device Registered On", valueGetter: p => new Date(p.data.registeredAtUTC).toLocaleString(), filter: "agDateColumnFilter" },
         { headerName: " ", cellRenderer: SaveChangesButtonComponent }
     ]);
 
