@@ -1,6 +1,6 @@
 const { getAllDevices: fetchAllDevicesFromRepository } = require("./Device.repository.js")
-
-let ALL_DEVICES = [];  // get all devices from DB
+// TODO :: Add TTL
+let ALL_DEVICES = [];
 
 const warmCache = async () => {
     const devices = await fetchAllDevicesFromRepository();

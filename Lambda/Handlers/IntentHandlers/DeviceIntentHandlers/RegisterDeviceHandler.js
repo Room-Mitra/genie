@@ -15,7 +15,7 @@ const RegisterDeviceHandler = {
         const room_number = handlerInput.requestEnvelope.request.intent.slots.RoomNumber.value;
         const deviceDetails = new Device(device_id, room_number);
 
-        // add try catch
+        // TODO :: add try catch
         const response = await axios.post(`${EC2_ENDPOINT}/devices`, deviceDetails);
         console.log(response)
         const speechText = handlerInput.t('RedgisterDeviceHandler_DeviceRegistered');

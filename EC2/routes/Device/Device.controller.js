@@ -1,11 +1,11 @@
 const express = require('express');
-const { registerDevice, getAllDevices, updatedDevices } = require('./Device.service.js');
 const router = express.Router();
+const { registerDevice, getAllDevices, updatedDevices } = require('./Device.service.js');
 
 // register device
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
     const device = req.body;
-    registerDevice(device);
+    await registerDevice(device);
     res.send(`${JSON.stringify(device)} has been added to the Database`);
 })
 

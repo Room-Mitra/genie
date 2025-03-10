@@ -11,6 +11,7 @@ const languageStrings = {
             CancelAndStopIntentHandler_short: 'English: Goodbye!',
             CancelAndStopIntentHandler_Desc: 'English: Goodbye!!!',
             RedgisterDeviceHandler_DeviceRegistered: 'English: Device Registered Successfully',
+            HospitalityDentalKitHandlerConfirmRequest: 'English: Dental Kit is on it\'s way to your room',
         }
     },
     'hi': {
@@ -23,6 +24,7 @@ const languageStrings = {
             CancelAndStopIntentHandler_short: 'Hindi : Goodbye!',
             CancelAndStopIntentHandler_Desc: 'Hindi: Goodbye!!!',
             RedgisterDeviceHandler_DeviceRegistered: 'Hindi: Device Registered Successfully',
+            HospitalityDentalKitHandlerConfirmRequest: 'Hindi: Dental Kit is on it\'s way to your room',
 
         }
     }
