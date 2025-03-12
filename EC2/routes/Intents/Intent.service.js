@@ -1,9 +1,8 @@
 const { getRoomIdFromDeviceId } = require("../Device/Device.service");
 const { addIntent: addIntentToCache, isIntentExists } = require("./Intent.cache");
-const { addIntent: addIntentToDB } = require("./Intent.repository")
+const { addIntent: addIntentToDB, getIntentsForDate: getIntentsForDateFromRepo } = require("./Intent.repository")
 
 const registerIntent = async (intent) => {
-    // ensureIntentIdUnique(intent); // Over optimization Not Reqd
     if (!intent.roomId) {
         updateIntentWithRoomNumber(intent); // TODO :: Handle Error 
     }
@@ -11,16 +10,16 @@ const registerIntent = async (intent) => {
     addIntentToDB(intent)
 }
 
-const updateIntentWithRoomNumber = (intent) => {
+const updateIntentWithRoomNumber = (intent) => { // TODO :: Get entire room info
     const deviceId = intent.deviceId;
     const roomId = getRoomIdFromDeviceId(deviceId) //TODO :: Handle Error
     intent.roomId = roomId;
 }
 
-/*const ensureIntentIdUnique = (intent) => {
-    while (isIntentExists(intent)) { // TODO:: add logs as you are updating PK coming from lambda.. will be hard to track if error
-        intent.requestedTime++;
-    }
-}*/
+const getIntentsForDate = async (dateAsInteger) => {
+    const intents = await getIntentsForDateFromRepo(dateAsInteger); // TODO : add caching
+    return intents;
+}
 
-module.exports = { registerIntent };
+
+module.exports = { registerIntent, getIntentsForDate };

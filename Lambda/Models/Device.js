@@ -4,7 +4,7 @@ class Device {
         this.roomId = roomId;
         this.propertyName = defaultRoomInfo.propertyName;
         this.floor = defaultRoomInfo.floor;
-        this.room = defaultRoomInfo.room;
+        // this.room = defaultRoomInfo.room;
         this.roomTags = defaultRoomInfo.roomTags;
         this.roomNotes = defaultRoomInfo.notes;
         this.deviceType = defaultDeviceInfo.deviceType;
