@@ -1,0 +1,115 @@
+{
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "room service",
+            "intents": [
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.HelpIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": []
+                },
+                {
+                    "name": "HelloWorldIntent",
+                    "slots": [],
+                    "samples": [
+                        "hello",
+                        "how are you",
+                        "say hi world",
+                        "say hi",
+                        "hi",
+                        "say hello world",
+                        "say hello"
+                    ]
+                },
+                {
+                    "name": "AMAZON.NavigateHomeIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.FallbackIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AskWeatherIntent",
+                    "slots": [],
+                    "samples": [
+                        "how is the weather today"
+                    ]
+                },
+                {
+                    "name": "RegisterDeviceIntent",
+                    "slots": [
+                        {
+                            "name": "RoomNumber",
+                            "type": "AMAZON.AlphaNumeric"
+                        }
+                    ],
+                    "samples": [
+                        "Register this device with room number {RoomNumber}"
+                    ]
+                },
+                {
+                    "name": "HospitalityDentalKitIntent",
+                    "slots": [],
+                    "samples": [
+                        "get tooth paste",
+                        "get tooth brush",
+                        "get dental kit",
+                        "get me dental kit",
+                        "get me tooth paste",
+                        "get me a tooth brush",
+                        "may i get dental kit",
+                        "can i get dental kit",
+                        "may i get tooth paste",
+                        "can i get tooth paste",
+                        "may i get tooth brish",
+                        "can i get  tooth brush",
+                        "i need tooth paste",
+                        "i need dental kit",
+                        "i need toothbrush"
+                    ]
+                }
+            ],
+            "types": []
+        },
+        "dialog": {
+            "intents": [
+                {
+                    "name": "RegisterDeviceIntent",
+                    "confirmationRequired": true,
+                    "prompts": {
+                        "confirmation": "Confirm.Intent.1617036597840"
+                    },
+                    "slots": [
+                        {
+                            "name": "RoomNumber",
+                            "type": "AMAZON.AlphaNumeric",
+                            "confirmationRequired": false,
+                            "elicitationRequired": false,
+                            "prompts": {}
+                        }
+                    ]
+                }
+            ],
+            "delegationStrategy": "ALWAYS"
+        },
+        "prompts": [
+            {
+                "id": "Confirm.Intent.1617036597840",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Say NO if you are not a employee of hospatality cobotics. Are you sure you want to associate this device with {RoomNumber}"
+                    }
+                ]
+            }
+        ]
+    }
+}
