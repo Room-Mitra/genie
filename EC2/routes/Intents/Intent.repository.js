@@ -28,7 +28,6 @@ const getIntentsForDate = async (dateAsInteger) => {
     return intents.Items;
 }
 
-// TODO :: getIntententsBEtweenDates
 
 module.exports = {
     addIntent, getIntentsForDate
