@@ -18,10 +18,13 @@ const Intents = () => {
         { headerName: "Requested Date", valueGetter: p => new Date(p.data.requestedTime).toLocaleDateString(), filter: true },
         { headerName: "Requested Time", valueGetter: p => new Date(p.data.requestedTime).toLocaleTimeString(), filter: true },
         { headerName: "Intent Name", field: "intentName", filter: true, editable: true },
+        { headerName: "Intent Type", field: "intentType", filter: true, editable: true },
         { headerName: "Room ID", field: "roomId", filter: true, editable: false },
+        { headerName: "In Progress Time", valueGetter: p => p.data.inProgressTime ? new Date(p.data.inProgressTime).toLocaleTimeString() : "-", filter: true },
+        { headerName: "Completed Time", valueGetter: p => p.data.completedTime ? new Date(p.data.completedTime).toLocaleTimeString() : "-", filter: true },
+        { headerName: "Assigned To", field: "assignedTo", filter: true, editable: true },
         // { headerName: "Property Name", field: "propertyName", filter: true, editable: true },
         // { headerName: "Room in Floor", field: "roomFloor", filter: true, editable: true, cellDataType: 'number' },
-        // { headerName: "Room Tags", field: "roomTags", filter: true, editable: true },
         // { headerName: "Room Notes", field: "roomNotest", filter: true, editable: true },
         // { headerName: "Device Notes", field: "deviceNotes", filter: true, editable: true },
         // { headerName: "Device ID", field: "deviceId" },
@@ -39,6 +42,7 @@ const Intents = () => {
         Object.keys(intentsApiResponse).forEach(daysSinceEpoch => {
             intents.push(...intentsApiResponse[daysSinceEpoch]);
         })
+        intents.sort((a, b) => b.requestedTime - a.requestedTime);
         console.log("Intents = ", intents)
         setAllIntents(intents);
         setRowData(intents);

@@ -10,7 +10,7 @@ const warmCache = async () => {
     const { getIntentsForDateRange } = require("./Intent.service.js")
 
     const today_daysSinceEpoch = getDaysSinceEpoch(+Date.now());
-    ALL_INTENTS = await getIntentsForDateRange(today_daysSinceEpoch, TTL_IN_DAYS);
+    ALL_INTENTS = await getIntentsForDateRange(today_daysSinceEpoch, TTL_IN_DAYS, true);
     console.log("INTENTS CACHE HAS BEEN WARMED  ::  ", JSON.stringify(ALL_INTENTS));
     setTimerForTTL()
 };
@@ -55,4 +55,8 @@ const updateIntent = (intent) => {
 const updateMultipleIntents = (intents) => {
     intents.forEach(intent => updateIntent(intent));
 }
-module.exports = { updateMultipleIntents, removeIntentIfExists, addIntent, warmCache };
+
+const getIntentsForDate = async (dateAsInteger) => {
+    return ALL_INTENTS[dateAsInteger];
+}
+module.exports = { updateMultipleIntents, removeIntentIfExists, addIntent, warmCache, getIntentsForDate };
