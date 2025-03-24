@@ -1,5 +1,5 @@
 const { getRoomInfoFromDeviceId } = require("../Device/Device.service");
-const { addIntent: addIntentToCache } = require("./Intent.cache");
+const { addIntent: addIntentToCache, getIntentsForDate: getIntentsForDateFromCache } = require("./Intent.cache");
 const { addIntent: addIntentToDB, getIntentsForDate: getIntentsForDateFromRepo } = require("./Intent.repository")
 
 const registerIntent = async (intent) => {
@@ -16,8 +16,8 @@ const updateIntentWithRoomId = (intent) => {
     intent.roomId = roomId;
 }
 
-const getIntentsForDate = async (dateAsInteger) => {
-    const intents = await getIntentsForDateFromRepo(dateAsInteger); // TODO : add caching
+const getIntentsForDate = async (dateAsInteger, bypassCache = false) => {
+    const intents = await (bypassCache ? getIntentsForDateFromRepo(dateAsInteger) : getIntentsForDateFromCache(dateAsInteger)); // TODO : add caching
     intents.forEach(intent => {
         const { propertyName, floor, roomTags, roomNotes } = getRoomInfoFromDeviceId(intent.deviceId); //TODO :: Handle Error
         intent.propertyName = propertyName;
@@ -28,13 +28,13 @@ const getIntentsForDate = async (dateAsInteger) => {
     return intents;
 }
 
-const getIntentsForDateRange = async (lastDaySinceEpoch, range = 0) => {
+const getIntentsForDateRange = async (lastDaySinceEpoch, range = 0, bypassCache = false) => {
     if (range > 30) {
         throw new Error("Range must be less than 30");
     }
     const promisesArray = [];
     for (let i = lastDaySinceEpoch; i >= lastDaySinceEpoch - range; i--) {
-        promisesArray.push(getIntentsForDate(i));
+        promisesArray.push(getIntentsForDate(i, bypassCache));
     }
     const intentsArray = await Promise.all(promisesArray);
     const INTENTS = {};

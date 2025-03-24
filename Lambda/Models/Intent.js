@@ -21,7 +21,7 @@ class Intent {
 
         this.status = status; // Requested, In Progress, Completed, Not Applicable 
         this.requestedTime = Date.now(); //SK
-        this.InProgressTime = null;
+        this.inProgressTime = null;
         this.completedTime = null;
     }
 }
