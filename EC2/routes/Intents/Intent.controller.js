@@ -11,8 +11,8 @@ router.post('/', async (req, res) => {
 
 router.get('/:dateAsInteger', async (req, res) => {
     const dateAsInteger = +req.params.dateAsInteger;
-    console.log("/intents/" + dateAsInteger)
-    const intents = await getIntentsForDateRange(dateAsInteger)
+    const range = +(req.query.range || 0);
+    const intents = await getIntentsForDateRange(dateAsInteger, range)
     res.send(intents)
 })
 

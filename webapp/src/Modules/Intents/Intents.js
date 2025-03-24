@@ -34,7 +34,7 @@ const Intents = () => {
     }, []);
 
     const getAllIntentsData = async () => {
-        const intentsApiResponse = await httpGet(EC2_API_ENDPOINT + INTENTS_API_URI + "/" + getDaysSinceEpoch(+Date.now()), true);
+        const intentsApiResponse = await httpGet(EC2_API_ENDPOINT + INTENTS_API_URI + "/" + getDaysSinceEpoch(+Date.now()) + "?range=2", true);
         const intents = [];
         Object.keys(intentsApiResponse).forEach(daysSinceEpoch => {
             intents.push(...intentsApiResponse[daysSinceEpoch]);
