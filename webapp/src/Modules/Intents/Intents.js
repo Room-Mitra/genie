@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { httpGet, httpPut } from "../../Services/APIService";
 import DataTable from "../../Common/DataTable/DataTable";
 import { EC2_API_ENDPOINT } from "../../Constants/Environment.constants";
+import { getDaysSinceEpoch } from "../../Services/Common.service";
 
 const INTENTS_API_URI = '/intents';
 
@@ -14,6 +15,7 @@ const Intents = () => {
     // Column Definitions: Defines the columns to be displayed.
     const [colDefs, setColDefs] = useState([
         // { headerName: "Requested Time", field: "requestedTime", filter: true, editable: true },
+        { headerName: "Requested Date", valueGetter: p => new Date(p.data.requestedTime).toLocaleDateString(), filter: true },
         { headerName: "Requested Time", valueGetter: p => new Date(p.data.requestedTime).toLocaleTimeString(), filter: true },
         { headerName: "Intent Name", field: "intentName", filter: true, editable: true },
         { headerName: "Room ID", field: "roomId", filter: true, editable: false },
@@ -32,8 +34,12 @@ const Intents = () => {
     }, []);
 
     const getAllIntentsData = async () => {
-        const intents = await httpGet(EC2_API_ENDPOINT + INTENTS_API_URI + "/" + Math.floor(Date.now() / (24 * 60 * 60 * 1000)), true);
-        console.log("Intents for Today = ", intents)
+        const intentsApiResponse = await httpGet(EC2_API_ENDPOINT + INTENTS_API_URI + "/" + getDaysSinceEpoch(+Date.now()), true);
+        const intents = [];
+        Object.keys(intentsApiResponse).forEach(daysSinceEpoch => {
+            intents.push(...intentsApiResponse[daysSinceEpoch]);
+        })
+        console.log("Intents = ", intents)
         setAllIntents(intents);
         setRowData(intents);
     }

@@ -7,7 +7,7 @@ Commands :
 1. Local Instance of EC2 : 
 npm start
 
-2. Code sync between local and EC2 :
+2. Code sync between local and EC2 : EC2 folder:
 rsync -avz --exclude 'node_modules' --exclude '.git' \
 -e "ssh -i ./config/ireland-adithya-macAir.pem" \
 . ubuntu@ec2-34-240-95-34.eu-west-1.compute.amazonaws.com:~/app
@@ -23,9 +23,9 @@ ssh -i "ireland-adithya-macAir.pem" ubuntu@ec2-34-240-95-34.eu-west-1.compute.am
 
 Changes to be made ::
 . Provide button in webapp to clear ec2 cache
+. Logging and error handling
 . EC2 cache should have TTL
 . Uncached Webapp api calls should get uncached EC2 results
-. Download intents CSV & maintain here
 . CICD pipeline
 . Register device intent confirmation needs to be fixed
 . Rename hospatality intent handler to housekeeping intent handler in lambda

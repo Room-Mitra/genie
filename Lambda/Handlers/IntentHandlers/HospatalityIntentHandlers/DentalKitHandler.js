@@ -4,7 +4,7 @@ const { EC2_ENDPOINT } = require('../../../Constants/EC2.constants.js');
 const Intent = require('../../../Models/Intent.js');
 
 const getDentalKitIntent = (device_id) => {
-    return new Intent(device_id, "Dental Kit", "House Keeping", true, "Requested")
+    return new Intent(device_id, Intent.INTENT_NAMES.DENTAL_KIT, true)
 }
 
 const Hospitality_DentalKit_Handler = {

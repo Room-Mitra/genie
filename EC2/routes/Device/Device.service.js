@@ -18,15 +18,21 @@ const updatedDevices = async (updatedDevicesData) => {
     updateDB(updatedDevicesData)
 }
 
-const getRoomIdFromDeviceId = (deviceId) => {
-    // TODO :: update to get all room info, like room floor, not just rood number
+const getRoomInfoFromDeviceId = (deviceId) => {
+
     const allDevices = getDevices();
     const deviceIndex = allDevices.findIndex((device) => device.deviceId === deviceId);
     if (deviceIndex === -1) {
         throw new Error("Invalid Device")
     }
-    return allDevices[deviceIndex].roomId;
+    return {
+        roomId: allDevices[deviceIndex].roomId,
+        propertyName: allDevices[deviceIndex].propertyName,
+        floor: allDevices[deviceIndex].floor,
+        roomTags: allDevices[deviceIndex].roomTags,
+        roomNotes: allDevices[deviceIndex].roomNotes
+    };
 
 }
 
-module.exports = { registerDevice, getAllDevices, updatedDevices, getRoomIdFromDeviceId };
+module.exports = { registerDevice, getAllDevices, updatedDevices, getRoomInfoFromDeviceId };

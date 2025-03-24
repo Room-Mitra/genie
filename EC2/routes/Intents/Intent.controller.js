@@ -1,5 +1,5 @@
 const express = require('express');
-const { registerIntent, getIntentsForDate } = require('./Intent.service');
+const { registerIntent, getIntentsForDateRange } = require('./Intent.service');
 const router = express.Router();
 
 // register intent
@@ -12,7 +12,7 @@ router.post('/', async (req, res) => {
 router.get('/:dateAsInteger', async (req, res) => {
     const dateAsInteger = +req.params.dateAsInteger;
     console.log("/intents/" + dateAsInteger)
-    const intents = await getIntentsForDate(dateAsInteger)
+    const intents = await getIntentsForDateRange(dateAsInteger)
     res.send(intents)
 })
 
