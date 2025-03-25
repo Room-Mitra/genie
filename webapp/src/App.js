@@ -10,6 +10,7 @@ import { Suspense, lazy } from "react";
 // import Devices from "./Modules/AdminModule/Pages/Devices"
 
 const Intents = lazy(() => import('./Modules/Intents/Intents'));
+const CheckIn = lazy(() => import('./Modules/CheckIn/CheckIn'));
 const Devices = lazy(() => import('./Modules/AdminModule/Pages/Devices/index'));
 const Sidebar = lazy(() => import('./Common/SideBar/Sidebar'));
 
@@ -31,11 +32,11 @@ function App() {
               <Devices />
             </Suspense>}
         />
-        {/* <Route
-            path="/about-us/vision"
-            element={<OurVision />}
-        />
         <Route
+          path="/check-in"
+          element={<CheckIn />}
+        />
+        {/*   <Route
             path="/services"
             element={<Services />}
         />
