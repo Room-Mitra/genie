@@ -64,6 +64,11 @@ export const SidebarData = [
             // },
         ],
     },
+    {
+        title: "Rooms",
+        path: "/rooms",
+        icon: <IoIcons.IoMdHelpCircle />,
+    },
     // {
     //     title: "Contact",
     //     path: "/contact",

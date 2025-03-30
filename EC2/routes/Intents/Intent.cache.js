@@ -57,6 +57,6 @@ const updateMultipleIntents = (intents) => {
 }
 
 const getIntentsForDate = async (dateAsInteger) => {
-    return ALL_INTENTS[dateAsInteger];
+    return ALL_INTENTS[dateAsInteger] || [];
 }
 module.exports = { updateMultipleIntents, removeIntentIfExists, addIntent, warmCache, getIntentsForDate };
