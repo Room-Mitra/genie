@@ -45,6 +45,13 @@ const CheckOut = () => {
 
             <button type="button" onClick={handleGuestCheckOut}>CHECK OUT</button>
             {error && <p style={{ color: 'red' }}>{error}</p>}
+            <div>
+                BILLED INTENTS
+                {/*TODO :: billable intents for this booking*/}
+            </div>
+            <div>
+                FEEDBACK
+            </div>
         </div>
     );
 
