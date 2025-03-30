@@ -12,6 +12,7 @@ import { Suspense, lazy } from "react";
 const Intents = lazy(() => import('./Modules/Intents/Intents'));
 const Rooms = lazy(() => import('./Modules/Rooms/Rooms'));
 const CheckIn = lazy(() => import('./Modules/CheckIn/CheckIn'));
+const CheckOut = lazy(() => import('./Modules/Checkout/Checkout'));
 const Devices = lazy(() => import('./Modules/AdminModule/Pages/Devices/index'));
 const Sidebar = lazy(() => import('./Common/SideBar/Sidebar'));
 
@@ -36,6 +37,10 @@ function App() {
         <Route
           path="/check-in"
           element={<CheckIn />}
+        />
+        <Route
+          path="/check-out"
+          element={<CheckOut />}
         />
         <Route
           path="/rooms"
