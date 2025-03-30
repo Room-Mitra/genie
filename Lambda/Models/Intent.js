@@ -37,11 +37,11 @@ Intent.INTENT_TYPES = {
 }
 
 const getIntentType = (intentName) => {
-    Object.keys(Intent.INTENT_TYPES).forEach(key => {
+    for (let key in Intent.INTENT_TYPES) {
         if (Intent.INTENT_TYPES[key].includes(intentName)) {
             return key;
         }
-    })
+    }
     return "Other"
 }
 
