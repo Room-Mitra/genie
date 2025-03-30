@@ -25,7 +25,7 @@ const getIntentsForDate = async (dateAsInteger) => {
 
     const intents = await DDB.query(params).promise();// TODO :: Handle Error
     console.log(intents);
-    return intents.Items;
+    return intents.Items || [];
 }
 
 

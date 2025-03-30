@@ -28,7 +28,7 @@ const getIntentsForDate = async (dateAsInteger, bypassCache = false) => {
     return intents;
 }
 
-const getIntentsForDateRange = async (lastDaySinceEpoch, range = 0, bypassCache = false) => {
+const getIntentsForDateRange = async (lastDaySinceEpoch, range = 0, bypassCache = false) => { //TODO :: use batchGetItem, this is costly instead of looping individual db calls
     if (range > 30) {
         throw new Error("Range must be less than 30");
     }

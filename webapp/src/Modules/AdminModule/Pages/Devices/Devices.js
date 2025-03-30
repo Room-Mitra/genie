@@ -16,6 +16,7 @@ const Devices = () => {
 
     const getAllDevicesData = async () => {
         const devices = await httpGet(EC2_API_ENDPOINT + DEVICES_API_URI);
+        devices.sort((b, a) => b.roomId - a.roomId);
         setAllDevices(devices);
         setRowData(devices);
     }
@@ -39,10 +40,10 @@ const Devices = () => {
         { headerName: "Room ID", field: "roomId", filter: true, editable: true },
         { headerName: "Device Type", field: "deviceType", filter: true, editable: true },
         { headerName: "Device Tags", field: "deviceTags", filter: true, editable: true },
-        { headerName: "Property Name", field: "propertyName", filter: true, editable: true },
-        { headerName: "Room in Floor", field: "roomFloor", filter: true, editable: true, cellDataType: 'number' },
-        { headerName: "Room Tags", field: "roomTags", filter: true, editable: true },
-        { headerName: "Room Notes", field: "roomNotest", filter: true, editable: true },
+        // { headerName: "Property Name", field: "propertyName", filter: true, editable: true },
+        // { headerName: "Room in Floor", field: "roomFloor", filter: true, editable: true, cellDataType: 'number' },
+        // { headerName: "Room Tags", field: "roomTags", filter: true, editable: true },
+        // { headerName: "Room Notes", field: "roomNotest", filter: true, editable: true },
         { headerName: "Device Notes", field: "deviceNotes", filter: true, editable: true },
         { headerName: "Device ID", field: "deviceId" },
         { headerName: "Device Registered On", valueGetter: p => new Date(p.data.registeredAtUTC).toLocaleString(), filter: "agDateColumnFilter" },
