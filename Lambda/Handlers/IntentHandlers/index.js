@@ -1,11 +1,11 @@
 const MandatoryIntentHandlers = require("./MandatoryIntentHandlers/index.js");
 const DeviceIntentHandlers = require("./DeviceIntentHandlers/index.js");
-const HospatalityIntentHandlers = require("./HospatalityIntentHandlers/index.js");
+const HouseKeepingIntentHandlers = require("./HouseKeepingIntentHandlers/index.js");
 
 const IntentHandlers = {
     MandatoryIntentHandlers,
     DeviceIntentHandlers,
-    HospatalityIntentHandlers
+    HouseKeepingIntentHandlers
 }
 
 module.exports = IntentHandlers;

@@ -7,7 +7,7 @@ const getDentalKitIntent = (device_id) => {
     return new Intent(device_id, Intent.INTENT_NAMES.DENTAL_KIT, true)
 }
 
-const Hospitality_DentalKit_Handler = {
+const HouseKeeping_DentalKit_Handler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
             && Alexa.getIntentName(handlerInput.requestEnvelope) === 'HospitalityDentalKitIntent';
@@ -35,4 +35,4 @@ const Hospitality_DentalKit_Handler = {
 
 
 
-module.exports = { Hospitality_DentalKit_Handler };
+module.exports = { HouseKeeping_DentalKit_Handler };
