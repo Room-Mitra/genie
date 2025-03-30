@@ -17,6 +17,11 @@ export const SidebarData = [
         path: "/check-in",
         icon: <IoIcons.IoMdHelpCircle />,
     },
+    {
+        title: "Check out",
+        path: "/check-out",
+        icon: <IoIcons.IoMdHelpCircle />,
+    },
     // {
     //     title: "About Us",
     //     path: "/about-us",
