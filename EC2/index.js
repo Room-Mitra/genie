@@ -8,6 +8,7 @@ const cors = require('cors');
 const express = require('express');
 const bodyParser = require('body-parser');
 const deviceRoutes = require('./routes/Device/Device.controller.js');
+const guestRoutes = require('./routes/Guest/Guest.controller.js');
 const intentsRoutes = require("./routes/Intents/Intent.controller.js")
 const { runFunctionsOnServerStartup } = require('./common/services/startup.service.js');
 
@@ -20,6 +21,7 @@ app.use(cors());
 
 app.use('/devices', deviceRoutes);
 app.use('/intents', intentsRoutes);
+app.use('/guests', guestRoutes);
 
 app.get('/', (req, res) => {
     console.log('[GET ROUTE]');

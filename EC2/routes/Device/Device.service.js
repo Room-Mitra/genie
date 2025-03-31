@@ -13,7 +13,7 @@ const getAllDevices = () => {
     return getAllDevicesFromCache();
 }
 
-const updatedDevices = async (updatedDevicesData) => {
+const updateDevices = async (updatedDevicesData) => {
     updateCache(updatedDevicesData);
     updateDB(updatedDevicesData)
 }
@@ -35,4 +35,4 @@ const getRoomInfoFromDeviceId = (deviceId) => {
 
 }
 
-module.exports = { registerDevice, getAllDevices, updatedDevices, getRoomInfoFromDeviceId };
+module.exports = { registerDevice, getAllDevices, updateDevices, getRoomInfoFromDeviceId };
