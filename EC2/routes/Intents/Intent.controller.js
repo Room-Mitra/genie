@@ -1,5 +1,5 @@
-const express = require('express');
 const { registerIntent, getIntentsForDateRange } = require('./Intent.service');
+const express = require('express');
 const router = express.Router();
 
 // register intent

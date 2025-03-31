@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { httpGet, httpPut } from "../../Services/APIService";
+import { httpGet, httpPost } from "../../Services/APIService";
 import { EC2_API_ENDPOINT } from "../../Constants/Environment.constants";
 
 const DEVICES_API_URI = '/devices';
+const GUEST_API_URI = '/guests';
 
 const CheckIn = () => {
     const [roomNumber, setRoomNumber] = useState('');
     const [allRoomNumbers, setAllRoomNumbers] = useState([]);
     const [guestPhoneNumber, setGuestPhoneNumber] = useState('');
-    const [guestDetails, setGuestDetails] = useState(null);
+    const [guestDetails, setGuestDetails] = useState(undefined);
     const [error, setError] = useState(null);
-    const [isFetchingGuestDetails, setIsFetchingGuestDetails] = useState(false);
+    const [isFetchingGuestDetails, setIsFetchingGuestDetails] = useState(null);
 
 
     useEffect(() => {
@@ -26,16 +27,13 @@ const CheckIn = () => {
 
     const handleRoomNumberChange = (event) => {
         setRoomNumber(event.target.value);
-        console.log("Room number ::", (event.target.value))
     };
 
     const handleGuestPhoneNumberChange = (event) => {
         setGuestPhoneNumber(event.target.value);
-        console.log("Guest phone number ::", (event.target.value))
-
     };
 
-    const handleFetchGuestDetailsClick = () => {
+    const handleFetchGuestDetailsClick = async () => {
         if (!roomNumber || !guestPhoneNumber) {
             setError('Please enter both room number and guest phone number');
             return;
@@ -45,32 +43,26 @@ const CheckIn = () => {
             setError('Invalid room number');
             return;
         }
+        setError(null);
+        setIsFetchingGuestDetails(true);
 
-        // setIsFetchingGuestDetails(true);
-        // httpGet(`/api/guest-details?roomNumber=${roomNumber}&phoneNumber=${guestPhoneNumber}`)
-        //     .then(response => {
-        //         if (response.data) {
-        //             setGuestDetails(response.data);
-        //         } else {
-        //             setGuestDetails({});
-        //         }
-        //         setIsFetchingGuestDetails(false);
-        //     })
-        //     .catch(error => {
-        //         console.error(error);
-        //         setIsFetchingGuestDetails(false);
-        //     });
+        const { guestData } = await httpGet(EC2_API_ENDPOINT + GUEST_API_URI + "/" + guestPhoneNumber)
+        console.log("guestDetails :: ", guestData)
+        setGuestDetails(guestData)
+        setIsFetchingGuestDetails(false);
+
     };
 
-    const handleSaveGuestDetailsClick = () => {
-        // Save guest details to API
-        httpPut('/api/guest-details', guestDetails)
-            .then(response => {
-                console.log(response.data);
-            })
-            .catch(error => {
-                console.error(error);
-            });
+    const handleSaveGuestDetailsClick = async () => {
+        console.log(guestDetails)
+        if (`${guestDetails.name}` === "" || `${guestDetails.email}` === "") {
+            setError('Please enter all guest details');
+            return;
+        }
+        setError(null);
+        guestDetails.id = guestPhoneNumber;
+        const resp = await httpPost(EC2_API_ENDPOINT + GUEST_API_URI, guestDetails)
+        console.log(resp)
     };
 
 
@@ -91,15 +83,15 @@ const CheckIn = () => {
                 {error && <p style={{ color: 'red' }}>{error}</p>}
                 {isFetchingGuestDetails && <p>Loading...</p>}
                 <div>
-                    {guestDetails && (
+                    {/* {guestDetails && (
                         <div>
                             <h3>Guest Details</h3>
                             <p>Name: {guestDetails.name}</p>
                             <p>Email: {guestDetails.email}</p>
                             <p>Phone Number: {guestDetails.phoneNumber}</p>
                         </div>
-                    )}
-                    {!guestDetails && (
+                    )} */}
+                    {isFetchingGuestDetails === false && (
                         <div>
                             <h3>Enter Guest Details</h3>
                             <label>
@@ -110,11 +102,11 @@ const CheckIn = () => {
                                 Email:
                                 <input type="email" value={guestDetails?.email} onChange={(event) => setGuestDetails({ ...guestDetails, email: event.target.value })} />
                             </label>
-                            <label>
+                            {/* <label>
                                 Phone Number:
                                 <input type="text" value={guestDetails?.phoneNumber} onChange={(event) => setGuestDetails({ ...guestDetails, phoneNumber: event.target.value })} />
-                            </label>
-                            <button onClick={handleSaveGuestDetailsClick}>Save Guest Details</button>
+                            </label> */}
+                            <button type="button" onClick={handleSaveGuestDetailsClick}>Save Guest Details</button>
                         </div>
                     )}
                 </div>

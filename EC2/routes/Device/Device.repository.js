@@ -1,5 +1,16 @@
 const { DEVICES_TABLE_NAME } = require("../../Constants/DB.constants.js");
 const DDB = require("../../config/DynamoDb.config.js");
+// const ID_TYPE = "DEVICE:";
+// const addIdType = (device) => {
+//     device.deviceId = `${ID_TYPE}${device.deviceId}`;
+//     return device;
+// }
+
+
+// const removeIdType = (device) => {
+//     device.deviceId = device.deviceId.slice(ID_TYPE.length);
+//     return device;
+// }
 
 const registerNewDevice = async (device) => {
     const params = {

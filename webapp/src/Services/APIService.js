@@ -32,3 +32,11 @@ export const httpPut = async (url, data) => {
     cacheInstance.delete(url);
     return response;
 }
+
+
+export const httpPost = async (url, data) => {
+    const response = await axios.post(url, data);  // TODO: handle error
+    console.log("API RESPONSE :: ", url, response);
+    cacheInstance.delete(url);
+    return response;
+}
