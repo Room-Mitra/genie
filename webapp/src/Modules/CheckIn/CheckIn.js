@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { httpGet, httpPost } from "../../Services/APIService";
 import { EC2_API_ENDPOINT } from "../../Constants/Environment.constants";
+import { DateAndTimePicker } from "../../Common/DateTimePicker/DateAndTimePicker"
+
 
 const DEVICES_API_URI = '/devices';
 const GUEST_API_URI = '/guests';
+const BOOKING_API_URI = '/booking';
 
 const CheckIn = () => {
     const [roomNumber, setRoomNumber] = useState('');
@@ -13,6 +16,7 @@ const CheckIn = () => {
     const [error, setError] = useState(null);
     const [isFetchingGuestDetails, setIsFetchingGuestDetails] = useState(null);
 
+    const checkInTimeState = React.useState(new Date())
 
     useEffect(() => {
         getAllRoomsData()
@@ -46,7 +50,7 @@ const CheckIn = () => {
         setError(null);
         setIsFetchingGuestDetails(true);
 
-        const { guestData } = await httpGet(EC2_API_ENDPOINT + GUEST_API_URI + "/" + guestPhoneNumber)
+        const guestData = await httpGet(EC2_API_ENDPOINT + GUEST_API_URI + "/" + guestPhoneNumber)
         console.log("guestDetails :: ", guestData)
         setGuestDetails(guestData)
         setIsFetchingGuestDetails(false);
@@ -61,11 +65,28 @@ const CheckIn = () => {
         }
         setError(null);
         guestDetails.id = guestPhoneNumber;
-        const resp = await httpPost(EC2_API_ENDPOINT + GUEST_API_URI, guestDetails)
-        console.log(resp)
+        const resp = await httpPost(EC2_API_ENDPOINT + GUEST_API_URI, guestDetails) //TODO:: everytime this is clicked, guest data is over ridden in DB.. needs to be a put, not a post
+        console.log(resp) // show success/failure msg
     };
 
+    const handleCheckInClick = async () => {
+        if ((!roomNumber || !guestPhoneNumber || !guestDetails) || (`${guestDetails.name}` === "" || `${guestDetails.email}` === "")) {
+            setError('Please enter all guest details');
+            return;
+        }
 
+        const [checkinTime] = checkInTimeState;
+        console.log(roomNumber, guestPhoneNumber, guestDetails, checkinTime)
+        const bookingDetails = {
+            guestId: guestPhoneNumber,
+            roomId: roomNumber,
+            checkinTime: +checkinTime,
+            guestName: guestDetails.name,
+            guestEmail: guestDetails.email
+        }
+        const resp = await httpPost(EC2_API_ENDPOINT + BOOKING_API_URI, bookingDetails) //TODO:: everytime this is clicked, guest data is over ridden in DB.. needs to be a put, not a post
+
+    }
 
     return (
         <div>
@@ -83,14 +104,6 @@ const CheckIn = () => {
                 {error && <p style={{ color: 'red' }}>{error}</p>}
                 {isFetchingGuestDetails && <p>Loading...</p>}
                 <div>
-                    {/* {guestDetails && (
-                        <div>
-                            <h3>Guest Details</h3>
-                            <p>Name: {guestDetails.name}</p>
-                            <p>Email: {guestDetails.email}</p>
-                            <p>Phone Number: {guestDetails.phoneNumber}</p>
-                        </div>
-                    )} */}
                     {isFetchingGuestDetails === false && (
                         <div>
                             <h3>Enter Guest Details</h3>
@@ -102,11 +115,14 @@ const CheckIn = () => {
                                 Email:
                                 <input type="email" value={guestDetails?.email} onChange={(event) => setGuestDetails({ ...guestDetails, email: event.target.value })} />
                             </label>
-                            {/* <label>
-                                Phone Number:
-                                <input type="text" value={guestDetails?.phoneNumber} onChange={(event) => setGuestDetails({ ...guestDetails, phoneNumber: event.target.value })} />
-                            </label> */}
                             <button type="button" onClick={handleSaveGuestDetailsClick}>Save Guest Details</button>
+                            <br />
+                            <br />
+                            <br />
+                            <DateAndTimePicker dateTimeState={checkInTimeState} />
+                            <br />
+                            <br />
+                            <button type="button" onClick={handleCheckInClick}>Check In</button>
                         </div>
                     )}
                 </div>

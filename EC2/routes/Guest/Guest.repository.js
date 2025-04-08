@@ -35,7 +35,7 @@ const getGuest = async (guestId) => {
     const guestData = await DDB.query(params).promise();// TODO :: Handle Error
     console.log("Guest Data From DB :: ", guestData, params);
     if (guestData && guestData.Items && guestData.Items.length) {
-        return { "guestData": removeIdType(guestData.Items[0]) };
+        return { ...removeIdType(guestData.Items[0]) };
     }
     return { "guestData": null };
 }

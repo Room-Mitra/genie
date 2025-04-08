@@ -28,4 +28,3 @@ Changes to be made ::
 . Uncached Webapp api calls should get uncached EC2 results
 . CICD pipeline
 . Register device intent confirmation needs to be fixed
-. Rename hospatality intent handler to housekeeping intent handler in lambda
