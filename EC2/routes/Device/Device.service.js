@@ -35,4 +35,12 @@ const getRoomInfoFromDeviceId = (deviceId) => {
 
 }
 
-module.exports = { registerDevice, getAllDevices, updateDevices, getRoomInfoFromDeviceId };
+const addBookingToRoom = async (roomId, bookingId) => {
+    const [deviceInfo] = getAllDevices().filter((device) => device.roomId === roomId)
+    deviceInfo["currentBooking"] = bookingId;
+    console.log(deviceInfo, "++++++++++++++DEVICE INFO++++++++++++")
+    updateDevices([deviceInfo])
+
+}
+
+module.exports = { registerDevice, getAllDevices, updateDevices, getRoomInfoFromDeviceId, addBookingToRoom };

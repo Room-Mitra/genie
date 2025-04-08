@@ -10,14 +10,18 @@ const getGuestDetails = async (guestId) => {
 }
 
 const updateGuestData = async (guestId, guestData) => {
-    updateGuestInDB(guestId, guestData);
+    await updateGuestInDB(guestId, guestData);
+    console.log("GUEST RECORD UPDATED", guestId, guestData)
+    return
 }
 
 const addBookingToGuest = async (guestId, bookingId) => {
-    const guestData = getGuestDetails(guestId);
+    console.log("Adding Booking to Guest :: ", guestId)
+    const guestData = await getGuestDetails(guestId);
+    console.log("Guest Data :: ", guestData)
     guestData.bookings = guestData.bookings || [];
     guestData.bookings.push(bookingId);
-    updateGuestData(guestId, guestData);
+    await updateGuestData(guestId, guestData);
 }
 
 module.exports = { registerGuest, getGuestDetails, updateGuestData, addBookingToGuest }
