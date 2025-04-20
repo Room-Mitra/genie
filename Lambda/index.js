@@ -17,7 +17,7 @@ const { ErrorHandler } = ErrorHandlers;
 const { MandatoryIntentHandlers, DeviceIntentHandlers, HouseKeepingIntentHandlers } = IntentHandlers;
 const { HelpIntentHandler, CancelAndStopIntentHandler } = MandatoryIntentHandlers;
 const { RegisterDeviceHandler } = DeviceIntentHandlers;
-const { HouseKeeping_DentalKit_Handler } = HouseKeepingIntentHandlers;
+const { HouseKeeping_DentalKit_Handler, HouseKeeping_Toiletries_Handler, HouseKeeping_RoomClean_Handler, HouseKeeping_Bedding_Handler } = HouseKeepingIntentHandlers;
 
 const { Interceptors } = require("./Interceptors/index.js");
 const { RequestInterceptor } = Interceptors;
@@ -35,6 +35,9 @@ exports.handler = Alexa.SkillBuilders.custom()
         RegisterDeviceHandler,
 
         HouseKeeping_DentalKit_Handler,
+        HouseKeeping_Toiletries_Handler,
+        HouseKeeping_RoomClean_Handler,
+        HouseKeeping_Bedding_Handler,
 
         HelpIntentHandler,
         CancelAndStopIntentHandler,

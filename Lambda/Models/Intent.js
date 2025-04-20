@@ -1,5 +1,5 @@
 class Intent {
-    constructor(deviceId, intentName, isFree, status = "Requested", intentTags = "", personalization = "", assignedTo = "", roomId = null) {
+    constructor(deviceId, intentName, isFree = true, status = "Requested", intentTags = "", personalization = "", assignedTo = "", roomId = null) {
         this.daysSinceEpoch = Math.floor(Date.now() / (24 * 60 * 60 * 1000)) //PK
 
         this.deviceId = deviceId;
@@ -27,12 +27,20 @@ class Intent {
 }
 
 Intent.INTENT_NAMES = {
-    DENTAL_KIT: "Dental Kit"
+    DENTAL_KIT: "Dental Kit",
+    TOILETRIES: "Toiletries",
+    ROOM_CLEAN: "Room Clean",
+    BEDDING: "Bedding",
+    TOWELS: "Towels"
 }
 
 Intent.INTENT_TYPES = {
     "House Keeping": [
-        Intent.INTENT_NAMES.DENTAL_KIT
+        Intent.INTENT_NAMES.DENTAL_KIT,
+        Intent.INTENT_NAMES.TOILETRIES,
+        Intent.INTENT_NAMES.ROOM_CLEAN,
+        Intent.INTENT_NAMES.BEDDING,
+        Intent.INTENT_NAMES.TOWELS
     ]
 }
 
