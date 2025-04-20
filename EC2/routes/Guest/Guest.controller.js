@@ -8,7 +8,7 @@ const router = express.Router();
 router.post('/', async (req, res) => {
     const guest = req.body;
     await registerGuest(guest);
-    res.send(`${JSON.stringify(guest)} has been added to the Database`);
+    res.send(`${JSON.stringify(guest)} : has been added to the Database`);
 })
 // get guest details
 router.get('/:guestId', async (req, res) => {

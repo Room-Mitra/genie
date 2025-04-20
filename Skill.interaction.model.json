@@ -16,32 +16,12 @@
                     "samples": []
                 },
                 {
-                    "name": "HelloWorldIntent",
-                    "slots": [],
-                    "samples": [
-                        "hello",
-                        "how are you",
-                        "say hi world",
-                        "say hi",
-                        "hi",
-                        "say hello world",
-                        "say hello"
-                    ]
-                },
-                {
                     "name": "AMAZON.NavigateHomeIntent",
                     "samples": []
                 },
                 {
                     "name": "AMAZON.FallbackIntent",
                     "samples": []
-                },
-                {
-                    "name": "AskWeatherIntent",
-                    "slots": [],
-                    "samples": [
-                        "how is the weather today"
-                    ]
                 },
                 {
                     "name": "RegisterDeviceIntent",
@@ -56,7 +36,7 @@
                     ]
                 },
                 {
-                    "name": "HospitalityDentalKitIntent",
+                    "name": "HouseKeepingDentalKitIntent",
                     "slots": [],
                     "samples": [
                         "get tooth paste",
@@ -74,6 +54,64 @@
                         "i need tooth paste",
                         "i need dental kit",
                         "i need toothbrush"
+                    ]
+                },
+                {
+                    "name": "HouseKeepingToiletriesIntent",
+                    "slots": [],
+                    "samples": [
+                        "liquid soap",
+                        "bathing soap",
+                        "mouth wash",
+                        "face wash",
+                        "toiletries",
+                        "razor",
+                        "shaving kit",
+                        "shaving",
+                        "conditioner",
+                        "shampoo",
+                        "soap"
+                    ]
+                },
+                {
+                    "name": "HouseKeepingRoomCleanIntent",
+                    "slots": [],
+                    "samples": [
+                        "room is untidy",
+                        "room is dirty",
+                        "clean this room",
+                        "room cleaning",
+                        "clean room",
+                        "clean my room"
+                    ]
+                },
+                {
+                    "name": "HouseKeepingBeddingIntent",
+                    "slots": [],
+                    "samples": [
+                        "more blanket",
+                        "extra blanket",
+                        "harder pillow",
+                        "softer pillow",
+                        "more pillows",
+                        "extra pillow",
+                        "more bed sheet",
+                        "extra bed sheet",
+                        "more bed",
+                        "extra bed"
+                    ]
+                },
+                {
+                    "name": "HouseKeepingTowelsIntent",
+                    "slots": [],
+                    "samples": [
+                        "bathroom towels",
+                        "get clean towels",
+                        "clean towels",
+                        "restock towels",
+                        "towels",
+                        "get towels",
+                        "get fresh towels"
                     ]
                 }
             ],

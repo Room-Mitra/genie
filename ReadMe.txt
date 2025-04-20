@@ -28,3 +28,5 @@ Changes to be made ::
 . Uncached Webapp api calls should get uncached EC2 results
 . CICD pipeline
 . Register device intent confirmation needs to be fixed
+
+desicontent691969@gmail.com
