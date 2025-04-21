@@ -1,5 +1,5 @@
 class Intent {
-    constructor(deviceId, intentName, isFree = true, status = "Requested", intentTags = "", personalization = "", assignedTo = "", roomId = null) {
+    constructor(deviceId, intentName, cost = 0, status = "Requested", intentTags = "", personalization = "", assignedTo = "", roomId = null) {
         this.daysSinceEpoch = Math.floor(Date.now() / (24 * 60 * 60 * 1000)) //PK
 
         this.deviceId = deviceId;
@@ -10,9 +10,9 @@ class Intent {
         this.propertyName = null;
         this.floor = null;
 
-        this.intentName = intentName;
+        this.intentName = getIntentDisplayName(intentName);
         this.intentType = getIntentType(intentName);
-        this.isFree = isFree;
+        this.cost = cost;
         this.intentTags = intentTags;
 
         this.personalization = personalization;
@@ -27,11 +27,22 @@ class Intent {
 }
 
 Intent.INTENT_NAMES = {
-    DENTAL_KIT: "Dental Kit",
-    TOILETRIES: "Toiletries",
-    ROOM_CLEAN: "Room Clean",
-    BEDDING: "Bedding",
-    TOWELS: "Towels"
+    DENTAL_KIT: "HouseKeepingDentalKitIntent",
+    TOILETRIES: "HouseKeepingToiletriesIntent",
+    ROOM_CLEAN: "HouseKeepingRoomCleanIntent",
+    BEDDING: "HouseKeepingBeddingIntent",
+    TOWELS: "HouseKeepingTowelsIntent",
+    LAUNDRY: "HouseKeepingLaundryIntent",
+    IRON_BOX: "HouseKeepingIronBoxIntent"
+}
+
+const getIntentDisplayName = (intentName) => {
+    for (let key in Intent.INTENT_NAMES) {
+        if (Intent.INTENT_NAMES[key] === intentName) {
+            return key;
+        }
+    }
+    return "Other"
 }
 
 Intent.INTENT_TYPES = {
@@ -40,7 +51,9 @@ Intent.INTENT_TYPES = {
         Intent.INTENT_NAMES.TOILETRIES,
         Intent.INTENT_NAMES.ROOM_CLEAN,
         Intent.INTENT_NAMES.BEDDING,
-        Intent.INTENT_NAMES.TOWELS
+        Intent.INTENT_NAMES.TOWELS,
+        Intent.INTENT_NAMES.LAUNDRY,
+        Intent.INTENT_NAMES.IRON_BOX
     ]
 }
 
@@ -51,6 +64,16 @@ const getIntentType = (intentName) => {
         }
     }
     return "Other"
+}
+
+Intent.speechText = {
+    [Intent.INTENT_NAMES.DENTAL_KIT]: "HouseKeepingDentalKitHandlerConfirmRequest",
+    [Intent.INTENT_NAMES.TOILETRIES]: "HouseKeepingToiletriesHandlerConfirmRequest",
+    [Intent.INTENT_NAMES.ROOM_CLEAN]: "HouseKeepingRoomCleanHandlerConfirmRequest",
+    [Intent.INTENT_NAMES.BEDDING]: "HouseKeepingBeddingHandlerConfirmRequest",
+    [Intent.INTENT_NAMES.TOWELS]: "HouseKeepingTowelsHandlerConfirmRequest",
+    [Intent.INTENT_NAMES.LAUNDRY]: "HouseKeepingLaundryHandlerConfirmRequest",
+    [Intent.INTENT_NAMES.IRON_BOX]: "HouseKeepingIronBoxHandlerConfirmRequest"
 }
 
 
