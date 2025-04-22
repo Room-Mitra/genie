@@ -33,17 +33,11 @@ Intent.INTENT_NAMES = {
     BEDDING: "HouseKeepingBeddingIntent",
     TOWELS: "HouseKeepingTowelsIntent",
     LAUNDRY: "HouseKeepingLaundryIntent",
-    IRON_BOX: "HouseKeepingIronBoxIntent"
+    IRON_BOX: "HouseKeepingIronBoxIntent",
+    ICE_CUBES: "HouseKeepingIceCubesIntent",
+    SHOE_SHINE_KIT: "HouseKeepingShoeShineKitIntent"
 }
 
-const getIntentDisplayName = (intentName) => {
-    for (let key in Intent.INTENT_NAMES) {
-        if (Intent.INTENT_NAMES[key] === intentName) {
-            return key;
-        }
-    }
-    return "Other"
-}
 
 Intent.INTENT_TYPES = {
     "House Keeping": [
@@ -53,8 +47,22 @@ Intent.INTENT_TYPES = {
         Intent.INTENT_NAMES.BEDDING,
         Intent.INTENT_NAMES.TOWELS,
         Intent.INTENT_NAMES.LAUNDRY,
-        Intent.INTENT_NAMES.IRON_BOX
+        Intent.INTENT_NAMES.IRON_BOX,
+        Intent.INTENT_NAMES.ICE_CUBES,
+        Intent.INTENT_NAMES.SHOE_SHINE_KIT
     ]
+}
+
+Intent.speechText = {
+    [Intent.INTENT_NAMES.DENTAL_KIT]: "HouseKeepingDentalKitHandlerConfirmRequest",
+    [Intent.INTENT_NAMES.TOILETRIES]: "HouseKeepingToiletriesHandlerConfirmRequest",
+    [Intent.INTENT_NAMES.ROOM_CLEAN]: "HouseKeepingRoomCleanHandlerConfirmRequest",
+    [Intent.INTENT_NAMES.BEDDING]: "HouseKeepingBeddingHandlerConfirmRequest",
+    [Intent.INTENT_NAMES.TOWELS]: "HouseKeepingTowelsHandlerConfirmRequest",
+    [Intent.INTENT_NAMES.LAUNDRY]: "HouseKeepingLaundryHandlerConfirmRequest",
+    [Intent.INTENT_NAMES.IRON_BOX]: "HouseKeepingIronBoxHandlerConfirmRequest",
+    [Intent.INTENT_NAMES.ICE_CUBES]: "HouseKeepingIceCubesHandlerConfirmRequest",
+    [Intent.INTENT_NAMES.SHOE_SHINE_KIT]: "HouseKeepingShoeShineKitHandlerConfirmRequest"
 }
 
 const getIntentType = (intentName) => {
@@ -66,15 +74,17 @@ const getIntentType = (intentName) => {
     return "Other"
 }
 
-Intent.speechText = {
-    [Intent.INTENT_NAMES.DENTAL_KIT]: "HouseKeepingDentalKitHandlerConfirmRequest",
-    [Intent.INTENT_NAMES.TOILETRIES]: "HouseKeepingToiletriesHandlerConfirmRequest",
-    [Intent.INTENT_NAMES.ROOM_CLEAN]: "HouseKeepingRoomCleanHandlerConfirmRequest",
-    [Intent.INTENT_NAMES.BEDDING]: "HouseKeepingBeddingHandlerConfirmRequest",
-    [Intent.INTENT_NAMES.TOWELS]: "HouseKeepingTowelsHandlerConfirmRequest",
-    [Intent.INTENT_NAMES.LAUNDRY]: "HouseKeepingLaundryHandlerConfirmRequest",
-    [Intent.INTENT_NAMES.IRON_BOX]: "HouseKeepingIronBoxHandlerConfirmRequest"
+
+const getIntentDisplayName = (intentName) => {
+    for (let key in Intent.INTENT_NAMES) {
+        if (Intent.INTENT_NAMES[key] === intentName) {
+            return key;
+        }
+    }
+    return "Other"
 }
+
+
 
 
 
