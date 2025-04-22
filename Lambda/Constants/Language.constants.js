@@ -17,7 +17,9 @@ const languageStrings = {
             HouseKeepingBeddingHandlerConfirmRequest: ' Absolutely! I will have it delivered to your room! Sweet Dreams',
             HouseKeepingTowelsHandlerConfirmRequest: ' Absolutely! I will have it delivered to your room!',
             HouseKeepingLaundryHandlerConfirmRequest: 'Sure! Sending someone to pick up your laundry',
-            HouseKeepingIronBoxHandlerConfirmRequest: "Sure! Sending someone to your room right away!"
+            HouseKeepingIronBoxHandlerConfirmRequest: "Sure! Sending someone to your room right away!",
+            HouseKeepingIceCubesHandlerConfirmRequest: "Ice Cubes is on it's way to your room",
+            HouseKeepingShoeShineKitHandlerConfirmRequest: "Shoe Shine Kit is on it's way to your room"
         }
     },
     'hi': {
@@ -36,7 +38,11 @@ const languageStrings = {
             HouseKeepingBeddingHandlerConfirmRequest: 'Hindi: Absolutely! I will have it delivered to your room! Sweet Dreams',
             HouseKeepingTowelsHandlerConfirmRequest: ' Hindi:Absolutely! I will have it delivered to your room!',
             HouseKeepingLaundryHandlerConfirmRequest: 'Hindi:Sure! Sending someone to pick up your laundry',
-            HouseKeepingIronBoxHandlerConfirmRequest: "Hindi:Sure! Sending someone to your room right away!"
+            HouseKeepingIronBoxHandlerConfirmRequest: "Hindi:Sure! Sending someone to your room right away!",
+            HouseKeepingIceCubesHandlerConfirmRequest: "Hindi : Ice Cubes is on it's way to your room",
+            HouseKeepingShoeShineKitHandlerConfirmRequest: "Hindi : Shoe Shine Kit is on it's way to your room"
+
+
 
 
         }

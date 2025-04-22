@@ -89,6 +89,7 @@
                     "name": "HouseKeepingBeddingIntent",
                     "slots": [],
                     "samples": [
+                        "pillow",
                         "more blanket",
                         "extra blanket",
                         "harder pillow",
@@ -112,6 +113,71 @@
                         "towels",
                         "get towels",
                         "get fresh towels"
+                    ]
+                },
+                {
+                    "name": "HouseKeepingLaundryIntent",
+                    "slots": [],
+                    "samples": [
+                        "send someone to pick laundry",
+                        "send someone to do laundry",
+                        "pick up laundry",
+                        "clean my clothes",
+                        "wash my clothes",
+                        "wash clothes",
+                        "laundry",
+                        "laundry service",
+                        "take my clothes for laundry service",
+                        "pick up my clothes for cleaning",
+                        "dry cleaning",
+                        "laundry pickup",
+                        "pick up my laundry"
+                    ]
+                },
+                {
+                    "name": "HouseKeepingIronBoxIntent",
+                    "slots": [],
+                    "samples": [
+                        "get me iron box",
+                        "get me steam iron",
+                        "send steam iron to my room",
+                        "send flat iron to my room",
+                        "smoothening iron",
+                        "box iron",
+                        "flat iron",
+                        "steam iron",
+                        "clothes pressing ",
+                        "ironing",
+                        "ironing machine",
+                        "i need iron box",
+                        "send some one with iron box",
+                        "iron box"
+                    ]
+                },
+                {
+                    "name": "HouseKeepingIceCubesIntent",
+                    "slots": [],
+                    "samples": [
+                        "get ice bucket",
+                        "ice bucket",
+                        "ice",
+                        "get ice",
+                        "get ice cubes"
+                    ]
+                },
+                {
+                    "name": "HouseKeepingShoeShineKitIntent",
+                    "slots": [],
+                    "samples": [
+                        "shoe shine kit",
+                        "boot shine kit",
+                        "boot shine",
+                        "boot polish",
+                        "footwear shine",
+                        "footwear polish",
+                        "shoe shiner",
+                        "get shoe shine",
+                        "get shoe polish"
                     ]
                 }
             ],

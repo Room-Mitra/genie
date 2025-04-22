@@ -24,7 +24,9 @@ const {
     HouseKeeping_Bedding_Handler,
     HouseKeeping_Towels_Handler,
     HouseKeeping_Laundry_Handler,
-    HouseKeeping_IronBox_Handler
+    HouseKeeping_IronBox_Handler,
+    HouseKeeping_IceCubes_Handler,
+    HouseKeeping_ShoeShineKit_Handler
 } = HouseKeepingIntentHandlers;
 
 const { Interceptors } = require("./Interceptors/index.js");
@@ -49,6 +51,8 @@ exports.handler = Alexa.SkillBuilders.custom()
         HouseKeeping_Towels_Handler,
         HouseKeeping_Laundry_Handler,
         HouseKeeping_IronBox_Handler,
+        HouseKeeping_IceCubes_Handler,
+        HouseKeeping_ShoeShineKit_Handler,
 
         HelpIntentHandler,
         CancelAndStopIntentHandler,
