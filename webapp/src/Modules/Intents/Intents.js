@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { httpGet, httpPut } from "../../Services/APIService";
 import DataTable from "../../Common/DataTable/DataTable";
@@ -14,22 +13,14 @@ const Intents = () => {
     const [rowData, setRowData] = useState(null);
     // Column Definitions: Defines the columns to be displayed.
     const [colDefs, setColDefs] = useState([
-        // { headerName: "Requested Time", field: "requestedTime", filter: true, editable: true },
-        { headerName: "Requested Date", valueGetter: p => new Date(p.data.requestedTime).toLocaleDateString(), filter: true },
-        { headerName: "Requested Time", valueGetter: p => new Date(p.data.requestedTime).toLocaleTimeString(), filter: true },
-        { headerName: "Intent Name", field: "intentName", filter: true, editable: true },
-        { headerName: "Intent Type", field: "intentType", filter: true, editable: true },
+        { headerName: "Date", valueGetter: p => new Date(p.data.requestedTime).toLocaleDateString(), filter: true, width: 150 },
+        { headerName: "Time", valueGetter: p => new Date(p.data.requestedTime).toLocaleTimeString(), filter: true, width: 150 },
+        { headerName: "Name", field: "intentName", filter: true, editable: true },
+        { headerName: "Type", field: "intentType", filter: true, editable: true },
         { headerName: "Room ID", field: "roomId", filter: true, editable: false },
         { headerName: "In Progress Time", valueGetter: p => p.data.inProgressTime ? new Date(p.data.inProgressTime).toLocaleTimeString() : "-", filter: true },
         { headerName: "Completed Time", valueGetter: p => p.data.completedTime ? new Date(p.data.completedTime).toLocaleTimeString() : "-", filter: true },
         { headerName: "Assigned To", field: "assignedTo", filter: true, editable: true },
-        // { headerName: "Property Name", field: "propertyName", filter: true, editable: true },
-        // { headerName: "Room in Floor", field: "roomFloor", filter: true, editable: true, cellDataType: 'number' },
-        // { headerName: "Room Notes", field: "roomNotest", filter: true, editable: true },
-        // { headerName: "Device Notes", field: "deviceNotes", filter: true, editable: true },
-        // { headerName: "Device ID", field: "deviceId" },
-        // { headerName: "Device Registered On", valueGetter: p => new Date(p.data.registeredAtUTC).toLocaleString(), filter: "agDateColumnFilter" },
-        // { headerName: " ", cellRenderer: SaveChangesButtonComponent }
     ]);
 
     useEffect(() => {
@@ -51,26 +42,57 @@ const Intents = () => {
     const SaveChangesButtonComponent = (rowInfo) => {
 
         const handleClick = async (rowInfo, eventObj) => {
-            // await httpPut(EC2_API_ENDPOINT + INTENTS_API_URI, [rowInfo.data])
-            // getAllIntentsData();
             alert("Data updated")
         }
 
-        return <button onClick={(eventObj) => handleClick(rowInfo, eventObj)}>Save Changes</button>;
+        return <button style={{
+            backgroundColor: "#4CAF50",
+            color: "white",
+            padding: "10px 15px",
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer",
+            fontSize: "14px",
+        }} onClick={(eventObj) => handleClick(rowInfo, eventObj)}>Save Changes</button>;
     };
 
     return (
-        <div>
-            <h1>Intents</h1>
+        <div style={{
+            fontFamily: "'Arial', sans-serif",
+            margin: "20px",
+            padding: "20px",
+            backgroundColor: "#f9f9f9",
+            borderRadius: "10px",
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)"
+        }}>
+            <h1 style={{
+                textAlign: "center",
+                color: "#333",
+                marginBottom: "20px"
+            }}>REQUESTS</h1>
             {allIntents && (
-                <div style={{ height: 500 }}>
+                <div style={{
+                    height: "500px",
+                    overflow: "auto",
+                    backgroundColor: "#ffffff",
+                    borderRadius: "5px",
+                    padding: "10px",
+                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
+                }}>
                     <DataTable
                         rowData={rowData}
                         columnDefs={colDefs}
                     />
                 </div>
             )}
-            {!allIntents && (<div>Loading Intents...</div>)}
+            {!allIntents && (
+                <div style={{
+                    textAlign: "center",
+                    color: "#777",
+                    fontSize: "16px",
+                    marginTop: "20px"
+                }}>Loading Intents...</div>
+            )}
         </div>
     );
 }
