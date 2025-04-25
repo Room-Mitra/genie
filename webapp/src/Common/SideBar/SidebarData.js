@@ -62,6 +62,12 @@ export const SidebarData = [
                 icon: <FaIcons.FaPhone />,
                 cName: "sub-nav",
             },
+            {
+                title: "Staff Request Mapping",
+                path: "/admin/staff-request-mapping",
+                icon: <FaIcons.FaEnvelopeOpenText />,
+                cName: "sub-nav",
+            },
             // {
             //     title: "Service 2",
             //     path: "/services/services2",
