@@ -56,6 +56,12 @@ export const SidebarData = [
                 icon: <IoIcons.IoIosPaper />,
                 cName: "sub-nav",
             },
+            {
+                title: "Staff Directory",
+                path: "/admin/staff-directory",
+                icon: <FaIcons.FaPhone />,
+                cName: "sub-nav",
+            },
             // {
             //     title: "Service 2",
             //     path: "/services/services2",
