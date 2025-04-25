@@ -13,11 +13,11 @@ const Intents = () => {
     const [rowData, setRowData] = useState(null);
     // Column Definitions: Defines the columns to be displayed.
     const [colDefs, setColDefs] = useState([
-        { headerName: "Date", valueGetter: p => new Date(p.data.requestedTime).toLocaleDateString(), filter: true, width: 150 },
-        { headerName: "Time", valueGetter: p => new Date(p.data.requestedTime).toLocaleTimeString(), filter: true, width: 150 },
+        { headerName: "Date", valueGetter: p => new Date(p.data.requestedTime).toLocaleDateString(), filter: true, width: 110 },
+        { headerName: "Time", valueGetter: p => new Date(p.data.requestedTime).toLocaleTimeString(), filter: true, width: 110 },
         { headerName: "Name", field: "intentName", filter: true, editable: true },
         { headerName: "Type", field: "intentType", filter: true, editable: true },
-        { headerName: "Room ID", field: "roomId", filter: true, editable: false },
+        { headerName: "Room", field: "roomId", filter: true, editable: false, width: 110 },
         { headerName: "In Progress Time", valueGetter: p => p.data.inProgressTime ? new Date(p.data.inProgressTime).toLocaleTimeString() : "-", filter: true },
         { headerName: "Completed Time", valueGetter: p => p.data.completedTime ? new Date(p.data.completedTime).toLocaleTimeString() : "-", filter: true },
         { headerName: "Assigned To", field: "assignedTo", filter: true, editable: true },
