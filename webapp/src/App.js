@@ -15,6 +15,7 @@ const CheckIn = lazy(() => import('./Modules/CheckIn/CheckIn'));
 const CheckOut = lazy(() => import('./Modules/Checkout/Checkout'));
 const Devices = lazy(() => import('./Modules/AdminModule/Pages/Devices/index'));
 const StaffDirectory = lazy(() => import('./Modules/AdminModule/Pages/StaffDirectory/StaffDirectory'));
+const StaffRequestMapping = lazy(() => import('./Modules/AdminModule/Pages/StaffRequestMapping/StaffRequestMapping'));
 const Sidebar = lazy(() => import('./Common/SideBar/Sidebar'));
 
 function App() {
@@ -40,6 +41,13 @@ function App() {
           element={
             <Suspense fallback={<div>Staff details are loading please wait...</div>} >
               <StaffDirectory />
+            </Suspense>}
+        />
+        <Route
+          path="/admin/staff-request-mapping"
+          element={
+            <Suspense fallback={<div>Staff mapping details are loading please wait...</div>} >
+              <StaffRequestMapping />
             </Suspense>}
         />
         <Route

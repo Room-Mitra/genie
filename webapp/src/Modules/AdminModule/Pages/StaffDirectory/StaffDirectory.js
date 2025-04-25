@@ -62,7 +62,7 @@ const StaffDirectory = () => {
                 textAlign: "center",
                 color: "#333",
                 marginBottom: "20px"
-            }}>Staff Management</h2>
+            }}>Staff Directory</h2>
 
             <form style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
                 <label style={{ display: "flex", flexDirection: "column", fontWeight: "bold" }}>
