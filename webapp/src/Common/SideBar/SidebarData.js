@@ -8,8 +8,8 @@ import * as RiIcons from "react-icons/ri";
 
 export const SidebarData = [
     {
-        title: "Intents",
-        path: "/intents",
+        title: "Requests",
+        path: "/requests",
         icon: <IoIcons.IoMdHelpCircle />,
     },
     {
@@ -44,7 +44,7 @@ export const SidebarData = [
     // },
     {
         title: "Admin",
-        path: "/admin",
+        // path: "/admin",
         icon: <IoIcons.IoIosPaper />,
         iconClosed: <RiIcons.RiArrowDownSFill />,
         iconOpened: <RiIcons.RiArrowUpSFill />,
@@ -68,6 +68,12 @@ export const SidebarData = [
                 icon: <FaIcons.FaEnvelopeOpenText />,
                 cName: "sub-nav",
             },
+            {
+                title: "Rooms",
+                path: "/admin/rooms",
+                icon: <IoIcons.IoMdHelpCircle />,
+            },
+
             // {
             //     title: "Service 2",
             //     path: "/services/services2",
@@ -82,10 +88,20 @@ export const SidebarData = [
         ],
     },
     {
-        title: "Rooms",
-        path: "/rooms",
+        title: "FAQ Editor",
+        path: "/faq",
         icon: <IoIcons.IoMdHelpCircle />,
     },
+    {
+        title: "Analytics",
+        path: "/analytics",
+        icon: <IoIcons.IoMdHelpCircle />,
+    },
+    // {
+    //     title: "Rooms",
+    //     path: "/admin/rooms",
+    //     icon: <IoIcons.IoMdHelpCircle />,
+    // },
     // {
     //     title: "Contact",
     //     path: "/contact",
