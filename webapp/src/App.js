@@ -12,10 +12,12 @@ import { Suspense, lazy } from "react";
 const Intents = lazy(() => import('./Modules/Intents/Intents'));
 const Rooms = lazy(() => import('./Modules/Rooms/Rooms'));
 const CheckIn = lazy(() => import('./Modules/CheckIn/CheckIn'));
+const FaqEditor = lazy(() => import('./Modules/FAQ/FaqEditor'));
 const CheckOut = lazy(() => import('./Modules/Checkout/Checkout'));
 const Devices = lazy(() => import('./Modules/AdminModule/Pages/Devices/index'));
 const StaffDirectory = lazy(() => import('./Modules/AdminModule/Pages/StaffDirectory/StaffDirectory'));
 const StaffRequestMapping = lazy(() => import('./Modules/AdminModule/Pages/StaffRequestMapping/StaffRequestMapping'));
+const HotelAnalyticsDashboard = lazy(() => import('./Modules/Analytics/HotelAnalyticsDashboard'));
 const Sidebar = lazy(() => import('./Common/SideBar/Sidebar'));
 
 function App() {
@@ -26,7 +28,7 @@ function App() {
       <Routes>
 
         <Route
-          path="/intents"
+          path="/requests"
           element={<Intents />}
         />
         <Route
@@ -51,6 +53,10 @@ function App() {
             </Suspense>}
         />
         <Route
+          path="/admin/rooms"
+          element={<Rooms />}
+        />
+        <Route
           path="/check-in"
           element={<CheckIn />}
         />
@@ -59,8 +65,12 @@ function App() {
           element={<CheckOut />}
         />
         <Route
-          path="/rooms"
-          element={<Rooms />}
+          path="/faq"
+          element={<FaqEditor />}
+        />
+        <Route
+          path="/analytics"
+          element={<HotelAnalyticsDashboard />}
         />
         {/*   <Route
             path="/services"
