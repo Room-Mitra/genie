@@ -1,0 +1,7 @@
+const HOTEL_NAME = "HOTEL_NAME";
+
+const HOTEL_CONSTANTS = {
+    HOTEL_NAME
+}
+
+export default HOTEL_CONSTANTS

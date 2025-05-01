@@ -1,0 +1,20 @@
+/* Filename: App.css */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+
+/* delete entire thing below */
+.home,
+.services,
+.reports,
+.contact,
+.events,
+.support {
+  display: flex;
+  margin-left: 260px;
+  font-size: 2rem;
+}
