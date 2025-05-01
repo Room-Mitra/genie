@@ -1,0 +1,219 @@
+{
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "room service",
+            "intents": [
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.HelpIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.NavigateHomeIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.FallbackIntent",
+                    "samples": []
+                },
+                {
+                    "name": "RegisterDeviceIntent",
+                    "slots": [
+                        {
+                            "name": "RoomNumber",
+                            "type": "AMAZON.AlphaNumeric"
+                        }
+                    ],
+                    "samples": [
+                        "Register this device with room number {RoomNumber}"
+                    ]
+                },
+                {
+                    "name": "HouseKeepingDentalKitIntent",
+                    "slots": [],
+                    "samples": [
+                        "get tooth paste",
+                        "get tooth brush",
+                        "get dental kit",
+                        "get me dental kit",
+                        "get me tooth paste",
+                        "get me a tooth brush",
+                        "may i get dental kit",
+                        "can i get dental kit",
+                        "may i get tooth paste",
+                        "can i get tooth paste",
+                        "may i get tooth brish",
+                        "can i get  tooth brush",
+                        "i need tooth paste",
+                        "i need dental kit",
+                        "i need toothbrush"
+                    ]
+                },
+                {
+                    "name": "HouseKeepingToiletriesIntent",
+                    "slots": [],
+                    "samples": [
+                        "liquid soap",
+                        "bathing soap",
+                        "mouth wash",
+                        "face wash",
+                        "toiletries",
+                        "razor",
+                        "shaving kit",
+                        "shaving",
+                        "conditioner",
+                        "shampoo",
+                        "soap"
+                    ]
+                },
+                {
+                    "name": "HouseKeepingRoomCleanIntent",
+                    "slots": [],
+                    "samples": [
+                        "room is untidy",
+                        "room is dirty",
+                        "clean this room",
+                        "room cleaning",
+                        "clean room",
+                        "clean my room"
+                    ]
+                },
+                {
+                    "name": "HouseKeepingBeddingIntent",
+                    "slots": [],
+                    "samples": [
+                        "pillow",
+                        "more blanket",
+                        "extra blanket",
+                        "harder pillow",
+                        "softer pillow",
+                        "more pillows",
+                        "extra pillow",
+                        "more bed sheet",
+                        "extra bed sheet",
+                        "more bed",
+                        "extra bed"
+                    ]
+                },
+                {
+                    "name": "HouseKeepingTowelsIntent",
+                    "slots": [],
+                    "samples": [
+                        "bathroom towels",
+                        "get clean towels",
+                        "clean towels",
+                        "restock towels",
+                        "towels",
+                        "get towels",
+                        "get fresh towels"
+                    ]
+                },
+                {
+                    "name": "HouseKeepingLaundryIntent",
+                    "slots": [],
+                    "samples": [
+                        "send someone to pick laundry",
+                        "send someone to do laundry",
+                        "pick up laundry",
+                        "clean my clothes",
+                        "wash my clothes",
+                        "wash clothes",
+                        "laundry",
+                        "laundry service",
+                        "take my clothes for laundry service",
+                        "pick up my clothes for cleaning",
+                        "dry cleaning",
+                        "laundry pickup",
+                        "pick up my laundry"
+                    ]
+                },
+                {
+                    "name": "HouseKeepingIronBoxIntent",
+                    "slots": [],
+                    "samples": [
+                        "get me iron box",
+                        "get me steam iron",
+                        "send steam iron to my room",
+                        "send flat iron to my room",
+                        "smoothening iron",
+                        "box iron",
+                        "flat iron",
+                        "steam iron",
+                        "clothes pressing ",
+                        "ironing",
+                        "ironing machine",
+                        "i need iron box",
+                        "send some one with iron box",
+                        "iron box"
+                    ]
+                },
+                {
+                    "name": "HouseKeepingIceCubesIntent",
+                    "slots": [],
+                    "samples": [
+                        "get ice bucket",
+                        "ice bucket",
+                        "ice",
+                        "get ice",
+                        "get ice cubes"
+                    ]
+                },
+                {
+                    "name": "HouseKeepingShoeShineKitIntent",
+                    "slots": [],
+                    "samples": [
+                        "shoe shine kit",
+                        "boot shine kit",
+                        "boot shine",
+                        "boot polish",
+                        "footwear shine",
+                        "footwear polish",
+                        "shoe shiner",
+                        "get shoe shine",
+                        "get shoe polish"
+                    ]
+                }
+            ],
+            "types": []
+        },
+        "dialog": {
+            "intents": [
+                {
+                    "name": "RegisterDeviceIntent",
+                    "confirmationRequired": true,
+                    "prompts": {
+                        "confirmation": "Confirm.Intent.1617036597840"
+                    },
+                    "slots": [
+                        {
+                            "name": "RoomNumber",
+                            "type": "AMAZON.AlphaNumeric",
+                            "confirmationRequired": false,
+                            "elicitationRequired": false,
+                            "prompts": {}
+                        }
+                    ]
+                }
+            ],
+            "delegationStrategy": "ALWAYS"
+        },
+        "prompts": [
+            {
+                "id": "Confirm.Intent.1617036597840",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Say NO if you are not a employee of hospatality cobotics. Are you sure you want to associate this device with {RoomNumber}"
+                    }
+                ]
+            }
+        ]
+    }
+}
