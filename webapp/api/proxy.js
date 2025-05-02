@@ -20,14 +20,14 @@ export default async function handler(req, res) {
                 ...req.headers,
                 host: undefined // prevent sending Vercel's host header
             },
-            body: req.method !== 'GET' && req.body ? JSON.stringify(req.body) : undefined
+            body: req.body  //req.method !== 'GET' && req.body ? JSON.stringify(req.body) : undefined
         });
 
-        const contentType = response.headers.get('content-type');
-        const data = contentType?.includes('application/json') ? await response.json() : await response.text();
+        // const contentType = response.headers.get('content-type');
+        // const data = contentType?.includes('application/json') ? await response.json() : await response.text();
 
         res.setHeader('Access-Control-Allow-Origin', '*');
-        res.status(response.status).send(data);
+        res.status(response.status).send(response);
     } catch (error) {
         res.status(500).json({ error: 'Proxy failed', details: error.message });
     }
