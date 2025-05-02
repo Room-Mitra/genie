@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { httpGet, httpPut } from "../../Services/APIService";
 import { EC2_API_ENDPOINT } from "../../Constants/Environment.constants";
 
-const DEVICES_API_URI = '/devices';
+const DEVICES_API_URI = '?devices';
 
 const Rooms = () => {
     const [allDevices, setAllDevices] = useState(null);
