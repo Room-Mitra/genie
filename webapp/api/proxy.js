@@ -3,7 +3,10 @@ export default async function handler(req, res) {
     const { path, ...queryParams } = req.query;
 
     if (!path) {
-        return res.status(400).json({ error: 'Missing `path` query parameter' });
+        return res.status(400).json({
+            error: 'Missing `path` query parameter',
+            req: req.query
+        });
     }
 
     // Build full target URL
