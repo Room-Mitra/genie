@@ -14,7 +14,7 @@ const Devices = () => {
     }, []);
 
     const getAllDevicesData = async () => {
-        const devices = await httpGet(EC2_API_ENDPOINT + DEVICES_API_URI);
+        const devices = await httpGet('/api/proxy' + DEVICES_API_URI);
         devices.sort((b, a) => b.roomId - a.roomId);
         setAllDevices(devices);
         setRowData(devices);
@@ -23,7 +23,7 @@ const Devices = () => {
     const SaveChangesButtonComponent = (rowInfo) => {
 
         const handleClick = async (rowInfo, eventObj) => {
-            await httpPut(EC2_API_ENDPOINT + DEVICES_API_URI, [rowInfo.data])
+            await httpPut('/api/proxy' + DEVICES_API_URI, [rowInfo.data])
             getAllDevicesData();
             alert("Data updated")
         }
