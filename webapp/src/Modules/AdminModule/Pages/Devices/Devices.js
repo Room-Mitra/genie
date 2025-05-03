@@ -3,8 +3,7 @@ import { httpGet, httpPut } from "../../../../Services/APIService";
 import DataTable from "../../../../Common/DataTable/DataTable";
 import { EC2_API_ENDPOINT } from "../../../../Constants/Environment.constants";
 
-// const DEVICES_API_URI = '/devices';
-const DEVICES_API_URI = '';
+const DEVICES_API_URI = '/devices';
 
 const Devices = () => {
 
