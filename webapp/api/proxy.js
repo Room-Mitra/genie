@@ -24,9 +24,12 @@ export default async function handler(req, res) {
     const query = new URLSearchParams(queryParams).toString();
     const targetUrl = `${EC2_API_ENDPOINT}${path}${query ? `?${query}` : ''}`;
 
+
+    return res.status(400).json({ error: 'Missing `path` query parameter', m: req.query, query, targetUrl });
+
     try {
         const rawBody = req.method !== 'GET' ? await getRawBody(req) : null;
-        return res.status(400).json({ error: 'Missing `path` query parameter', m: req.query, rawBody, query, targetUrl });
+        // return res.status(400).json({ error: 'Missing `path` query parameter', m: req.query, rawBody, query, targetUrl });
 
         const proxyRes = await fetch(targetUrl, {
             method: req.method,
