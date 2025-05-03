@@ -6,8 +6,6 @@ export const config = {
     }
 };
 
-import { Readable } from 'stream';
-
 async function getRawBody(req) {
     const chunks = [];
     for await (const chunk of req) {
@@ -28,6 +26,7 @@ export default async function handler(req, res) {
 
     try {
         const rawBody = req.method !== 'GET' ? await getRawBody(req) : null;
+        return res.status(400).json({ error: 'Missing `path` query parameter', m: req.query, rawBody, query, targetUrl });
 
         const proxyRes = await fetch(targetUrl, {
             method: req.method,
