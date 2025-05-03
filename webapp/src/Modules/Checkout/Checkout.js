@@ -3,8 +3,8 @@ import styled from "styled-components";
 import { httpGet } from "../../Services/APIService";
 import { EC2_API_ENDPOINT } from "../../Constants/Environment.constants";
 
-const DEVICES_API_URI = "?path=/devices";
-const BOOKINGS_API_URI = "?path=/bookings";
+const DEVICES_API_URI = "/devices";
+const BOOKINGS_API_URI = "/bookings";
 
 const Container = styled.div`
     max-width: 800px;
@@ -119,7 +119,7 @@ const CheckOut = () => {
 
         if (value) {
             try {
-                const bookingData = await httpGet(`${'/api/proxy'}${BOOKINGS_API_URI}/${value}`);
+                const bookingData = await httpGet(`${EC2_API_ENDPOINT}${BOOKINGS_API_URI}/${value}`);
                 setBookingDetails(bookingData);
                 setRequests(bookingData.requests || []);
                 setError(null);
@@ -136,7 +136,7 @@ const CheckOut = () => {
     };
 
     const getAllRoomsData = async () => {
-        const allRoomsData = await httpGet('/api/proxy' + DEVICES_API_URI);
+        const allRoomsData = await httpGet(EC2_API_ENDPOINT + DEVICES_API_URI);
         const allRoomNumbers = allRoomsData.map((room) => room.roomId);
         setAllRoomNumbers(allRoomNumbers);
     };

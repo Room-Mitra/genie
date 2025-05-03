@@ -3,9 +3,9 @@ import { httpGet, httpPost } from "../../Services/APIService";
 import { EC2_API_ENDPOINT } from "../../Constants/Environment.constants";
 import { DateAndTimePicker } from "../../Common/DateTimePicker/DateAndTimePicker"
 
-const DEVICES_API_URI = '?path=/devices';
-const GUEST_API_URI = '?path=/guests';
-const BOOKING_API_URI = '?path=/booking';
+const DEVICES_API_URI = '/devices';
+const GUEST_API_URI = '/guests';
+const BOOKING_API_URI = '/booking';
 
 const CheckIn = () => {
     const [roomNumber, setRoomNumber] = useState('');
@@ -22,7 +22,7 @@ const CheckIn = () => {
     }, []);
 
     const getAllRoomsData = async () => {
-        const allRoomsData = await httpGet('/api/proxy' + DEVICES_API_URI);
+        const allRoomsData = await httpGet(EC2_API_ENDPOINT + DEVICES_API_URI);
         const allRoomNumbers = allRoomsData.map(room => room.roomId);
         setAllRoomNumbers(allRoomNumbers);
     }
@@ -48,7 +48,7 @@ const CheckIn = () => {
         setError(null);
         setIsFetchingGuestDetails(true);
 
-        const guestData = await httpGet('/api/proxy' + GUEST_API_URI + "/" + guestPhoneNumber)
+        const guestData = await httpGet(EC2_API_ENDPOINT + GUEST_API_URI + "/" + guestPhoneNumber)
         console.log("guestDetails :: ", guestData)
         setGuestDetails(guestData)
         setIsFetchingGuestDetails(false);
@@ -61,7 +61,7 @@ const CheckIn = () => {
         }
         setError(null);
         guestDetails.id = guestPhoneNumber;
-        const resp = await httpPost('/api/proxy' + GUEST_API_URI, guestDetails) //TODO:: everytime this is clicked, guest data is over ridden in DB.. needs to be a put, not a post
+        const resp = await httpPost(EC2_API_ENDPOINT + GUEST_API_URI, guestDetails) //TODO:: everytime this is clicked, guest data is over ridden in DB.. needs to be a put, not a post
         console.log(resp) // show success/failure msg
     };
 
@@ -80,7 +80,7 @@ const CheckIn = () => {
             guestName: guestDetails.name,
             guestEmail: guestDetails.email
         }
-        const resp = await httpPost('/api/proxy' + BOOKING_API_URI, bookingDetails) //TODO:: everytime this is clicked, guest data is over ridden in DB.. needs to be a put, not a post
+        const resp = await httpPost(EC2_API_ENDPOINT + BOOKING_API_URI, bookingDetails) //TODO:: everytime this is clicked, guest data is over ridden in DB.. needs to be a put, not a post
     }
 
     return (
