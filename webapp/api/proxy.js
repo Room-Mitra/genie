@@ -24,17 +24,8 @@ export default async function handler(req, res) {
         });
 
         return res.status(400).json({
-            error: 'Missing `path` query par111m2222eter!!!',
-            response: response,
-            targetUrl,
-            req: {
-                method: req.method,
-                headers: {
-                    ...req.headers,
-                    host: undefined // prevent sending Vercel's host header
-                },
-                body: req.body  //req.method !== 'GET' && req.body ? JSON.stringify(req.body) : undefined
-            }
+            error: 'Missing `path` query par111meter!!!',
+            response: response
         });
 
         // const contentType = response.headers.get('content-type');
