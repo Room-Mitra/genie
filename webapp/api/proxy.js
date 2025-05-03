@@ -4,7 +4,7 @@ export default async function handler(req, res) {
 
     if (!path) {
         return res.status(400).json({
-            error: 'Missing `path` query parameter!!',
+            error: 'Missing `path` query parameter',
             req: req.query
         });
     }
