@@ -4,7 +4,7 @@ import DataTable from "../../Common/DataTable/DataTable";
 import { EC2_API_ENDPOINT } from "../../Constants/Environment.constants";
 import { getDaysSinceEpoch } from "../../Services/Common.service";
 
-const INTENTS_API_URI = '?path=/intents';
+const INTENTS_API_URI = '/intents';
 
 const Intents = () => {
 
@@ -28,7 +28,7 @@ const Intents = () => {
     }, []);
 
     const getAllIntentsData = async () => {
-        const intentsApiResponse = await httpGet('/api/proxy' + INTENTS_API_URI + "/" + getDaysSinceEpoch(+Date.now()) + "?range=2", true);
+        const intentsApiResponse = await httpGet(EC2_API_ENDPOINT + INTENTS_API_URI + "/" + getDaysSinceEpoch(+Date.now()) + "?range=2", true);
         const intents = [];
         Object.keys(intentsApiResponse).forEach(daysSinceEpoch => {
             intents.push(...intentsApiResponse[daysSinceEpoch]);
