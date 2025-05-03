@@ -1,59 +1,50 @@
 import { EC2_API_ENDPOINT } from "../src/Constants/Environment.constants";
-
-
-import { Readable } from 'stream';
-
-
-export const config = {
-    api: {
-        bodyParser: false // Let us manually parse body for proxying
-    }
-};
-
-
-async function getRawBody(req) {
-    const chunks = [];
-    for await (const chunk of req) {
-        chunks.push(chunk);
-    }
-    return Buffer.concat(chunks);
-}
-
 export default async function handler(req, res) {
     const { path, ...queryParams } = req.query;
 
     if (!path) {
-        return res.status(400).json({ error: 'Missing `path` query parameter' });
+        return res.status(400).json({
+            error: 'Missing `path` query parameter!!!',
+            req: req.query
+        });
     }
 
+    // Build full target URL
     const query = new URLSearchParams(queryParams).toString();
     const targetUrl = `${EC2_API_ENDPOINT}${path}${query ? `?${query}` : ''}`;
 
-    // Manually get raw body if not GET
-    const rawBody = req.method !== 'GET' ? await getRawBody(req) : null;
-
     try {
-        const proxyRes = await fetch(targetUrl, {
+        const response = await fetch(targetUrl, {
             method: req.method,
             headers: {
                 ...req.headers,
-                host: undefined,
-                'content-length': rawBody ? rawBody.length.toString() : undefined
+                host: undefined // prevent sending Vercel's host header
             },
-            body: rawBody
+            body: req.body  //req.method !== 'GET' && req.body ? JSON.stringify(req.body) : undefined
         });
 
-        // Forward headers (optionally)
+        return res.status(400).json({
+            error: 'Missing `path` query par111m2222eter!!!',
+            response: response,
+            targetUrl,
+            req: {
+                method: req.method,
+                headers: {
+                    ...req.headers,
+                    host: undefined // prevent sending Vercel's host header
+                },
+                body: req.body  //req.method !== 'GET' && req.body ? JSON.stringify(req.body) : undefined
+            }
+        });
+
+        // const contentType = response.headers.get('content-type');
+        // const data = contentType?.includes('application/json') ? await response.json() : await response.text();
+        const data = await response.json();
+
         res.setHeader('Access-Control-Allow-Origin', '*');
-        res.status(proxyRes.status);
+        res.status(response.status).send(data);
 
-        // Pipe response body to the client
-        const contentType = proxyRes.headers.get('content-type') || '';
-        res.setHeader('Content-Type', contentType);
-
-        const body = await proxyRes.arrayBuffer(); // works for both JSON and binary
-        res.send(Buffer.from(body));
-    } catch (err) {
-        res.status(500).json({ error: 'Proxy error', details: err.message });
+    } catch (error) {
+        res.status(500).json({ error: 'Proxy failed', details: error.message });
     }
 }
