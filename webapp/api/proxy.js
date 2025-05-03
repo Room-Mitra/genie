@@ -23,11 +23,6 @@ export default async function handler(req, res) {
             body: req.body  //req.method !== 'GET' && req.body ? JSON.stringify(req.body) : undefined
         });
 
-        return res.status(400).json({
-            error: 'Missing `path` query par111meter!!!',
-            response: response
-        });
-
         // const contentType = response.headers.get('content-type');
         // const data = contentType?.includes('application/json') ? await response.json() : await response.text();
         const data = await response.json();
