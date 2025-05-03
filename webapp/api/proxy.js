@@ -25,11 +25,9 @@ export default async function handler(req, res) {
 
         // const contentType = response.headers.get('content-type');
         // const data = contentType?.includes('application/json') ? await response.json() : await response.text();
-        const data = await response.json();
 
         res.setHeader('Access-Control-Allow-Origin', '*');
-        res.status(response.status).send(data);
-
+        res.status(response.status).send(response);
     } catch (error) {
         res.status(500).json({ error: 'Proxy failed', details: error.message });
     }
