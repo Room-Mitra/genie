@@ -1,12 +1,15 @@
 import { EC2_API_ENDPOINT } from "../src/Constants/Environment.constants";
 
+
+import { Readable } from 'stream';
+
+
 export const config = {
     api: {
-        bodyParser: false
+        bodyParser: false // Let us manually parse body for proxying
     }
 };
 
-import { Readable } from 'stream';
 
 async function getRawBody(req) {
     const chunks = [];
@@ -20,15 +23,16 @@ export default async function handler(req, res) {
     const { path, ...queryParams } = req.query;
 
     if (!path) {
-        return res.status(400).json({ error: 'Missing `path` query parameter', m: req.query });
+        return res.status(400).json({ error: 'Missing `path` query parameter' });
     }
 
     const query = new URLSearchParams(queryParams).toString();
     const targetUrl = `${EC2_API_ENDPOINT}${path}${query ? `?${query}` : ''}`;
 
-    try {
-        const rawBody = req.method !== 'GET' ? await getRawBody(req) : null;
+    // Manually get raw body if not GET
+    const rawBody = req.method !== 'GET' ? await getRawBody(req) : null;
 
+    try {
         const proxyRes = await fetch(targetUrl, {
             method: req.method,
             headers: {
@@ -39,14 +43,17 @@ export default async function handler(req, res) {
             body: rawBody
         });
 
-        const contentType = proxyRes.headers.get('content-type') || '';
-        const buffer = Buffer.from(await proxyRes.arrayBuffer());
-
+        // Forward headers (optionally)
         res.setHeader('Access-Control-Allow-Origin', '*');
+        res.status(proxyRes.status);
+
+        // Pipe response body to the client
+        const contentType = proxyRes.headers.get('content-type') || '';
         res.setHeader('Content-Type', contentType);
-        res.status(proxyRes.status).send(buffer);
+
+        const body = await proxyRes.arrayBuffer(); // works for both JSON and binary
+        res.send(Buffer.from(body));
     } catch (err) {
-        console.error('Proxy error:', err);
-        res.status(500).json({ error: 'Proxy failed', details: err.message });
+        res.status(500).json({ error: 'Proxy error', details: err.message });
     }
 }
