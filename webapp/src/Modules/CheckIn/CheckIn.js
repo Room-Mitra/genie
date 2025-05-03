@@ -3,9 +3,9 @@ import { httpGet, httpPost } from "../../Services/APIService";
 import { EC2_API_ENDPOINT } from "../../Constants/Environment.constants";
 import { DateAndTimePicker } from "../../Common/DateTimePicker/DateAndTimePicker"
 
-const DEVICES_API_URI = '?devices';
-const GUEST_API_URI = '?guests';
-const BOOKING_API_URI = '?booking';
+const DEVICES_API_URI = 'path=/devices';
+const GUEST_API_URI = 'path=/guests';
+const BOOKING_API_URI = 'path=/booking';
 
 const CheckIn = () => {
     const [roomNumber, setRoomNumber] = useState('');
