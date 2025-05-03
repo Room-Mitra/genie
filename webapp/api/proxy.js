@@ -1,7 +1,10 @@
 import { EC2_API_ENDPOINT } from "../src/Constants/Environment.constants";
 export default async function handler(req, res) {
     const { path, ...queryParams } = req.query;
-
+    return res.status(400).json({
+        error: 'Missing `path` query parameter!11!',
+        req: req.query
+    });
     if (!path) {
         return res.status(400).json({
             error: 'Missing `path` query parameter!!',
