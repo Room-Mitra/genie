@@ -4,7 +4,7 @@ import DataTable from "../../Common/DataTable/DataTable";
 import { EC2_API_ENDPOINT } from "../../Constants/Environment.constants";
 import { getDaysSinceEpoch } from "../../Services/Common.service";
 
-const INTENTS_API_URI = '?intents';
+const INTENTS_API_URI = '/intents';
 
 const Intents = () => {
 

@@ -3,8 +3,8 @@ import styled from "styled-components";
 import { httpGet } from "../../Services/APIService";
 import { EC2_API_ENDPOINT } from "../../Constants/Environment.constants";
 
-const DEVICES_API_URI = "?devices";
-const BOOKINGS_API_URI = "?bookings";
+const DEVICES_API_URI = "/devices";
+const BOOKINGS_API_URI = "/bookings";
 
 const Container = styled.div`
     max-width: 800px;
