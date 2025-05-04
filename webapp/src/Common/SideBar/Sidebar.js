@@ -8,39 +8,6 @@ import SubMenu from "./Submenu";
 import { IconContext } from "react-icons/lib";
 import HOTEL_CONSTANTS from "../../Constants/Hotel.constants";
 
-const Nav = styled.div`
-    background: #15171c;
-    height: 80px;
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-`;
-
-const NavIcon = styled(Link)`
-    margin-left: 2rem;
-    font-size: 2rem;
-    height: 80px;
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-`;
-
-const SidebarNav = styled.nav`
-    background: #15171c;
-    width: 250px;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    position: fixed;
-    top: 0;
-    left: ${({ sidebar }) => (sidebar ? "0" : "-100%")};
-    transition: 350ms;
-    z-index: 10;
-`;
-
-const SidebarWrap = styled.div`
-    width: 100%;
-`;
 
 const Sidebar = () => {
     const [sidebar, setSidebar] = useState(false);
@@ -73,15 +40,7 @@ const Sidebar = () => {
                     <NavIcon to="#">
                         <FaIcons.FaBars onClick={showSidebar} />
                     </NavIcon>
-                    <h1
-                        style={{
-                            textAlign: "center",
-                            marginLeft: "200px",
-                            color: "green",
-                        }}
-                    >
-                        {HOTEL_CONSTANTS.HOTEL_NAME}
-                    </h1>
+                    <H1>  {HOTEL_CONSTANTS.HOTEL_NAME}  </H1>
                 </Nav>
                 <SidebarNav sidebar={sidebar} ref={sidebarRef}>
                     <SidebarWrap>
@@ -104,3 +63,44 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
+
+const H1 = styled.h1`
+    text-align: center;
+    color: #E2C044;
+    left: 40%;
+    position: absolute
+`;
+
+const Nav = styled.div`
+    background: #161032;
+    height: 80px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+`;
+
+const NavIcon = styled(Link)`
+    margin-left: 2rem;
+    font-size: 2rem;
+    height: 80px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+`;
+
+const SidebarNav = styled.nav`
+    background: #161032;
+    width: 250px;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    position: fixed;
+    top: 0;
+    left: ${({ sidebar }) => (sidebar ? "0" : "-100%")};
+    transition: 350ms;
+    z-index: 10;
+`;
+
+const SidebarWrap = styled.div`
+    width: 100%;
+`;
