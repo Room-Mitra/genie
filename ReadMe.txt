@@ -106,8 +106,9 @@ Add:
   ------- DEBUGGING ----------
   1. Make sure ports 80 and 443 are open in EC2
   2. Check Nginx is Running : "sudo systemctl status nginx". If not active -> "sudo systemctl start nginx"
+     Enable it on boot: "sudo systemctl enable nginx"
+  3. sudo systemctl restart nginx
 
-  3. 
 
   
 
