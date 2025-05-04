@@ -89,8 +89,9 @@ const Title = styled.h2`
 `;
 
 const SaveButton = styled.button`
-    background-color: #4CAF50;
-    color: white;
+    background-color: #161032;
+    color: #e2c044;
+    font-weight: bold;
     padding: 10px 20px;
     border: none;
     border-radius: 5px;
