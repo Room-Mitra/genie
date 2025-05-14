@@ -20,7 +20,7 @@ export const SidebarData = [
         icon: <LuIcons.LuMapPinCheckInside />,
     },
     {
-        title: "Check out",
+        title: "Check Out",
         path: "/check-out",
         icon: <MdIcons.MdOutlineShoppingCartCheckout />,
     },
