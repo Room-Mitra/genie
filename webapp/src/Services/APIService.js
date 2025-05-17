@@ -35,8 +35,13 @@ export const httpPut = async (url, data) => {
 
 
 export const httpPost = async (url, data) => {
-    const response = await axios.post(url, data);  // TODO: handle error
-    console.log("API RESPONSE :: ", url, response);
-    cacheInstance.delete(url);
-    return response;
+    try {
+        const response = await axios.post(url, data);
+        console.log("API RESPONSE :: ", url, response);
+        cacheInstance.delete(url);
+        return response;
+    } catch (err) {
+        console.log("API ERROR :: ", url, err);
+        return err;
+    }
 }
