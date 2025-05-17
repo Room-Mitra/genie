@@ -1,0 +1,58 @@
+import React, { createContext, useState, useEffect } from "react";
+import { jwtDecode } from 'jwt-decode';
+
+const AuthContext = createContext();
+
+export const AuthProvider = ({ children }) => {
+    const [auth, setAuth] = useState(() => {
+        const token = localStorage.getItem("token");
+        return token ? { token } : null;
+    });
+
+    useEffect(() => {
+        const delay = 0.1 * 60 * 1000;
+        let tokenExpiryChecker = setInterval(() => {
+            const token = localStorage.getItem("token");
+            try {
+                const decodedToken = jwtDecode(token);
+                const expirationTime = decodedToken.exp;
+
+                // Convert Unix timestamp to a Date object
+                const expirationDate = new Date(expirationTime * 1000); // Multiply by 1000 to convert seconds to milliseconds
+
+                if (expirationDate < new Date()) {
+                    logout();
+                }
+
+            } catch (error) {
+                console.error("Error decoding token:", error);
+            }
+        }, delay);
+        return () => {
+            clearInterval(tokenExpiryChecker);
+        };
+    },
+        []
+    );
+
+    const login = (token) => {
+        localStorage.setItem("token", token);
+        setAuth({ token });
+
+    };
+
+    const logout = () => {
+        localStorage.removeItem("token");
+        setAuth(null);
+    };
+
+    const isAuthenticated = !!auth?.token;
+
+    return (
+        <AuthContext.Provider value={{ auth, login, logout, isAuthenticated }}>
+            {children}
+        </AuthContext.Provider>
+    );
+};
+
+export default AuthContext;
