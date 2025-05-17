@@ -7,13 +7,16 @@ dotenv.config();
 const cors = require('cors');
 const express = require('express');
 const bodyParser = require('body-parser');
+
 const deviceRoutes = require('./routes/Device/Device.controller.js');
 const guestRoutes = require('./routes/Guest/Guest.controller.js');
 const bookingRoutes = require('./routes/Booking/Booking.controller.js');
 const intentsRoutes = require("./routes/Intents/Intent.controller.js")
+const loginRoutes = require("./routes/Login/Login.controller.js")
+
 const { runFunctionsOnServerStartup } = require('./common/services/startup.service.js');
 
-
+// Middlewares
 const app = express();
 const PORT = 3000
 
@@ -24,6 +27,7 @@ app.use('/devices', deviceRoutes);
 app.use('/intents', intentsRoutes);
 app.use('/guests', guestRoutes);
 app.use('/booking', bookingRoutes);
+app.use('/login', loginRoutes);
 
 app.get('/', (req, res) => {
     console.log('[GET ROUTE]');
