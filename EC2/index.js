@@ -39,8 +39,7 @@ app.use('/booking', authenticator, bookingRoutes);
 app.use('/login', loginRoutes);
 
 app.get('/', (req, res) => {
-    console.log('[GET ROUTE]');
-    res.send('HELLO FROM HOMEPAGE');
+    res.redirect(301, 'https://theroomgenie.vercel.app/requests');
 })
 
 app.listen(PORT, () => console.log(`Server running on port: http://localhost:${PORT}`));
