@@ -1,6 +1,20 @@
 import axios from "axios";
 import cacheInstance from "./APICache";
 
+// Add Axios interceptor to include token in all requests
+axios.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem("token"); // Retrieve token from localStorage
+        if (token) {
+            config.headers["Authorization"] = `Bearer ${token}`; // Add token to Authorization header
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error); // Handle request errors
+    }
+);
+
 export const httpGet = async (url, bypassBrowserCache = false, bypassServerCache = false) => {
     if (bypassBrowserCache) {
         const response = await httpGetUncached(url, bypassServerCache);

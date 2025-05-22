@@ -31,13 +31,11 @@ const Login = () => {
             }
             setError("");
 
-            // const data = await response.json();
             login(response.data.token);
-            // navigate("/faq");
             const redirect = localStorage.getItem("redirect");
             if (redirect) {
-                navigate(redirect)
                 localStorage.removeItem("redirect");
+                navigate(redirect)
             }
 
         } catch (err) {

@@ -10,7 +10,7 @@ export const AuthProvider = ({ children }) => {
     });
 
     useEffect(() => {
-        const delay = 0.1 * 60 * 1000;
+        const delay = 10 * 60 * 1000; // 10 minutes
         let tokenExpiryChecker = setInterval(() => {
             const token = localStorage.getItem("token");
             try {

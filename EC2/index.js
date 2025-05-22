@@ -8,6 +8,8 @@ const cors = require('cors');
 const express = require('express');
 const bodyParser = require('body-parser');
 
+
+// routes
 const deviceRoutes = require('./routes/Device/Device.controller.js');
 const guestRoutes = require('./routes/Guest/Guest.controller.js');
 const bookingRoutes = require('./routes/Booking/Booking.controller.js');
@@ -17,21 +19,27 @@ const loginRoutes = require("./routes/Login/Login.controller.js")
 const { runFunctionsOnServerStartup } = require('./common/services/startup.service.js');
 
 // Middlewares
+const { authenticator } = require('./common/middleware/Authenticator.middleware.js');
+
 const app = express();
 const PORT = 3000
 
 app.use(bodyParser.json());
 app.use(cors());
 
-app.use('/devices', deviceRoutes);
-app.use('/intents', intentsRoutes);
-app.use('/guests', guestRoutes);
-app.use('/booking', bookingRoutes);
+// Middleware to Authenticate JWT
+
+
+app.use('/devices', authenticator, deviceRoutes);
+app.use('/intents', authenticator, intentsRoutes);
+app.use('/guests', authenticator, guestRoutes);
+app.use('/booking', authenticator, bookingRoutes);
+
+
 app.use('/login', loginRoutes);
 
 app.get('/', (req, res) => {
-    console.log('[GET ROUTE]');
-    res.send('HELLO FROM HOMEPAGE');
+    res.redirect(301, 'https://theroomgenie.vercel.app/requests');
 })
 
 app.listen(PORT, () => console.log(`Server running on port: http://localhost:${PORT}`));
