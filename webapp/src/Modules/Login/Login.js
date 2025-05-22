@@ -36,8 +36,8 @@ const Login = () => {
             // navigate("/faq");
             const redirect = localStorage.getItem("redirect");
             if (redirect) {
-                navigate(redirect)
                 localStorage.removeItem("redirect");
+                navigate(redirect)
             }
 
         } catch (err) {
