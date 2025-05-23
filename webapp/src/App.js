@@ -7,6 +7,7 @@ import {
 import { Suspense, lazy } from "react";
 import { AuthProvider } from './Modules/Login/AuthContext';
 import ProtectedRoute from './Modules/Login/ProtectedRoute';
+import { NotificationProvider } from './Common/Notification/NotificationContext';
 
 const Intents = lazy(() => import('./Modules/Intents/Intents'));
 const Rooms = lazy(() => import('./Modules/Rooms/Rooms'));
@@ -23,47 +24,49 @@ const Login = lazy(() => import('./Modules/Login/Login'));
 function App() {
 
   return (
-    <AuthProvider>
-      <Router>
-        <Sidebar />
+    <NotificationProvider>
+      <AuthProvider>
+        <Router>
+          <Sidebar />
 
-        <Routes>
-          <Route path="/login" element={<Login />} />
+          <Routes>
+            <Route path="/login" element={<Login />} />
 
-          <Route path="/requests" element={
-            <ProtectedRoute>
-              <Intents />
-            </ProtectedRoute>} />
-          <Route path="/admin/devices"
-            element={
+            <Route path="/requests" element={
               <ProtectedRoute>
-                <Suspense fallback={<div>Devices are loading please wait...</div>} >
-                  <Devices />
-                </Suspense>
-              </ProtectedRoute>
-            } />
-          <Route path="/admin/staff-directory"
-            element={
-              <ProtectedRoute>
-                <Suspense fallback={<div>Staff details are loading please wait...</div>} >
-                  <StaffDirectory />
-                </Suspense></ProtectedRoute>} />
-          <Route path="/admin/staff-request-mapping"
-            element={
-              <ProtectedRoute>
-                <Suspense fallback={<div>Staff mapping details are loading please wait...</div>} >
-                  <StaffRequestMapping />
-                </Suspense></ProtectedRoute>} />
-          <Route path="/admin/rooms" element={<ProtectedRoute><Rooms /></ProtectedRoute>} />
-          <Route path="/check-in" element={<ProtectedRoute><CheckIn /></ProtectedRoute>} />
-          <Route path="/check-out" element={<ProtectedRoute><CheckOut /></ProtectedRoute>} />
-          <Route path="/faq" element={<ProtectedRoute><FaqEditor /></ProtectedRoute>} />
-          <Route path="/analytics" element={<ProtectedRoute><HotelAnalyticsDashboard /></ProtectedRoute>} />
+                <Intents />
+              </ProtectedRoute>} />
+            <Route path="/admin/devices"
+              element={
+                <ProtectedRoute>
+                  <Suspense fallback={<div>Devices are loading please wait...</div>} >
+                    <Devices />
+                  </Suspense>
+                </ProtectedRoute>
+              } />
+            <Route path="/admin/staff-directory"
+              element={
+                <ProtectedRoute>
+                  <Suspense fallback={<div>Staff details are loading please wait...</div>} >
+                    <StaffDirectory />
+                  </Suspense></ProtectedRoute>} />
+            <Route path="/admin/staff-request-mapping"
+              element={
+                <ProtectedRoute>
+                  <Suspense fallback={<div>Staff mapping details are loading please wait...</div>} >
+                    <StaffRequestMapping />
+                  </Suspense></ProtectedRoute>} />
+            <Route path="/admin/rooms" element={<ProtectedRoute><Rooms /></ProtectedRoute>} />
+            <Route path="/check-in" element={<ProtectedRoute><CheckIn /></ProtectedRoute>} />
+            <Route path="/check-out" element={<ProtectedRoute><CheckOut /></ProtectedRoute>} />
+            <Route path="/faq" element={<ProtectedRoute><FaqEditor /></ProtectedRoute>} />
+            <Route path="/analytics" element={<ProtectedRoute><HotelAnalyticsDashboard /></ProtectedRoute>} />
 
-        </Routes>
+          </Routes>
 
-      </Router>
-    </AuthProvider>
+        </Router>
+      </AuthProvider>
+    </NotificationProvider>
   );
 }
 
