@@ -3,11 +3,12 @@ import { httpGet, httpPut } from "../../Services/APIService";
 import DataTable from "../../Common/DataTable/DataTable";
 import { EC2_API_ENDPOINT } from "../../Constants/Environment.constants";
 import { getDaysSinceEpoch } from "../../Services/Common.service";
+// import { useNotification } from "../../Common/Notification/NotificationContext";
 
 const INTENTS_API_URI = '/intents';
 
 const Intents = () => {
-
+    // const { showNotification } = useNotification();
     const [allIntents, setAllIntents] = useState(null);
     // Row Data: The data to be displayed.
     const [rowData, setRowData] = useState(null);
@@ -25,6 +26,10 @@ const Intents = () => {
 
     useEffect(() => {
         getAllIntentsData()
+        // showNotification('First notification', 'info');
+        // showNotification('Second notification', 'success');
+        // showNotification('Third notification', 'warning', 8000); // Custom duration
+
     }, []);
 
     const getAllIntentsData = async () => {
