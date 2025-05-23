@@ -20,6 +20,7 @@ const StaffRequestMapping = lazy(() => import('./Modules/AdminModule/Pages/Staff
 const HotelAnalyticsDashboard = lazy(() => import('./Modules/Analytics/HotelAnalyticsDashboard'));
 const Sidebar = lazy(() => import('./Common/SideBar/Sidebar'));
 const Login = lazy(() => import('./Modules/Login/Login'));
+const Logout = lazy(() => import('./Modules/Login/Logout'));
 
 function App() {
 
@@ -31,7 +32,7 @@ function App() {
 
           <Routes>
             <Route path="/login" element={<Login />} />
-
+            <Route path="/logout" element={<Logout />} />
             <Route path="/requests" element={
               <ProtectedRoute>
                 <Intents />

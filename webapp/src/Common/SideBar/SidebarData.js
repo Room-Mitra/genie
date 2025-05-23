@@ -7,6 +7,7 @@ import * as RiIcons from "react-icons/ri";
 import * as LuIcons from "react-icons/lu";
 import * as MdIcons from "react-icons/md";
 import * as GrIcons from "react-icons/gr";
+import * as Io5Icons from "react-icons/io5";
 
 export const SidebarData = [
     {
@@ -17,12 +18,12 @@ export const SidebarData = [
     {
         title: "Check In",
         path: "/check-in",
-        icon: <LuIcons.LuMapPinCheckInside />,
+        icon: <RiIcons.RiLogoutBoxFill />,
     },
     {
         title: "Check Out",
         path: "/check-out",
-        icon: <MdIcons.MdOutlineShoppingCartCheckout />,
+        icon: <Io5Icons.IoLogOut />,
     },
     {
         title: "Admin",
@@ -65,4 +66,9 @@ export const SidebarData = [
         path: "/analytics",
         icon: <GrIcons.GrAnalytics />,
     },
+    {
+        title: "Logout",
+        path: "/logout",
+        icon: <IoIcons.IoMdLogOut />,
+    }
 ];
