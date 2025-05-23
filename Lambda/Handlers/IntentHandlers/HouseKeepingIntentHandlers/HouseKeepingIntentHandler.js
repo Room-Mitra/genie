@@ -22,9 +22,13 @@ const HouseKeepingIntentHandlerGenerator = ({ intentName, cost = 0 }) => {
 
                 const device_id = handlerInput.requestEnvelope.context.System.device.deviceId;
                 // const room_number = handlerInput.requestEnvelope.request.intent.slots.RoomNumber.value;
-
+                const token = process.env.EC2_AUTH_TOKEN;
                 // TODO :: add try catch
-                const response = await axios.post(`${EC2_ENDPOINT}/intents`, getIntent(device_id));
+                const response = await axios.post(`${EC2_ENDPOINT}/intents`, getIntent(device_id), {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
                 console.log(response)
                 const speechText = handlerInput.t(responseSpeechText);
 
