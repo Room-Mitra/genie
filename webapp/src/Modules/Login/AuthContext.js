@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import React, { createContext, useState, useEffect } from "react";
 import { jwtDecode } from 'jwt-decode';
 
@@ -8,6 +9,7 @@ export const AuthProvider = ({ children }) => {
         const token = localStorage.getItem("token");
         return token ? { token } : null;
     });
+    const navigate = useNavigate();
 
     useEffect(() => {
         const delay = 10 * 60 * 1000; // 10 minutes
@@ -22,6 +24,7 @@ export const AuthProvider = ({ children }) => {
 
                 if (expirationDate < new Date()) {
                     logout();
+                    navigate("/logout")
                 }
 
             } catch (error) {
