@@ -26,8 +26,8 @@ function App() {
 
   return (
     <NotificationProvider>
-      <AuthProvider>
-        <Router>
+      <Router>
+        <AuthProvider>
           <Sidebar />
 
           <Routes>
@@ -62,11 +62,10 @@ function App() {
             <Route path="/check-out" element={<ProtectedRoute><CheckOut /></ProtectedRoute>} />
             <Route path="/faq" element={<ProtectedRoute><FaqEditor /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><HotelAnalyticsDashboard /></ProtectedRoute>} />
-
           </Routes>
 
-        </Router>
-      </AuthProvider>
+        </AuthProvider>
+      </Router>
     </NotificationProvider>
   );
 }

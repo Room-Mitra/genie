@@ -9,6 +9,7 @@ import InputField from "../../Common/InputField/InputField";
 import AuthContext from "./AuthContext";
 
 const Login = () => {
+    const [hotelId, setHotelId] = useState("");
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -18,15 +19,14 @@ const Login = () => {
     const handleLogin = async (e) => {
 
         e.preventDefault();
-        if (!username || !password) {
-            setError("Please enter username and password");
+        if (!hotelId || !username || !password) {
+            setError("Please enter hotel id, username and password");
             return;
         }
         try {
-            const response = await httpPost(EC2_API_ENDPOINT + "/login", { username, password });
-            console.log(response)
+            const response = await httpPost(EC2_API_ENDPOINT + "/login", { username, password, hotelId });
             if (!response || response.statusText !== "OK") {
-                setError("Invalid username or password");
+                setError("Invalid hotel id or username or password");
                 return;
             }
             setError("");
@@ -36,6 +36,8 @@ const Login = () => {
             if (redirect) {
                 localStorage.removeItem("redirect");
                 navigate(redirect)
+            } else {
+                navigate("/analytics")
             }
 
         } catch (err) {
@@ -43,14 +45,18 @@ const Login = () => {
         }
     };
 
-    useEffect(() => {
-        console.log(error);
-    }, [error]);
 
     return (
         <div style={{ maxWidth: "400px", margin: "50px auto" }}>
             <h2 style={{ marginBottom: "20px" }}> Login</h2>
             <form >
+                <InputContainer  >
+                    <Label>Hotel ID</Label>
+                    <InputField
+                        type="text"
+                        value={hotelId}
+                        onChange={(e) => setHotelId(e.target.value)} />
+                </InputContainer>
                 <InputContainer  >
                     <Label>Username</Label>
                     <InputField
@@ -59,7 +65,7 @@ const Login = () => {
                         onChange={(e) => setUsername(e.target.value)} />
                 </InputContainer>
                 <InputContainer  >
-                    <Label >Password</Label>
+                    <Label>Password</Label>
                     <InputField
                         type="password"
                         value={password}
