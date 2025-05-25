@@ -6,6 +6,7 @@ const router = express.Router();
 router.post('/', async (req, res) => {
     const intent = req.body;
     await registerIntent(intent)
+    console.log("Intent Data :: ", intent, "added to repo")
     res.send(`${JSON.stringify(intent)} has been added to the Database`);
 })
 

@@ -1,6 +1,8 @@
 Lambda/node_modules/
+Lambda/*.zip
+Lambda/*.DS_Store
+Lambda/.env
 EC2/node_modules/
 EC2/.env
-webapp/node_modules/
-Lambda/*.zip
 EC2/config/*.pem
+webapp/node_modules/

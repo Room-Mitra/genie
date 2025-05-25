@@ -23,6 +23,8 @@ class Intent {
         this.requestedTime = Date.now(); //SK
         this.inProgressTime = null;
         this.completedTime = null;
+
+        console.log("Intent :: ", this)
     }
 }
 

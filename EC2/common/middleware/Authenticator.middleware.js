@@ -7,9 +7,9 @@ const authenticator = (req, res, next) => {
 
     if (!token) return res.status(401).json({ message: "Unauthorized" });
 
-    jwt.verify(token, SECRET_KEY, (err, user) => {
+    jwt.verify(token, SECRET_KEY, (err, userData) => {
         if (err) return res.status(403).json({ message: "Forbidden" });
-        req.user = user;
+        req.userData = userData;
         next();
     });
 };
