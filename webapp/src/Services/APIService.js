@@ -56,6 +56,7 @@ export const httpPost = async (url, data) => {
         return response;
     } catch (err) {
         console.log("API ERROR :: ", url, err);
+        cacheInstance.delete(url);
         return err;
     }
 }
