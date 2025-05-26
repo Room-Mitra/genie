@@ -13,8 +13,12 @@ router.post('/', async (req, res) => {
 router.get('/:dateAsInteger', async (req, res) => {
     const dateAsInteger = +req.params.dateAsInteger;
     const range = +(req.query.range || 0);
-    const intents = await getIntentsForDateRange(dateAsInteger, range)
-    res.send(intents)
+    try {
+        const intents = await getIntentsForDateRange(dateAsInteger, range)
+        res.send(intents)
+    } catch (e) { // update this with proper error handling
+        res.status(500).send(e)
+    }
 })
 
 

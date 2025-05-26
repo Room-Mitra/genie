@@ -7,7 +7,7 @@ dotenv.config();
 const cors = require('cors');
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const path = require('path');
 
 // routes
 const deviceRoutes = require('./routes/Device/Device.controller.js');
@@ -38,8 +38,12 @@ app.use('/booking', authenticator, bookingRoutes);
 
 app.use('/login', loginRoutes);
 
+// Serve static landing page
+app.use(express.static(path.join(__dirname, 'public')));
+
 app.get('/', (req, res) => {
-    res.redirect(301, 'https://theroomgenie.vercel.app/requests');
+    // res.redirect(301, 'https://theroomgenie.vercel.app/faq'); // restart app
+    res.sendFile(path.join(__dirname, 'public/landing.html'));
 })
 
 app.listen(PORT, () => console.log(`Server running on port: http://localhost:${PORT}`));
