@@ -20,6 +20,7 @@ router.post('/', async (req, res) => {
         const isValidUser = await verifyUserCredentials({ username, hotelId, password });
         if (!isValidUser) {
             res.status(401).json({ message: "Invalid hotel id or username or password" });
+            console.info(`Login attempt for user ${username} with hotelId ${hotelId} : FAILED`)
             return;
         }
 
