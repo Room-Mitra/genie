@@ -15,6 +15,7 @@ const guestRoutes = require('./routes/Guest/Guest.controller.js');
 const bookingRoutes = require('./routes/Booking/Booking.controller.js');
 const intentsRoutes = require("./routes/Intents/Intent.controller.js")
 const loginRoutes = require("./routes/Login/Login.controller.js")
+const landingPageRoutes = require("./routes/LandingPage/leads.js")
 
 const { runFunctionsOnServerStartup } = require('./common/services/startup.service.js');
 
@@ -37,6 +38,8 @@ app.use('/booking', authenticator, bookingRoutes);
 
 
 app.use('/login', loginRoutes);
+app.use('/leads', landingPageRoutes);
+
 
 // Serve static landing page
 app.use(express.static(path.join(__dirname, 'public')));
