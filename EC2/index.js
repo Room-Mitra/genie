@@ -46,7 +46,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
     // res.redirect(301, 'https://theroomgenie.vercel.app/faq'); // restart app
-    res.sendFile(path.join(__dirname, 'public/landing.html'));
+    res.sendFile(path.join(__dirname, 'public/LandingPage/landing.html'));
 })
 
 app.listen(PORT, () => console.log(`Server running on port: http://localhost:${PORT}`));
