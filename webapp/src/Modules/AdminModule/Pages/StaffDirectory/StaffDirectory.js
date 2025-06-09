@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import StaffDirectoryPopup from "./StaffDirectoryPopup";
 
 const StaffDirectory = () => {
     const [staffList, setStaffList] = useState([]);
@@ -266,7 +267,7 @@ const StaffDirectory = () => {
             </table>
 
             {showDepartmentPopup && (
-                <Popup
+                <StaffDirectoryPopup
                     title="Manage Departments"
                     items={departments}
                     onAdd={handleAddDepartment}
@@ -276,7 +277,7 @@ const StaffDirectory = () => {
             )}
 
             {showRolePopup && (
-                <Popup
+                <StaffDirectoryPopup
                     title="Manage Roles"
                     items={roles}
                     onAdd={handleAddRole}
@@ -288,74 +289,5 @@ const StaffDirectory = () => {
     );
 };
 
-const Popup = ({ title, items, onAdd, onDelete, onClose }) => {
-    const [newItem, setNewItem] = useState("");
-
-    return (
-        <div style={{
-            position: "fixed",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            backgroundColor: "#fff",
-            padding: "20px",
-            borderRadius: "10px",
-            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)"
-        }}>
-            <h3>{title}</h3>
-            <ul>
-                {items.map((item, index) => (
-                    <li key={index}>
-                        {item}
-                        <button onClick={() => onDelete(index)} style={{ marginLeft: "10px" }}>Delete</button>
-                    </li>
-                ))}
-            </ul>
-            <input
-                type="text"
-                value={newItem}
-                onChange={(e) => setNewItem(e.target.value)}
-                placeholder={`Add new ${title.toLowerCase()}`}
-                style={{
-                    padding: "8px",
-                    border: "1px solid #ccc",
-                    borderRadius: "5px",
-                    marginTop: "10px"
-                }}
-            />
-            <button
-                onClick={() => {
-                    onAdd(newItem);
-                    setNewItem("");
-                }}
-                style={{
-                    marginTop: "10px",
-                    backgroundColor: "#4CAF50",
-                    color: "white",
-                    padding: "8px",
-                    border: "none",
-                    borderRadius: "5px",
-                    cursor: "pointer",
-                    fontSize: "14px"
-                }}
-            >
-                Add
-            </button>
-            <button onClick={onClose} style={{
-                marginTop: "10px",
-                marginLeft: "10px",
-                backgroundColor: "#FF4136",
-                color: "white",
-                padding: "8px",
-                border: "none",
-                borderRadius: "5px",
-                cursor: "pointer",
-                fontSize: "14px"
-            }}>
-                Close
-            </button>
-        </div>
-    );
-};
 
 export default StaffDirectory;
