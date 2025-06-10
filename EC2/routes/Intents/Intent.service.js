@@ -19,11 +19,16 @@ const updateIntentWithRoomId = (intent) => {
 const getIntentsForDate = async (dateAsInteger, bypassCache = false) => {
     const intents = await (bypassCache ? getIntentsForDateFromRepo(dateAsInteger) : getIntentsForDateFromCache(dateAsInteger)); // TODO : add caching
     intents.forEach(intent => {
-        const { propertyName, floor, roomTags, roomNotes } = getRoomInfoFromDeviceId(intent.deviceId); //TODO :: Handle Error
-        intent.propertyName = propertyName;
-        intent.floor = floor;
-        intent.roomTags = roomTags;
-        intent.roomNotes = roomNotes;
+        try {
+            const { propertyName, floor, roomTags, roomNotes } = getRoomInfoFromDeviceId(intent.deviceId); //TODO :: Handle Error
+            intent.propertyName = propertyName;
+            intent.floor = floor;
+            intent.roomTags = roomTags;
+            intent.roomNotes = roomNotes;
+        }
+        catch (e) {
+            console.log(e)
+        }
     });
     return intents;
 }
