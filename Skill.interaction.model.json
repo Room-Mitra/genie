@@ -39,6 +39,8 @@
                     "name": "HouseKeepingDentalKitIntent",
                     "slots": [],
                     "samples": [
+                        "get toothpaste",
+                        "toothbrush",
                         "get tooth paste",
                         "get tooth brush",
                         "get dental kit",
@@ -106,6 +108,9 @@
                     "name": "HouseKeepingTowelsIntent",
                     "slots": [],
                     "samples": [
+                        "get towel",
+                        "get me towel",
+                        "towel",
                         "bathroom towels",
                         "get clean towels",
                         "clean towels",
@@ -179,6 +184,71 @@
                         "get shoe shine",
                         "get shoe polish"
                     ]
+                },
+                {
+                    "name": "FAQSwimmingPoolDetailsIntent",
+                    "slots": [],
+                    "samples": [
+                        "pool details",
+                        "pool timings",
+                        "where is pool",
+                        "is swimming pool closed now",
+                        "is swimming pool open now",
+                        "is pool closed",
+                        "is pool open",
+                        "pool",
+                        "where swimming pool is",
+                        "where is swimming pool",
+                        "swimming pool timings",
+                        "swimming pool details",
+                        "swimming pool "
+                    ]
+                },
+                {
+                    "name": "FAQBreakfastDetailsIntent",
+                    "slots": [],
+                    "samples": [
+                        "when does breakfast start",
+                        "till what time is breakfast available",
+                        "breakfast timings",
+                        "cuisines in breakfast",
+                        "breakfast details",
+                        "breakfast buffet details",
+                        "what's for breakfast",
+                        "what is for breakfast",
+                        "items in breakfast",
+                        "breakfast menu",
+                        "breakfast"
+                    ]
+                },
+                {
+                    "name": "FAQCheckInCheckOutDetailsIntent",
+                    "slots": [],
+                    "samples": [
+                        "early checkin",
+                        "late checkout ",
+                        "check out policy",
+                        "check in policy",
+                        "checkout time",
+                        "checkin time",
+                        "check in time",
+                        "checkout ",
+                        "check out",
+                        "checkin",
+                        "check in"
+                    ]
+                },
+                {
+                    "name": "FAQGymDetailsIntent",
+                    "slots": [],
+                    "samples": [
+                        "till what time is the gym open",
+                        "when is the gym open",
+                        "gym timings",
+                        "where is the gym",
+                        "is the gym open now",
+                        "gym"
+                    ]
                 }
             ],
             "types": []
@@ -210,7 +280,7 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "Say NO if you are not a employee of hospatality cobotics. Are you sure you want to associate this device with {RoomNumber}"
+                        "value": "Say NO if you are not a employee of room mitra. Are you sure you want to associate this device with {RoomNumber}"
                     }
                 ]
             }

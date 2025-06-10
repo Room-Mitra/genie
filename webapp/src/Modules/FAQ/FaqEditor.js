@@ -1,20 +1,33 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import BlueGoldButton from "../../Common/Button/BlueGoldButton";
+import { httpGet, httpPost } from "../../Services/APIService";
+import { EC2_API_ENDPOINT } from "../../Constants/Environment.constants";
 
+const FAQ_API_URI = '/faq';
 
 const FaqEditor = () => {
     // List of FAQ types/questions
     const [faqs, setFaqs] = useState([
-        { question: "Pool Timings", answer: "" },
-        { question: "Breakfast Buffet Options", answer: "" },
-        { question: "Parking Availability", answer: "" },
-        { question: "Check-in and Check-out Policy", answer: "" },
-        { question: "Gym Facilities", answer: "" }
+        { question: "Swimming Pool Details", answer: "", intentName: "FAQSwimmingPoolDetailsIntent" },
+        { question: "Breakfast Details", answer: "", intentName: "FAQBreakfastDetailsIntent" },
+        { question: "Check-in and Check-out Policy", answer: "", intentName: "FAQCheckInCheckOutDetailsIntent" },
+        { question: "Gym Facilities", answer: "", intentName: "FAQGymDetailsIntent" }
     ]);
 
     // Notification state for save action
     const [showNotification, setShowNotification] = useState(false);
+
+    useEffect(() => {
+        const fetchFaqs = async () => {
+            const faq = await httpGet(EC2_API_ENDPOINT + FAQ_API_URI, true); //{faqData: null}
+            console.log(faq)
+            if (faq && faq.faqData) {
+                setFaqs(faq.faqData);
+            }
+        };
+        fetchFaqs();
+    }, [])
 
     // Handle change of individual answers
     const handleAnswerChange = (index, newAnswer) => {
@@ -24,7 +37,8 @@ const FaqEditor = () => {
     };
 
     // Handle save all action
-    const handleSaveAll = () => {
+    const handleSaveAll = async () => {
+        const faq = await httpPost(EC2_API_ENDPOINT + FAQ_API_URI, { "faqData": faqs });
         console.log("Saved FAQs:", faqs); // For debugging or sending to backend
         setShowNotification(true);
 
