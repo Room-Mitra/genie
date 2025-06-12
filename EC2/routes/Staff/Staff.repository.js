@@ -14,10 +14,10 @@ const removeIdType = (staff) => {
 }
 
 const addStaff = async (staff) => {
-    const { staffData } = await getStaff(staff.id);
-    if (staffData) {
-        throw new Error(" staff already exists")
-    }
+    // const { staffData } = await getStaff(staff.id);
+    // if (staffData) {
+    //     throw new Error(" staff already exists")
+    // }
     const params = {
         TableName: STAFF_TABLE_NAME,
         Item: { ...addIdType(staff) },
@@ -44,32 +44,34 @@ const getStaff = async (staffId) => {
     return { "staffData": null };
 }
 
-const updateStaff = async (staffId, staffData) => {
-    const staffDetails = await getStaff(staffId);
-    staffData = { ...staffDetails, ...staffData };
-    const params = {
-        TableName: STAFF_TABLE_NAME,
-        Item: { ...addIdType(staffData) },
+// const updateStaff = async (staffId, staffData) => {
+//     const staffDetails = await getStaff(staffId);
+//     staffData = { ...staffDetails, ...staffData };
+//     const params = {
+//         TableName: STAFF_TABLE_NAME,
+//         Item: { ...addIdType(staffData) },
 
-    };
+//     };
 
-    await DDB.put(params).promise(); // TODO :: Handle Error
-    return params.Item;
-}
+//     await DDB.put(params).promise(); // TODO :: Handle Error
+//     return params.Item;
+// }
 
-const deleteStaff = async (staffId) => {
-    const params = {
-        TableName: STAFF_TABLE_NAME,
-        Key: {
-            id: `${ID_TYPE}${staffId}`
-        }
-    };
-    await DDB.delete(params).promise(); // TODO :: Handle Error
-    return params.Item;
-}
+// const deleteStaff = async (staffId) => {
+//     const params = {
+//         TableName: STAFF_TABLE_NAME,
+//         Key: {
+//             id: `${ID_TYPE}${staffId}`
+//         }
+//     };
+//     await DDB.delete(params).promise(); // TODO :: Handle Error
+//     return params.Item;
+// }
 
 
 
 module.exports = {
-    addStaff, getStaff, updateStaff, deleteStaff
+    addStaff,
+    getStaff,
+    //  updateStaff, deleteStaff
 };

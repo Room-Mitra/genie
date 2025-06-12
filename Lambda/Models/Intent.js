@@ -37,7 +37,12 @@ Intent.INTENT_NAMES = {
     LAUNDRY: "HouseKeepingLaundryIntent",
     IRON_BOX: "HouseKeepingIronBoxIntent",
     ICE_CUBES: "HouseKeepingIceCubesIntent",
-    SHOE_SHINE_KIT: "HouseKeepingShoeShineKitIntent"
+    SHOE_SHINE_KIT: "HouseKeepingShoeShineKitIntent",
+
+    SWIMMING_POOL_DETAILS: "FAQSwimmingPoolDetailsIntent",
+    BREAKFAST_DETAILS: "FAQBreakfastDetailsIntent",
+    CHECKIN_CHECKOUT_DETAILS: "FAQCheckInCheckOutDetailsIntent",
+    GYM_DETAILS: "FAQGymDetailsIntent"
 }
 
 
@@ -52,6 +57,12 @@ Intent.INTENT_TYPES = {
         Intent.INTENT_NAMES.IRON_BOX,
         Intent.INTENT_NAMES.ICE_CUBES,
         Intent.INTENT_NAMES.SHOE_SHINE_KIT
+    ],
+    "FAQ": [
+        Intent.INTENT_NAMES.SWIMMING_POOL_DETAILS,
+        Intent.INTENT_NAMES.BREAKFAST_DETAILS,
+        Intent.INTENT_NAMES.CHECKIN_CHECKOUT_DETAILS,
+        Intent.INTENT_NAMES.GYM_DETAILS
     ]
 }
 

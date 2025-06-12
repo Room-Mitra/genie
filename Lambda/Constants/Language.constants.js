@@ -3,9 +3,9 @@ const { HOTEL_NAME } = require("./Hotel.constants.js");
 const languageStrings = {
     'en': {
         translation: {
-            LaunchRequestHandler_WelcomeMsg: `English : Hello, Welcome to ${HOTEL_NAME}. How can I help you?`,
-            ErrorHandler_Prompt: 'English : Sorry, I don\'t understand your command. Please say it again.',
-            ErrorHandler_Reprompt: 'English : Sorry, I don\'t understand your command. Please say it again.',
+            LaunchRequestHandler_WelcomeMsg: `Hello, Welcome to ${HOTEL_NAME}. How can I help you?`,
+            ErrorHandler_Prompt: 'Sorry, I don\'t understand your command. Please say it again.',
+            ErrorHandler_Reprompt: ' Sorry, I don\'t understand your command. Please say it again.',
             HelpIntentHandler_HelpText: ' You can ask me the weather!',
             HelpIntentHandler_HelpTextDesc: ' DESC : You can ask me the weather!',
             CancelAndStopIntentHandler_short: ' Goodbye!',
