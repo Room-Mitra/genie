@@ -12,6 +12,8 @@ export default SecondaryButton;
 
 
 const Button = styled.button`
+    margin-top: 10px;
+    margin-left: 10px;
     background-color: #e2c044;
     color:  #161032;
     font-weight: bold;
