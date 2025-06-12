@@ -25,10 +25,21 @@ const Intents = () => {
     ]);
 
     useEffect(() => {
-        getAllIntentsData()
+        // getAllIntentsData()
         // showNotification('First notification', 'info');
         // showNotification('Second notification', 'success');
         // showNotification('Third notification', 'warning', 8000); // Custom duration
+
+        // Call the function immediately and then every 30 seconds
+        getAllIntentsData();
+        const intervalId = setInterval(() => {
+            getAllIntentsData();
+        }, 10000);
+
+        // Cleanup the interval when the component is unmounted
+        return () => {
+            clearInterval(intervalId);
+        };
 
     }, []);
 
