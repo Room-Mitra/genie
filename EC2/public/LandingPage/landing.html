@@ -24,7 +24,7 @@
         content="AI-powered guest service for hotels via Alexa and WhatsApp. Delight guests, boost efficiency, and grow revenue with Room Mitra." />
     <meta name="twitter:image" content="https://www.roommitra.com/og-image.jpg" />
     <!-- Favicon -->
-    <link rel="icon" href="./logo.png">
+    <link rel="icon" href="../logo.png">
     <!-- Google Fonts -->
     <link
         href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;500;400&family=Roboto:wght@400;500&display=swap"
@@ -582,6 +582,102 @@
                 font-size: 0.98rem;
             }
         }
+
+        /* Responsive styles for mobile devices */
+        @media (max-width: 700px) {
+            nav ul {
+                display: none;
+                /* Hide the list items */
+                flex-direction: column;
+                /* Stack items vertically */
+                gap: 10px;
+                background-color: var(--primary);
+                padding: 10px;
+                border: 1px solid #ddd;
+                position: absolute;
+                top: 50px;
+                /* Adjust position below the hamburger icon */
+                right: 10px;
+                z-index: 1000;
+            }
+
+            nav ul.show {
+                display: flex;
+                /* Display the menu as a flex container */
+                flex-direction: column;
+                /* Stack items vertically */
+                gap: 10px;
+                /* Add spacing between items */
+                /* background-color: #ffffff; */
+                /* Set a clean white background color */
+                padding: 20px;
+                /* Add padding for spacing */
+                border: 1px solid #ccc;
+                /* Add a subtle border for visibility */
+                position: absolute;
+                /* Position relative to the screen */
+                top: 50px;
+                /* Adjust position below the hamburger icon */
+                right: 10px;
+                /* Align to the right end of the screen */
+                z-index: 1000;
+                /* Ensure it appears above other elements */
+                box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+                /* Add shadow for better visibility */
+                border-radius: 10px;
+                /* Rounded corners for consistency */
+                color: #161032;
+                /* Set text color to dark for readability */
+            }
+
+            nav ul.show li {
+                list-style: none;
+                /* Remove bullet points */
+                padding: 10px;
+                /* Add padding for spacing */
+                color: #161032;
+                /* Ensure text color is consistent */
+                font-size: 16px;
+                /* Set a readable font size */
+                font-weight: 500;
+                /* Slightly bold text for emphasis */
+                transition: background-color 0.3s ease;
+                /* Smooth hover effect */
+            }
+
+            nav ul.show li:hover {
+                /* background-color: #E2C044; */
+                /* Highlight item on hover */
+                color: #ffffff;
+                /* Change text color to white for contrast */
+                border-radius: 5px;
+                /* Add rounded corners on hover */
+            }
+
+
+
+            .hamburger-menu {
+                display: block !important;
+                /* Show hamburger icon */
+                cursor: pointer;
+                font-size: 24px;
+                color: #161032;
+                margin: 10px;
+                color: #E2C044;
+                position: absolute;
+                /* Position the hamburger menu */
+                top: 10px;
+                /* Adjust vertical position */
+                right: 10px;
+                /* Align to the right end of the screen */
+
+            }
+        }
+
+        /* Hide hamburger menu on larger screens */
+        .hamburger-menu {
+            display: none;
+        }
     </style>
 </head>
 
@@ -590,15 +686,18 @@
         <div class="navbar" role="navigation" aria-label="Main Navigation">
 
             <a class="logo" href="#top" aria-label="Room Mitra Home">
-                <img class="logo-img" src="Logo-small.png" alt="Room Mitra Logo" />
+                <img class="logo-img" src="../Logo-small.png" alt="Room Mitra Logo" />
                 <!-- <span class="logo-text">Room <span class="logo-accent">Mitra</span></span> -->
             </a>
+            <div class="hamburger-menu" id="hamburgerMenu">☰</div>
+
             <nav aria-label="Site">
-                <ul>
+                <ul id="mobileMenu">
                     <li><a href="#benefits">Benefits</a></li>
                     <li><a href="#features">Features</a></li>
                     <li><a href="#demo">Request Demo</a></li>
-                    <li><a href="https://theroomgenie.vercel.app/login">Login</a></li>
+                    <li><a href="../Blog/BlogListing.html">Blogs</a></li>
+                    <li><a href="https://roommitra.vercel.app//login">Login</a></li>
                 </ul>
 
             </nav>
@@ -763,7 +862,7 @@
             <div class="footer-logo">
 
                 <a class="logo" href="#top" aria-label="Room Mitra Home">
-                    <img class="logo-img" src="Logo-small.png" alt="Room Mitra Logo" />
+                    <img class="logo-img" src="../Logo-small.png" alt="Room Mitra Logo" />
                     <!-- <span class="logo-text">Room <span class="logo-accent">Mitra</span></span> -->
                 </a>
             </div>
@@ -785,6 +884,24 @@
 
     <!-- Smooth Scroll & Fade-in -->
     <script>
+
+        // Toggle mobile menu visibility
+        document.getElementById('hamburgerMenu').addEventListener('click', function () {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.toggle('show');
+        });
+        document.addEventListener('click', function (event) {
+            const hamburgerMenu = document.querySelector('.hamburger-menu');
+            const navMenu = document.querySelector('nav ul.show'); // Assuming this is the menu that opens
+
+            // Check if the click is outside the hamburger menu and the nav menu
+            if (!hamburgerMenu.contains(event.target) && !navMenu.contains(event.target)) {
+                // Hide the menu if it's open
+                navMenu.classList.remove('show'); // Remove the 'show' class to hide the menu
+            }
+        });
+
+
         // Smooth scroll for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {

@@ -13,6 +13,8 @@ const path = require('path');
 const deviceRoutes = require('./routes/Device/Device.controller.js');
 const guestRoutes = require('./routes/Guest/Guest.controller.js');
 const bookingRoutes = require('./routes/Booking/Booking.controller.js');
+const staffRoutes = require('./routes/Staff/Staff.controller.js');
+const faqRoutes = require('./routes/FAQ/FAQ.controller.js');
 const intentsRoutes = require("./routes/Intents/Intent.controller.js")
 const loginRoutes = require("./routes/Login/Login.controller.js")
 const landingPageRoutes = require("./routes/LandingPage/leads.js")
@@ -35,6 +37,9 @@ app.use('/devices', authenticator, deviceRoutes);
 app.use('/intents', authenticator, intentsRoutes);
 app.use('/guests', authenticator, guestRoutes);
 app.use('/booking', authenticator, bookingRoutes);
+app.use('/staff', authenticator, staffRoutes);
+app.use('/faq', authenticator, faqRoutes);
+
 
 
 app.use('/login', loginRoutes);
@@ -46,7 +51,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
     // res.redirect(301, 'https://theroomgenie.vercel.app/faq'); // restart app
-    res.sendFile(path.join(__dirname, 'public/landing.html'));
+    res.sendFile(path.join(__dirname, 'public/LandingPage/landing.html'));
 })
 
 app.listen(PORT, () => console.log(`Server running on port: http://localhost:${PORT}`));
