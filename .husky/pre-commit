@@ -1,0 +1,21 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🧹 Running lint-staged...\n"
+
+tmpfile=$(mktemp)
+
+# Run lint-staged and redirect all output to a temp file
+yarn lint-staged >"$tmpfile" 2>&1
+exit_code=$?
+
+# Always show the output
+cat "$tmpfile"
+rm "$tmpfile"
+
+if [ "$exit_code" -ne 0 ]; then
+  echo ""
+  echo "🚫 Linting failed. Commit aborted."
+  echo "💡 Run 'yarn lint-staged' manually to fix the issues."
+  exit $exit_code
+fi

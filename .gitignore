@@ -6,3 +6,22 @@ EC2/node_modules/
 EC2/.env
 EC2/config/*.pem
 webapp/node_modules/
+
+
+# Node
+node_modules/
+dist/
+build/
+
+# VS Code — track only settings.json
+.vscode/*
+!.vscode/settings.json
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
