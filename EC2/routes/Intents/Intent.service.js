@@ -1,10 +1,17 @@
 const { getRoomInfoFromDeviceId } = require("../Device/Device.service");
+const { getMappingByRoomAndDepartment } = require("../StaffRoomDepartmentRequestMapping/StaffRoomDepartmentRequestMapping.service");
 const { addIntent: addIntentToCache, getIntentsForDate: getIntentsForDateFromCache } = require("./Intent.cache");
 const { addIntent: addIntentToDB, getIntentsForDate: getIntentsForDateFromRepo } = require("./Intent.repository")
-
+const { sendWhatsAppTemplate } = require("../../common/services/whatsapp.service")
 const registerIntent = async (intent) => {
     if (!intent.roomId) {
         updateIntentWithRoomId(intent); // TODO :: Handle Error 
+    }
+    if (!intent.assignedTo) {
+        const mapping = await getMappingByRoomAndDepartment("Room Genie", intent.roomId, intent.intentType);
+        console.log("Mapping :: ", mapping)
+        const phoneNumbers = mapping.map(m => m.staffPhone) || [];
+        phoneNumbers.forEach(pn => sendWhatsAppTemplate("91" + pn, intent.roomId));
     }
     addIntentToCache(intent)
     addIntentToDB(intent)

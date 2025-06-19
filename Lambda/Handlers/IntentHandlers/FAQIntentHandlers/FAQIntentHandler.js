@@ -30,7 +30,7 @@ const FAQIntentHandlerGenerator = ({ intentName, cost = 0 }) => {
                     }
                 });
 
-                const res = await axios.get(`${EC2_ENDPOINT}/faq/Room%20Genie`, {
+                const res = await axios.get(`${EC2_ENDPOINT}/faq/Room%20Genie`, { // Room Genie
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }

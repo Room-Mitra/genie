@@ -14,6 +14,7 @@ const deviceRoutes = require('./routes/Device/Device.controller.js');
 const guestRoutes = require('./routes/Guest/Guest.controller.js');
 const bookingRoutes = require('./routes/Booking/Booking.controller.js');
 const staffRoutes = require('./routes/Staff/Staff.controller.js');
+const mappingRoutes = require('./routes/StaffRoomDepartmentRequestMapping/StaffRoomDepartmentRequestMapping.controller.js');
 const faqRoutes = require('./routes/FAQ/FAQ.controller.js');
 const intentsRoutes = require("./routes/Intents/Intent.controller.js")
 const loginRoutes = require("./routes/Login/Login.controller.js")
@@ -38,6 +39,7 @@ app.use('/intents', authenticator, intentsRoutes);
 app.use('/guests', authenticator, guestRoutes);
 app.use('/booking', authenticator, bookingRoutes);
 app.use('/staff', authenticator, staffRoutes);
+app.use('/mapping', authenticator, mappingRoutes);
 app.use('/faq', authenticator, faqRoutes);
 
 

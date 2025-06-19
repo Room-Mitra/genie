@@ -1,4 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { EC2_API_ENDPOINT } from "../../../../Constants/Environment.constants";
+import { httpGet, httpPost } from "../../../../Services/APIService";
+import Select from 'react-select';
+const ROOMS_API_URI = '/devices';
+const STAFF_API_URI = '/staff';
+const MAPPING_API_URI = '/mapping';
 
 const StaffRequestMapping = () => {
     const [staffMappings, setStaffMappings] = useState([]);
@@ -12,21 +18,38 @@ const StaffRequestMapping = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [editingIndex, setEditingIndex] = useState(null);
 
-    const [departments] = useState(["Housekeeping", "Maintenance", "Room Service", "Front Desk", "Security"]);
-    const [availableRooms] = useState([101, 102, 103, 104, 105, 201, 202, 203, 204, 205]); // Example room numbers
-    const [staffList] = useState([
-        { name: "Alice Smith", phone: "1234567890" },
-        { name: "Bob Johnson", phone: "9876543210" },
-        { name: "Charlie Brown", phone: "1122334455" },
-        { name: "Diana Prince", phone: "9988776655" }
-    ]); // Predefined staff list with names and phone numbers
-    const [managerList] = useState([
-        { name: "Emily Davis", phone: "5566778899" },
-        { name: "Frank Wilson", phone: "6677889900" }
-    ]); // Predefined manager list with names and phone numbers
+    const [departments] = useState(["House Keeping", "Maintenance", "Room Service", "Front Desk", "Security"]);
+    const [availableRooms, setAvailableRooms] = useState([]); // Example room numbers
+    const [staffList, setStaffList] = useState([]); // Predefined staff list with names and phone numbers
+    const [managerList, setManagerList] = useState([]); // Predefined manager list with names and phone numbers
+
+    useEffect(() => {
+        const getAllRoomsData = async () => {
+            const rooms = await httpGet(EC2_API_ENDPOINT + ROOMS_API_URI);
+            setAvailableRooms(rooms.sort((b, a) => b.roomId - a.roomId).map(r => r.roomId))
+        }
+        const fetchStaffList = async () => {
+            const response = await httpGet(EC2_API_ENDPOINT + STAFF_API_URI);
+            const staffData = response && response.staffData ? response.staffData : [];
+            setStaffList(staffData)
+
+            const managerData = staffData.filter(staff => staff && staff.role && staff.role.toLocaleString().toLocaleLowerCase().includes("manager"));
+            setManagerList(managerData)
+        }
+        const getMappings = async () => {
+            const { mappingData } = await httpGet(EC2_API_ENDPOINT + MAPPING_API_URI, true);
+            setStaffMappings(mappingData || []);
+            console.log(mappingData)
+        }
+        getMappings();
+        fetchStaffList();
+        getAllRoomsData();
+    }, []);
 
     const handleAddOrUpdateMapping = () => {
-        if (!staffName || !staffPhone || selectedRooms.length === 0 || !requestType) {
+        if (!staffName
+            || !staffPhone
+            || selectedRooms.length === 0 || !requestType) {
             alert("All fields are required!");
             return;
         }
@@ -48,8 +71,11 @@ const StaffRequestMapping = () => {
             setStaffMappings(updatedMappings);
             setIsEditing(false);
             setEditingIndex(null);
+            httpPost(EC2_API_ENDPOINT + MAPPING_API_URI, updatedMappings).then(console.log);
         } else {
-            setStaffMappings([...staffMappings, newMapping]);
+            const updatedMappings = [...staffMappings, newMapping]
+            setStaffMappings(updatedMappings);
+            httpPost(EC2_API_ENDPOINT + MAPPING_API_URI, updatedMappings).then(console.log);
         }
 
         setStaffName("");
@@ -77,16 +103,19 @@ const StaffRequestMapping = () => {
     const handleDeleteMapping = (index) => {
         const updatedMappings = staffMappings.filter((_, i) => i !== index);
         setStaffMappings(updatedMappings);
+        httpPost(EC2_API_ENDPOINT + MAPPING_API_URI, updatedMappings).then(console.log);
+
     };
 
     const handleToggleMappingStatus = (index) => {
         const updatedMappings = [...staffMappings];
         updatedMappings[index].isActive = !updatedMappings[index].isActive;
         setStaffMappings(updatedMappings);
+        httpPost(EC2_API_ENDPOINT + MAPPING_API_URI, updatedMappings).then(console.log);
     };
 
     const handleRoomSelectionChange = (e) => {
-        const selectedOptions = Array.from(e.target.selectedOptions, (option) => Number(option.value));
+        const selectedOptions = Array.from(e, (option) => Number(option.value));
         setSelectedRooms(selectedOptions);
     };
 
@@ -116,15 +145,26 @@ const StaffRequestMapping = () => {
         }
     };
 
+    const headers = [
+        "Staff Name",
+        "Phone",
+        "Rooms",
+        "Department",
+        "Manager",
+        "Escalation Phone",
+        "Escalation Time",
+        "Status",
+        "Actions",
+    ];
+
+    const filterStaffList = () => {
+        let filteredStaffList;
+        filteredStaffList = staffList.filter(staff => staff && staff.department && (requestType === '' || staff.department.includes(requestType)));
+        return filteredStaffList;
+    }
+
     return (
-        <div style={{
-            fontFamily: "'Arial', sans-serif",
-            margin: "20px",
-            padding: "20px",
-            backgroundColor: "#f9f9f9",
-            borderRadius: "10px",
-            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)"
-        }}>
+        <div style={containerStyle}>
             <h2 style={{
                 textAlign: "center",
                 color: "#333",
@@ -133,66 +173,8 @@ const StaffRequestMapping = () => {
 
             <form style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
                 <label style={{ display: "flex", flexDirection: "column", fontWeight: "bold" }}>
-                    Staff Name:
-                    <select
-                        value={staffName}
-                        onChange={handleStaffNameChange}
-                        style={{
-                            padding: "8px",
-                            border: "1px solid #ccc",
-                            borderRadius: "5px"
-                        }}
-                    >
-                        <option value="">Select a Staff Member</option>
-                        {staffList.map((staff, index) => (
-                            <option key={index} value={staff.name}>{staff.name}</option>
-                        ))}
-                    </select>
-                </label>
-                <label style={{ display: "flex", flexDirection: "column", fontWeight: "bold" }}>
-                    Staff Phone Number:
-                    <input
-                        type="text"
-                        value={staffPhone}
-                        readOnly
-                        style={{
-                            padding: "8px",
-                            border: "1px solid #ccc",
-                            borderRadius: "5px",
-                            backgroundColor: "#f0f0f0",
-                            cursor: "not-allowed"
-                        }}
-                    />
-                </label>
-                <label style={{ display: "flex", flexDirection: "column", fontWeight: "bold" }}>
-                    Room Numbers:
-                    <select
-                        multiple
-                        value={selectedRooms}
-                        onChange={handleRoomSelectionChange}
-                        style={{
-                            padding: "8px",
-                            border: "1px solid #ccc",
-                            borderRadius: "5px",
-                            height: "100px"
-                        }}
-                    >
-                        {availableRooms.map((room, index) => (
-                            <option key={index} value={room}>{room}</option>
-                        ))}
-                    </select>
-                </label>
-                <label style={{ display: "flex", flexDirection: "column", fontWeight: "bold" }}>
                     Request Type (Department):
-                    <select
-                        value={requestType}
-                        onChange={(e) => setRequestType(e.target.value)}
-                        style={{
-                            padding: "8px",
-                            border: "1px solid #ccc",
-                            borderRadius: "5px"
-                        }}
-                    >
+                    <select value={requestType} onChange={(e) => setRequestType(e.target.value)} style={selectStyle}   >
                         <option value="">Select a Department</option>
                         {departments.map((dept, index) => (
                             <option key={index} value={dept}>{dept}</option>
@@ -200,16 +182,36 @@ const StaffRequestMapping = () => {
                     </select>
                 </label>
                 <label style={{ display: "flex", flexDirection: "column", fontWeight: "bold" }}>
-                    Manager Name (for Escalation):
+                    Staff Name:
                     <select
-                        value={managerName}
-                        onChange={handleManagerNameChange}
-                        style={{
-                            padding: "8px",
-                            border: "1px solid #ccc",
-                            borderRadius: "5px"
-                        }}
+                        value={staffName}
+                        onChange={handleStaffNameChange}
+                        style={selectStyle}
                     >
+                        <option value="">Select a Staff Member</option>
+                        {filterStaffList().map((staff, index) => (
+                            <option key={index} value={staff.name}>{staff.name}</option>
+                        ))}
+                    </select>
+                </label>
+                <label style={{ display: "flex", flexDirection: "column", fontWeight: "bold" }}>
+                    Staff Phone Number:
+                    <input type="text" value={staffPhone} readOnly style={staffPhoneNumberInputStyle} />
+                </label>
+                <label style={{ display: "flex", flexDirection: "column", fontWeight: "bold" }}>
+                    Room Numbers:
+                    <Select
+                        id="roomIds"
+                        isMulti
+                        options={availableRooms.map((room) => ({ value: room, label: room }))}
+                        value={selectedRooms.map((roomId) => ({ value: roomId, label: roomId }))}
+                        onChange={handleRoomSelectionChange}
+                        placeholder="Select Roles"
+                    />
+                </label>
+                <label style={{ display: "flex", flexDirection: "column", fontWeight: "bold" }}>
+                    Manager Name (for Escalation):
+                    <select value={managerName} onChange={handleManagerNameChange} style={selectStyle} >
                         <option value="">Select a Manager</option>
                         {managerList.map((manager, index) => (
                             <option key={index} value={manager.name}>{manager.name}</option>
@@ -223,9 +225,7 @@ const StaffRequestMapping = () => {
                         value={escalationPhone}
                         readOnly
                         style={{
-                            padding: "8px",
-                            border: "1px solid #ccc",
-                            borderRadius: "5px",
+                            ...selectStyle,
                             backgroundColor: "#f0f0f0",
                             cursor: "not-allowed"
                         }}
@@ -237,25 +237,13 @@ const StaffRequestMapping = () => {
                         type="number"
                         value={escalationTime}
                         onChange={(e) => setEscalationTime(e.target.value)}
-                        style={{
-                            padding: "8px",
-                            border: "1px solid #ccc",
-                            borderRadius: "5px"
-                        }}
+                        style={selectStyle}
                     />
                 </label>
                 <button
                     type="button"
                     onClick={handleAddOrUpdateMapping}
-                    style={{
-                        backgroundColor: "#007BFF",
-                        color: "white",
-                        padding: "10px",
-                        border: "none",
-                        borderRadius: "5px",
-                        cursor: "pointer",
-                        fontSize: "14px"
-                    }}
+                    style={button4Style}
                 >
                     {isEditing ? "Update Mapping" : "Add Mapping"}
                 </button>
@@ -269,73 +257,40 @@ const StaffRequestMapping = () => {
             }}>
                 <thead>
                     <tr>
-                        <th style={{ border: "1px solid #ccc", padding: "10px" }}>Staff Name</th>
-                        <th style={{ border: "1px solid #ccc", padding: "10px" }}>Phone</th>
-                        <th style={{ border: "1px solid #ccc", padding: "10px" }}>Rooms</th>
-                        <th style={{ border: "1px solid #ccc", padding: "10px" }}>Department</th>
-                        <th style={{ border: "1px solid #ccc", padding: "10px" }}>Manager</th>
-                        <th style={{ border: "1px solid #ccc", padding: "10px" }}>Escalation Phone</th>
-                        <th style={{ border: "1px solid #ccc", padding: "10px" }}>Escalation Time</th>
-                        <th style={{ border: "1px solid #ccc", padding: "10px" }}>Status</th>
-                        <th style={{ border: "1px solid #ccc", padding: "10px" }}>Actions</th>
+                        {headers.map((header, index) => (
+                            <th key={index} style={tdStyle}>
+                                {header}
+                            </th>
+                        ))}
                     </tr>
                 </thead>
                 <tbody>
                     {staffMappings.map((mapping, index) => (
                         <tr key={index}>
-                            <td style={{ border: "1px solid #ccc", padding: "10px" }}>{mapping.staffName}</td>
-                            <td style={{ border: "1px solid #ccc", padding: "10px" }}>{mapping.staffPhone}</td>
-                            <td style={{ border: "1px solid #ccc", padding: "10px" }}>{mapping.rooms.join(", ")}</td>
-                            <td style={{ border: "1px solid #ccc", padding: "10px" }}>{mapping.requestType}</td>
-                            <td style={{ border: "1px solid #ccc", padding: "10px" }}>{mapping.managerName}</td>
-                            <td style={{ border: "1px solid #ccc", padding: "10px" }}>{mapping.escalationPhone}</td>
-                            <td style={{ border: "1px solid #ccc", padding: "10px" }}>{mapping.escalationTime || "N/A"}</td>
+                            <td style={tdStyle}>{mapping.staffName}</td>
+                            <td style={tdStyle}>{mapping.staffPhone}</td>
+                            <td style={tdStyle}>{mapping.rooms.join(", ")}</td>
+                            <td style={tdStyle}>{mapping.requestType}</td>
+                            <td style={tdStyle}>{mapping.managerName}</td>
+                            <td style={tdStyle}>{mapping.escalationPhone}</td>
+                            <td style={tdStyle}>{mapping.escalationTime || "N/A"}</td>
                             <td style={{ border: "1px solid #ccc", padding: "10px", color: mapping.isActive ? "green" : "red" }}>
                                 {mapping.isActive ? "Active" : "Inactive"}
                             </td>
                             <td style={{ border: "1px solid #ccc", padding: "10px" }}>
                                 <button
                                     onClick={() => handleEditMapping(index)}
-                                    style={{
-                                        backgroundColor: "#FFC107",
-                                        color: "black",
-                                        padding: "5px",
-                                        border: "none",
-                                        borderRadius: "5px",
-                                        cursor: "pointer",
-                                        fontSize: "12px",
-                                        marginRight: "5px"
-                                    }}
-                                >
+                                    style={button1Style}>
                                     Edit
                                 </button>
                                 <button
                                     onClick={() => handleDeleteMapping(index)}
-                                    style={{
-                                        backgroundColor: "#FF4136",
-                                        color: "white",
-                                        padding: "5px",
-                                        border: "none",
-                                        borderRadius: "5px",
-                                        cursor: "pointer",
-                                        fontSize: "12px",
-                                        marginRight: "5px"
-                                    }}
-                                >
+                                    style={button2Style}  >
                                     Delete
                                 </button>
                                 <button
                                     onClick={() => handleToggleMappingStatus(index)}
-                                    style={{
-                                        backgroundColor: mapping.isActive ? "#6c757d" : "#28a745",
-                                        color: "white",
-                                        padding: "5px",
-                                        border: "none",
-                                        borderRadius: "5px",
-                                        cursor: "pointer",
-                                        fontSize: "12px"
-                                    }}
-                                >
+                                    style={button3Style(mapping)}>
                                     {mapping.isActive ? "Disable" : "Enable"}
                                 </button>
                             </td>
@@ -346,5 +301,85 @@ const StaffRequestMapping = () => {
         </div>
     );
 };
+
+const tdStyle = {
+    border: "1px solid #ccc",
+    padding: "10px"
+};
+
+const button1Style = {
+    backgroundColor: "#FFC107",
+    color: "black",
+    padding: "5px",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
+    fontSize: "12px",
+    marginRight: "5px"
+}
+
+const button2Style = {
+    backgroundColor: "#FF4136",
+    color: "white",
+    padding: "5px",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
+    fontSize: "12px",
+    marginRight: "5px"
+}
+
+const button3Style = (mapping) => {
+    return {
+        backgroundColor: mapping.isActive ? "#6c757d" : "#28a745",
+        color: "white",
+        padding: "5px",
+        border: "none",
+        borderRadius: "5px",
+        cursor: "pointer",
+        fontSize: "12px"
+    }
+}
+
+const button4Style = {
+    backgroundColor: "#007BFF",
+    color: "white",
+    padding: "10px",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
+    fontSize: "14px"
+}
+
+const containerStyle = {
+    fontFamily: "'Arial', sans-serif",
+    margin: "20px",
+    padding: "20px",
+    backgroundColor: "#f9f9f9",
+    borderRadius: "10px",
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)"
+}
+
+const selectStyle = {
+    padding: "8px",
+    border: "1px solid #ccc",
+    borderRadius: "5px"
+}
+
+const staffPhoneNumberInputStyle = {
+    padding: "8px",
+    border: "1px solid #ccc",
+    borderRadius: "5px",
+    backgroundColor: "#f0f0f0",
+    cursor: "not-allowed"
+}
+
+const roomNumberSelectStyle = {
+    padding: "8px",
+    border: "1px solid #ccc",
+    borderRadius: "5px",
+    height: "100px"
+}
+
 
 export default StaffRequestMapping;
