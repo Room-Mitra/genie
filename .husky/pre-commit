@@ -1,0 +1,15 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🧹 Running lint-staged..."
+
+# Run it directly and don't trap anything
+yarn lint-staged
+result=$?
+
+if [ "$result" != 0 ]; then
+  echo "\n🚫 Linting failed. Commit blocked."
+  echo "💡 Run 'yarn lint-staged' manually to reproduce."
+  exit $result
+fi
+npx lint-staged
