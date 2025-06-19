@@ -11,6 +11,7 @@ const warmCache = async () => {
 const registerNewDevice = (device) => {
     removeDeviceIfExists(device)
     addDeviceToCache(device)
+    console.log(ALL_DEVICES, ":: ALL DEVICES")
 };
 
 const removeDeviceIfExists = (device) => {

@@ -13,14 +13,14 @@ router.post('/', async (req, res) => {
     const allStaff = req.body;
     const hotelId = getHotelId(req);
     const response = await registerStaff(allStaff, hotelId);
-    const successMessage = `${JSON.stringify(allStaff)} : has been added to the Database for hotelid ${hotelId}`;
+    const successMessage = `${JSON.stringify(allStaff)} : has been added to the Database for hotelid ${hotelId} `;
     console.log(successMessage, response)
     res.send(successMessage);
 })
 
 router.get('/', async (req, res) => {
     const hotelId = getHotelId(req);
-    console.log("Looking up Staff Details for id = " + hotelId);
+    console.log("Looking up Staff Details for id  = " + hotelId);
     const staffData = await getStaffDetails(hotelId)
     console.log(`For Hotel - ${hotelId} - Staff Data :: ${JSON.stringify(staffData)}`)
     res.send(staffData)

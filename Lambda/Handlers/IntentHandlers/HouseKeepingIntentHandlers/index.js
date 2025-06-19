@@ -13,7 +13,8 @@ const HouseKeeping_IronBox_Handler = HouseKeepingIntentHandlerGenerator({ intent
 const HouseKeeping_IceCubes_Handler = HouseKeepingIntentHandlerGenerator({ intentName: Intent.INTENT_NAMES.ICE_CUBES })
 const HouseKeeping_ShoeShineKit_Handler = HouseKeepingIntentHandlerGenerator({ intentName: Intent.INTENT_NAMES.SHOE_SHINE_KIT })
 
-
+//DELETE
+const DeleteBreakfast = HouseKeepingIntentHandlerGenerator({ intentName: Intent.INTENT_NAMES["IDLY, VADA"] })
 
 const HouseKeepingIntentHandlers = {
     HouseKeeping_DentalKit_Handler,
@@ -24,7 +25,8 @@ const HouseKeepingIntentHandlers = {
     HouseKeeping_Laundry_Handler,
     HouseKeeping_IronBox_Handler,
     HouseKeeping_IceCubes_Handler,
-    HouseKeeping_ShoeShineKit_Handler
+    HouseKeeping_ShoeShineKit_Handler,
+    DeleteBreakfast
 }
 
 module.exports = HouseKeepingIntentHandlers;

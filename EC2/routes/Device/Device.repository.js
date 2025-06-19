@@ -19,7 +19,8 @@ const registerNewDevice = async (device) => {
 
     };
 
-    await DDB.put(params).promise();// TODO :: Handle Error
+    const res = await DDB.put(params).promise();// TODO :: Handle Error
+    console.log("res :: ", res)
     return params.Item;
 };
 

@@ -42,7 +42,9 @@ Intent.INTENT_NAMES = {
     SWIMMING_POOL_DETAILS: "FAQSwimmingPoolDetailsIntent",
     BREAKFAST_DETAILS: "FAQBreakfastDetailsIntent",
     CHECKIN_CHECKOUT_DETAILS: "FAQCheckInCheckOutDetailsIntent",
-    GYM_DETAILS: "FAQGymDetailsIntent"
+    GYM_DETAILS: "FAQGymDetailsIntent",
+
+    "IDLY, VADA": "DeleteBreakfast"
 }
 
 
@@ -63,6 +65,9 @@ Intent.INTENT_TYPES = {
         Intent.INTENT_NAMES.BREAKFAST_DETAILS,
         Intent.INTENT_NAMES.CHECKIN_CHECKOUT_DETAILS,
         Intent.INTENT_NAMES.GYM_DETAILS
+    ],
+    "Restaurant": [
+        Intent.INTENT_NAMES["IDLY, VADA"]
     ]
 }
 
@@ -75,7 +80,8 @@ Intent.speechText = {
     [Intent.INTENT_NAMES.LAUNDRY]: "HouseKeepingLaundryHandlerConfirmRequest",
     [Intent.INTENT_NAMES.IRON_BOX]: "HouseKeepingIronBoxHandlerConfirmRequest",
     [Intent.INTENT_NAMES.ICE_CUBES]: "HouseKeepingIceCubesHandlerConfirmRequest",
-    [Intent.INTENT_NAMES.SHOE_SHINE_KIT]: "HouseKeepingShoeShineKitHandlerConfirmRequest"
+    [Intent.INTENT_NAMES.SHOE_SHINE_KIT]: "HouseKeepingShoeShineKitHandlerConfirmRequest",
+    [Intent.INTENT_NAMES["IDLY, VADA"]]: "IDLY_VADA"
 }
 
 const getIntentType = (intentName) => {

@@ -19,7 +19,8 @@ const languageStrings = {
             HouseKeepingLaundryHandlerConfirmRequest: 'Sure! Sending someone to pick up your laundry',
             HouseKeepingIronBoxHandlerConfirmRequest: "Sure! Sending someone to your room right away!",
             HouseKeepingIceCubesHandlerConfirmRequest: "Ice Cubes is on it's way to your room",
-            HouseKeepingShoeShineKitHandlerConfirmRequest: "Shoe Shine Kit is on it's way to your room"
+            HouseKeepingShoeShineKitHandlerConfirmRequest: "Shoe Shine Kit is on it's way to your room",
+            IDLY_VADA: `I have shared our dessert menu on your WhatsApp!`,
         }
     },
     'hi': {
