@@ -24,7 +24,7 @@ const addStaff = async (staff) => {
 
     };
     await DDB.put(params).promise();// TODO :: Handle Error
-    console.log("********STAFF ADDED******", params)
+    console.log("********STAFF ADDED*******", params)
     return params.Item;
 };
 
@@ -55,11 +55,7 @@ const getStaff = async (staffId) => {
 
 //     await DDB.put(params).promise(); // TODO :: Handle Error
 //     return params.Item;
-// } 
-//
-//
-//
-
+// }
 
 // const deleteStaff = async (staffId) => {
 //     const params = {

@@ -4,7 +4,6 @@ const { registerDevice, getAllDevices, updateDevices } = require('./Device.servi
 
 // register device
 router.post('/', async (req, res) => {
-    console.log("Device Data :: ", req.body);
     const device = req.body;
     await registerDevice(device);
     res.send(`${JSON.stringify(device)} has been added to the Database`);

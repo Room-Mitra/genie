@@ -14,7 +14,7 @@ const StaffDirectory = () => {
     const [currentStaff, setCurrentStaff] = useState({ name: "", phone: "", department: "", role: "" });
     const [editIndex, setEditIndex] = useState(null);
     const [showForm, setShowForm] = useState(false); // To toggle the form section
-    const [searchQuery, setSearchQuery] = useState(""); // For filtering staff list 
+    const [searchQuery, setSearchQuery] = useState(""); // For filtering staff list
     const [isAddStaffError, setIsAddStaffError] = useState(false);
     const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
     const [staffToDelete, setStaffToDelete] = useState(null);

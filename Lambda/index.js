@@ -26,10 +26,7 @@ const {
     HouseKeeping_Laundry_Handler,
     HouseKeeping_IronBox_Handler,
     HouseKeeping_IceCubes_Handler,
-    HouseKeeping_ShoeShineKit_Handler,
-
-
-    DeleteBreakfast
+    HouseKeeping_ShoeShineKit_Handler
 } = HouseKeepingIntentHandlers;
 
 const {
@@ -68,9 +65,6 @@ exports.handler = Alexa.SkillBuilders.custom()
         FAQ_Breakfast_Handler,
         FAQ_CheckIn_CheckOut_Handler,
         FAQ_Gym_Handler,
-
-        DeleteBreakfast,
-
 
         HelpIntentHandler,
         CancelAndStopIntentHandler,
