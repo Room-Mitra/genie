@@ -4,14 +4,26 @@ import BlueGoldButton from "../../../../Common/Button/BlueGoldButton";
 import SecondaryButton from "../../../../Common/Button/SecondaryButton";
 import { httpGet, httpPost } from "../../../../Services/APIService";
 import { EC2_API_ENDPOINT } from "../../../../Constants/Environment.constants";
+import Select from 'react-select';
+
+const STAFF_API_URI = '/staff';
 
 const StaffDirectory = () => {
     const [staffList, setStaffList] = useState([]);
-    const [departments, setDepartments] = useState(["Housekeeping", "Restaurant", "Front Desk", "Facilities"]);
-    const [roles, setRoles] = useState(["Manager", "Staff"]);
+    const [departments, setDepartments] = useState([
+        { value: "House Keeping", label: "House Keeping" },
+        { value: "Room Service", label: "Room Service" },
+        { value: "Restaurant", label: "Restaurant" },
+        { value: "Front Desk", label: "Front Desk" },
+        { value: "Facilities", label: "Facilities" },
+        { value: "Security", label: "Security" }]);
+    const [roles, setRoles] = useState([
+        { value: "Manager", label: "Manager" },
+        { value: "Staff", label: "Staff" }
+    ]);
     // const [showDepartmentPopup, setShowDepartmentPopup] = useState(false);
     // const [showRolePopup, setShowRolePopup] = useState(false);
-    const [currentStaff, setCurrentStaff] = useState({ name: "", phone: "", department: "", role: "" });
+    const [currentStaff, setCurrentStaff] = useState({ name: "", phone: "", department: [], role: [] });
     const [editIndex, setEditIndex] = useState(null);
     const [showForm, setShowForm] = useState(false); // To toggle the form section
     const [searchQuery, setSearchQuery] = useState(""); // For filtering staff list
@@ -21,17 +33,23 @@ const StaffDirectory = () => {
 
     useEffect(() => {
         const fetchStaffList = async () => {
-            const response = await httpGet(EC2_API_ENDPOINT + "/staff", true);
+            const response = await httpGet(EC2_API_ENDPOINT + STAFF_API_URI, true);
             console.log(response)
-            setStaffList(response && response.staffData ? response.staffData : []);
+            const staffData = response && response.staffData ? response.staffData : [];
+            // Transform staffData to match the expected structure
+            staffData.forEach(staff => {
+                staff.department = staff.department.map(department => ({ value: department, label: department }));
+                staff.role = staff.role.map(role => ({ value: role, label: role }));
+            })
+            setStaffList(staffData);
         }
         fetchStaffList();
     }, [])
 
     const handleAddStaff = (e) => {
         e.preventDefault();
-        console.log(currentStaff)
-        if (!currentStaff.name || !currentStaff.phone || !currentStaff.department || !currentStaff.role) {
+        console.log(currentStaff, staffList)
+        if (!currentStaff.name || !currentStaff.phone || !currentStaff.department.length || !currentStaff.role.length) {
             setIsAddStaffError(true)
             return;
         } else {
@@ -47,13 +65,20 @@ const StaffDirectory = () => {
             updatedStaffList = [...staffList, currentStaff]
             setStaffList(updatedStaffList);
         }
-        setCurrentStaff({ name: "", phone: "", department: "", role: "" });
+        setCurrentStaff({ name: "", phone: "", department: [], role: [] });
         setShowForm(false); // Collapse the form after adding/updating
         updateStaffListApi(updatedStaffList)
     };
 
     const updateStaffListApi = async (newStaffList) => {
-        const response = await httpPost(EC2_API_ENDPOINT + "/staff", newStaffList);
+        newStaffList = JSON.parse(JSON.stringify(newStaffList));
+        console.log(newStaffList)
+        // Transform staffData to match the expected structure
+        for (let i = 0; i < newStaffList.length; i++) {
+            newStaffList[i].role = newStaffList[i].role.map(r => r.value);
+            newStaffList[i].department = newStaffList[i].department.map(d => d.value);
+        }
+        const response = await httpPost(EC2_API_ENDPOINT + STAFF_API_URI, newStaffList);
         console.log(response)
     }
 
@@ -84,34 +109,29 @@ const StaffDirectory = () => {
         setShowDeleteConfirmation(false); // Hide the confirmation popup
     };
 
-    // const handleAddDepartment = (newDepartment) => {
-    //     setDepartments([...departments, newDepartment]);
-    // };
-
-    // const handleDeleteDepartment = (index) => {
-    //     const updatedDepartments = departments.filter((_, i) => i !== index);
-    //     setDepartments(updatedDepartments);
-    // };
-
-    // const handleAddRole = (newRole) => {
-    //     setRoles([...roles, newRole]);
-    // };
-
-    // const handleDeleteRole = (index) => {
-    //     const updatedRoles = roles.filter((_, i) => i !== index);
-    //     setRoles(updatedRoles);
-    // };
-
     const filteredStaffList = staffList.filter((staff) => {
         const query = searchQuery.toLowerCase();
         return (
             staff.name.toLowerCase().includes(query) ||
             staff.phone.toLowerCase().includes(query) ||
-            staff.department.toLowerCase().includes(query) ||
-            staff.role.toLowerCase().includes(query)
+            staff.department?.map((d) => d.value).join(", ").toLowerCase().includes(query) ||
+            staff.role?.map((r) => r.value).join(", ").toLowerCase().includes(query)
         );
     });
+    const handleDepartmentChange = (selectedOptions) => {
+        console.log(selectedOptions)
+        setCurrentStaff((prevState) => ({
+            ...prevState,
+            department: selectedOptions || [],
+        }));
+    };
 
+    const handleRoleChange = (selectedOptions) => {
+        setCurrentStaff((prevState) => ({
+            ...prevState,
+            role: selectedOptions || [],
+        }));
+    };
     return (
         <div style={ComponentContainerStyle}>
             <h2 style={{
@@ -148,32 +168,26 @@ const StaffDirectory = () => {
                             style={InputElementStyle}
                         />
                     </label>
-                    <label style={{ display: "flex", flexDirection: "column", fontWeight: "bold" }}>
-                        Department:
-                        <select
-                            value={currentStaff.department}
-                            onChange={(e) => setCurrentStaff({ ...currentStaff, department: e.target.value })}
-                            style={InputElementStyle}
-                        >
-                            <option value="">Select a Department</option>
-                            {departments.map((dept, index) => (
-                                <option key={index} value={dept}>{dept}</option>
-                            ))}
-                        </select>
-                        {/* <SecondaryButton clickHandler={(e) => { e.preventDefault(); setShowDepartmentPopup(true) }} text="Manage Departments" /> */}
-                    </label>
-                    <label style={{ display: "flex", flexDirection: "column", fontWeight: "bold" }}>
-                        Role:
-                        <select
-                            value={currentStaff.role}
-                            onChange={(e) => setCurrentStaff({ ...currentStaff, role: e.target.value })}
-                            style={InputElementStyle}
-                        >
-                            <option value="">Select a Role</option>
-                            {roles.map((role, index) => (<option key={index} value={role}>{role}</option>))}
-                        </select>
-                        {/* <SecondaryButton clickHandler={(e) => { e.preventDefault(); setShowRolePopup(true) }} text="Manage Roles" /> */}
-                    </label>
+
+                    <label htmlFor="departments">Departments</label>
+                    <Select
+                        id="departments"
+                        isMulti
+                        options={departments}
+                        value={currentStaff.department}
+                        onChange={handleDepartmentChange}
+                        placeholder="Select Departments"
+                    />
+
+                    <label htmlFor="roles">Roles</label>
+                    <Select
+                        id="roles"
+                        isMulti
+                        options={roles}
+                        value={currentStaff.role}
+                        onChange={handleRoleChange}
+                        placeholder="Select Roles"
+                    />
                     {isAddStaffError && (<span style={{ color: 'red' }}>All fields are required</span>)}
                     <SecondaryButton
                         clickHandler={handleAddStaff}
@@ -220,9 +234,10 @@ const StaffDirectory = () => {
                 <tbody>
                     {filteredStaffList.map((staff, index) => (
                         <tr key={index}>
-                            {["name", "phone", "department", "role"].map((key, index) => (
-                                <td key={index} style={TableDataStyle}>{staff[key]}</td>
-                            ))}
+                            <td key={index} style={TableDataStyle}>{staff["name"]}</td>
+                            <td key={index} style={TableDataStyle}>{staff["phone"]}</td>
+                            <td key={index} style={TableDataStyle}>{staff["department"].map(x => x.value).join(", ")}</td>
+                            <td key={index} style={TableDataStyle}>{staff["role"].map(x => x.value).join(", ")}</td>
                             <td style={TableDataStyle}>
                                 <button
                                     onClick={() => handleEditStaff(index)}
@@ -241,27 +256,6 @@ const StaffDirectory = () => {
                     ))}
                 </tbody>
             </table>
-
-
-            {/* {showDepartmentPopup && (
-                <StaffDirectoryPopup
-                    title="Manage Departments"
-                    items={departments}
-                    onAdd={handleAddDepartment}
-                    onDelete={handleDeleteDepartment}
-                    onClose={() => setShowDepartmentPopup(false)}
-                />
-            )}
-
-            {showRolePopup && (
-                <StaffDirectoryPopup
-                    title="Manage Roles"
-                    items={roles}
-                    onAdd={handleAddRole}
-                    onDelete={handleDeleteRole}
-                    onClose={() => setShowRolePopup(false)}
-                />
-            )} */}
         </div>
     );
 };
