@@ -1,11 +1,8 @@
 const { addMappingToDB, getMappingFromDB } = require('./StaffRoomDepartmentRequestMapping.repository.js');
 const db = require('./StaffRoomDepartmentRequestMapping.repository.js'); // Example: Replace with your actual database module
 
-/**
- * Registers a new staff-room-department mapping.
- * @param {Object} mappingData - The mapping details (staffId, roomId, departmentId).
- * @returns {Promise<Object>} - The saved mapping.
- */
+
+
 async function registerStaffRoomDepartmentMapping(hotelId, mappingData) {
     try {
         const staffRoomDepartmentMapping = {
@@ -19,10 +16,7 @@ async function registerStaffRoomDepartmentMapping(hotelId, mappingData) {
     }
 }
 
-/**
- * Retrieves all staff-room-department mappings.
- * @returns {Promise<Array>} - List of mappings.
- */
+
 async function getStaffRoomDepartmentMappings(hotelId) {
     try {
         return await getMappingFromDB(hotelId);
@@ -32,7 +26,18 @@ async function getStaffRoomDepartmentMappings(hotelId) {
     }
 }
 
+async function getMappingByRoomAndDepartment(hotelId, roomId, department) {
+    console.log("Hotel Id :: ", hotelId, "Room Id :: ", roomId, "Department :: ", department)
+    const { mappingData } = await getStaffRoomDepartmentMappings(hotelId);
+    console.log("Mapping Data :: ", JSON.stringify(mappingData))
+    const roomMapping = mappingData && roomId && mappingData.filter(mapping => mapping && mapping.rooms && mapping.rooms.toLocaleString().includes(roomId)) || []
+    const departmentMapping = department && roomMapping.filter(mapping => mapping && mapping.requestType && mapping.requestType === (department)) || [];
+    console.log("Room Mapping :: ", JSON.stringify(roomMapping), "Department Mapping :: ", JSON.stringify(departmentMapping))
+    return departmentMapping.filter(m => m.isActive) || [];
+}
+
 module.exports = {
     registerStaffRoomDepartmentMapping,
     getStaffRoomDepartmentMappings,
+    getMappingByRoomAndDepartment
 };

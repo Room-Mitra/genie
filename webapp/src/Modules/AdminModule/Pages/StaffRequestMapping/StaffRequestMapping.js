@@ -23,11 +23,6 @@ const StaffRequestMapping = () => {
     const [staffList, setStaffList] = useState([]); // Predefined staff list with names and phone numbers
     const [managerList, setManagerList] = useState([]); // Predefined manager list with names and phone numbers
 
-    // useEffect(() => {
-    //     console.log(staffMappings)
-    //     httpPost(EC2_API_ENDPOINT + MAPPING_API_URI, staffMappings).then(console.log);
-    // }, [staffMappings])
-
     useEffect(() => {
         const getAllRoomsData = async () => {
             const rooms = await httpGet(EC2_API_ENDPOINT + ROOMS_API_URI);
