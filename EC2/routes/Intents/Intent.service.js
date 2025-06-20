@@ -10,6 +10,8 @@ const registerIntent = async (intent) => {
     if (!intent.assignedTo) {
         const mapping = await getMappingByRoomAndDepartment("Room Genie", intent.roomId, intent.intentType);
         console.log("Mapping :: ", mapping)
+        const names = mapping.map(o => o.staffName).toLocaleString() || '';
+        intent.assignedTo = names;
         const phoneNumbers = mapping.map(m => m.staffPhone) || [];
         phoneNumbers.forEach(pn => sendWhatsAppTemplate("91" + pn, intent.roomId));
     }
