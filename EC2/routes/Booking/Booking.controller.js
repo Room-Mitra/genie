@@ -1,5 +1,5 @@
-const { registerBooking } = require('./Booking.service.js');
-const express = require('express');
+import { registerBooking } from "./Booking.service.js";
+import express from "express";
 const router = express.Router();
 
 // register booking
@@ -31,7 +31,7 @@ router.put('/:bookingId', async (req, res) => {
 })
 */
 
-module.exports = router;
+export default router;
 
 // bookingId
 // GuestId

@@ -1,6 +1,6 @@
-const express = require('express');
+import express from "express";
 const router = express.Router();
-const { registerDevice, getAllDevices, updateDevices } = require('./Device.service.js');
+import { registerDevice, getAllDevices, updateDevices } from "./Device.service.js";
 
 // register device
 router.post('/', async (req, res) => {
@@ -36,4 +36,4 @@ router.put('/', async (req, res) => {
 // edit device by id/room number
 // delete device by id/room number
 
-module.exports = router;
+export default router;

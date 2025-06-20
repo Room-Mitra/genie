@@ -1,31 +1,26 @@
-const { getHotelId } = require('../../common/services/common.service.js');
-const { registerStaff,
-    getStaffDetails,
-    // updateStaffData, deleteStaffData 
-} = require('./Staff.service.js');
-const express = require('express');
+import { getHotelId } from '../../common/services/common.service.js';
+import { registerStaff, getStaffDetails } from './Staff.service.js';
+
+import express from 'express';
 const router = express.Router();
-
-
 
 // register all staff
 router.post('/', async (req, res) => {
-    const allStaff = req.body;
-    const hotelId = getHotelId(req);
-    const response = await registerStaff(allStaff, hotelId);
-    const successMessage = `${JSON.stringify(allStaff)} : has been added to the Database for hotelid ${hotelId}`;
-    console.log(successMessage, response)
-    res.send(successMessage);
-})
+  const allStaff = req.body;
+  const hotelId = getHotelId(req);
+  const response = await registerStaff(allStaff, hotelId);
+  const successMessage = `${JSON.stringify(allStaff)} : has been added to the Database for hotelid ${hotelId}`;
+  console.log(successMessage, response);
+  res.send(successMessage);
+});
 
 router.get('/', async (req, res) => {
-    const hotelId = getHotelId(req);
-    console.log("Looking up Staff Details for id = " + hotelId);
-    const staffData = await getStaffDetails(hotelId)
-    console.log(`For Hotel - ${hotelId} - Staff Data :: ${JSON.stringify(staffData)}`)
-    res.send(staffData)
-})
-
+  const hotelId = getHotelId(req);
+  console.log('Looking up Staff Details for id = ' + hotelId);
+  const staffData = await getStaffDetails(hotelId);
+  console.log(`For Hotel - ${hotelId} - Staff Data :: ${JSON.stringify(staffData)}`);
+  res.send(staffData);
+});
 
 // // get guest details
 // router.get('/:staffId', async (req, res) => {
@@ -35,7 +30,6 @@ router.get('/', async (req, res) => {
 //     console.log(`Guest Data :: ${JSON.stringify(staffData)}`)
 //     res.send(staffData)
 // })
-
 
 // // update guest data
 // router.put('/:staffId', async (req, res) => {
@@ -51,5 +45,4 @@ router.get('/', async (req, res) => {
 //     res.send("Deleted successfully");
 // })
 
-
-module.exports = router;
+export default router;

@@ -1,20 +1,14 @@
 {
-    "compilerOptions": {
-        "module": "ES6",
-        "jsx": "preserve",
-        "checkJs": true,
-        "baseUrl": ".",
-        "paths": {
-            "@WebAppModules/*": [
-                "./webapp/src/Modules/*"
-            ],
-            "@WebAppServices/*": [
-                "./webapp/src/Services/*"
-            ],
-        }
+  "compilerOptions": {
+    "module": "nodenext",
+    "jsx": "preserve",
+    "checkJs": true,
+    "baseUrl": ".",
+    "paths": {
+      "@WebAppModules/*": ["./webapp/src/Modules/*"],
+      "@WebAppServices/*": ["./webapp/src/Services/*"]
     },
-    "exclude": [
-        "node_modules",
-        "**/node_modules/*"
-    ]
+    "target": "ES2022"
+  },
+  "exclude": ["node_modules", "**/node_modules/*"]
 }
