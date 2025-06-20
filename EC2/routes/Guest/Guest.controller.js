@@ -1,8 +1,6 @@
-const { registerGuest, getGuestDetails, updateGuestData, addBookingToGuest } = require('./Guest.service.js');
-const express = require('express');
+import { registerGuest, getGuestDetails, updateGuestData, addBookingToGuest } from "./Guest.service.js";
+import express from "express";
 const router = express.Router();
-
-
 
 // register guest
 router.post('/', async (req, res) => {
@@ -35,4 +33,4 @@ router.put('/:guestId/:bookingId', async (req, res) => {
     res.send("Updated successfully");
 })
 
-module.exports = router;
+export default router;

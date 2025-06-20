@@ -1,37 +1,41 @@
 // https://www.freecodecamp.org/news/create-crud-api-project/#heading-how-to-set-up-your-development-environment
 // https://www.sammeechward.com/deploying-full-stack-js-to-aws-ec2
 
-const dotenv = require('dotenv');
+import dotenv from 'dotenv';
 dotenv.config();
 
-const cors = require('cors');
-const express = require('express');
-const bodyParser = require('body-parser');
-const path = require('path');
+import cors from 'cors';
+import express from 'express';
+import bodyParser from 'body-parser';
+import path from 'path';
 
 // routes
-const deviceRoutes = require('./routes/Device/Device.controller.js');
-const guestRoutes = require('./routes/Guest/Guest.controller.js');
-const bookingRoutes = require('./routes/Booking/Booking.controller.js');
-const staffRoutes = require('./routes/Staff/Staff.controller.js');
-const faqRoutes = require('./routes/FAQ/FAQ.controller.js');
-const intentsRoutes = require("./routes/Intents/Intent.controller.js")
-const loginRoutes = require("./routes/Login/Login.controller.js")
-const landingPageRoutes = require("./routes/LandingPage/leads.js")
-
-const { runFunctionsOnServerStartup } = require('./common/services/startup.service.js');
+import deviceRoutes from './routes/Device/Device.controller.js';
+import guestRoutes from './routes/Guest/Guest.controller.js';
+import bookingRoutes from './routes/Booking/Booking.controller.js';
+import staffRoutes from './routes/Staff/Staff.controller.js';
+import faqRoutes from './routes/FAQ/FAQ.controller.js';
+import intentsRoutes from './routes/Intents/Intent.controller.js';
+import loginRoutes from './routes/Login/Login.controller.js';
+import landingPageRoutes from './routes/LandingPage/leads.js';
+import dummyRoutes from './routes/Dummy/Dummy.controller.js';
+import { runFunctionsOnServerStartup } from './common/services/startup.service.js';
 
 // Middlewares
-const { authenticator } = require('./common/middleware/Authenticator.middleware.js');
+import authenticator from './common/middleware/Authenticator.middleware.js';
+
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = 3000
+const PORT = 3000;
 
 app.use(bodyParser.json());
 app.use(cors());
 
 // Middleware to Authenticate JWT
-
 
 app.use('/devices', authenticator, deviceRoutes);
 app.use('/intents', authenticator, intentsRoutes);
@@ -40,20 +44,19 @@ app.use('/booking', authenticator, bookingRoutes);
 app.use('/staff', authenticator, staffRoutes);
 app.use('/faq', authenticator, faqRoutes);
 
-
-
 app.use('/login', loginRoutes);
 app.use('/leads', landingPageRoutes);
 
+app.use('/dummy', dummyRoutes);
 
 // Serve static landing page
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
-    // res.redirect(301, 'https://theroomgenie.vercel.app/faq'); // restart app
-    res.sendFile(path.join(__dirname, 'public/LandingPage/landing.html'));
-})
+  // res.redirect(301, 'https://theroomgenie.vercel.app/faq'); // restart app
+  res.sendFile(path.join(__dirname, 'public/LandingPage/landing.html'));
+});
 
 app.listen(PORT, () => console.log(`Server running on port: http://localhost:${PORT}`));
 
-runFunctionsOnServerStartup()
+runFunctionsOnServerStartup();

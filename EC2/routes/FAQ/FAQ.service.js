@@ -1,13 +1,11 @@
-const { addFAQ, getFAQ } = require("./FAQ.repository");
+import { addFAQ, getFAQ } from './FAQ.repository.js';
 
-const registerFAQ = async (faq, userDetails) => {
-    const { hotelId } = userDetails;
-    faq.hotelId = hotelId;
-    return await addFAQ(faq);
-}
+export const registerFAQ = async (faq, userDetails) => {
+  const { hotelId } = userDetails;
+  faq.hotelId = hotelId;
+  return await addFAQ(faq);
+};
 
-const fetchFAQ = async (hotelId) => {
-    return await getFAQ(hotelId);
-}
-
-module.exports = { registerFAQ, fetchFAQ }
+export const fetchFAQ = async (hotelId) => {
+  return await getFAQ(hotelId);
+};
