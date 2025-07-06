@@ -42,7 +42,9 @@ Intent.INTENT_NAMES = {
     SWIMMING_POOL_DETAILS: "FAQSwimmingPoolDetailsIntent",
     BREAKFAST_DETAILS: "FAQBreakfastDetailsIntent",
     CHECKIN_CHECKOUT_DETAILS: "FAQCheckInCheckOutDetailsIntent",
-    GYM_DETAILS: "FAQGymDetailsIntent"
+    GYM_DETAILS: "FAQGymDetailsIntent",
+
+    FALLBACK_INTENT: "FallbackIntent"
 }
 
 
@@ -63,6 +65,9 @@ Intent.INTENT_TYPES = {
         Intent.INTENT_NAMES.BREAKFAST_DETAILS,
         Intent.INTENT_NAMES.CHECKIN_CHECKOUT_DETAILS,
         Intent.INTENT_NAMES.GYM_DETAILS
+    ],
+    "FALLBACK": [
+        Intent.INTENT_NAMES.FALLBACK_INTENT
     ]
 }
 
