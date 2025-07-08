@@ -14,7 +14,7 @@ const Handlers = require("./Handlers/index.js");
 const { RequestHandlers, ErrorHandlers, IntentHandlers } = Handlers;
 const { LaunchRequestHandler, SessionEndedRequestHandler } = RequestHandlers;
 const { ErrorHandler } = ErrorHandlers;
-const { MandatoryIntentHandlers, DeviceIntentHandlers, HouseKeepingIntentHandlers, FAQIntentHandlers } = IntentHandlers;
+const { MandatoryIntentHandlers, DeviceIntentHandlers, HouseKeepingIntentHandlers, FAQIntentHandlers, FallbackIntentHandlers } = IntentHandlers;
 const { HelpIntentHandler, CancelAndStopIntentHandler } = MandatoryIntentHandlers;
 const { RegisterDeviceHandler } = DeviceIntentHandlers;
 const {
@@ -35,6 +35,9 @@ const {
     FAQ_CheckIn_CheckOut_Handler,
     FAQ_Gym_Handler
 } = FAQIntentHandlers;
+
+
+const { FallbackIntentHandler } = FallbackIntentHandlers;
 
 const { Interceptors } = require("./Interceptors/index.js");
 const { RequestInterceptor } = Interceptors;
@@ -65,6 +68,8 @@ exports.handler = Alexa.SkillBuilders.custom()
         FAQ_Breakfast_Handler,
         FAQ_CheckIn_CheckOut_Handler,
         FAQ_Gym_Handler,
+
+        FallbackIntentHandler,
 
         HelpIntentHandler,
         CancelAndStopIntentHandler,

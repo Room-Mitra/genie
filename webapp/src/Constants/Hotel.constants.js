@@ -1,4 +1,4 @@
-const HOTEL_NAME = "SHIVAS GALAXY";
+const HOTEL_NAME = "Room Mitra";
 
 const HOTEL_CONSTANTS = {
     HOTEL_NAME
