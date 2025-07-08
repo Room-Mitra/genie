@@ -8,9 +8,14 @@ const registerDevice = async (deviceDetails) => {
 
 }
 
-const getAllDevices = () => {
-    console.log(getAllDevicesFromCache())
-    return getAllDevicesFromCache();
+const getAllDevices = (hotelId) => {
+    const allDevices = getAllDevicesFromCache() || [];
+    if (hotelId) {
+        const devicesInProperty = allDevices.filter((device) => device.propertyName === hotelId);
+        console.info(`Devices in ${hotelId} property ::  `, devicesInProperty)
+        return devicesInProperty;
+    }
+    return allDevices;
 }
 
 const updateDevices = async (updatedDevicesData) => {

@@ -33,11 +33,13 @@ const Login = () => {
 
             login(response.data.token);
             const redirect = localStorage.getItem("redirect");
+            localStorage.setItem("hotelId", hotelId);
+            localStorage.setItem("username", username);
             if (redirect) {
                 localStorage.removeItem("redirect");
                 navigate(redirect)
             } else {
-                navigate("/analytics")
+                navigate("/requests")
             }
 
         } catch (err) {
