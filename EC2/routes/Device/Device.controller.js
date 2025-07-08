@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { registerDevice, getAllDevices, updateDevices } = require('./Device.service.js');
+const { getHotelId, getUserName } = require('../../common/services/common.service.js');
 
 // register device
 router.post('/', async (req, res) => {
@@ -15,7 +16,10 @@ router.post('/', async (req, res) => {
 
 // get all devices
 router.get('/', (req, res) => {
-    res.send(getAllDevices());
+    const hotelId = getHotelId(req);
+    const userName = getUserName(req);
+    console.info(`${userName} -> Getting all devices for hotelId ${hotelId}`)
+    res.send(getAllDevices(hotelId));
 })
 
 // update devices data
