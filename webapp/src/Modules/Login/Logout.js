@@ -1,12 +1,15 @@
-import React, { useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import AuthContext from "./AuthContext";
 
 const Logout = () => {
+    const { logout } = useContext(AuthContext);
+
     const navigate = useNavigate();
 
     useEffect(() => {
         // Clear token from localStorage
-        localStorage.removeItem("token");
+        logout()
 
         // Redirect to login page after 5 seconds
         const timer = setTimeout(() => {

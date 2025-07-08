@@ -46,6 +46,8 @@ export const AuthProvider = ({ children }) => {
 
     const logout = () => {
         localStorage.removeItem("token");
+        localStorage.removeItem("hotelId");
+        localStorage.removeItem("username");
         setAuth(null);
     };
 
