@@ -9,3 +9,5 @@ EC2/.env
 EC2/config/*.pem
 webapp/node_modules/
 AlexaSkill/RoomMitra/lambda/config.js
+AlexaSkill/RoomMitra/lambda/.env
+AlexaSkill/RoomMitra/lambda/*.env

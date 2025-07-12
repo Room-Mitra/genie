@@ -4,14 +4,9 @@
  * session persistence, api calls, and more.
  * */
 const Alexa = require('ask-sdk-core');
-const {
-    buildPrompt,
-    callChatGptApi,
-    parseGptResponse,
-    addToSessionHistory
-} = require('./chatGpt.js');
-
-let sessionAttributes = {}; // In-memory session store (for demo, use DynamoDB in production)
+const axios = require('axios');
+const EC2_ENDPOINT = require('./config.js').EC2_ENDPOINT;
+const token = require('./config.js').EC2_TOKEN;
 
 const CatchAllIntentHandler = {
     canHandle(handlerInput) {
@@ -24,41 +19,42 @@ const CatchAllIntentHandler = {
             || 'Unknown request';
 
         const sessionId = handlerInput.requestEnvelope.session.sessionId;
+        const deviceId = handlerInput.requestEnvelope.context.System.device.deviceId;
 
-        console.log("User query:", userQuery);
-        console.log("Session ID:", sessionId);
+        const payload = {
+            userQuery,
+            sessionId,
+            deviceId,
+        };
+        console.log("Request payload:", payload);
 
-        if (!sessionAttributes[sessionId]) sessionAttributes[sessionId] = { history: [] };
-        const session = sessionAttributes[sessionId];
 
-        addToSessionHistory(session, 'user', userQuery);
-        const messages = buildPrompt(session.history);
+        try {
+            const response = await axios.post(`${EC2_ENDPOINT}/utterance`, payload, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
 
-        const gptResponse = callChatGptApi(messages);
-        if (gptResponse.statusCode !== 200) {
-            console.error('Failed GPT call:', gptResponse.statusCode);
+            const { speech, isSessionOpen } = response.data;
+            console.log("Response :: ", { speech, isSessionOpen })
+            if (isSessionOpen) {
+                return handlerInput.responseBuilder
+                    .speak(speech)
+                    .reprompt(speech)
+                    .getResponse();
+
+            }
             return handlerInput.responseBuilder
-                .speak("Sorry, something went wrong.")
+                .speak(speech)
+                .getResponse();
+
+        } catch (error) {
+            console.error('Error calling EC2 server:', error);
+            return handlerInput.responseBuilder
+                .speak('Sorry, there was an error processing your request. Please retry in a few minutes.')
                 .getResponse();
         }
-
-        const { raw, parsed } = parseGptResponse(gptResponse);
-        addToSessionHistory(session, 'assistant', raw);
-
-        let responseSpeech = 'Okay.';
-        if (parsed && Array.isArray(parsed.messages)) {
-            responseSpeech = parsed.messages.join(' ');
-            if (parsed.clarificationNeeded) {
-                return handlerInput.responseBuilder
-                    .speak(responseSpeech)
-                    .reprompt(responseSpeech)
-                    .getResponse();
-            }
-        }
-
-        return handlerInput.responseBuilder
-            .speak(responseSpeech)
-            .getResponse();
     }
 };
 
