@@ -1,32 +1,38 @@
-const request = require('sync-request');
+const { getHotelPromopts } = require('./Utterance.repository');
+const SessionManager = require('./SessionManager');
+const { callChatGptApi, parseGptResponse } = require('./ChatGpt');
+const { registerIntent } = require('../Intents/Intent.service');
 
 const ERROR_RESPONSE = {
-    speech: "Sorry, something went wrong.",
+    speech: "Sorry, something went wrong. Please try again later",
     isSessionOpen: false
 }
 
 const onUtterance = async (userQuery, hotelId, deviceId, sessionId) => {
-    const session = getSession(sessionId);
-    addToSessionHistory(session, 'user', userQuery);
+    const session = SessionManager.getSession(sessionId);
+    SessionManager.addToSessionHistory(sessionId, 'user', userQuery);
 
-    const messages = buildPrompt(session.history);
+    const messages = buildPrompt(hotelId, session.history);
     const gptResponse = callChatGptApi(messages);
-
     if (gptResponse.statusCode !== 200) {
         console.error('Failed GPT call:', gptResponse.statusCode);
+        const gptText = JSON.parse(gptResponse.getBody('utf8'));
+        console.error('Error Text ::', gptText);
         return ERROR_RESPONSE;
     }
     const { raw, parsed } = parseGptResponse(gptResponse);
-    addToSessionHistory(session, 'assistant', raw);
+    SessionManager.addToSessionHistory(sessionId, 'assistant', raw);
 
-    console.log({ raw, parsed, session: JSON.stringify(session) })
+    console.log(`ChatGPT response for sessionId = ${sessionId} is`, { raw, parsed })
+
+    registerRequests(parsed.requestDetails || [])
 
     let responseSpeech = 'Okay.';
     if (parsed && Array.isArray(parsed.messages)) {
         responseSpeech = parsed.messages.join(' ');
         return {
             speech: responseSpeech,
-            isSessionOpen: parsed.clarificationNeeded
+            isSessionOpen: true //parsed.isUserResponseNeeded
         }
 
     }
@@ -34,68 +40,30 @@ const onUtterance = async (userQuery, hotelId, deviceId, sessionId) => {
 }
 
 
-let sessionAttributes = {}; // TODO :: Add TTL to sessionIds
-const getSession = (sessionId) => {
-    if (!sessionAttributes[sessionId]) sessionAttributes[sessionId] = { history: [] };
-    const session = sessionAttributes[sessionId];
-    return session;
+const registerRequests = (requestDetails) => {
+    requestDetails.forEach(r => {
+        console.log("Request :: ", JSON.stringify(r));
+        const { deviceId, hasUserConfirmedOrder, department, requestType, shortDescription } = r;
+        if (hasUserConfirmedOrder) {
+            const intent = {
+                deviceId,
+                intentName: requestType,
+                intentType: department,
+                requestedTime: Date.now(),
+                inProgressTime: null,
+                completedTime: null,
+                notes: shortDescription
+            }
+            registerIntent(intent)
+        }
+    })
 }
 
-const addToSessionHistory = (session, role, content) => {
-    session.history.push({ role, content });
-}
-
-
-const buildPrompt = (history) => {
-    // TODO :: get systemMsg from DB based on hotelId 
-    const systemMsg = `You are Room Mitra,
-     you are an alexa skill based smart hotel assistant placed in cottages in Ananterra resort in Wayanad,Kerala. 
-     Understand guest requests and respond politely. 
-     If needed, ask follow-up questions only when necessary.
-     If the user request is in another language, reply in the same language as the user input language, but use English script.
-     If the user asks anything not related to the hotel, its service, conceirge service, or room, Keep the reply short, and do not ask follow up questions.
-     Format your reply in JSON with fields: messages[], department, clarificationNeeded (true/false).
-     clarificationNeeded should be set to true if a user input is required after providing your response. clarificationNeeded should be true if you are ending your response with a question`;
-
+const buildPrompt = (hotelId, history) => {
     return [
-        { role: 'system', content: systemMsg },
+        ...getHotelPromopts(hotelId),
         ...history,
     ];
-}
-
-const callChatGptApi = (messages) => {
-    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-
-    return request("POST", 'https://api.openai.com/v1/chat/completions',
-        {
-            headers: {
-                Authorization: `Bearer ${OPENAI_API_KEY}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                model: 'gpt-4.1-nano',
-                messages,
-                temperature: 0.4,
-            })
-        });
-}
-
-const parseGptResponse = (gptResponse) => {
-    const gptText = JSON.parse(gptResponse.getBody('utf8'));
-    const gptMessage = gptText.choices[0].message.content;
-    let parsed = null;
-
-    try {
-        parsed = JSON.parse(gptMessage);
-    } catch (e) {
-        console.error('Failed to parse GPT response as JSON:', e);
-    }
-
-    return {
-        raw: gptMessage,
-        parsed,
-        full: gptText
-    };
 }
 
 module.exports = {
