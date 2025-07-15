@@ -43,3 +43,6 @@ local.properties
 
 # Models 
 voice_assistant_android/app/src/main/assets/models/*.bin
+
+
+dynamodb-local-data/
