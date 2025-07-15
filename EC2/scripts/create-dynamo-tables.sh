@@ -18,7 +18,7 @@ aws dynamodb create-table \
   --endpoint-url http://localhost:8000 \
   --region ap-south-1 \
   --no-cli-pager \
-  || echo "DEVICESTable already exists"
+  || echo "DEVICES Table already exists"
 
 aws dynamodb create-table \
   --cli-input-json file://tables/intents-table.json \

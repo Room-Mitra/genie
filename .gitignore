@@ -25,3 +25,18 @@ yarn-error.log*
 # OS
 .DS_Store
 Thumbs.db
+
+
+# Ignore build folders
+.cxx/
+build/
+.gradle/
+local.properties
+
+# Ignore IntelliJ/Android Studio specific files
+.idea/
+!.idea/codeStyles
+!.idea/runConfigurations
+!.idea/inspectionProfiles
+.idea/workspace.xml
+.idea/tasks.xml
