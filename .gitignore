@@ -40,3 +40,6 @@ local.properties
 !.idea/inspectionProfiles
 .idea/workspace.xml
 .idea/tasks.xml
+
+# Models 
+voice_assistant_android/app/src/main/assets/models/*.bin
