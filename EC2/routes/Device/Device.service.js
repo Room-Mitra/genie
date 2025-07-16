@@ -11,8 +11,8 @@ const registerDevice = async (deviceDetails) => {
 const getAllDevices = (hotelId) => {
     const allDevices = getAllDevicesFromCache() || [];
     if (hotelId) {
-        const devicesInProperty = allDevices.filter((device) => device.propertyName === hotelId);
-        console.info(`Devices in ${hotelId} property ::  `, devicesInProperty)
+        const devicesInProperty = allDevices.filter((device) => device.hotelId === hotelId);
+        console.info(`Devices in ${hotelId} property :: `, devicesInProperty)
         return devicesInProperty;
     }
     return allDevices;
@@ -33,6 +33,7 @@ const getRoomInfoFromDeviceId = (deviceId) => {
     return {
         roomId: allDevices[deviceIndex].roomId,
         propertyName: allDevices[deviceIndex].propertyName,
+        hotelId: allDevices[deviceIndex].hotelId,
         floor: allDevices[deviceIndex].floor,
         roomTags: allDevices[deviceIndex].roomTags,
         roomNotes: allDevices[deviceIndex].roomNotes

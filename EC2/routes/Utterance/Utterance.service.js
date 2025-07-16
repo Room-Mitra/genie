@@ -2,6 +2,7 @@ const { getHotelPromopts } = require('./Utterance.repository');
 const SessionManager = require('./SessionManager');
 const { callChatGptApi, parseGptResponse } = require('./ChatGpt');
 const { registerIntent } = require('../Intents/Intent.service');
+const { registerDevice } = require('../Device/Device.service');
 
 const ERROR_RESPONSE = {
     speech: "Sorry, something went wrong. Please try again later",
@@ -23,16 +24,16 @@ const onUtterance = async (userQuery, hotelId, deviceId, sessionId) => {
     const { raw, parsed } = parseGptResponse(gptResponse);
     SessionManager.addToSessionHistory(sessionId, 'assistant', raw);
 
-    console.log(`ChatGPT response for sessionId = ${sessionId} is`, { raw, parsed })
+    console.log(`ChatGPT response for sessionId = ${sessionId} is :: `, { raw, parsed })
 
-    registerRequests(parsed.requestDetails || [])
+    registerRequests(deviceId, parsed.requestDetails || [])
 
     let responseSpeech = 'Okay.';
     if (parsed && Array.isArray(parsed.messages)) {
         responseSpeech = parsed.messages.join(' ');
         return {
             speech: responseSpeech,
-            isSessionOpen: true //parsed.isUserResponseNeeded
+            isSessionOpen: parsed.isUserResponseNeeded
         }
 
     }
@@ -40,20 +41,23 @@ const onUtterance = async (userQuery, hotelId, deviceId, sessionId) => {
 }
 
 
-const registerRequests = (requestDetails) => {
+const registerRequests = (deviceId, requestDetails) => {
     requestDetails.forEach(r => {
         console.log("Request :: ", JSON.stringify(r));
-        const { deviceId, hasUserConfirmedOrder, department, requestType, shortDescription } = r;
-        if (hasUserConfirmedOrder) {
-            const intent = {
-                deviceId,
-                intentName: requestType,
-                intentType: department,
-                requestedTime: Date.now(),
-                inProgressTime: null,
-                completedTime: null,
-                notes: shortDescription
-            }
+        const { hasUserConfirmedOrder, department, requestType, shortDescription } = r;
+        const intent = {
+            deviceId,
+            intentName: requestType,
+            intentType: department,
+            requestedTime: Date.now(),
+            inProgressTime: null,
+            completedTime: null,
+            notes: shortDescription,
+            daysSinceEpoch: Math.floor(Date.now() / (24 * 60 * 60 * 1000)) //PK
+        }
+        if ((department === "Restaurant" || department === "Room Service")) {
+            hasUserConfirmedOrder && registerIntent(intent);
+        } else {
             registerIntent(intent)
         }
     })
@@ -66,6 +70,30 @@ const buildPrompt = (hotelId, history) => {
     ];
 }
 
+
+/** this function returns true if the user utterance was related to an admisnitrative task, else returns false. 
+ * if the task is an administrative action, it also 
+ */
+const handleAdministrativeUtterances = ({ userQuery, sessionId, deviceId, hotelId = "Room Mitra" }) => {
+
+    // CASE REGISTER THIS DEVICE
+    const phrase = "register this device with room"
+    if (userQuery.toLocaleLowerCase().includes(phrase)) {
+        const roomId = userQuery.split(phrase)[1].trim();
+        const deviceDetails = {
+            roomId,
+            deviceId,
+            hotelId,
+            registeredAtUTC: new Date().toISOString()
+        }
+        console.info("Attempting to register device with details : ", deviceDetails)
+        registerDevice(deviceDetails)
+        return true;
+    }
+
+    return false;
+}
+
 module.exports = {
-    onUtterance
+    onUtterance, handleAdministrativeUtterances
 }

@@ -3,20 +3,22 @@ const { getMappingByRoomAndDepartment } = require("../StaffRoomDepartmentRequest
 const { addIntent: addIntentToCache, getIntentsForDate: getIntentsForDateFromCache } = require("./Intent.cache");
 const { addIntent: addIntentToDB, getIntentsForDate: getIntentsForDateFromRepo } = require("./Intent.repository")
 const { sendWhatsAppTemplate } = require("../../common/services/whatsapp.service")
+
 const registerIntent = async (intent) => {
     if (!intent.roomId) {
         updateIntentWithRoomId(intent); // TODO :: Handle Error 
     }
+    console.log("Intent : ", intent)
+    addIntentToCache(intent)
+    addIntentToDB(intent)
     if (!intent.assignedTo) {
-        const mapping = await getMappingByRoomAndDepartment("Room Genie", intent.roomId, intent.intentType);
+        const mapping = await getMappingByRoomAndDepartment(intent.hotelId, intent.roomId, intent.intentType);
         console.log("Mapping :: ", mapping)
         const names = mapping.map(o => o.staffName).toLocaleString() || '';
         intent.assignedTo = names;
         const phoneNumbers = mapping.map(m => m.staffPhone) || [];
         phoneNumbers.forEach(pn => sendWhatsAppTemplate("91" + pn, intent.roomId));
     }
-    addIntentToCache(intent)
-    addIntentToDB(intent)
 }
 
 const updateIntentWithRoomId = (intent) => {
