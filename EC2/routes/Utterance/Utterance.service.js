@@ -26,7 +26,7 @@ const onUtterance = async (userQuery, hotelId, deviceId, sessionId) => {
 
     console.log(`ChatGPT response for sessionId = ${sessionId} is :: `, { raw, parsed })
 
-    registerRequests(deviceId, parsed.requestDetails || [])
+    registerRequests(session, deviceId, parsed.requestDetails || [])
 
     let responseSpeech = 'Okay.';
     if (parsed && Array.isArray(parsed.messages)) {
@@ -41,21 +41,27 @@ const onUtterance = async (userQuery, hotelId, deviceId, sessionId) => {
 }
 
 
-const registerRequests = (deviceId, requestDetails) => {
+const registerRequests = (session, deviceId, requestDetails) => {
     requestDetails.forEach(r => {
         console.log("Request :: ", JSON.stringify(r));
         const { hasUserConfirmedOrder, department, requestType, shortDescription } = r;
         const intent = {
             deviceId,
-            intentName: requestType,
+
             intentType: department,
+            intentName: requestType,
+            notes: shortDescription,
+
+            conversationLog: session,
+
+            daysSinceEpoch: Math.floor(Date.now() / (24 * 60 * 60 * 1000)),//PK
             requestedTime: Date.now(),
             inProgressTime: null,
             completedTime: null,
-            notes: shortDescription,
-            daysSinceEpoch: Math.floor(Date.now() / (24 * 60 * 60 * 1000)) //PK
         }
-        if ((department === "Restaurant" || department === "Room Service")) {
+        if (department.toLocaleLowerCase().includes("Restaurant".toLocaleLowerCase()) ||
+            department.toLocaleLowerCase().includes("Room Service".toLocaleLowerCase()) ||
+            department.toLocaleLowerCase().includes("Concierge".toLocaleLowerCase())) {
             hasUserConfirmedOrder && registerIntent(intent);
         } else {
             registerIntent(intent)

@@ -178,7 +178,7 @@ const getHotelPromopts = (hotelId) => {
     - Reporting broken equipments
 
     ❓ General Enquiry:
-    - Keywords: wifi password, hotel name, hot water, AC, remote, device instructions
+    - Keywords: wifi password, hotel name, hot water, AC, remote, device instructions, Resort Amenities
     - General informational queries
 
     ---
@@ -247,7 +247,7 @@ const getHotelPromopts = (hotelId) => {
     
     Misc Notes
     - if the guest asks for the menu, depending on the time recommend a few dishes. You may also ask them if they want to hear about dishes in a particular category (Eg: Soup, Chinese, Desser etc)
-
+    - The hotel usually requires guests to preorder lunch and dinner, if the guest wants to confirm an order for later, mark "hasUserConfirmedOrder" true for the corresponding request.
         Restaurant Menu = ${JSON.stringify(restaurantMenu)}
         Resort Amenities = ${JSON.stringify(resortAminities)}`;
 

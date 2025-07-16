@@ -6,7 +6,7 @@ const { sendWhatsAppTemplate } = require("../../common/services/whatsapp.service
 
 const registerIntent = async (intent) => {
     if (!intent.roomId) {
-        updateIntentWithRoomId(intent); // TODO :: Handle Error 
+        updateIntentWithRoomInfo(intent); // TODO :: Handle Error 
     }
     console.log("Intent : ", intent)
     addIntentToCache(intent)
@@ -21,10 +21,11 @@ const registerIntent = async (intent) => {
     }
 }
 
-const updateIntentWithRoomId = (intent) => {
+const updateIntentWithRoomInfo = (intent) => {
     const deviceId = intent.deviceId;
-    const { roomId } = getRoomInfoFromDeviceId(deviceId); //TODO :: Handle Error
+    const { roomId, hotelId } = getRoomInfoFromDeviceId(deviceId); //TODO :: Handle Error
     intent.roomId = roomId;
+    intent.hotelId = hotelId;
 }
 
 const getIntentsForDate = async (dateAsInteger, bypassCache = false) => {
