@@ -243,7 +243,10 @@ const getHotelPromopts = (hotelId) => {
         "isUserResponseNeeded": true,
         "requestDetails": []
       }
-    Do not explain the format or anything else. Just reply in JSON exactly.          
+    Do not explain the format or anything else. Just reply in JSON exactly.  
+    
+    Misc Notes
+    - if the guest asks for the menu, depending on the time recommend a few dishes. You may also ask them if they want to hear about dishes in a particular category (Eg: Soup, Chinese, Desser etc)
 
         Restaurant Menu = ${JSON.stringify(restaurantMenu)}
         Resort Amenities = ${JSON.stringify(resortAminities)}`;
