@@ -97,9 +97,13 @@ const Intents = () => {
         Object.keys(response).forEach(key => intents.push(...response[key]));
         intents.sort((a, b) => b.requestedTime - a.requestedTime);
 
-        if (intents.length && intents[0].requestedTime > lastRequestTimestamp.current) {
-            lastRequestTimestamp.current = intents[0].requestedTime;
-            if (audioRef.current) audioRef.current.play();
+        // if (intents.length && lastRequestTimestamp.current && intents[0].requestedTime > lastRequestTimestamp.current) {
+        //     lastRequestTimestamp.current = intents[0].requestedTime;
+        //     if (audioRef.current) audioRef.current.play();
+        // }
+        const unacknowledgedRequest = intents.find(req => !req.isAcknowledged)
+        if (unacknowledgedRequest) {
+            audioRef.current.play();
         }
 
         setAllIntents(intents);
