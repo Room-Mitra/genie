@@ -26,7 +26,7 @@ router.post('/', async (req, res) => {
         }
 
         // Generate JWT
-        const token = jwt.sign({ username, hotelId }, SECRET_KEY, { expiresIn: "10h" });
+        const token = jwt.sign({ username, hotelId }, SECRET_KEY, { expiresIn: "240h" });
         console.info(`${username} -> Login successful for user ${username} with hotelId ${hotelId}`)
         res.json({ token });
     }
