@@ -4,74 +4,120 @@ import BlueGoldButton from "../../Common/Button/BlueGoldButton";
 import { httpGet, httpPost } from "../../Services/APIService";
 import { EC2_API_ENDPOINT } from "../../Constants/Environment.constants";
 
-const FAQ_API_URI = '/faq';
+const FAQ_API_URI = "/faq";
 
 const FaqEditor = () => {
-    // List of FAQ types/questions
-    const [faqs, setFaqs] = useState([
-        { question: "Swimming Pool Details", answer: "", intentName: "FAQSwimmingPoolDetailsIntent" },
-        { question: "Breakfast Details", answer: "", intentName: "FAQBreakfastDetailsIntent" },
-        { question: "Check-in and Check-out Policy", answer: "", intentName: "FAQCheckInCheckOutDetailsIntent" },
-        { question: "Gym Facilities", answer: "", intentName: "FAQGymDetailsIntent" }
-    ]);
-
-    // Notification state for save action
+    const [faqs, setFaqs] = useState([]);
     const [showNotification, setShowNotification] = useState(false);
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [currentEditIndex, setCurrentEditIndex] = useState(null);
+    const [form, setForm] = useState({ question: "", answer: "" });
 
     useEffect(() => {
         const fetchFaqs = async () => {
-            const faq = await httpGet(EC2_API_ENDPOINT + FAQ_API_URI, true); //{faqData: null}
-            console.log(faq)
-            if (faq && faq.faqData) {
-                setFaqs(faq.faqData);
-            }
+            const faq = await httpGet(EC2_API_ENDPOINT + FAQ_API_URI, true);
+            if (faq && faq.faqData) setFaqs(faq.faqData);
         };
         fetchFaqs();
-    }, [])
+    }, []);
 
-    // Handle change of individual answers
-    const handleAnswerChange = (index, newAnswer) => {
-        const updatedFaqs = [...faqs];
-        updatedFaqs[index].answer = newAnswer;
-        setFaqs(updatedFaqs);
+    const handleAddClick = () => {
+        setForm({ question: "", answer: "" });
+        setShowAddModal(true);
     };
 
-    // Handle save all action
-    const handleSaveAll = async () => {
-        const faq = await httpPost(EC2_API_ENDPOINT + FAQ_API_URI, { "faqData": faqs });
-        console.log("Saved FAQs:", faqs); // For debugging or sending to backend
-        setShowNotification(true);
-
-        // Hide notification after 3 seconds
-        setTimeout(() => setShowNotification(false), 3000);
+    const handleEditClick = (index) => {
+        setForm({ question: faqs[index].question, answer: faqs[index].answer });
+        setCurrentEditIndex(index);
+        setShowEditModal(true);
     };
+
+    const handleDelete = async (index) => {
+        const updated = [...faqs];
+        updated.splice(index, 1);
+        setFaqs(updated);
+        await httpPost(EC2_API_ENDPOINT + FAQ_API_URI, { faqData: updated });
+    };
+
+    const handleAddSave = async () => {
+        setFaqs([...faqs, form]);
+        setShowAddModal(false);
+        await httpPost(EC2_API_ENDPOINT + FAQ_API_URI, { faqData: [...faqs, form] });
+
+    };
+
+    const handleEditSave = async () => {
+        const updated = [...faqs];
+        updated[currentEditIndex] = form;
+        setFaqs(updated);
+        setShowEditModal(false);
+        await httpPost(EC2_API_ENDPOINT + FAQ_API_URI, { faqData: updated });
+
+    };
+
+    // const handleSaveAll = async () => {
+    // await httpPost(EC2_API_ENDPOINT + FAQ_API_URI, { faqData: faqs });
+    //     setShowNotification(true);
+    //     setTimeout(() => setShowNotification(false), 3000);
+    // };
 
     return (
         <Container>
-            {/* Header Section */}
             <Header>
-                <Title>FAQ Editor</Title>
-                <BlueGoldButton clickHandler={handleSaveAll} text="Save All" />
+                <Title>FAQ Manager</Title>
+                <Actions>
+                    <BlueGoldButton text="Add FAQ" clickHandler={handleAddClick} />
+                    {/* <BlueGoldButton text="Save All" clickHandler={handleSaveAll} /> */}
+                </Actions>
             </Header>
 
-            {/* Full Width Editable Answers */}
-            <AnswersContainer>
-                <SectionTitle>Answers</SectionTitle>
+            <FaqList>
                 {faqs.map((faq, index) => (
-                    <AnswerItem key={index}>
-                        <Label>{faq.question}</Label>
-                        <TextArea
-                            value={faq.answer}
-                            onChange={(e) => handleAnswerChange(index, e.target.value)}
-                            placeholder={`Enter answer for "${faq.question}"`}
-                        />
-                    </AnswerItem>
+                    <FaqCard key={index}>
+                        <Question>{faq.question}</Question>
+                        <Answer>{faq.answer}</Answer>
+                        <ButtonRow>
+                            <SmallButton onClick={() => handleEditClick(index)}>Edit</SmallButton>
+                            <SmallButton onClick={() => handleDelete(index)}>Delete</SmallButton>
+                        </ButtonRow>
+                    </FaqCard>
                 ))}
-            </AnswersContainer>
+            </FaqList>
 
-            {/* Notification Popup */}
-            {showNotification && (
-                <Notification>Data has been saved successfully!</Notification>
+            {showNotification && <Notification>FAQs saved successfully!</Notification>}
+
+            {(showAddModal || showEditModal) && (
+                <ModalOverlay>
+                    <ModalBox>
+                        <h3>{showAddModal ? "Add FAQ" : "Edit FAQ"}</h3>
+                        <label>Question</label>
+                        <Input
+                            value={form.question}
+                            onChange={(e) => setForm({ ...form, question: e.target.value })}
+                            placeholder="Enter question"
+                        />
+                        <label>Answer</label>
+                        <Textarea
+                            value={form.answer}
+                            onChange={(e) => setForm({ ...form, answer: e.target.value })}
+                            placeholder="Enter answer"
+                        />
+                        <ModalActions>
+                            <BlueGoldButton
+                                text="Save"
+                                clickHandler={showAddModal ? handleAddSave : handleEditSave}
+                            />
+                            <BlueGoldButton
+                                text="Cancel"
+                                clickHandler={() => {
+                                    setShowAddModal(false);
+                                    setShowEditModal(false);
+                                }}
+                            />
+                        </ModalActions>
+                    </ModalBox>
+                </ModalOverlay>
             )}
         </Container>
     );
@@ -80,73 +126,115 @@ const FaqEditor = () => {
 export default FaqEditor;
 
 
-
 const Container = styled.div`
-    display: flex;
-    flex-direction: column;
-    font-family: 'Arial', sans-serif;
-    margin: 20px;
-    padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  font-family: 'Arial', sans-serif;
 `;
 
 const Header = styled.div`
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
 `;
 
 const Title = styled.h2`
-    color: #333;
+  color: #161032;
 `;
 
-
-const AnswersContainer = styled.div`
-    background-color: #fff;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    overflow-y: auto;
+const Actions = styled.div`
+  display: flex;
+  gap: 10px;
 `;
 
-const SectionTitle = styled.h3`
-    color: #333;
-    margin-bottom: 10px;
-    border-bottom: 1px solid #ccc;
-    padding-bottom: 5px;
+const FaqList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 `;
 
-const AnswerItem = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    margin-bottom: 15px;
+const FaqCard = styled.div`
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
 `;
 
-const Label = styled.label`
-    font-weight: bold;
-    color: #555;
+const Question = styled.h4`
+  margin: 0 0 8px;
+  color: #161032;
 `;
 
-const TextArea = styled.textarea`
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    resize: none;
-    height: 60px;
-    font-size: 14px;
+const Answer = styled.p`
+  margin: 0 0 12px;
+  color: #555;
+`;
+
+const ButtonRow = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+
+const SmallButton = styled.button`
+  background: #e2c044;
+  border: none;
+  padding: 6px 10px;
+  color: #161032;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 4px;
+
+  &:hover {
+    background: #d2b03c;
+  }
 `;
 
 const Notification = styled.div`
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background-color: #4CAF50;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 5px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  background: #4caf50;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 5px;
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+const ModalBox = styled.div`
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
+
+const Input = styled.input`
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+`;
+
+const Textarea = styled.textarea`
+  padding: 10px;
+  min-height: 80px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  resize: none;
+`;
+
+const ModalActions = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
 `;
