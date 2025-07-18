@@ -37,18 +37,18 @@ export const SidebarData = [
                 icon: <MdIcons.MdOutlineDevices />,
                 cName: "sub-nav",
             },
-            {
-                title: "Staff Directory",
-                path: "/admin/staff-directory",
-                icon: <FaIcons.FaPhone />,
-                cName: "sub-nav",
-            },
-            {
-                title: "Staff Request Mapping",
-                path: "/admin/staff-request-mapping",
-                icon: <FaIcons.FaEnvelopeOpenText />,
-                cName: "sub-nav",
-            },
+            // {
+            //     title: "Staff Directory",
+            //     path: "/admin/staff-directory",
+            //     icon: <FaIcons.FaPhone />,
+            //     cName: "sub-nav",
+            // },
+            // {
+            //     title: "Staff Request Mapping",
+            //     path: "/admin/staff-request-mapping",
+            //     icon: <FaIcons.FaEnvelopeOpenText />,
+            //     cName: "sub-nav",
+            // },
             {
                 title: "Rooms",
                 path: "/admin/rooms",
