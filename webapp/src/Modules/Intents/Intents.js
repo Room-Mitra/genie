@@ -19,10 +19,10 @@ const Intents = () => {
     const lastRequestTimestamp = useRef(0);
 
     const handleAcknowledgeToggle = async (ts) => {
-        //await postUpdate
-
-        // const response = await httpPost(EC2_API_ENDPOINT + INTENTS_API_URI,{});
-        console.log(ts, allIntents, rowData)
+        const intents = await getAllIntentsData();
+        const intent = intents.find(i => i.requestedTime === ts)
+        intent.isAcknowledged = !intent.isAcknowledged
+        const response = await httpPost(EC2_API_ENDPOINT + INTENTS_API_URI, { ...intent });
         getAllIntentsData();
     }
     const AcknowledgeCheckboxComponent = (rowInfo) => {
@@ -104,6 +104,7 @@ const Intents = () => {
 
         setAllIntents(intents);
         setRowData(intents);
+        return intents;
     }
 
     return (
