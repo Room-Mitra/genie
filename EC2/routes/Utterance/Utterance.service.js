@@ -13,7 +13,7 @@ const onUtterance = async (userQuery, hotelId, deviceId, sessionId) => {
     const session = SessionManager.getSession(sessionId);
     SessionManager.addToSessionHistory(sessionId, 'user', userQuery);
 
-    const messages = buildPrompt(hotelId, session.history);
+    const messages = await buildPrompt(hotelId, session.history);
     const gptResponse = callChatGptApi(messages);
     if (gptResponse.statusCode !== 200) {
         console.error('Failed GPT call:', gptResponse.statusCode);
@@ -69,9 +69,9 @@ const registerRequests = (session, deviceId, requestDetails) => {
     })
 }
 
-const buildPrompt = (hotelId, history) => {
+const buildPrompt = async (hotelId, history) => {
     return [
-        ...getHotelPromopts(hotelId),
+        ...(await getHotelPromopts(hotelId)),
         ...history,
     ];
 }
