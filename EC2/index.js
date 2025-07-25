@@ -12,6 +12,7 @@ const path = require('path');
 // routes
 const deviceRoutes = require('./routes/Device/Device.controller.js');
 const guestRoutes = require('./routes/Guest/Guest.controller.js');
+const utteranceRoutes = require('./routes/Utterance/Utterance.controller.js');
 const bookingRoutes = require('./routes/Booking/Booking.controller.js');
 const staffRoutes = require('./routes/Staff/Staff.controller.js');
 const mappingRoutes = require('./routes/StaffRoomDepartmentRequestMapping/StaffRoomDepartmentRequestMapping.controller.js');
@@ -41,6 +42,7 @@ app.use('/booking', authenticator, bookingRoutes);
 app.use('/staff', authenticator, staffRoutes);
 app.use('/mapping', authenticator, mappingRoutes);
 app.use('/faq', authenticator, faqRoutes);
+app.use('/utterance', authenticator, utteranceRoutes);
 
 
 
@@ -52,8 +54,11 @@ app.use('/leads', landingPageRoutes);
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
-    // res.redirect(301, 'https://theroomgenie.vercel.app/faq'); // restart app
     res.sendFile(path.join(__dirname, 'public/LandingPage/landing.html'));
+})
+
+app.get('/commands', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/Commands/Commands.html'));
 })
 
 app.listen(PORT, () => console.log(`Server running on port: http://localhost:${PORT}`));

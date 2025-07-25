@@ -15,16 +15,16 @@ export const SidebarData = [
         path: "/requests",
         icon: <MdIcons.MdRoomService />,
     },
-    {
-        title: "Check In",
-        path: "/check-in",
-        icon: <RiIcons.RiLogoutBoxFill />,
-    },
-    {
-        title: "Check Out",
-        path: "/check-out",
-        icon: <Io5Icons.IoLogOut />,
-    },
+    // {
+    //     title: "Check In",
+    //     path: "/check-in",
+    //     icon: <RiIcons.RiLogoutBoxFill />,
+    // },
+    // {
+    //     title: "Check Out",
+    //     path: "/check-out",
+    //     icon: <Io5Icons.IoLogOut />,
+    // },
     {
         title: "Admin",
         icon: <IoIcons.IoIosPaper />,
@@ -37,18 +37,18 @@ export const SidebarData = [
                 icon: <MdIcons.MdOutlineDevices />,
                 cName: "sub-nav",
             },
-            {
-                title: "Staff Directory",
-                path: "/admin/staff-directory",
-                icon: <FaIcons.FaPhone />,
-                cName: "sub-nav",
-            },
-            {
-                title: "Staff Request Mapping",
-                path: "/admin/staff-request-mapping",
-                icon: <FaIcons.FaEnvelopeOpenText />,
-                cName: "sub-nav",
-            },
+            // {
+            //     title: "Staff Directory",
+            //     path: "/admin/staff-directory",
+            //     icon: <FaIcons.FaPhone />,
+            //     cName: "sub-nav",
+            // },
+            // {
+            //     title: "Staff Request Mapping",
+            //     path: "/admin/staff-request-mapping",
+            //     icon: <FaIcons.FaEnvelopeOpenText />,
+            //     cName: "sub-nav",
+            // },
             {
                 title: "Rooms",
                 path: "/admin/rooms",
@@ -61,11 +61,11 @@ export const SidebarData = [
         path: "/faq",
         icon: <IoIcons.IoMdHelpCircle />,
     },
-    {
-        title: "Analytics",
-        path: "/analytics",
-        icon: <GrIcons.GrAnalytics />,
-    },
+    // {
+    //     title: "Analytics",
+    //     path: "/analytics",
+    //     icon: <GrIcons.GrAnalytics />,
+    // },
     {
         title: "Logout",
         path: "/logout",

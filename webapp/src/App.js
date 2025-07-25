@@ -8,6 +8,7 @@ import { Suspense, lazy } from "react";
 import { AuthProvider } from './Modules/Login/AuthContext';
 import ProtectedRoute from './Modules/Login/ProtectedRoute';
 import { NotificationProvider } from './Common/Notification/NotificationContext';
+import { Navigate } from "react-router-dom";
 
 const Intents = lazy(() => import('./Modules/Intents/Intents'));
 const Rooms = lazy(() => import('./Modules/Rooms/Rooms'));
@@ -31,6 +32,7 @@ function App() {
           <Sidebar />
 
           <Routes>
+            <Route path="/" element={<Navigate to="/login" />} />
             <Route path="/login" element={<Login />} />
             <Route path="/logout" element={<Logout />} />
             <Route path="/requests" element={

@@ -121,5 +121,101 @@ Changes to be made ::
 . CICD pipeline
 . Register device intent confirmation needs to be fixed
 
-desicontent691969@gmail.com
-dummy commit
+
+PUSHING logs TO CLOUDWATCH
+     
+Prerequisites
+EC2 instance running Ubuntu (with internet access).
+
+IAM Role or instance profile attached with CloudWatchAgentServerPolicy.
+
+Your Express app writes logs to a specific file (e.g., /var/log/express-app.log).
+
+📦 1. Install the CloudWatch Agent
+cd /tmp
+curl -O https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
+sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
+
+📁 2. Set Up Log Directory and Permissions
+Let’s assume your app will log to /var/log/express-app.log.
+sudo mkdir -p /var/log
+sudo touch /var/log/express-app.log
+sudo chown ubuntu:ubuntu /var/log/express-app.log
+Replace ubuntu with your actual EC2 username (whoami shows it).
+
+Ensure your app has permissions to write to the file.
+
+🧾 3. Create CloudWatch Agent Configuration File
+Create a file named cwagent-config.json with the following content:
+{
+  "logs": {
+    "logs_collected": {
+      "files": {
+        "collect_list": [
+          {
+            "file_path": "/var/log/express-app.log",
+            "log_group_name": "RoomMitraAppLogs",
+            "log_stream_name": "{instance_id}",
+            "timestamp_format": "%Y-%m-%d %H:%M:%S",
+            "multi_line_start_pattern": "(\\d{4}-\\s{0,1}\\d{1,2}-\\s{0,1}\\d{1,2} \\d{2}:\\d{2}:\\d{2})"
+          }
+        ]
+      }
+    },
+    "log_stream_name": "default-log-stream",
+    "log_group_name": "RoomMitraAppLogs"
+  }
+}
+Explanation:
+file_path: your app's log file.
+log_group_name: name in CloudWatch Logs (will be auto-created).
+log_stream_name: {instance_id} auto-resolves to EC2 ID.
+timestamp_format: update this to match your log line format, e.g., 2025-07-18 12:34:56.
+multi_line_start_pattern: use regex if your logs span multiple lines.
+
+💾 4. Place the Config File
+sudo mkdir -p /opt/aws/amazon-cloudwatch-agent/etc/
+sudo cp cwagent-config.json /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+🚀 5. Start CloudWatch Agent
+sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+  -a fetch-config \
+  -m ec2 \
+  -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json \
+  -s
+This command:
+Fetches config from file.
+Starts agent in EC2 mode.
+
+🔁 6. Make Sure Logs Are Written by App
+Run this to test:
+echo "2025-07-18 18:42:10 Sample log from Express app" >> /var/log/express-app.log
+Or update your app’s console.log or logger to write to /var/log/express-app.log.
+
+✅ 7. Verify Setup
+Check CloudWatch Logs (Console):
+Go to CloudWatch Logs console
+Look for RoomMitraAppLogs log group.
+Inside, find a stream named after your EC2 instance ID.
+
+🛠️ 8. Troubleshooting
+Check if agent is running:
+sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -m ec2 -a status
+Check agent logs:
+cat /opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log
+Permissions issue?
+Ensure:
+EC2 role has policy CloudWatchAgentServerPolicy.
+IAM trust relationship allows EC2.
+
+🔄 9. Restarting the Agent (if needed)
+After config changes:
+sudo systemctl restart amazon-cloudwatch-agent
+
+🧹 10. Cleanup (Optional)
+To remove agent:
+sudo systemctl stop amazon-cloudwatch-agent
+sudo apt remove amazon-cloudwatch-agent
+
+
+
+

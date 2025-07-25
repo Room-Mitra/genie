@@ -1,12 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const { registerDevice, getAllDevices, updateDevices } = require('./Device.service.js');
+const { getHotelId, getUserName } = require('../../common/services/common.service.js');
 
 // register device
 router.post('/', async (req, res) => {
-    const device = req.body;
-    await registerDevice(device);
-    res.send(`${JSON.stringify(device)} has been added to the Database`);
+    try {
+        const device = req.body;
+        await registerDevice(device);
+        res.send(`${JSON.stringify(device)} has been added to the Database`);
+    } catch (error) {
+        console.error('Error registering device:', error);
+        res.status(500).send('Failed to register device');
+    }
 })
 
 
@@ -15,13 +21,26 @@ router.post('/', async (req, res) => {
 
 // get all devices
 router.get('/', (req, res) => {
-    res.send(getAllDevices());
+    try {
+        const hotelId = getHotelId(req);
+        const userName = getUserName(req);
+        console.info(`${userName} -> Getting all devices for hotelId ${hotelId}`);
+        res.send(getAllDevices(hotelId));
+    } catch (error) {
+        console.error('Error getting all devices:', error);
+        res.status(500).send('Failed to retrieve devices');
+    }
 })
 
 // update devices data
 router.put('/', async (req, res) => {
-    await updateDevices(req.body)
-    res.send("Updated successfully");
+    try {
+        await updateDevices(req.body);
+        res.send("Updated successfully");
+    } catch (error) {
+        console.error('Error updating devices:', error);
+        res.status(500).send('Failed to update devices');
+    }
 })
 
 

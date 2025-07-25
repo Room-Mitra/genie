@@ -36,7 +36,7 @@ const httpGetUncached = async (url, bypassServerCache = false) => {
         url += url.includes("?") ? "&bypassCache=true" : "?bypassCache=true";
     }
     const response = await axios.get(url);  // TODO: handle error
-    console.log("API RESPONSE :: ", url, response);
+    // console.log("API RESPONSE :: ", url, response);
     return response;
 }
 
