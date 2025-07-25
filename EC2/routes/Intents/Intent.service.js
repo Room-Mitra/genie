@@ -1,4 +1,5 @@
 import { getRoomInfoFromDeviceId } from '../Device/Device.service.js';
+import { getMappingByRoomAndDepartment } from '../StaffRoomDepartmentRequestMapping/StaffRoomDepartmentRequestMapping.service.js';
 import {
   addIntent as addIntentToCache,
   getIntentsForDate as getIntentsForDateFromCache,
@@ -9,9 +10,23 @@ import {
   getIntentsForDate as getIntentsForDateFromRepo,
 } from './Intent.repository.js';
 
+import { sendWhatsAppTemplate } from '../../common/services/whatsapp.js';
+
 export const registerIntent = async (intent) => {
   if (!intent.roomId) {
     updateIntentWithRoomId(intent); // TODO :: Handle Error
+  }
+  if (!intent.assignedTo) {
+    const mapping = await getMappingByRoomAndDepartment(
+      'Room Genie',
+      intent.roomId,
+      intent.intentType
+    );
+    console.log('Mapping :: ', mapping);
+    const names = mapping.map((o) => o.staffName).toLocaleString() || '';
+    intent.assignedTo = names;
+    const phoneNumbers = mapping.map((m) => m.staffPhone) || [];
+    phoneNumbers.forEach((pn) => sendWhatsAppTemplate('91' + pn, intent.roomId));
   }
   addIntentToCache(intent);
   addIntentToDB(intent);

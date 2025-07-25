@@ -14,11 +14,12 @@ import deviceRoutes from './routes/Device/Device.controller.js';
 import guestRoutes from './routes/Guest/Guest.controller.js';
 import bookingRoutes from './routes/Booking/Booking.controller.js';
 import staffRoutes from './routes/Staff/Staff.controller.js';
+import mappingRoutes from './routes/StaffRoomDepartmentRequestMapping/StaffRoomDepartmentRequestMapping.controller.js';
 import faqRoutes from './routes/FAQ/FAQ.controller.js';
 import intentsRoutes from './routes/Intents/Intent.controller.js';
 import loginRoutes from './routes/Login/Login.controller.js';
 import landingPageRoutes from './routes/LandingPage/leads.js';
-import dummyRoutes from './routes/Dummy/Dummy.controller.js';
+
 import { runFunctionsOnServerStartup } from './common/services/startup.service.js';
 
 // Middlewares
@@ -42,12 +43,11 @@ app.use('/intents', authenticator, intentsRoutes);
 app.use('/guests', authenticator, guestRoutes);
 app.use('/booking', authenticator, bookingRoutes);
 app.use('/staff', authenticator, staffRoutes);
+app.use('/mapping', authenticator, mappingRoutes);
 app.use('/faq', authenticator, faqRoutes);
 
 app.use('/login', loginRoutes);
 app.use('/leads', landingPageRoutes);
-
-app.use('/dummy', dummyRoutes);
 
 // Serve static landing page
 app.use(express.static(path.join(__dirname, 'public')));
