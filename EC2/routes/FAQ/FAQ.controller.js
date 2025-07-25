@@ -9,7 +9,7 @@ router.post('/', async (req, res) => {
   const userData = req.userData;
   await registerFAQ(faq, userData);
   res.send(`${JSON.stringify(faq)} : has been added to the Database`);
-  console.log(`Updated By ${userData['username']} for hotel ${userData['hotelId']}`);
+  // console.log(`Updated By ${userData["username"]} for hotel ${userData["hotelId"]}`);
 });
 
 router.get('/', async (req, res) => {

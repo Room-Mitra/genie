@@ -35,6 +35,7 @@ const setTimerForTTL = () => {
 export const addIntent = (intent) => {
   const daysSinceEpoch = getDaysSinceEpoch(intent.requestedTime);
   ALL_INTENTS[daysSinceEpoch] = ALL_INTENTS[daysSinceEpoch] || [];
+  removeIntentIfExists(intent);
   ALL_INTENTS[daysSinceEpoch].push(intent);
 };
 

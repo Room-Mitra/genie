@@ -14,11 +14,14 @@ import { sendWhatsAppTemplate } from '../../common/services/whatsapp.js';
 
 export const registerIntent = async (intent) => {
   if (!intent.roomId) {
-    updateIntentWithRoomId(intent); // TODO :: Handle Error
+    updateIntentWithRoomInfo(intent); // TODO :: Handle Error
   }
+  console.log('Intent : ', intent);
+  addIntentToCache(intent);
+  addIntentToDB(intent);
   if (!intent.assignedTo) {
     const mapping = await getMappingByRoomAndDepartment(
-      'Room Genie',
+      intent.hotelId,
       intent.roomId,
       intent.intentType
     );
@@ -28,17 +31,16 @@ export const registerIntent = async (intent) => {
     const phoneNumbers = mapping.map((m) => m.staffPhone) || [];
     phoneNumbers.forEach((pn) => sendWhatsAppTemplate('91' + pn, intent.roomId));
   }
-  addIntentToCache(intent);
-  addIntentToDB(intent);
 };
 
-const updateIntentWithRoomId = (intent) => {
+export const updateIntentWithRoomInfo = (intent) => {
   const deviceId = intent.deviceId;
-  const { roomId } = getRoomInfoFromDeviceId(deviceId); //TODO :: Handle Error
+  const { roomId, hotelId } = getRoomInfoFromDeviceId(deviceId); //TODO :: Handle Error
   intent.roomId = roomId;
+  intent.hotelId = hotelId;
 };
 
-const getIntentsForDate = async (dateAsInteger, bypassCache = false) => {
+export const getIntentsForDate = async (dateAsInteger, bypassCache = false) => {
   const intents = await (bypassCache
     ? getIntentsForDateFromRepo(dateAsInteger)
     : getIntentsForDateFromCache(dateAsInteger)); // TODO : add caching

@@ -12,6 +12,7 @@ import path from 'path';
 // routes
 import deviceRoutes from './routes/Device/Device.controller.js';
 import guestRoutes from './routes/Guest/Guest.controller.js';
+import utteranceRoutes from './routes/Utterance/Utterance.controller.js';
 import bookingRoutes from './routes/Booking/Booking.controller.js';
 import staffRoutes from './routes/Staff/Staff.controller.js';
 import mappingRoutes from './routes/StaffRoomDepartmentRequestMapping/StaffRoomDepartmentRequestMapping.controller.js';
@@ -45,6 +46,7 @@ app.use('/booking', authenticator, bookingRoutes);
 app.use('/staff', authenticator, staffRoutes);
 app.use('/mapping', authenticator, mappingRoutes);
 app.use('/faq', authenticator, faqRoutes);
+app.use('/utterance', authenticator, utteranceRoutes);
 
 app.use('/login', loginRoutes);
 app.use('/leads', landingPageRoutes);
@@ -53,8 +55,11 @@ app.use('/leads', landingPageRoutes);
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
-  // res.redirect(301, 'https://theroomgenie.vercel.app/faq'); // restart app
   res.sendFile(path.join(__dirname, 'public/LandingPage/landing.html'));
+});
+
+app.get('/commands', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/Commands/Commands.html'));
 });
 
 app.listen(PORT, () => console.log(`Server running on port: http://localhost:${PORT}`));

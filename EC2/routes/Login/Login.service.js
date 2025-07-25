@@ -7,7 +7,7 @@ const getId = ({ hotelId, username }) => `${ID_TYPE}${hotelId}:${username}`;
 const getUserDetails = async ({ hotelId, username }) => {
   const id = getId({ hotelId, username });
   const userData = await getUser(id);
-  console.info('USER DATA :: ', userData);
+  console.info(`${username} -> ` + 'USER DATA :: ', userData);
   if (userData) {
     return userData;
   }
@@ -25,7 +25,7 @@ export const verifyUserCredentials = async ({ hotelId, username, password }) => 
 export const addUserLogin = async (userData) => {
   const isUserExists = await getUserDetails(userData);
   if (isUserExists) {
-    throw new Error('401 :: User already exists');
+    throw new Error('User already exists');
   }
 
   const { password, hotelId, username } = userData;
@@ -34,7 +34,7 @@ export const addUserLogin = async (userData) => {
   userData.password = hashedPassword;
   const isUserAdded = await addUser({ id, ...userData });
   if (!isUserAdded) {
-    throw new Error('500 :: Failed to add user');
+    throw new Error('Failed to add user');
   }
   return isUserAdded;
 };

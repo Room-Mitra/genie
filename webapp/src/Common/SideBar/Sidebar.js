@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
 import * as FaIcons from "react-icons/fa";
@@ -7,10 +7,14 @@ import { SidebarData } from "./SidebarData";
 import SubMenu from "./Submenu";
 import { IconContext } from "react-icons/lib";
 import HOTEL_CONSTANTS from "../../Constants/Hotel.constants";
+import AuthContext from "../../Modules/Login/AuthContext";
 
 
 const Sidebar = () => {
+    const { isAuthenticated } = useContext(AuthContext);
+
     const [sidebar, setSidebar] = useState(false);
+    const [hotelName, setHotelName] = useState(HOTEL_CONSTANTS.HOTEL_NAME);
     const sidebarRef = useRef(null);
 
     const showSidebar = () => setSidebar(!sidebar);
@@ -33,6 +37,15 @@ const Sidebar = () => {
         };
     }, [sidebar]);
 
+    useEffect(() => {
+        const loggedInHotelName = localStorage.getItem("hotelId")
+        if (isAuthenticated && loggedInHotelName) {
+            setHotelName(loggedInHotelName);
+        } else {
+            setHotelName(HOTEL_CONSTANTS.HOTEL_NAME);
+        }
+    }, [isAuthenticated]);
+
     return (
         <>
             <IconContext.Provider value={{ color: "#fff" }}>
@@ -40,7 +53,7 @@ const Sidebar = () => {
                     <NavIcon to="#">
                         <FaIcons.FaBars onClick={showSidebar} />
                     </NavIcon>
-                    <H1>  {HOTEL_CONSTANTS.HOTEL_NAME}  </H1>
+                    <H1>  {hotelName}  </H1>
                 </Nav>
                 <SidebarNav sidebar={sidebar} ref={sidebarRef}>
                     <SidebarWrap>

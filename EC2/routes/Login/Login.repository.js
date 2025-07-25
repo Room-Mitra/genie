@@ -10,9 +10,14 @@ export const getUser = async (userId) => {
     KeyConditionExpression: 'id=:id',
   };
   try {
-    console.info('Accessing Login details from DB with params', params);
+    console.info(`${userId} ->` + 'Accessing Login details from DB with params', params);
     const userData = await DDB.query(params).promise();
-    console.info('User Data From DB :: ', userData, ' :: for input params ::', params);
+    console.info(
+      `${userId} ->` + 'User Data From DB :: ',
+      userData,
+      ' :: for input params ::',
+      params
+    );
     if (userData && userData.Items && userData.Items.length) {
       return { ...userData.Items[0] };
     }

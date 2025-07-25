@@ -15,14 +15,19 @@ export const registerDevice = async (deviceDetails) => {
   addDeviceToDB(deviceDetails);
 };
 
-export const getAllDevices = () => {
-  console.log(getAllDevicesFromCache());
-  return getAllDevicesFromCache();
+export const getAllDevices = (hotelId) => {
+  const allDevices = getAllDevicesFromCache() || [];
+  if (hotelId) {
+    const devicesInProperty = allDevices.filter((device) => device.hotelId === hotelId);
+    console.info(`Devices in ${hotelId} property :: `, devicesInProperty);
+    return devicesInProperty;
+  }
+  return allDevices;
 };
 
-export const updateDevices = async (updatedDevicesData) => {
-  updateCache(updatedDevicesData);
-  updateDB(updatedDevicesData);
+export const updateDevices = (devices) => {
+  updateCache(devices);
+  updateDB(devices);
 };
 
 export const getRoomInfoFromDeviceId = (deviceId) => {
@@ -34,6 +39,7 @@ export const getRoomInfoFromDeviceId = (deviceId) => {
   return {
     roomId: allDevices[deviceIndex].roomId,
     propertyName: allDevices[deviceIndex].propertyName,
+    hotelId: allDevices[deviceIndex].hotelId,
     floor: allDevices[deviceIndex].floor,
     roomTags: allDevices[deviceIndex].roomTags,
     roomNotes: allDevices[deviceIndex].roomNotes,
