@@ -1,94 +1,151 @@
 package com.example.voiceassistant
 
 import android.Manifest
-import android.content.Context
+import android.content.pm.PackageManager
 import android.media.MediaRecorder
 import android.os.Bundle
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.MotionEvent
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import java.io.File
-import java.io.FileOutputStream
 
 class MainActivity : AppCompatActivity() {
 
-    private external fun transcribeAudio(filePath: String): String
-    private lateinit var recorder: MediaRecorder
-    private lateinit var audioFile: File
+    private var recorder: MediaRecorder? = null
+    private var isRecording = false
+    private var recordingStartTime = 0L
+
+    private val RECORD_AUDIO_PERMISSION_CODE = 200
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), 0)
-
         val button = findViewById<Button>(R.id.sttButton)
-        button.setOnClickListener {
-            Log.d("STT", "performClick called (for accessibility compliance)")
+
+        // Check and request permission on startup
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.RECORD_AUDIO),
+                RECORD_AUDIO_PERMISSION_CODE
+            )
         }
+
         button.setOnTouchListener { v, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    startRecording()
+                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                        == PackageManager.PERMISSION_GRANTED
+                    ) {
+                        startRecording()
+                    } else {
+                        Log.w("VoiceAssistant", "Permission not granted")
+                        ActivityCompat.requestPermissions(
+                            this,
+                            arrayOf(Manifest.permission.RECORD_AUDIO),
+                            RECORD_AUDIO_PERMISSION_CODE
+                        )
+                    }
                     true
                 }
+
                 MotionEvent.ACTION_UP -> {
                     stopRecording()
-                    val result = transcribeAudio(audioFile.absolutePath)
-                    Log.d("STT", "Transcribed text: $result")
                     v.performClick()
                     true
                 }
+
                 else -> false
             }
         }
-        copyModelIfNeeded(this)
-
     }
 
     private fun startRecording() {
-        audioFile = File(getExternalFilesDir(Environment.DIRECTORY_MUSIC), "recorded_audio.wav")
+        val outputPath = getExternalFilesDir(null)?.absolutePath + "/recording.mp4"
+        Log.d("VoiceAssistant", "Output file path: $outputPath")
+
         recorder = MediaRecorder().apply {
-            setAudioSource(MediaRecorder.AudioSource.MIC)
-            setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
-            setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
-            setOutputFile(audioFile.absolutePath)
-            prepare()
-            start()
+            try {
+                setAudioSource(MediaRecorder.AudioSource.MIC)
+                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                setAudioEncodingBitRate(128000)
+                setAudioSamplingRate(44100)
+                setOutputFile(outputPath)
+
+                Log.d("VoiceAssistant", "Preparing...")
+                prepare()
+                Log.d("VoiceAssistant", "Starting...")
+                start()
+
+                isRecording = true
+                recordingStartTime = System.currentTimeMillis()
+                Log.d("VoiceAssistant", "Recording started")
+            } catch (e: Exception) {
+                Log.e("VoiceAssistant", "startRecording() failed: ${e.message}")
+                e.printStackTrace()
+                release()
+                recorder = null
+                isRecording = false
+            }
         }
     }
 
     private fun stopRecording() {
-        recorder.apply {
-            stop()
-            release()
+        if (!isRecording || recorder == null) {
+            Log.w("VoiceAssistant", "Not recording, nothing to stop")
+            return
+        }
+
+        val elapsed = System.currentTimeMillis() - recordingStartTime
+        if (elapsed < 1000) {
+            Log.d("VoiceAssistant", "Delaying stop by ${1000 - elapsed}ms")
+            Handler(Looper.getMainLooper()).postDelayed({
+                actuallyStopRecording()
+            }, 1000 - elapsed)
+        } else {
+            actuallyStopRecording()
         }
     }
 
-    companion object {
-        init {
-            System.loadLibrary("native-lib")
+    private fun actuallyStopRecording() {
+        try {
+            recorder?.stop()
+            Log.d("VoiceAssistant", "Recording stopped")
+        } catch (e: RuntimeException) {
+            Log.e("VoiceAssistant", "stop() failed: ${e.message}")
+            e.printStackTrace()
+        } finally {
+            recorder?.release()
+            recorder = null
+            isRecording = false
+
+            val file = File(getExternalFilesDir(null), "recording.mp4")
+            Log.d("VoiceAssistant", "File saved: ${file.absolutePath}, size: ${file.length()} bytes")
         }
     }
-}
 
-fun copyModelIfNeeded(context: Context) {
-    val modelDir = File(context.filesDir, "models")
-    if (!modelDir.exists()) {
-        modelDir.mkdirs()
-    }
-
-    val modelFile = File(modelDir, "ggml-base.en.bin")
-    if (!modelFile.exists()) {
-        context.assets.open("models/ggml-base.en.bin").use { input ->
-            FileOutputStream(modelFile).use { output ->
-                input.copyTo(output)
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == RECORD_AUDIO_PERMISSION_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d("VoiceAssistant", "Permission granted by user")
+            } else {
+                Log.e("VoiceAssistant", "Permission denied by user")
             }
         }
     }
-
-    Log.d("WHISPER", "Model path: ${modelFile.absolutePath}, exists: ${modelFile.exists()}")
 }
