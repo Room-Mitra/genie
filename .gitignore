@@ -8,8 +8,6 @@ EC2/node_modules/
 EC2/.env
 EC2/config/*.pem
 webapp/node_modules/
-<<<<<<< HEAD
-
 
 # Node
 node_modules/
@@ -45,12 +43,10 @@ local.properties
 .idea/tasks.xml
 
 # Models 
-voice_assistant_android/app/src/main/assets/models/*.bin
-
 
 dynamodb-local-data/
-=======
+
 AlexaSkill/RoomMitra/lambda/config.js
 AlexaSkill/RoomMitra/lambda/.env
 AlexaSkill/RoomMitra/lambda/*.env
->>>>>>> 5b2707ddedc10f5adb732d00da97d5093960440e
+
