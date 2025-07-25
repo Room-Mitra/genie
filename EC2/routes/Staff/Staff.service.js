@@ -1,20 +1,16 @@
+import { addStaff as addStaffToDB, getStaff as getStaffFromDB } from './Staff.repository.js';
 
-const { addStaff: addStaffToDB,
-    getStaff: getStaffFromDB,
-    // updateStaff: updateStaffInDB, deleteStaff: deleteStaffInDB 
-} = require("./Staff.repository")
+export const registerStaff = async (allStaffData, hotelId) => {
+  const staffData = {
+    id: hotelId,
+    staffData: allStaffData,
+  };
+  return addStaffToDB(staffData);
+};
 
-const registerStaff = async (allStaffData, hotelId) => {
-    const staffData = {
-        id: hotelId,
-        staffData: allStaffData
-    }
-    return addStaffToDB(staffData);
-}
-
-const getStaffDetails = async (hotelId) => {
-    return getStaffFromDB(hotelId);
-}
+export const getStaffDetails = async (hotelId) => {
+  return getStaffFromDB(hotelId);
+};
 
 // const updateStaffData = async (guestId, guestData) => {
 //     await updateStaffInDB(guestId, guestData);
@@ -27,10 +23,3 @@ const getStaffDetails = async (hotelId) => {
 //     console.log("STAFF RECORD DELETED", guestId)
 //     return
 // }
-
-
-module.exports = {
-    registerStaff,
-    getStaffDetails,
-    // updateStaffData, deleteStaffData 
-}

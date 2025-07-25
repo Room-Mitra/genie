@@ -1,48 +1,46 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { registerDevice, getAllDevices, updateDevices } = require('./Device.service.js');
-const { getHotelId, getUserName } = require('../../common/services/common.service.js');
+import { registerDevice, getAllDevices, updateDevices } from './Device.service.js';
+import { getHotelId, getUserName } from '../../common/services/common.service.js';
 
 // register device
 router.post('/', async (req, res) => {
-    try {
-        const device = req.body;
-        await registerDevice(device);
-        res.send(`${JSON.stringify(device)} has been added to the Database`);
-    } catch (error) {
-        console.error('Error registering device:', error);
-        res.status(500).send('Failed to register device');
-    }
-})
-
+  try {
+    const device = req.body;
+    await registerDevice(device);
+    res.send(`${JSON.stringify(device)} has been added to the Database`);
+  } catch (error) {
+    console.error('Error registering device:', error);
+    res.status(500).send('Failed to register device');
+  }
+});
 
 // load devices from DB to memory on restart
 // hard refresh data to memory
 
 // get all devices
 router.get('/', (req, res) => {
-    try {
-        const hotelId = getHotelId(req);
-        const userName = getUserName(req);
-        console.info(`${userName} -> Getting all devices for hotelId ${hotelId}`);
-        res.send(getAllDevices(hotelId));
-    } catch (error) {
-        console.error('Error getting all devices:', error);
-        res.status(500).send('Failed to retrieve devices');
-    }
-})
+  try {
+    const hotelId = getHotelId(req);
+    const userName = getUserName(req);
+    console.info(`${userName} -> Getting all devices for hotelId ${hotelId}`);
+    res.send(getAllDevices(hotelId));
+  } catch (error) {
+    console.error('Error getting all devices:', error);
+    res.status(500).send('Failed to retrieve devices');
+  }
+});
 
 // update devices data
 router.put('/', async (req, res) => {
-    try {
-        await updateDevices(req.body);
-        res.send("Updated successfully");
-    } catch (error) {
-        console.error('Error updating devices:', error);
-        res.status(500).send('Failed to update devices');
-    }
-})
-
+  try {
+    await updateDevices(req.body);
+    res.send('Updated successfully');
+  } catch (error) {
+    console.error('Error updating devices:', error);
+    res.status(500).send('Failed to update devices');
+  }
+});
 
 // get device details by id
 // get device details by room number
@@ -55,4 +53,4 @@ router.put('/', async (req, res) => {
 // edit device by id/room number
 // delete device by id/room number
 
-module.exports = router;
+export default router;

@@ -1,44 +1,49 @@
-const { GUEST_TABLE_NAME: USER_LOGIN_TABLE_NAME } = require("../../Constants/DB.constants.js");
-const DDB = require("../../config/DynamoDb.config.js");
+import { GUEST_TABLE_NAME as USER_LOGIN_TABLE_NAME } from '../../Constants/DB.constants.js';
+import DDB from '../../config/DynamoDb.config.js';
 
-const getUser = async (userId) => {
-    const params = {
-        TableName: USER_LOGIN_TABLE_NAME,
-        ExpressionAttributeValues: {
-            ":id": `${userId}`
-        },
-        KeyConditionExpression: "id=:id"
-    };
-    try {
-        console.info(`${userId} ->` + "Accessing Login details from DB with params", params);
-        const userData = await DDB.query(params).promise();
-        console.info(`${userId} ->` + "User Data From DB :: ", userData, " :: for input params ::", params);
-        if (userData && userData.Items && userData.Items.length) {
-            return { ...userData.Items[0] };
-        }
-    } catch (e) {
-        console.error("Error while accessing login details from DB", e, " :: for input params ::", params);
+export const getUser = async (userId) => {
+  const params = {
+    TableName: USER_LOGIN_TABLE_NAME,
+    ExpressionAttributeValues: {
+      ':id': `${userId}`,
+    },
+    KeyConditionExpression: 'id=:id',
+  };
+  try {
+    console.info(`${userId} ->` + 'Accessing Login details from DB with params', params);
+    const userData = await DDB.query(params).promise();
+    console.info(
+      `${userId} ->` + 'User Data From DB :: ',
+      userData,
+      ' :: for input params ::',
+      params
+    );
+    if (userData && userData.Items && userData.Items.length) {
+      return { ...userData.Items[0] };
     }
-    return null;
-}
-
-const addUser = async (userData) => {
-    console.info("Attempting to add user to Login DB :: ", userData);
-    const params = {
-        TableName: USER_LOGIN_TABLE_NAME,
-        Item: { ...userData },
-
-    };
-    try {
-        await DDB.put(params).promise();
-        console.info("USER ADDED :: ", params)
-        return params.Item;
-    } catch (e) {
-        console.error("Failed to add user. Error :: ", e, " :: for input params ::", params);
-    }
-    return null;
+  } catch (e) {
+    console.error(
+      'Error while accessing login details from DB',
+      e,
+      ' :: for input params ::',
+      params
+    );
+  }
+  return null;
 };
 
-module.exports = {
-    getUser, addUser
+export const addUser = async (userData) => {
+  console.info('Attempting to add user to Login DB :: ', userData);
+  const params = {
+    TableName: USER_LOGIN_TABLE_NAME,
+    Item: { ...userData },
+  };
+  try {
+    await DDB.put(params).promise();
+    console.info('USER ADDED :: ', params);
+    return params.Item;
+  } catch (e) {
+    console.error('Failed to add user. Error :: ', e, ' :: for input params ::', params);
+  }
+  return null;
 };

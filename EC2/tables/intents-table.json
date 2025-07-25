@@ -1,0 +1,19 @@
+{
+  "TableName": "INTENTS",
+  "KeySchema": [
+    {
+      "AttributeName": "daysSinceEpoch",
+      "KeyType": "HASH"
+    }
+  ],
+  "AttributeDefinitions": [
+    {
+      "AttributeName": "daysSinceEpoch",
+      "AttributeType": "N"
+    }
+  ],
+  "ProvisionedThroughput": {
+    "ReadCapacityUnits": 1,
+    "WriteCapacityUnits": 1
+  }
+}
