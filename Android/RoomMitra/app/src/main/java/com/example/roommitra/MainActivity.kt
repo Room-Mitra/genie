@@ -693,27 +693,61 @@ fun MicPane(
                 }
 
                 ListenState.Thinking -> {
-                    // Add rotation animation while thinking
-                    val rotation by rememberInfiniteTransition(label = "thinkingRotation")
-                        .animateFloat(
-                            initialValue = 0f,
-                            targetValue = 360f,
-                            animationSpec = infiniteRepeatable(
-                                tween(durationMillis = 1200, easing = LinearEasing),
-                                RepeatMode.Restart
-                            ),
-                            label = "rotateAnim"
-                        )
+                val infiniteTransition = rememberInfiniteTransition(label = "dotsPulse")
 
-                    Icon(
-                        imageVector = Icons.Default.GraphicEq,
-                        contentDescription = "Thinking",
-                        tint = micColor,
+                val scale1 by infiniteTransition.animateFloat(
+                    initialValue = 0.5f,
+                    targetValue = 1.2f,
+                    animationSpec = infiniteRepeatable(
+                        tween(600, easing = LinearEasing),
+                        RepeatMode.Reverse
+                    ), label = "dot1"
+                )
+
+                val scale2 by infiniteTransition.animateFloat(
+                    initialValue = 0.5f,
+                    targetValue = 1.2f,
+                    animationSpec = infiniteRepeatable(
+                        tween(600, delayMillis = 200, easing = LinearEasing),
+                        RepeatMode.Reverse
+                    ), label = "dot2"
+                )
+
+                val scale3 by infiniteTransition.animateFloat(
+                    initialValue = 0.5f,
+                    targetValue = 1.2f,
+                    animationSpec = infiniteRepeatable(
+                        tween(600, delayMillis = 400, easing = LinearEasing),
+                        RepeatMode.Reverse
+                    ), label = "dot3"
+                )
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.size(96.dp)
+                ) {
+                    Box(
                         modifier = Modifier
-                            .size(96.dp)
-                            .rotate(rotation) // 🔥 rotation effect
+                            .size(20.dp)
+                            .scale(scale1)
+                            .background(micColor, CircleShape)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(20.dp)
+                            .scale(scale2)
+                            .background(micColor, CircleShape)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(20.dp)
+                            .scale(scale3)
+                            .background(micColor, CircleShape)
                     )
                 }
+            }
+
 
                 ListenState.Speaking -> {
                     // Animated bars instead of mic
