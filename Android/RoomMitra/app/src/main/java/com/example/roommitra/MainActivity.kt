@@ -58,9 +58,11 @@ import org.json.JSONObject
 import java.io.IOException
 import java.util.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import androidx.compose.ui.draw.rotate
+
 
 // --- Simple UI state machine for the mic pane ---
-enum class ListenState { Idle, Listening, Thinking }
+enum class ListenState { Idle, Listening, Thinking, Speaking }
 
 class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
 
@@ -74,6 +76,12 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
     private lateinit var tts: TextToSpeech
     private var sessionId: String = UUID.randomUUID().toString()
     private val deviceId: String = "RoomMitraDevice-001"
+    // Make the TTS-playing flag observable by Compose UI.
+    // `mutableStateOf` is a Compose runtime container; Composables can read it and recompose
+    companion object {
+        val isTtsPlaying = mutableStateOf(false)
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -157,6 +165,32 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                 // fallback if no fancy voice is found
                 tts.language = Locale("en", "IN")
             }
+            // after you pick/set voice or language, add this:
+            tts.setOnUtteranceProgressListener(object : android.speech.tts.UtteranceProgressListener() {
+                // Called when the TTS engine starts speaking the utterance
+                override fun onStart(utteranceId: String?) {
+                    // UtteranceProgressListener callbacks may be on a non-UI thread,
+                    // so post the state change to the main thread.
+                    this@MainActivity.runOnUiThread {
+                        isTtsPlaying.value = true
+                    }
+                }
+
+                // Called when utterance finishes
+                override fun onDone(utteranceId: String?) {
+                    this@MainActivity.runOnUiThread {
+                        isTtsPlaying.value = false
+                    }
+                }
+
+                // Called on error for that utterance
+                override fun onError(utteranceId: String?) {
+                    this@MainActivity.runOnUiThread {
+                        isTtsPlaying.value = false
+                    }
+                }
+            })
+
         }
     }
 
@@ -193,8 +227,16 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 Log.e("RoomMitra", "API call failed: ${e.message}")
-                tts.speak("Something went wrong. Please try after some time", TextToSpeech.QUEUE_ADD, null, null)
+                val utteranceId = UUID.randomUUID().toString()
+                // Speak from the main thread so UtteranceProgressListener and UI updates work properly
+                this@MainActivity.runOnUiThread {
+                    tts.speak("Something went wrong. Please try after some time",
+                        TextToSpeech.QUEUE_ADD,
+                        null,
+                        utteranceId)
+                }
             }
+
 
             override fun onResponse(call: Call, response: Response) {
                 response.use {
@@ -209,7 +251,10 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                         val isSessionOpen = jsonResp.optBoolean("isSessionOpen", false)
 
                         if (speech.isNotEmpty()) {
-                            tts.speak(speech, TextToSpeech.QUEUE_ADD, null, null)
+                            val utteranceId = UUID.randomUUID().toString()
+                            this@MainActivity.runOnUiThread {
+                                tts.speak(speech, TextToSpeech.QUEUE_ADD, null, utteranceId)
+                            }
                         }
                         if (!isSessionOpen) {
                             sessionId = UUID.randomUUID().toString()
@@ -275,6 +320,23 @@ fun MicPane(
     var recognizedText by remember { mutableStateOf("") }
     val ctx = LocalContext.current
 
+
+    // Observe the TTS playing flag set by MainActivity's UtteranceProgressListener
+    val ttsPlaying by MainActivity.isTtsPlaying
+
+// If TTS starts, switch UI state to Speaking; when TTS stops, revert to Idle only if we set it.
+    LaunchedEffect(ttsPlaying) {
+        if (ttsPlaying) {
+            listenState = ListenState.Speaking
+        } else {
+            // only reset to Idle if it was the Speaking state
+            if (listenState == ListenState.Speaking) {
+                listenState = ListenState.Idle
+            }
+        }
+    }
+
+
     // --- SpeechRecognizer setup ---
     val speechRecognizer = remember {
         if (SpeechRecognizer.isRecognitionAvailable(ctx)) {
@@ -304,7 +366,7 @@ fun MicPane(
                         onUserInteraction()
                         onFinalUtterance(recognizedText) // 🔴 send to API
                     }
-                    listenState = ListenState.Idle
+//                    listenState = ListenState.Idle
                 }
                 override fun onPartialResults(partialResults: Bundle?) {}
                 override fun onEvent(eventType: Int, params: Bundle?) {}
@@ -337,6 +399,7 @@ fun MicPane(
         ListenState.Idle -> MaterialTheme.colorScheme.primary
         ListenState.Listening -> Color(0xFF00C853)
         ListenState.Thinking -> Color(0xFFFFA000)
+        ListenState.Speaking -> Color(0xFF00C853)
     }
     val micColor by animateColorAsState(targetValue = targetColor, label = "micColor")
 
@@ -369,6 +432,7 @@ fun MicPane(
                     ListenState.Idle -> "Tap the mic or say your wake word"
                     ListenState.Listening -> "Listening… speak now"
                     ListenState.Thinking -> "Thinking…"
+                    ListenState.Speaking -> "Speaking…"
                 },
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -379,6 +443,13 @@ fun MicPane(
             }
         }
 
+        // Create a small eq-style pulse while TTS is playing:
+        val eqPulse = rememberInfiniteTransition()
+        val barScale by eqPulse.animateFloat(
+            initialValue = 0.4f, targetValue = 1f,
+            animationSpec = infiniteRepeatable(tween(450), RepeatMode.Reverse)
+        )
+
         // Big Mic Button
         Box(
             modifier = Modifier.fillMaxWidth().weight(1f),
@@ -387,6 +458,7 @@ fun MicPane(
             val icon = when (listenState) {
                 ListenState.Idle, ListenState.Listening -> Icons.Default.Mic
                 ListenState.Thinking -> Icons.Default.GraphicEq
+                else -> Icons.Default.Mic
             }
             Box(
                 modifier = Modifier
@@ -413,13 +485,60 @@ fun MicPane(
                                 speechRecognizer?.stopListening()
                             }
                             ListenState.Thinking -> {
+                                listenState = ListenState.Speaking
+                            }
+                            ListenState.Speaking -> {
                                 listenState = ListenState.Idle
                             }
                         }
                     },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(imageVector = icon, contentDescription = "Mic", tint = micColor, modifier = Modifier.size(96.dp))
+//                Icon(imageVector = icon, contentDescription = "Mic", tint = micColor, modifier = Modifier.size(96.dp))
+            }
+            when (listenState) {
+                ListenState.Idle, ListenState.Listening -> {
+                    Icon(
+                        imageVector = Icons.Default.Mic,
+                        contentDescription = "Mic",
+                        tint = micColor,
+                        modifier = Modifier.size(96.dp)
+                    )
+                }
+                ListenState.Thinking -> {
+                    // Add rotation animation while thinking
+                    val rotation by rememberInfiniteTransition(label = "thinkingRotation")
+                        .animateFloat(
+                            initialValue = 0f,
+                            targetValue = 360f,
+                            animationSpec = infiniteRepeatable(
+                                tween(durationMillis = 1200, easing = LinearEasing),
+                                RepeatMode.Restart
+                            ),
+                            label = "rotateAnim"
+                        )
+
+                    Icon(
+                        imageVector = Icons.Default.GraphicEq,
+                        contentDescription = "Thinking",
+                        tint = micColor,
+                        modifier = Modifier
+                            .size(96.dp)
+                            .rotate(rotation) // 🔥 rotation effect
+                    )
+                }
+                ListenState.Speaking -> {
+                    // Animated bars instead of mic
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        repeat(3) {
+                            Box(
+                                Modifier
+                                    .size(20.dp, (50 * barScale).dp)
+                                    .background(micColor, RoundedCornerShape(4.dp))
+                            )
+                        }
+                    }
+                }
             }
         }
 
@@ -490,7 +609,7 @@ fun WidgetsPane(modifier: Modifier = Modifier, onUserInteraction: () -> Unit) {
                         Modifier.padding(16.dp).fillMaxSize(),
                         verticalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(card.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                        Text(card.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                         Text(card.subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
