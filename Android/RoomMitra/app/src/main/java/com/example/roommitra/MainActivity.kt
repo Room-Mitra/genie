@@ -49,18 +49,31 @@ import java.util.Locale
 import android.view.View
 import android.os.Handler
 import android.os.Looper
-
+import android.speech.tts.TextToSpeech
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import okhttp3.*
+import org.json.JSONObject
+import java.io.IOException
+import java.util.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 
 // --- Simple UI state machine for the mic pane ---
 enum class ListenState { Idle, Listening, Thinking }
 
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
 
-    // 🔴 ADDED: Inactivity handler
+    //  Inactivity handler
     private val dimHandler = Handler(Looper.getMainLooper())
     private val dimRunnable = Runnable {
         setAppBrightness(0.05f) // Dim to 5%
     }
+
+    // --- TTS and Session Management ---
+    private lateinit var tts: TextToSpeech
+    private var sessionId: String = UUID.randomUUID().toString()
+    private val deviceId: String = "RoomMitraDevice-001"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,23 +83,31 @@ class MainActivity : ComponentActivity() {
         hideSystemUI()
         // --- KIOSK MODE (Light) END ---
 
+        tts = TextToSpeech(this, this)
+
         setContent {
             MaterialTheme {
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    RoomMitraHome(onUserInteraction = { resetDimTimer() })
+                    RoomMitraHome(
+                        onUserInteraction = { resetDimTimer() },
+                        onFinalUtterance = { userQuery ->
+                            sendUtteranceToServer(userQuery)
+                        }
+                    )
                 }
             }
         }
         resetDimTimer()
     }
-    // 🔴 ADDED: Control brightness at app-level
+
+    //Control brightness at app-level
     private fun setAppBrightness(level: Float) {
         val lp = window.attributes
         lp.screenBrightness = level // 0.0f (dark) to 1.0f (bright)
         window.attributes = lp
     }
 
-    // 🔴 ADDED: Reset inactivity timer and restore brightness
+    // Reset inactivity timer and restore brightness
     private fun resetDimTimer() {
         dimHandler.removeCallbacks(dimRunnable)
         setAppBrightness(1.0f) // Restore full brightness
@@ -115,10 +136,93 @@ class MainActivity : ComponentActivity() {
     override fun onBackPressed() {
         // Do nothing to prevent exiting
     }
+
+    // --- TTS setup ---
+    override fun onInit(status: Int) {
+        if (status == TextToSpeech.SUCCESS) {
+            Log.d("TTS", "Using voice: ${tts.voices.filter { it.name.contains("en-in", ignoreCase = true) }}")
+            // Try to find a natural Indian English female voice
+//            val selectedVoice = tts.voices?.find {
+//                it.name.contains("en-in", ignoreCase = true) &&
+//                        it.name.contains("female", ignoreCase = true)
+//            }
+            val selectedVoice = tts.voices?.find {
+                it.name.contains("en-in", ignoreCase = true) &&
+                        it.name.contains("en-in-x-ena-local", ignoreCase = true)
+            }
+            if (selectedVoice != null) {
+                tts.voice = selectedVoice
+                Log.d("TTS", "Using voice: ${selectedVoice.name}")
+            } else {
+                // fallback if no fancy voice is found
+                tts.language = Locale("en", "IN")
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        tts.stop()
+        tts.shutdown()
+    }
+
+    // --- Send speech utterance to API ---
+    private fun sendUtteranceToServer(userQuery: String) {
+        val client = OkHttpClient()
+
+        val json = JSONObject().apply {
+            put("userQuery", userQuery)
+            put("sessionId", sessionId)
+            put("deviceId", deviceId)
+        }
+
+        val body = RequestBody.create(
+            "application/json; charset=utf-8".toMediaTypeOrNull(),
+            json.toString()
+        )
+
+        val request = Request.Builder()
+            .url("http://192.168.1.4:3000/utterance") // localhost for emulator
+            .addHeader(
+                "authorization",
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaG90ZWxJZCI6IlJvb20gR2VuaWUiLCJpYXQiOjE3NTYyNzEzMDEsImV4cCI6MTc1NzEzNTMwMX0.k1G6tUeL_Q_mDND5Vsa657HqGKXJEQEvbWb0o--dPMI"
+            )
+            .post(body)
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e("RoomMitra", "API call failed: ${e.message}")
+                tts.speak("Something went wrong. Please try after some time", TextToSpeech.QUEUE_ADD, null, null)
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                response.use {
+                    if (!response.isSuccessful) {
+                        Log.e("RoomMitra", "Unexpected code $response")
+                        return
+                    }
+                    val responseBody = response.body?.string()
+                    if (responseBody != null) {
+                        val jsonResp = JSONObject(responseBody)
+                        val speech = jsonResp.optString("speech", "")
+                        val isSessionOpen = jsonResp.optBoolean("isSessionOpen", false)
+
+                        if (speech.isNotEmpty()) {
+                            tts.speak(speech, TextToSpeech.QUEUE_ADD, null, null)
+                        }
+                        if (!isSessionOpen) {
+                            sessionId = UUID.randomUUID().toString()
+                        }
+                    }
+                }
+            }
+        })
+    }
 }
 
 @Composable
-fun RoomMitraHome(onUserInteraction: () -> Unit) {
+fun RoomMitraHome(onUserInteraction: () -> Unit, onFinalUtterance: (String) -> Unit) {
     val isLandscape =
         LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
 
@@ -129,14 +233,15 @@ fun RoomMitraHome(onUserInteraction: () -> Unit) {
                     .weight(1f)
                     .fillMaxHeight()
                     .background(MaterialTheme.colorScheme.surface),
-                    onUserInteraction = onUserInteraction
+                onUserInteraction = onUserInteraction,
+                onFinalUtterance = onFinalUtterance
             )
             WidgetsPane(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
                     .background(MaterialTheme.colorScheme.surfaceVariant),
-                    onUserInteraction = onUserInteraction
+                onUserInteraction = onUserInteraction
             )
         }
     } else {
@@ -146,23 +251,28 @@ fun RoomMitraHome(onUserInteraction: () -> Unit) {
                     .weight(1f)
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.surface),
-                    onUserInteraction = onUserInteraction
+                onUserInteraction = onUserInteraction,
+                onFinalUtterance = onFinalUtterance
             )
             WidgetsPane(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.surfaceVariant),
-                    onUserInteraction = onUserInteraction
+                onUserInteraction = onUserInteraction
             )
         }
     }
 }
 
 @Composable
-fun MicPane(modifier: Modifier = Modifier, onUserInteraction: () -> Unit) {
+fun MicPane(
+    modifier: Modifier = Modifier,
+    onUserInteraction: () -> Unit,
+    onFinalUtterance: (String) -> Unit
+) {
     var listenState by remember { mutableStateOf(ListenState.Idle) }
-    var recognizedText by remember { mutableStateOf("") } // NEW
+    var recognizedText by remember { mutableStateOf("") }
     val ctx = LocalContext.current
 
     // --- SpeechRecognizer setup ---
@@ -176,64 +286,36 @@ fun MicPane(modifier: Modifier = Modifier, onUserInteraction: () -> Unit) {
         if (speechRecognizer != null) {
             speechRecognizer.setRecognitionListener(object : RecognitionListener {
                 override fun onReadyForSpeech(params: Bundle?) {
-                    Log.d("RoomMitra", "Ready for speech")
                     onUserInteraction()
                 }
-
                 override fun onBeginningOfSpeech() {
-                    Log.d("RoomMitra", "Speech started")
                     onUserInteraction()
                 }
-
                 override fun onEndOfSpeech() {
-                    Log.d("RoomMitra", "Speech ended")
                     listenState = ListenState.Thinking
                 }
-
                 override fun onError(error: Int) {
-
-                    val message = when (error) {
-                        SpeechRecognizer.ERROR_AUDIO -> "Audio recording error"
-                        SpeechRecognizer.ERROR_CLIENT -> "Client side error"
-                        SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Insufficient permissions"
-                        SpeechRecognizer.ERROR_NETWORK -> "Network error"
-                        SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Network timeout"
-                        SpeechRecognizer.ERROR_NO_MATCH -> "No recognition result"
-                        SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "RecognitionService busy"
-                        SpeechRecognizer.ERROR_SERVER -> "Server error"
-                        SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "No speech input"
-                        else -> "Unknown error"
-                    }
-                    Log.e("RoomMitra", "Error: $error ($message)")
-
-//                    Log.e("RoomMitra", "Error: $error")
                     listenState = ListenState.Idle
                 }
-
                 override fun onResults(results: Bundle?) {
-                    val matches =
-                        results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                    val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                     if (!matches.isNullOrEmpty()) {
                         recognizedText = matches[0]
-                        Log.d("RoomMitra", "Heard: $recognizedText")
                         onUserInteraction()
+                        onFinalUtterance(recognizedText) // 🔴 send to API
                     }
                     listenState = ListenState.Idle
                 }
-
                 override fun onPartialResults(partialResults: Bundle?) {}
                 override fun onEvent(eventType: Int, params: Bundle?) {}
                 override fun onBufferReceived(buffer: ByteArray?) {}
                 override fun onRmsChanged(rmsdB: Float) {}
             })
         }
-
-        onDispose {
-            speechRecognizer?.destroy()
-        }
+        onDispose { speechRecognizer?.destroy() }
     }
 
-    // Permission launcher for RECORD_AUDIO
+    // Permission handling
     val hasRecordPerm = remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(ctx, Manifest.permission.RECORD_AUDIO) ==
@@ -244,9 +326,7 @@ fun MicPane(modifier: Modifier = Modifier, onUserInteraction: () -> Unit) {
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             hasRecordPerm.value = granted
             if (granted) {
-                // On first grant, you can jump into Listening immediately if user tapped mic.
                 listenState = ListenState.Listening
-                // TODO: startSTT()
                 startListening(ctx, speechRecognizer)
                 onUserInteraction()
             }
@@ -255,12 +335,11 @@ fun MicPane(modifier: Modifier = Modifier, onUserInteraction: () -> Unit) {
     // Animated mic color per state
     val targetColor = when (listenState) {
         ListenState.Idle -> MaterialTheme.colorScheme.primary
-        ListenState.Listening -> Color(0xFF00C853) // green-ish
-        ListenState.Thinking -> Color(0xFFFFA000)  // amber-ish
+        ListenState.Listening -> Color(0xFF00C853)
+        ListenState.Thinking -> Color(0xFFFFA000)
     }
     val micColor by animateColorAsState(targetValue = targetColor, label = "micColor")
 
-    // Subtle pulsing while Listening
     val pulse = rememberInfiniteTransition(label = "pulse")
     val pulseScale by pulse.animateFloat(
         initialValue = 1.0f,
@@ -273,22 +352,17 @@ fun MicPane(modifier: Modifier = Modifier, onUserInteraction: () -> Unit) {
     )
 
     Column(
-//        modifier = modifier.padding(24.dp),
         modifier = modifier
             .padding(24.dp)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
-            ) { onUserInteraction() }, // 🔴 ANY TAP RESETS TIMER
+            ) { onUserInteraction() },
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         // Header
         Column {
-            Text(
-                text = "Room Mitra",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
+            Text("Room Mitra", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(8.dp))
             Text(
                 text = when (listenState) {
@@ -307,16 +381,13 @@ fun MicPane(modifier: Modifier = Modifier, onUserInteraction: () -> Unit) {
 
         // Big Mic Button
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
+            modifier = Modifier.fillMaxWidth().weight(1f),
             contentAlignment = Alignment.Center
         ) {
             val icon = when (listenState) {
                 ListenState.Idle, ListenState.Listening -> Icons.Default.Mic
                 ListenState.Thinking -> Icons.Default.GraphicEq
             }
-
             Box(
                 modifier = Modifier
                     .size(220.dp)
@@ -327,7 +398,6 @@ fun MicPane(modifier: Modifier = Modifier, onUserInteraction: () -> Unit) {
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() }
                     ) {
-                        // Tap logic:
                         onUserInteraction()
                         if (!hasRecordPerm.value) {
                             requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
@@ -336,37 +406,26 @@ fun MicPane(modifier: Modifier = Modifier, onUserInteraction: () -> Unit) {
                         when (listenState) {
                             ListenState.Idle -> {
                                 listenState = ListenState.Listening
-                                startListening(ctx, speechRecognizer) // NEW
-                                // TODO: startSTT()
+                                startListening(ctx, speechRecognizer)
                             }
                             ListenState.Listening -> {
                                 listenState = ListenState.Thinking
                                 speechRecognizer?.stopListening()
-                                // TODO: stopSTT(); sendTextToLLM(); on response -> TTS and back to Idle
                             }
                             ListenState.Thinking -> {
-                                // Ignore or allow cancel:
                                 listenState = ListenState.Idle
-                                // TODO: cancel in-flight if needed
                             }
                         }
                     },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = "Mic",
-                    tint = micColor,
-                    modifier = Modifier.size(96.dp)
-                )
+                Icon(imageVector = icon, contentDescription = "Mic", tint = micColor, modifier = Modifier.size(96.dp))
             }
         }
 
-        // Bottom controls / hints
+        // Bottom controls
         Row(
-            Modifier
-                .fillMaxWidth()
-                .defaultMinSize(minHeight = 64.dp),
+            Modifier.fillMaxWidth().defaultMinSize(minHeight = 64.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -387,38 +446,32 @@ fun MicPane(modifier: Modifier = Modifier, onUserInteraction: () -> Unit) {
         }
     }
 }
+
 private fun startListening(ctx: android.content.Context, speechRecognizer: SpeechRecognizer?) {
     val recognizerIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
         putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
         putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
         putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
     }
-
     speechRecognizer?.startListening(recognizerIntent)
 }
-//@OptIn(ExperimentalFoundationApi::class)
+
 @Composable
 fun WidgetsPane(modifier: Modifier = Modifier, onUserInteraction: () -> Unit) {
     val cards = remember {
         listOf(
-            WidgetCard("Restaurant Menu", "Explore today’s specials") { /* TODO */ },
-            WidgetCard("Housekeeping", "Towels, cleaning, water") { /* TODO */ },
-            WidgetCard("Concierge", "Cabs, attractions, tips") { /* TODO */ },
-            WidgetCard("Request Status", "Track your requests") { /* TODO */ },
-            WidgetCard("Entertainment", "YouTube / OTT (curated)") { /* TODO */ },
-            WidgetCard("Amenities", "Pool timings, spa, walks") { /* TODO */ },
+            WidgetCard("Restaurant Menu", "Explore today’s specials") { },
+            WidgetCard("Housekeeping", "Towels, cleaning, water") { },
+            WidgetCard("Concierge", "Cabs, attractions, tips") { },
+            WidgetCard("Request Status", "Track your requests") { },
+            WidgetCard("Entertainment", "YouTube / OTT (curated)") { },
+            WidgetCard("Amenities", "Pool timings, spa, walks") { },
         )
     }
 
     Column(modifier = modifier.padding(24.dp)) {
-        Text(
-            text = "Quick Actions",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold
-        )
+        Text("Quick Actions", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(12.dp))
-
-        // 2xN grid of cards that scale on tablets
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -431,14 +484,10 @@ fun WidgetsPane(modifier: Modifier = Modifier, onUserInteraction: () -> Unit) {
                     shape = RoundedCornerShape(20.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1.6f)
+                    modifier = Modifier.fillMaxWidth().aspectRatio(1.6f)
                 ) {
                     Column(
-                        Modifier
-                            .padding(16.dp)
-                            .fillMaxSize(),
+                        Modifier.padding(16.dp).fillMaxSize(),
                         verticalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(card.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
@@ -450,8 +499,4 @@ fun WidgetsPane(modifier: Modifier = Modifier, onUserInteraction: () -> Unit) {
     }
 }
 
-data class WidgetCard(
-    val title: String,
-    val subtitle: String,
-    val onClick: () -> Unit
-)
+data class WidgetCard(val title: String, val subtitle: String, val onClick: () -> Unit)
