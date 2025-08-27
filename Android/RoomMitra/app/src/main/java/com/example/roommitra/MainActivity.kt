@@ -1,6 +1,17 @@
 package com.example.roommitra
 
 // (KEEPING ALL YOUR IMPORTS)
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.*
+import androidx.compose.foundation.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -28,7 +39,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -37,10 +47,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import java.util.Locale
@@ -58,6 +66,21 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 // --- Simple UI state machine for the mic pane ---
 enum class ListenState { Idle, Listening, Thinking, Speaking }
@@ -334,98 +357,142 @@ fun RestaurantMenuScreen(navController: NavHostController) {
     var cart by remember { mutableStateOf(mutableMapOf<String, Int>()) }
     var showCart by remember { mutableStateOf(false) }
     val menu = restaurantMenuData()
+    val listState = rememberLazyListState()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Restaurant Menu") },
+                title = { Text("🍴 Menu", style = MaterialTheme.typography.titleMedium
+//                    ,  modifier = Modifier.padding(top = 8.dp, bottom = 0.dp)
+                )},
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
+                modifier = Modifier.height(56.dp) // ↓ Smaller top bar
             )
         },
-        bottomBar = {
+        floatingActionButton = {
             if (cart.isNotEmpty()) {
-                BottomAppBar {
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Cart: ${cart.values.sum()} items")
-                        Button(onClick = { showCart = true }) {
-                            Text("Cart")
-                        }
-                    }
-                }
+                ExtendedFloatingActionButton(
+                    onClick = { showCart = true },
+                    icon = { Icon(Icons.Default.ShoppingCart, contentDescription = "Cart") },
+                    text = { Text("${cart.values.sum()} items") }
+                )
             }
         }
     ) { padding ->
         Column(
-            Modifier
+            modifier = Modifier
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(12.dp)
+                .fillMaxSize()
         ) {
-            menu.forEach { (category, dishes) ->
-                Text(
-                    category,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(Modifier.height(6.dp))
-                dishes.forEach { (dish, price) ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                    ) {
-                        Row(
-                            Modifier
-                                .padding(12.dp)
-                                .fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column {
-                                Text(dish)
-                                Text("₹$price", style = MaterialTheme.typography.bodySmall)
+            // 🔹 Category Shortcuts
+            val coroutineScope = rememberCoroutineScope()
+            Row(
+                modifier = Modifier
+                    .horizontalScroll(rememberScrollState())
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                menu.keys.forEachIndexed { index, category ->
+                    AssistChip(
+                        onClick = {
+                            coroutineScope.launch {
+//                                listState.animateScrollToItem(index)
+                                val targetIndex = listState.layoutInfo.visibleItemsInfo
+                                    .firstOrNull { it.key == "header_$category" }?.index
+                                    ?: index
+                                listState.animateScrollToItem(targetIndex)
                             }
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                IconButton(
-                                    onClick = {
-                                        val newCart = cart.toMutableMap()
-                                        val current = newCart[dish] ?: 0
-                                        if (current > 0) newCart[dish] = current - 1
-                                        if (newCart[dish] == 0) newCart.remove(dish)
-                                        cart = newCart
-                                    },
-                                    enabled = (cart[dish] ?: 0) > 0
+                        },
+                        label = { Text(category) }
+                    )
+                }
+            }
+            val configuration = LocalConfiguration.current
+            val columns = if (configuration.screenWidthDp > 600) 3 else 2
+            // 🔹 Menu Sections
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(8.dp)
+            ) {
+                menu.forEach { (category, dishes) ->
+                    item {
+                        Text(
+                            text = category,
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    }
+
+                    // Responsive grid layout
+//                    val columns = if (LocalConfiguration.current.screenWidthDp > 600) 3 else 2
+                    items(dishes.chunked(columns), key = { row -> row.hashCode() }) { rowItems ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            rowItems.forEach { (dish, price) ->
+                                Card(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(vertical = 6.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                                 ) {
-                                    Icon(Icons.Default.Remove, contentDescription = "Remove")
-                                }
-                                Text("${cart[dish] ?: 0}")
-                                IconButton(
-                                    onClick = {
-                                        val newCart = cart.toMutableMap()
-                                        newCart[dish] = (newCart[dish] ?: 0) + 1
-                                        cart = newCart
+                                    Column(
+                                        modifier = Modifier
+                                            .padding(12.dp)
+                                            .fillMaxWidth(),
+                                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        Text(dish, style = MaterialTheme.typography.bodyLarge)
+                                        Text("₹$price", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+
+                                        // ➕➖ Counter
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier
+                                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), RoundedCornerShape(20.dp))
+                                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                        ) {
+                                            IconButton(
+                                                onClick = {
+                                                    val newCart = cart.toMutableMap()
+                                                    val current = newCart[dish] ?: 0
+                                                    if (current > 0) newCart[dish] = current - 1
+                                                    if (newCart[dish] == 0) newCart.remove(dish)
+                                                    cart = newCart
+                                                },
+                                                enabled = (cart[dish] ?: 0) > 0
+                                            ) {
+                                                Icon(Icons.Default.Remove, contentDescription = "Remove", tint = MaterialTheme.colorScheme.primary)
+                                            }
+                                            Text("${cart[dish] ?: 0}", fontWeight = FontWeight.Bold)
+                                            IconButton(
+                                                onClick = {
+                                                    val newCart = cart.toMutableMap()
+                                                    newCart[dish] = (newCart[dish] ?: 0) + 1
+                                                    cart = newCart
+                                                }
+                                            ) {
+                                                Icon(Icons.Default.Add, contentDescription = "Add", tint = MaterialTheme.colorScheme.primary)
+                                            }
+                                        }
                                     }
-                                ) {
-                                    Icon(Icons.Default.Add, contentDescription = "Add")
                                 }
+                            }
+                            // Fill remaining space in last row
+                            if (rowItems.size < columns) {
+                                Spacer(Modifier.weight((columns - rowItems.size).toFloat()))
                             }
                         }
                     }
                 }
-                Spacer(Modifier.height(12.dp))
             }
         }
     }
@@ -436,7 +503,6 @@ fun RestaurantMenuScreen(navController: NavHostController) {
             onDismissRequest = { showCart = false },
             confirmButton = {
                 Button(onClick = {
-                    // handle order confirmation
                     cart = mutableMapOf()
                     showCart = false
                 }) {
@@ -453,18 +519,24 @@ fun RestaurantMenuScreen(navController: NavHostController) {
                 if (cart.isEmpty()) {
                     Text("Your cart is empty.")
                 } else {
-                    Column {
+                    Column(
+                        modifier = Modifier.verticalScroll(rememberScrollState())
+                    ) {
                         cart.forEach { (dish, count) ->
                             Row(
-                                Modifier.fillMaxWidth(),
+                                Modifier.fillMaxWidth().padding(vertical = 2.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text("$dish x$count")
-                                // You could also show price here if you want
+                                Text("₹${(menu.values.flatten().toMap()[dish] ?: 0) * count}")
                             }
                         }
                         Spacer(Modifier.height(12.dp))
-                        Text("Total: ₹${calculateTotal(menu, cart)}", fontWeight = FontWeight.Bold)
+                        Text(
+                            "Total: ₹${calculateTotal(menu, cart)}",
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
                     }
                 }
             }
