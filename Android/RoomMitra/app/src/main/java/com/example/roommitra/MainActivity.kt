@@ -90,7 +90,8 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
     private val dimRunnable = Runnable { setAppBrightness(0.05f) }
     private lateinit var tts: TextToSpeech
     private var sessionId: String = UUID.randomUUID().toString()
-    private val deviceId: String = "RoomMitraDevice-001"
+    private val deviceId: String = "amzn1.ask.device.AMAXRJF4GUCRJ3HGY6X2J5HWP2FXP3SPYQOGKWDTXX4TQM5WXRHZVTJGBJPGKVJA7I3OHOIVM5JW6SM4A3STQH5DPGKPWC45PZN4A4G42BYGT4VZ5S5H2ZMD7U2G5H5QA5RXEAC2IEHMO3RHVDLAAZICNUSNREBIXMJYACCLJMM3SGSOOWKI2ZLNUH5M76KI6LRUWSOUQ2JJEI72"
+    private val autoListenTrigger = mutableStateOf(0L)
 
     companion object {
         val isTtsPlaying = mutableStateOf(false)
@@ -111,7 +112,8 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                             RoomMitraHome(
                                 onUserInteraction = { resetDimTimer() },
                                 onFinalUtterance = { userQuery -> sendUtteranceToServer(userQuery) },
-                                navController = navController
+                                navController = navController,
+                                autoListenTrigger = autoListenTrigger
                             )
                         }
                         composable("menu") {
@@ -196,8 +198,10 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
             "application/json; charset=utf-8".toMediaTypeOrNull(),
             json.toString()
         )
+        Log.d("API_CALL", "Sending utterance: $userQuery")
         val request = Request.Builder()
-            .url("http://192.168.1.4:3000/utterance")
+            .url("http://192.168.1.2:3000/utterance")
+//            .url("https://roommitra.com/utterance") do not uncomment -- currently while fetching all requests to show in UI we are not filtering based on hotel id.. if you uncomment this, Ananterra will get notified about the request
             .addHeader(
                 "authorization",
                 "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaG90ZWxJZCI6IlJvb20gR2VuaWUiLCJpYXQiOjE3NTYyNzEzMDEsImV4cCI6MTc1NzEzNTMwMX0.k1G6tUeL_Q_mDND5Vsa657HqGKXJEQEvbWb0o--dPMI"
@@ -228,7 +232,15 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                                 tts.speak(speech, TextToSpeech.QUEUE_ADD, null, utteranceId)
                             }
                         }
-                        if (!isSessionOpen) sessionId = UUID.randomUUID().toString()
+                        if (isSessionOpen) {
+                            // Ask UI to auto-listen again (after TTS finishes)
+                            this@MainActivity.runOnUiThread {
+                                autoListenTrigger.value = System.currentTimeMillis()
+                            }
+                        } else {
+                            // Close the session and rotate sessionId
+                            sessionId = UUID.randomUUID().toString()
+                        }
                     }
                 }
             }
@@ -242,7 +254,8 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
 fun RoomMitraHome(
     onUserInteraction: () -> Unit,
     onFinalUtterance: (String) -> Unit,
-    navController: NavHostController
+    navController: NavHostController,
+    autoListenTrigger: State<Long>
 ) {
     val isLandscape =
         LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
@@ -253,7 +266,8 @@ fun RoomMitraHome(
                     .weight(1f)
                     .fillMaxHeight(),
                 onUserInteraction = onUserInteraction,
-                onFinalUtterance = onFinalUtterance
+                onFinalUtterance = onFinalUtterance,
+                autoListenTrigger = autoListenTrigger
             )
             WidgetsPane(
                 modifier = Modifier
@@ -270,7 +284,8 @@ fun RoomMitraHome(
                     .weight(1f)
                     .fillMaxWidth(),
                 onUserInteraction = onUserInteraction,
-                onFinalUtterance = onFinalUtterance
+                onFinalUtterance = onFinalUtterance,
+                autoListenTrigger = autoListenTrigger
             )
             WidgetsPane(
                 modifier = Modifier
@@ -558,30 +573,15 @@ fun calculateTotal(menu: Map<String, List<Pair<String, Int>>>, cart: Map<String,
 fun MicPane(
     modifier: Modifier = Modifier,
     onUserInteraction: () -> Unit,
-    onFinalUtterance: (String) -> Unit
+    onFinalUtterance: (String) -> Unit,
+    autoListenTrigger: State<Long>
 ) {
     var listenState by remember { mutableStateOf(ListenState.Idle) }
     var recognizedText by remember { mutableStateOf("") }
     val ctx = LocalContext.current
 
 
-    // Observe the TTS playing flag set by MainActivity's UtteranceProgressListener
-    val ttsPlaying by MainActivity.isTtsPlaying
-
-// If TTS starts, switch UI state to Speaking; when TTS stops, revert to Idle only if we set it.
-    LaunchedEffect(ttsPlaying) {
-        if (ttsPlaying) {
-            listenState = ListenState.Speaking
-        } else {
-            // only reset to Idle if it was the Speaking state
-            if (listenState == ListenState.Speaking) {
-                listenState = ListenState.Idle
-            }
-        }
-    }
-
-
-    // --- SpeechRecognizer setup ---
+// --- SpeechRecognizer setup ---
     val speechRecognizer = remember {
         if (SpeechRecognizer.isRecognitionAvailable(ctx)) {
             SpeechRecognizer.createSpeechRecognizer(ctx)
@@ -642,6 +642,50 @@ fun MicPane(
                 onUserInteraction()
             }
         }
+
+    // Observe the TTS playing flag set by MainActivity's UtteranceProgressListener
+    val ttsPlaying by MainActivity.isTtsPlaying
+
+    // Track pending auto-listen requests - in the api response, if the session is to continue.. this ensures that the audio recording doesnt start until TTS is completed (to avoid recording itself)
+    var pendingAutoListen by remember { mutableStateOf(false) }
+    // When MainActivity bumps the trigger, mark it pending
+    LaunchedEffect(autoListenTrigger.value) {
+        if (autoListenTrigger.value != 0L) {
+            pendingAutoListen = true
+        }
+    }
+    // When TTS finishes (or immediately if not speaking), actually start listening
+    LaunchedEffect(pendingAutoListen, ttsPlaying, listenState) {
+        if (pendingAutoListen && !ttsPlaying &&
+            listenState != ListenState.Listening && listenState != ListenState.Thinking
+        ) {
+            if (hasRecordPerm.value) {
+                onUserInteraction() // keep screen bright / active
+                listenState = ListenState.Listening
+                // Optional safety: cancel any stale session before reusing
+                // speechRecognizer?.cancel()
+                startListening(ctx, speechRecognizer)
+            }
+            // Either way (success or blocked by permission), clear the pending flag
+            pendingAutoListen = false
+        }
+    }
+
+
+// If TTS starts, switch UI state to Speaking; when TTS stops, revert to Idle only if we set it.
+    LaunchedEffect(ttsPlaying) {
+        if (ttsPlaying) {
+            listenState = ListenState.Speaking
+        } else {
+            // only reset to Idle if it was the Speaking state
+            if (listenState == ListenState.Speaking) {
+                listenState = ListenState.Idle
+            }
+        }
+    }
+
+
+
 
     // Animated mic color per state
     val targetColor = when (listenState) {
@@ -871,6 +915,10 @@ private fun startListening(ctx: android.content.Context, speechRecognizer: Speec
         putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
         putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
         putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+//        putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 800)
+//        putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 800)
+//        putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 1000)
+
     }
     speechRecognizer?.startListening(recognizerIntent)
 }
@@ -1080,3 +1128,5 @@ fun restaurantMenuData(): Map<String, List<Pair<String, Int>>> {
         )
     )
 }
+
+
