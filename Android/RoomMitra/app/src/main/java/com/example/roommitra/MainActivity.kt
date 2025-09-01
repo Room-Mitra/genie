@@ -2,7 +2,6 @@ package com.example.roommitra
 
 // (KEEPING ALL YOUR IMPORTS)
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,7 +9,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -31,25 +29,19 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import java.util.Locale
 import android.view.View
@@ -66,21 +58,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.background
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.example.roommitra.view.RestaurantMenuScreen
 
 // --- Simple UI state machine for the mic pane ---
 enum class ListenState { Idle, Listening, Thinking, Speaking }
@@ -117,7 +98,7 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                             )
                         }
                         composable("menu") {
-                            RestaurantMenuScreen(navController = navController)
+                            RestaurantMenuScreen(onBackClick = {navController.popBackStack()})
                         }
                     }
                 }
@@ -364,200 +345,6 @@ fun WidgetsPane(
 }
 
 data class WidgetCard(val title: String, val subtitle: String, val onClick: () -> Unit)
-
-// ---------------- Restaurant Menu Screen --------------------
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun RestaurantMenuScreen(navController: NavHostController) {
-    var cart by remember { mutableStateOf(mutableMapOf<String, Int>()) }
-    var showCart by remember { mutableStateOf(false) }
-    val menu = restaurantMenuData()
-    val listState = rememberLazyListState()
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("🍴 Menu", style = MaterialTheme.typography.titleMedium
-//                    ,  modifier = Modifier.padding(top = 8.dp, bottom = 0.dp)
-                )},
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                modifier = Modifier.height(56.dp) // ↓ Smaller top bar
-            )
-        },
-        floatingActionButton = {
-            if (cart.isNotEmpty()) {
-                ExtendedFloatingActionButton(
-                    onClick = { showCart = true },
-                    icon = { Icon(Icons.Default.ShoppingCart, contentDescription = "Cart") },
-                    text = { Text("${cart.values.sum()} items") }
-                )
-            }
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-        ) {
-            // 🔹 Category Shortcuts
-            val coroutineScope = rememberCoroutineScope()
-            Row(
-                modifier = Modifier
-                    .horizontalScroll(rememberScrollState())
-                    .padding(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                menu.keys.forEachIndexed { index, category ->
-                    AssistChip(
-                        onClick = {
-                            coroutineScope.launch {
-//                                listState.animateScrollToItem(index)
-                                val targetIndex = listState.layoutInfo.visibleItemsInfo
-                                    .firstOrNull { it.key == "header_$category" }?.index
-                                    ?: index
-                                listState.animateScrollToItem(targetIndex)
-                            }
-                        },
-                        label = { Text(category) }
-                    )
-                }
-            }
-            val configuration = LocalConfiguration.current
-            val columns = if (configuration.screenWidthDp > 600) 3 else 2
-            // 🔹 Menu Sections
-            LazyColumn(
-                state = listState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(8.dp)
-            ) {
-                menu.forEach { (category, dishes) ->
-                    item {
-                        Text(
-                            text = category,
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        )
-                    }
-
-                    // Responsive grid layout
-//                    val columns = if (LocalConfiguration.current.screenWidthDp > 600) 3 else 2
-                    items(dishes.chunked(columns), key = { row -> row.hashCode() }) { rowItems ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            rowItems.forEach { (dish, price) ->
-                                Card(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .padding(vertical = 6.dp),
-                                    shape = RoundedCornerShape(12.dp),
-                                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                                ) {
-                                    Column(
-                                        modifier = Modifier
-                                            .padding(12.dp)
-                                            .fillMaxWidth(),
-                                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                                    ) {
-                                        Text(dish, style = MaterialTheme.typography.bodyLarge)
-                                        Text("₹$price", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
-
-                                        // ➕➖ Counter
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier
-                                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), RoundedCornerShape(20.dp))
-                                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                                        ) {
-                                            IconButton(
-                                                onClick = {
-                                                    val newCart = cart.toMutableMap()
-                                                    val current = newCart[dish] ?: 0
-                                                    if (current > 0) newCart[dish] = current - 1
-                                                    if (newCart[dish] == 0) newCart.remove(dish)
-                                                    cart = newCart
-                                                },
-                                                enabled = (cart[dish] ?: 0) > 0
-                                            ) {
-                                                Icon(Icons.Default.Remove, contentDescription = "Remove", tint = MaterialTheme.colorScheme.primary)
-                                            }
-                                            Text("${cart[dish] ?: 0}", fontWeight = FontWeight.Bold)
-                                            IconButton(
-                                                onClick = {
-                                                    val newCart = cart.toMutableMap()
-                                                    newCart[dish] = (newCart[dish] ?: 0) + 1
-                                                    cart = newCart
-                                                }
-                                            ) {
-                                                Icon(Icons.Default.Add, contentDescription = "Add", tint = MaterialTheme.colorScheme.primary)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            // Fill remaining space in last row
-                            if (rowItems.size < columns) {
-                                Spacer(Modifier.weight((columns - rowItems.size).toFloat()))
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // 🛒 Cart Dialog
-    if (showCart) {
-        AlertDialog(
-            onDismissRequest = { showCart = false },
-            confirmButton = {
-                Button(onClick = {
-                    cart = mutableMapOf()
-                    showCart = false
-                }) {
-                    Text("Confirm Order")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showCart = false }) {
-                    Text("Close")
-                }
-            },
-            title = { Text("Your Cart") },
-            text = {
-                if (cart.isEmpty()) {
-                    Text("Your cart is empty.")
-                } else {
-                    Column(
-                        modifier = Modifier.verticalScroll(rememberScrollState())
-                    ) {
-                        cart.forEach { (dish, count) ->
-                            Row(
-                                Modifier.fillMaxWidth().padding(vertical = 2.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text("$dish x$count")
-                                Text("₹${(menu.values.flatten().toMap()[dish] ?: 0) * count}")
-                            }
-                        }
-                        Spacer(Modifier.height(12.dp))
-                        Text(
-                            "Total: ₹${calculateTotal(menu, cart)}",
-                            fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
-                }
-            }
-        )
-    }
-}
 
 // 🔑 Helper to calculate total
 fun calculateTotal(menu: Map<String, List<Pair<String, Int>>>, cart: Map<String, Int>): Int {
@@ -809,60 +596,60 @@ fun MicPane(
                 }
 
                 ListenState.Thinking -> {
-                val infiniteTransition = rememberInfiniteTransition(label = "dotsPulse")
+                    val infiniteTransition = rememberInfiniteTransition(label = "dotsPulse")
 
-                val scale1 by infiniteTransition.animateFloat(
-                    initialValue = 0.5f,
-                    targetValue = 1.2f,
-                    animationSpec = infiniteRepeatable(
-                        tween(600, easing = LinearEasing),
-                        RepeatMode.Reverse
-                    ), label = "dot1"
-                )
-
-                val scale2 by infiniteTransition.animateFloat(
-                    initialValue = 0.5f,
-                    targetValue = 1.2f,
-                    animationSpec = infiniteRepeatable(
-                        tween(600, delayMillis = 200, easing = LinearEasing),
-                        RepeatMode.Reverse
-                    ), label = "dot2"
-                )
-
-                val scale3 by infiniteTransition.animateFloat(
-                    initialValue = 0.5f,
-                    targetValue = 1.2f,
-                    animationSpec = infiniteRepeatable(
-                        tween(600, delayMillis = 400, easing = LinearEasing),
-                        RepeatMode.Reverse
-                    ), label = "dot3"
-                )
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.size(96.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(20.dp)
-                            .scale(scale1)
-                            .background(micColor, CircleShape)
+                    val scale1 by infiniteTransition.animateFloat(
+                        initialValue = 0.5f,
+                        targetValue = 1.2f,
+                        animationSpec = infiniteRepeatable(
+                            tween(600, easing = LinearEasing),
+                            RepeatMode.Reverse
+                        ), label = "dot1"
                     )
-                    Box(
-                        modifier = Modifier
-                            .size(20.dp)
-                            .scale(scale2)
-                            .background(micColor, CircleShape)
+
+                    val scale2 by infiniteTransition.animateFloat(
+                        initialValue = 0.5f,
+                        targetValue = 1.2f,
+                        animationSpec = infiniteRepeatable(
+                            tween(600, delayMillis = 200, easing = LinearEasing),
+                            RepeatMode.Reverse
+                        ), label = "dot2"
                     )
-                    Box(
-                        modifier = Modifier
-                            .size(20.dp)
-                            .scale(scale3)
-                            .background(micColor, CircleShape)
+
+                    val scale3 by infiniteTransition.animateFloat(
+                        initialValue = 0.5f,
+                        targetValue = 1.2f,
+                        animationSpec = infiniteRepeatable(
+                            tween(600, delayMillis = 400, easing = LinearEasing),
+                            RepeatMode.Reverse
+                        ), label = "dot3"
                     )
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.size(96.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(20.dp)
+                                .scale(scale1)
+                                .background(micColor, CircleShape)
+                        )
+                        Box(
+                            modifier = Modifier
+                                .size(20.dp)
+                                .scale(scale2)
+                                .background(micColor, CircleShape)
+                        )
+                        Box(
+                            modifier = Modifier
+                                .size(20.dp)
+                                .scale(scale3)
+                                .background(micColor, CircleShape)
+                        )
+                    }
                 }
-            }
 
 
                 ListenState.Speaking -> {
@@ -921,212 +708,6 @@ private fun startListening(ctx: android.content.Context, speechRecognizer: Speec
 
     }
     speechRecognizer?.startListening(recognizerIntent)
-}
-
-// ---------------- Hardcoded Menu ------------------
-
-fun restaurantMenuData(): Map<String, List<Pair<String, Int>>> {
-    return mapOf(
-        "Soups" to listOf(
-            "Pumpkin Soup" to 160,
-            "Lemon Coriander Soup" to 180,
-            "Cream of Broccoli" to 190,
-            "Sweet Corn (Veg)" to 180,
-            "Sweet Corn (Chicken)" to 270,
-            "Hot and Sour (Veg)" to 180,
-            "Hot and Sour (Chicken)" to 270,
-            "Manchow Soup (Veg)" to 180,
-            "Manchow Soup (Chicken)" to 270
-        ),
-        "Salads" to listOf(
-            "Green Salad" to 160,
-            "Pineapple Mint Salad" to 180,
-            "Greek Salad" to 190,
-            "Hawaiian Chicken Salad" to 230
-        ),
-        "Starters" to listOf(
-            "French Fries" to 160,
-            "Nuggets (Veg)" to 220,
-            "Veg Samosa" to 220,
-            "Veg/Onion Pakora" to 140,
-            "Cauliflower Ularathu" to 260,
-            "Honey Chilly Potato" to 260,
-            "Baby Corn Manchurian" to 310,
-            "Paneer Hot Garlic" to 310,
-            "Nuggets (Chicken)" to 260,
-            "Chicken 65" to 380,
-            "Chicken Malli Peralan" to 380,
-            "Chicken Kondattam" to 380,
-            "Chicken Lollipop" to 380,
-            "Prawns Tawa Fry" to 450,
-            "Mutton Pepper Fry" to 560,
-            "Mutton Coconut Fry" to 560
-        ),
-        "Short Bites" to listOf(
-            "Club Sandwich" to 220,
-            "Veg Sandwich" to 160,
-            "Chicken Sandwich" to 200,
-            "Egg Sandwich" to 180,
-            "Pakoras (Onion)" to 120,
-            "Pakoras (Veg)" to 130,
-            "Pakoras (Egg)" to 140,
-            "Momos (Veg)" to 235,
-            "Momos (Chicken)" to 260,
-            "Kathi Roll (Paneer)" to 180,
-            "Kathi Roll (Egg)" to 200,
-            "Kathi Roll (Chicken)" to 220
-        ),
-        "Poultry" to listOf(
-            "Chicken Mulagittathu" to 295,
-            "Chicken Mappas" to 260,
-            "Chicken Ghee Roast" to 280,
-            "Nadan Chicken Curry" to 260,
-            "Chicken Varutharachathu" to 260,
-            "Chicken Rara Masala" to 280,
-            "Kadai Chicken" to 295,
-            "Butter Chicken Masala" to 295
-        ),
-        "Veggies" to listOf(
-            "Kadai Veg" to 295,
-            "Aloo Shimla" to 260,
-            "Nilgiri Veg Korma" to 280,
-            "Aloo Jeera" to 260,
-            "Aloo Mutter Masala" to 260,
-            "Veg Hyderabadi" to 280,
-            "Paneer Butter Masala" to 295,
-            "Palak Paneer" to 295,
-            "Paneer Lazeez" to 295,
-            "Bindi Masala" to 260,
-            "Mushroom Masala" to 280,
-            "Dal Tadka" to 225,
-            "Panjabi Dal Tadka" to 250
-        ),
-        "Chinese" to listOf(
-            "Hot Garlic Chicken" to 415,
-            "Chilly Chicken" to 415,
-            "Chicken Manchurian" to 415,
-            "Dragon Chicken" to 415,
-            "Schezwan Chicken" to 430,
-            "Ginger Chicken" to 450,
-            "Garlic Prawns" to 420,
-            "Chilly Prawns" to 450,
-            "Chilly Mushroom" to 380,
-            "Cauliflower Manchurian" to 400,
-            "Chilly Fish" to 400
-        ),
-        "Fish" to listOf(
-            "Fish Tawa Fry (2 slices)" to 480,
-            "Fish Mulagittathu" to 430,
-            "Malabar Fish Curry" to 440,
-            "Kerala Fish Curry" to 440,
-            "Fish Moilee" to 450,
-            "Fish Masala" to 450,
-            "Prawns Roast" to 450,
-            "Prawns Masala" to 450,
-            "Prawns Ularthu" to 450
-        ),
-        "Local Cuisine" to listOf(
-            "Pidi with Chicken Curry" to 550,
-            "Bamboo Puttu Chicken" to 450,
-            "Bamboo Puttu (Fish/Prawns)" to 500,
-            "Bamboo Puttu (Paneer/Mushroom)" to 400,
-            "Bamboo Puttu Mix Veg" to 375,
-            "Paal Kappa with Veg Mappas" to 400,
-            "Paal Kappa with Fish Curry" to 500,
-            "Bamboo Biriyani Veg" to 400,
-            "Bamboo Biriyani Chicken" to 500,
-            "Bamboo Biriyani Fish/Prawns" to 500
-        ),
-        "Mutton" to listOf(
-            "Mutton Rogan Josh" to 560,
-            "Kollam Mutton Curry" to 540,
-            "Mutton Korma" to 530,
-            "Mutton Pepper Fry" to 560,
-            "Mutton Masala" to 530
-        ),
-        "Bread" to listOf(
-            "Kerala Paratha" to 35,
-            "Nool Paratha" to 35,
-            "Wheat Paratha" to 40,
-            "Chappathi" to 25,
-            "Phulka" to 20,
-            "Appam" to 25
-        ),
-        "Rice and Noodles" to listOf(
-            "Plain Rice" to 160,
-            "Veg Pulao" to 250,
-            "Peas Pulao" to 230,
-            "Jeera Rice" to 200,
-            "Tomato Rice" to 200,
-            "Lemon Rice" to 200,
-            "Veg Biriyani" to 320,
-            "Curd Rice" to 220,
-            "Ghee Rice" to 260,
-            "Egg Biriyani" to 360,
-            "Chicken Biriyani" to 400,
-            "Mutton Biriyani" to 580,
-            "Prawns Biriyani" to 500,
-            "Fish Biriyani" to 450,
-            "Veg Fried Rice" to 280,
-            "Egg Fried Rice" to 280,
-            "Chicken Fried Rice" to 300,
-            "Schezwan Fried Rice" to 350,
-            "Prawns Fried Rice" to 350,
-            "Veg Noodles" to 310,
-            "Egg Noodles" to 330,
-            "Chicken Noodles" to 380,
-            "Schezwan Noodles" to 400
-        ),
-        "Grilled" to listOf(
-            "Grilled Chicken (Pepper/Chilli/Hariyali) Half" to 700,
-            "Grilled Chicken (Pepper/Chilli/Hariyali) Full" to 1200,
-            "Chicken Tikka (Malai/Red Chilli/Hariyali)" to 550,
-            "Grilled Veg (Paneer/Mushroom)" to 400,
-            "Fish Tikka (Basa)" to 450
-        ),
-        "Pasta" to listOf(
-            "Alfredo Veg" to 330,
-            "Alfredo Chicken" to 380,
-            "Arrabbiata Veg" to 330,
-            "Arrabbiata Chicken" to 380,
-            "Rosso Veg" to 330,
-            "Rosso Chicken" to 380
-        ),
-        "Desserts" to listOf(
-            "Butter Banana Gulkand" to 260,
-            "Palada with Ice Cream" to 250,
-            "Gulab Jamun (2 nos)" to 250,
-            "Gajar Ka Halwa" to 235,
-            "Fruit Salad with Ice Cream" to 250,
-            "Ice Cream (Single Scoop)" to 150
-        ),
-        "Drinks" to listOf(
-            "Fresh Lime Soda/Water" to 80,
-            "Virgin Mojito" to 140,
-            "Virgin Mary" to 150,
-            "Virgin Pina Colada" to 150,
-            "Buttermilk" to 150
-        ),
-        "Milkshakes" to listOf(
-            "Strawberry Milkshake" to 180,
-            "Chocolate Milkshake" to 180,
-            "Vanilla Milkshake" to 180,
-            "Oreo Milkshake" to 180,
-            "Banana Milkshake" to 180
-        ),
-        "Tea" to listOf(
-            "Kerala Chai" to 50,
-            "Ginger Masala Chai" to 80,
-            "Iced Tea" to 80,
-            "Lemon Tea" to 50
-        ),
-        "Coffee" to listOf(
-            "Coffee" to 50,
-            "Filter Coffee" to 80,
-            "Iced Americano" to 140,
-            "Cold Coffee" to 130
-        )
-    )
 }
 
 
