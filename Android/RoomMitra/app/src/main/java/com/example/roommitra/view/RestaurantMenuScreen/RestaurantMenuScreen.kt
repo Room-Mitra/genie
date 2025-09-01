@@ -1,15 +1,17 @@
 package com.example.roommitra.view
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -39,6 +41,9 @@ fun RestaurantMenuScreen(
     val coroutineScope = rememberCoroutineScope()
     val configuration = LocalConfiguration.current
     val columns = if (configuration.screenWidthDp > 600) 3 else 2
+
+    // Left list scroll state
+    val categoryListState = remember { LazyListState() }
 
     val categoryIndexMap = remember {
         val map = mutableMapOf<String, Int>()
@@ -88,31 +93,64 @@ fun RestaurantMenuScreen(
         }
     ) { innerPadding ->
         Row(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-            // Left shortcuts column
-            Column(
+            // Left shortcuts column with scroll indicators
+            Box(
                 modifier = Modifier
                     .width(100.dp)
                     .fillMaxHeight()
                     .background(Color(0xFFF5F5F5))
-                    .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                categories.forEach {  category ->
-                    Text(
-                        text = category,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp)
-                            .clickable {
-                                coroutineScope.launch {
-                                    categoryIndexMap[category]?.let { targetIndex ->
-                                        listState.animateScrollToItem(targetIndex)
+                LazyColumn(
+                    state = categoryListState,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(categories) { category ->
+                        Text(
+                            text = category,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp)
+                                .clickable {
+                                    coroutineScope.launch {
+                                        categoryIndexMap[category]?.let { targetIndex ->
+                                            listState.animateScrollToItem(targetIndex)
+                                        }
                                     }
-
                                 }
-                            }
+                        )
+                    }
+                }
+
+                // Scroll Up indicator
+                if (categoryListState.firstVisibleItemIndex > 0) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowUpward,
+                        contentDescription = "Scroll up",
+                        tint = Color.Gray,
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(top = 4.dp)
+                    )
+                }
+
+                // Scroll Down indicator
+                val showDownArrow by remember {
+                    derivedStateOf {
+                        val lastVisible = categoryListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+                        lastVisible < (categories.size - 1)
+                    }
+                }
+                if (showDownArrow) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowDownward,
+                        contentDescription = "Scroll down",
+                        tint = Color.Gray,
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 4.dp)
                     )
                 }
             }
@@ -122,10 +160,8 @@ fun RestaurantMenuScreen(
                 state = listState,
                 modifier = Modifier.weight(1f).fillMaxHeight()
             ) {
-
-
                 categories.forEach { category ->
-                    item (key = category){
+                    item(key = category) {
                         Text(
                             text = category,
                             fontSize = 20.sp,
@@ -153,7 +189,7 @@ fun RestaurantMenuScreen(
                                     Card(
                                         modifier = Modifier
                                             .weight(1f)
-                                            .height(120.dp) // ✅ fixed card height
+                                            .height(120.dp) // fixed card height
                                             .padding(vertical = 4.dp),
                                         colors = CardDefaults.cardColors(containerColor = Color.White),
                                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -170,7 +206,7 @@ fun RestaurantMenuScreen(
                                                 maxLines = 2
                                             )
 
-                                            // ✅ Price + Counter in same row
+                                            // Price + Counter in same row
                                             Row(
                                                 modifier = Modifier.fillMaxWidth(),
                                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -182,9 +218,7 @@ fun RestaurantMenuScreen(
                                                     color = Color.Gray
                                                 )
 
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
                                                     IconButton(
                                                         onClick = {
                                                             if (count > 0) {
@@ -232,7 +266,6 @@ fun RestaurantMenuScreen(
         }
     }
 }
-
 // ---- Menu Data ----
 fun getRestaurantMenuData(): Map<String, List<Pair<String, Int>>> {
     return mapOf(
