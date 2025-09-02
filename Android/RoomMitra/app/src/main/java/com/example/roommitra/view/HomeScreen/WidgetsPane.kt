@@ -29,7 +29,7 @@ fun WidgetsPane(
             WidgetCard("Housekeeping", "Towels, cleaning, water") { },
             WidgetCard("Concierge", "Cabs, attractions, tips") { },
             WidgetCard("Request Status", "Track your requests") { },
-            WidgetCard("Entertainment", "YouTube / OTT (curated)") { },
+            WidgetCard("Entertainment", "Music, Games, Movies") { navController.navigate("entertainment") },
             WidgetCard("Amenities", "Pool timings, spa, walks") { },
         )
     }
