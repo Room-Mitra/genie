@@ -26,10 +26,15 @@ fun WidgetsPane(
                 "Restaurant Menu",
                 "Explore today’s specials"
             ) { navController.navigate("menu") },
+            WidgetCard(
+                "Entertainment",
+                "Music, Games, Movies"
+            ) { navController.navigate("entertainment") },
             WidgetCard("Housekeeping", "Towels, cleaning, water") { },
             WidgetCard("Concierge", "Cabs, attractions, tips") { },
             WidgetCard("Request Status", "Track your requests") { },
-            WidgetCard("Entertainment", "Music, Games, Movies") { navController.navigate("entertainment") },
+            WidgetCard("Reception", "Call / Chat with the reception") { },
+            WidgetCard("Emergency", "Call Ambulance, Fire Services etc") { },
             WidgetCard("Amenities", "Pool timings, spa, walks") { },
         )
     }
