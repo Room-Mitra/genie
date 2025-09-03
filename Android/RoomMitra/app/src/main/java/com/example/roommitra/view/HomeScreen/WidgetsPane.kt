@@ -32,7 +32,7 @@ fun WidgetsPane(
             ) { navController.navigate("entertainment") },
             WidgetCard("Housekeeping", "Towels, cleaning, water") { },
             WidgetCard("Concierge", "Cabs, attractions, tips") { },
-            WidgetCard("Request Status", "Track your requests") { },
+            WidgetCard("Track Requests", "See status of requests, current bills etc") { },
             WidgetCard("Reception", "Call / Chat with the reception") { },
             WidgetCard("Emergency", "Call Ambulance, Fire Services etc") { },
             WidgetCard("Amenities", "Pool timings, spa, walks") { },

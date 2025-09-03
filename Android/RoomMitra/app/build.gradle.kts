@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.roommitra"
-        minSdk = 28
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -58,6 +58,13 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.activity:activity-compose:1.9.0")
 
+    // youtube
+    implementation("com.pierfrancescosoffritti.androidyoutubeplayer:core:11.1.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation("com.squareup.moshi:moshi:1.15.0")
+    implementation("com.squareup.moshi:moshi-kotlin:1.15.0")
+   
     // Jetpack Compose BOM (align versions automatically)
     implementation(platform("androidx.compose:compose-bom:2024.05.00"))
     // Jetpack Compose Navigation
