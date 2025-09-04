@@ -30,12 +30,15 @@ fun WidgetsPane(
                 "Entertainment",
                 "Music, Games, Movies"
             ) { navController.navigate("entertainment") },
+            WidgetCard(
+                "Amenities",
+                "Pool timings, spa, Nature walks"
+            ) { navController.navigate("amenities") },
             WidgetCard("Housekeeping", "Towels, cleaning, water") { },
             WidgetCard("Concierge", "Cabs, attractions, tips") { },
             WidgetCard("Track Requests", "See status of requests, current bills etc") { },
             WidgetCard("Reception", "Call / Chat with the reception") { },
             WidgetCard("Emergency", "Call Ambulance, Fire Services etc") { },
-            WidgetCard("Amenities", "Pool timings, spa, walks") { },
         )
     }
 

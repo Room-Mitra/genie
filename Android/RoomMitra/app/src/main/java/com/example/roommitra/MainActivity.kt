@@ -61,6 +61,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import com.example.roommitra.view.AmenitiesScreen
 import com.example.roommitra.view.EntertainmentScreen
 import com.example.roommitra.view.HomeScreen
 import com.example.roommitra.view.RestaurantMenuScreen
@@ -104,6 +105,9 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                         }
                         composable("entertainment") {
                             EntertainmentScreen(onBackClick = {navController.popBackStack()})
+                        }
+                        composable("amenities") {
+                            AmenitiesScreen(onBackClick = {navController.popBackStack()})
                         }
                     }
                 }

@@ -47,7 +47,7 @@ fun MusicContent() {
         Button(
             onClick = {
                 if (query.isNotBlank()) {
-                    val searchQuery = query.replace(" ", "+")
+                    val searchQuery = (query.replace(" ", "+"))+"+music"
                     searchUrl = "https://www.youtube.com/results?search_query=$searchQuery"
                 }
             }
@@ -124,16 +124,6 @@ fun MusicContent() {
                                     videoId?.let { id ->
                                         Log.d("MusicContent", "Playing videoId: $id")
                                         youTubePlayer.loadVideo(id, 0f)
-                                    }
-                                }
-
-                                override fun onStateChange(
-                                    youTubePlayer: YouTubePlayer,
-                                    state: com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants.PlayerState
-                                ) {
-                                    if (state == com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants.PlayerState.ENDED) {
-                                        // ✅ Auto close popup when song ends
-                                        videoId = null
                                     }
                                 }
                             })
