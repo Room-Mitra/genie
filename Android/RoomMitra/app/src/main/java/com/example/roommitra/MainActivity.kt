@@ -64,6 +64,7 @@ import androidx.compose.ui.text.font.FontWeight
 import com.example.roommitra.view.AmenitiesScreen
 import com.example.roommitra.view.EntertainmentScreen
 import com.example.roommitra.view.HomeScreen
+import com.example.roommitra.view.HouseKeepingScreen
 import com.example.roommitra.view.RestaurantMenuScreen
 
 // --- Simple UI state machine for the mic pane ---
@@ -108,6 +109,9 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                         }
                         composable("amenities") {
                             AmenitiesScreen(onBackClick = {navController.popBackStack()})
+                        }
+                        composable("housekeeping") {
+                            HouseKeepingScreen(onBackClick = {navController.popBackStack()})
                         }
                     }
                 }
@@ -190,7 +194,7 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
         )
         Log.d("API_CALL", "Sending utterance: $userQuery")
         val request = Request.Builder()
-            .url("http://192.168.1.3:3000/utterance")
+            .url("http://192.168.1.7:3000/utterance")
 //            .url("https://roommitra.com/utterance") do not uncomment -- currently while fetching all requests to show in UI we are not filtering based on hotel id.. if you uncomment this, Ananterra will get notified about the request
             .addHeader(
                 "authorization",
