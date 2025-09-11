@@ -62,6 +62,10 @@ app.get('/commands', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/Commands/Commands.html'));
 });
 
+app.get('/commands', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/Commands/Commands.html'));
+})
+
 app.listen(PORT, () => console.log(`Server running on port: http://localhost:${PORT}`));
 
 runFunctionsOnServerStartup();
