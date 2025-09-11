@@ -1,20 +1,23 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { getHotelId } = require('../../common/services/common.service.js');
+import { getHotelId } from '../../common/services/common.service.js';
 
-const { registerStaffRoomDepartmentMapping, getStaffRoomDepartmentMappings } = require('./StaffRoomDepartmentRequestMapping.service.js');
+import {
+  registerStaffRoomDepartmentMapping,
+  getStaffRoomDepartmentMappings,
+} from './StaffRoomDepartmentRequestMapping.service.js';
 
 router.get('/', async (req, res) => {
-    const hotelId = getHotelId(req);
-    const mappings = await getStaffRoomDepartmentMappings(hotelId);
-    res.send(mappings);
+  const hotelId = getHotelId(req);
+  const mappings = await getStaffRoomDepartmentMappings(hotelId);
+  res.send(mappings);
 });
 
 router.post('/', async (req, res) => {
-    const hotelId = getHotelId(req);
-    const mapping = req.body;
-    await registerStaffRoomDepartmentMapping(hotelId, mapping);
-    res.send(`${JSON.stringify(mapping)} : has been added to the Database`);
+  const hotelId = getHotelId(req);
+  const mapping = req.body;
+  await registerStaffRoomDepartmentMapping(hotelId, mapping);
+  res.send(`${JSON.stringify(mapping)} : has been added to the Database`);
 });
 
-module.exports = router;
+export default router;

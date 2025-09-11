@@ -1,10 +1,7 @@
-const { warmCache: warmDevicesCache } = require("../../routes/Device/Device.cache")
-const { warmCache: warmIntentsCache } = require("../../routes/Intents/Intent.cache")
+import { warmCache as warmDevicesCache } from '../../routes/Device/Device.cache.js';
+import { warmCache as warmIntentsCache } from '../../routes/Intents/Intent.cache.js';
 
-const runFunctionsOnServerStartup = () => {
-    warmDevicesCache();
-    warmIntentsCache();
-
-}
-
-module.exports = { runFunctionsOnServerStartup };
+export const runFunctionsOnServerStartup = () => {
+  warmDevicesCache();
+  warmIntentsCache();
+};

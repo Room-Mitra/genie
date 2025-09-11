@@ -44,7 +44,9 @@
         }
 
         .header {
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             margin-bottom: 2rem;
         }
 
@@ -58,13 +60,27 @@
             color: #E2C044;
             text-decoration: underline;
         }
+
+        .header-text {
+            text-align: left;
+        }
+
+        .logo {
+            width: 200px;
+            height: auto;
+            margin-right: 1rem;
+        }
     </style>
 </head>
 
 <body>
     <div class="header">
-        <h1>🏨 Welcome to Room Mitra</h1>
-        <p>Just say "Alexa, ask Room Service..." and you're all set!</p>
+        <img src="../logo.png" alt="Room Mitra Logo" class="logo">
+        <div class="header-text">
+            <h1>👋 Welcome to Room Mitra</h1>
+            <p>Just say <span style="font-weight: bold; font-size: 1.5rem; color: #E2C044;">Alexa, ask Room
+                    Service...</span> and you're all set!</p>
+        </div>
     </div>
 
     <div class="section">

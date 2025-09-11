@@ -1,4 +1,4 @@
-const express = require('express');
+import express from "express";
 const router = express.Router();
 
 // register lead
@@ -15,4 +15,4 @@ router.post('/', async (req, res) => {
     res.send(text);
 })
 
-module.exports = router;
+export default router;
