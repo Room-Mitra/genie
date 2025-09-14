@@ -1,9 +1,9 @@
-const express = require('express');
+import express from "express";
+import { getHotelId } from '../../common/services/common.service.js'
 const router = express.Router();
-const { getHotelId } = require('../../common/services/common.service.js');
-const { onUtterance, handleAdministrativeUtterances } = require('./Utterance.service.js');
-const { getRoomInfoFromDeviceId } = require('../Device/Device.service.js');
 
+import { onUtterance, handleAdministrativeUtterances } from "./Utterance.service.js";
+import { getRoomInfoFromDeviceId } from "../Device/Device.service.js";
 
 
 router.post('/', async (req, res) => {
@@ -11,7 +11,7 @@ router.post('/', async (req, res) => {
         const { userQuery, sessionId, deviceId } = req.body;
         const isAdministrativeUtterance = handleAdministrativeUtterances({ userQuery, sessionId, deviceId })
         if (!isAdministrativeUtterance) {
-            const { hotelId } = getRoomInfoFromDeviceId(deviceId);
+            const { hotelId } = getRoomInfoFromDeviceId(deviceId); //use getHotelId instead
             console.log("New incoming utterance logged :: ", { userQuery, sessionId, deviceId, hotelId });
             const { speech, isSessionOpen } = await onUtterance(userQuery, hotelId, deviceId, sessionId)
             console.log({ speech, isSessionOpen })
@@ -30,4 +30,4 @@ router.post('/', async (req, res) => {
 })
 
 
-module.exports = router;
+export default router;
