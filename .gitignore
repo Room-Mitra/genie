@@ -50,3 +50,6 @@ AlexaSkill/RoomMitra/lambda/config.js
 AlexaSkill/RoomMitra/lambda/.env
 AlexaSkill/RoomMitra/lambda/*.env
 
+
+mycroft-precise/data
+mycroft-precise/data2
