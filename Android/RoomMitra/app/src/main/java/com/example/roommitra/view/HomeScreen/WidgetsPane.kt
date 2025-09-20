@@ -8,78 +8,76 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.navigation.NavHostController
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 
 @Composable
 fun WidgetsPane(
     modifier: Modifier = Modifier,
-    onUserInteraction: () -> Unit,
     navController: NavHostController
 ) {
     val cards = remember {
         listOf(
-            WidgetCard(
-                "Restaurant Menu",
-                "Explore today’s specials"
-            ) { navController.navigate("menu") },
-            WidgetCard(
-                "Entertainment",
-                "Music, Games, Movies"
-            ) { navController.navigate("entertainment") },
-            WidgetCard(
-                "Amenities",
-                "Pool timings, spa, Nature walks"
-            ) { navController.navigate("amenities") },
-            WidgetCard("Housekeeping", "Towels, cleaning, water") { navController.navigate("housekeeping") },
-            WidgetCard("Concierge", "Cabs, attractions, tips") { },
-            WidgetCard("Track Requests", "See status of requests, current bills etc") { },
-            WidgetCard("Reception", "Call / Chat with the reception") { },
-            WidgetCard("Emergency", "Call Ambulance, Fire Services etc") { },
+            WidgetCard("Restaurant", Icons.Default.Restaurant) { navController.navigate("menu") },
+            WidgetCard("Entertainment", Icons.Default.Movie) { navController.navigate("entertainment") },
+            WidgetCard("Amenities", Icons.Default.Pool) { navController.navigate("amenities") },
+            WidgetCard("Housekeeping", Icons.Default.CleaningServices) { navController.navigate("housekeeping") },
+            WidgetCard("Concierge", Icons.Default.DirectionsCar) { },
+            WidgetCard("Your Requests", Icons.Default.ListAlt) { },
+            WidgetCard("Reception", Icons.Default.Call) { },
+            //            WidgetCard("Emergency", "Call Ambulance, Fire Services etc") { },
+//            WidgetCard("Deals", "Show offers in exchange for reviews") { },
+//            WidgetCard("DND", "Stop listening, dont play sounds, dim display to 0%") { },
+//            WidgetCard("News", "Read / listen / see news") { },
+//            WidgetCard("Select language", "Call Ambulance, Fire Services etc") { },
+//            WidgetCard("Notifications", "check notifications from hotel") { },
+//            WidgetCard("smart devices", "turn on lights, see who is at the door") { },
+//            WidgetCard("Hotel Maps", "Call Ambulance, Fire Services etc") { },
+
         )
     }
 
-    Column(modifier = modifier.padding(24.dp)) {
-        Text(
-            "Quick Actions",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold
-        )
-        Spacer(Modifier.height(12.dp))
+    Column(modifier = modifier.padding(16.dp)) {
+
         LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            columns = GridCells.Fixed(3), // smaller widgets, more per row
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxSize()
         ) {
             items(cards) { card ->
                 Card(
                     onClick = card.onClick,
-                    shape = RoundedCornerShape(20.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .aspectRatio(1.6f)
+                        .aspectRatio(1f) // square cards
                 ) {
                     Column(
                         Modifier
-                            .padding(16.dp)
+                            .padding(8.dp)
                             .fillMaxSize(),
-                        verticalArrangement = Arrangement.SpaceBetween
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
                     ) {
+                        Icon(
+                            card.icon,
+                            contentDescription = card.title,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Spacer(Modifier.height(6.dp))
                         Text(
                             card.title,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            card.subtitle,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            fontWeight = FontWeight.Medium
                         )
                     }
                 }
@@ -88,4 +86,8 @@ fun WidgetsPane(
     }
 }
 
-data class WidgetCard(val title: String, val subtitle: String, val onClick: () -> Unit)
+data class WidgetCard(
+    val title: String,
+    val icon: ImageVector,
+    val onClick: () -> Unit
+)

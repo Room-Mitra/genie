@@ -34,14 +34,18 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.example.roommitra.MainActivity
 import java.util.*
-
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import com.example.roommitra.R
+import androidx.compose.ui.layout.ContentScale
 // --- Simple UI state machine for the mic pane ---
 enum class ListenState { Idle, Listening, Thinking, Speaking }
 
 @Composable
 fun MicPane(
     modifier: Modifier = Modifier,
-    onUserInteraction: () -> Unit,
     onFinalUtterance: (String) -> Unit,
     autoListenTrigger: State<Long>
 ) {
@@ -60,15 +64,14 @@ fun MicPane(
     DisposableEffect(Unit) {
         if (speechRecognizer != null) {
             speechRecognizer.setRecognitionListener(object : RecognitionListener {
-                override fun onReadyForSpeech(params: Bundle?) { onUserInteraction() }
-                override fun onBeginningOfSpeech() { onUserInteraction() }
+                override fun onReadyForSpeech(params: Bundle?) { }
+                override fun onBeginningOfSpeech() { }
                 override fun onEndOfSpeech() { listenState = ListenState.Thinking }
                 override fun onError(error: Int) { listenState = ListenState.Idle }
                 override fun onResults(results: Bundle?) {
                     val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                     if (!matches.isNullOrEmpty()) {
                         recognizedText = matches[0]
-                        onUserInteraction()
                         onFinalUtterance(recognizedText)
                     }
                 }
@@ -97,7 +100,6 @@ fun MicPane(
             if (granted) {
                 listenState = ListenState.Listening
                 startListening(ctx, speechRecognizer)
-                onUserInteraction()
             }
         }
 
@@ -114,7 +116,6 @@ fun MicPane(
             listenState != ListenState.Listening && listenState != ListenState.Thinking
         ) {
             if (hasRecordPerm.value) {
-                onUserInteraction()
                 listenState = ListenState.Listening
                 startListening(ctx, speechRecognizer)
             }
@@ -154,12 +155,22 @@ fun MicPane(
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
-            ) { onUserInteraction() },
+            ) { },
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         // Header
         Column {
-            Text("Room Mitra", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+//            Text("Room Mitra", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            Image(
+                painter = painterResource(R.drawable.logo),
+                contentDescription = "Room Mitra Logo",
+                modifier = Modifier
+                    .height(60.dp)// control visible box
+                    .width(200.dp)
+                    .padding(bottom = 8.dp),
+                contentScale = ContentScale.FillBounds // stretches to fill
+            )
+
             Spacer(Modifier.height(8.dp))
             Text(
                 text = when (listenState) {
@@ -236,11 +247,7 @@ fun MicPane(
 }
 
 @Composable
-private fun MicButton(
-    micColor: Color,
-    pulseScale: Float,
-    onMicClick: () -> Unit
-) {
+private fun MicButton( micColor: Color,  pulseScale: Float, onMicClick: () -> Unit) {
     Box(
         modifier = Modifier
             .size(220.dp)
