@@ -31,11 +31,19 @@ import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
+import com.example.roommitra.service.ApiService
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import android.provider.Settings
 
 class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
+
+    private val apiService by lazy { ApiService(this) }
     private lateinit var tts: TextToSpeech
     private var sessionId: String = UUID.randomUUID().toString()
-    private val deviceId: String = "amzn1.ask.device.AMAXRJF4GUCRJ3HGY6X2J5HWP2FXP3SPYQOGKWDTXX4TQM5WXRHZVTJGBJPGKVJA7I3OHOIVM5JW6SM4A3STQH5DPGKPWC45PZN4A4G42BYGT4VZ5S5H2ZMD7U2G5H5QA5RXEAC2IEHMO3RHVDLAAZICNUSNREBIXMJYACCLJMM3SGSOOWKI2ZLNUH5M76KI6LRUWSOUQ2JJEI72"
+//    private val deviceId: String by lazy {
+//        Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
+//    }
     private val autoListenTrigger = mutableStateOf(0L)
 
     companion object {
@@ -166,65 +174,53 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
         tts.stop()
         tts.shutdown()
     }
+    private fun safeSpeak(text: String) {
+        if (this::tts.isInitialized) {       // check if TTS is initialized
+            try {
+                if (!isFinishing) {          // ensure activity is not finishing
+                    val utteranceId = UUID.randomUUID().toString()
+                    tts.speak(text, TextToSpeech.QUEUE_ADD, null, utteranceId)
+                }
+            } catch (e: Exception) {
+                Log.e("TTS", "Failed to speak: ${e.message}")
+            }
+        } else {
+            Log.w("TTS", "TTS not initialized, cannot speak")
+        }
+    }
 
     private fun sendUtteranceToServer(userQuery: String) {
-        val client = OkHttpClient()
-        val json = JSONObject().apply {
-            put("userQuery", userQuery)
-            put("sessionId", sessionId)
-            put("deviceId", deviceId)
-        }
-        val body = RequestBody.create(
-            "application/json; charset=utf-8".toMediaTypeOrNull(),
-            json.toString()
-        )
-        Log.d("API_CALL", "Sending utterance: $userQuery")
-        val request = Request.Builder()
-            .url("http://192.168.1.7:3000/utterance")
-//            .url("https://roommitra.com/utterance") do not uncomment -- currently while fetching all requests to show in UI we are not filtering based on hotel id.. if you uncomment this, Ananterra will get notified about the request
-            .addHeader(
-                "authorization",
-                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaG90ZWxJZCI6IlJvb20gR2VuaWUiLCJpYXQiOjE3NTYyNzEzMDEsImV4cCI6MTc1NzEzNTMwMX0.k1G6tUeL_Q_mDND5Vsa657HqGKXJEQEvbWb0o--dPMI"
-            )
-            .post(body)
-            .build()
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                val utteranceId = UUID.randomUUID().toString()
-                this@MainActivity.runOnUiThread {
-                    tts.speak(
-                        "Something went wrong. Please try later",
-                        TextToSpeech.QUEUE_ADD, null, utteranceId
-                    )
+        lifecycleScope.launch {
+            try {
+                val payload = JSONObject().apply {
+                    put("userQuery", userQuery)
+                    put("sessionId", sessionId)
+//                    put("deviceId", deviceId)
                 }
-            }
 
-            override fun onResponse(call: Call, response: Response) {
-                response.use {
-                    val responseBody = response.body?.string()
-                    if (responseBody != null) {
-                        val jsonResp = JSONObject(responseBody)
-                        val speech = jsonResp.optString("speech", "")
-                        val isSessionOpen = jsonResp.optBoolean("isSessionOpen", false)
-                        if (speech.isNotEmpty()) {
-                            val utteranceId = UUID.randomUUID().toString()
-                            this@MainActivity.runOnUiThread {
-                                tts.speak(speech, TextToSpeech.QUEUE_ADD, null, utteranceId)
-                            }
-                        }
-                        if (isSessionOpen) {
-                            // Ask UI to auto-listen again (after TTS finishes)
-                            this@MainActivity.runOnUiThread {
-                                autoListenTrigger.value = System.currentTimeMillis()
-                            }
-                        } else {
-                            // Close the session and rotate sessionId
-                            sessionId = UUID.randomUUID().toString()
-                        }
+                val jsonResp = apiService.post("utterance", payload)
+
+                if (jsonResp != null) {
+                    val speech = jsonResp.optString("speech", "")
+                    val isSessionOpen = jsonResp.optBoolean("isSessionOpen", false)
+
+                    if (speech.isNotEmpty()) safeSpeak(speech)
+
+                    if (isSessionOpen) {
+                        autoListenTrigger.value = System.currentTimeMillis()
+                    } else {
+                        sessionId = UUID.randomUUID().toString()
                     }
+                } else {
+                    // API call failed or returned null
+                    safeSpeak("Something went wrong. Please try later")
                 }
+            } catch (e: Exception) {  // <-- catch inside coroutine
+                Log.e("API_CALL", "Error sending utterance: ${e.message}")
+                safeSpeak("Something went wrong. Please try later")
             }
-        })
+        }
     }
+
 }
 
