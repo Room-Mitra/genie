@@ -41,9 +41,6 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
     private val apiService by lazy { ApiService(this) }
     private lateinit var tts: TextToSpeech
     private var sessionId: String = UUID.randomUUID().toString()
-//    private val deviceId: String by lazy {
-//        Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
-//    }
     private val autoListenTrigger = mutableStateOf(0L)
 
     companion object {
