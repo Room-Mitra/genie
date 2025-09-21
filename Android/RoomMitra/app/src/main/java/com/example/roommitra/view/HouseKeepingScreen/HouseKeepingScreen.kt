@@ -2,6 +2,7 @@ package com.example.roommitra.view
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -25,13 +26,36 @@ import androidx.compose.ui.window.Dialog
 @Composable
 fun HouseKeepingScreen(onBackClick: () -> Unit) {
 
-    val quickRequests = listOf(
-        "Get Fresh Towels" to Icons.Default.LocalLaundryService,
-        "Clean my Room" to Icons.Default.CleaningServices,
-        "Get Drinking Water" to Icons.Default.WaterDrop,
-        "Get Dental Kit" to Icons.Default.EmojiEmotions,
-        "Get Toiletries" to Icons.Default.Bathroom,
-        "Refill Coffee/Tea Sachets" to Icons.Default.Coffee
+    // --- Section data ---
+    val housekeepingRequests = listOf(
+        "Change Towels" to Icons.Default.LocalLaundryService,
+        "Change Bed Linen" to Icons.Default.Bed,
+        "Room Cleaning" to Icons.Default.CleaningServices,
+        "Bathroom Cleaning" to Icons.Default.Bathroom,
+        "Pillow Request" to Icons.Default.Hotel,
+        "Extra Blanket" to Icons.Default.Checkroom,
+        "Laundry Pickup" to Icons.Default.LocalLaundryService,
+        "Shoe Cleaning" to Icons.Default.Checkroom
+    )
+
+    val foodRefreshments = listOf(
+        "Mini-Bar Refill" to Icons.Default.LocalBar,
+        "Tea/Coffee Setup" to Icons.Default.Coffee,
+        "Water Bottle" to Icons.Default.WaterDrop,
+        "Fruit Basket" to Icons.Default.ShoppingBasket
+    )
+
+    val maintenanceRequests = listOf(
+        "Fix Light/Appliance" to Icons.Default.Build,
+        "Iron & Ironing Board" to Icons.Default.Iron,
+        "Extra Toiletries" to Icons.Default.Spa,
+        "Umbrella Request" to Icons.Default.Umbrella
+    )
+
+    val specialRequests = listOf(
+        "Do Not Disturb" to Icons.Default.DoNotDisturbOn,
+        "Room Freshener" to Icons.Default.Spa,
+        "Wake-up Call" to Icons.Default.Alarm
     )
 
     val customRequestOption = listOf(
@@ -42,6 +66,7 @@ fun HouseKeepingScreen(onBackClick: () -> Unit) {
         "Initiate Checkout" to Icons.Default.ExitToApp
     )
 
+    // --- State ---
     var showDialog by remember { mutableStateOf(false) }
     var selectedRequest by remember { mutableStateOf<String?>(null) }
     var showCustomDialog by remember { mutableStateOf(false) }
@@ -61,30 +86,52 @@ fun HouseKeepingScreen(onBackClick: () -> Unit) {
         },
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+            verticalArrangement = Arrangement.spacedBy(32.dp)
         ) {
-            SectionGrid(title = "Quick Requests", options = quickRequests, onClick = { option ->
-                selectedRequest = option
-                showDialog = true
-            })
-
-            SectionGrid(title = "Custom Request", options = customRequestOption, onClick = {
-                showCustomDialog = true
-            })
-
-            SectionGrid(title = "Checkout", options = checkoutOption, onClick = { option ->
-                selectedRequest = option
-                showDialog = true
-            })
+            item {
+                SectionGrid("🧹 Housekeeping", housekeepingRequests) { option ->
+                    selectedRequest = option
+                    showDialog = true
+                }
+            }
+            item {
+                SectionGrid("🍴 Food & Refreshments", foodRefreshments) { option ->
+                    selectedRequest = option
+                    showDialog = true
+                }
+            }
+            item {
+                SectionGrid("🛠️ Maintenance & Others", maintenanceRequests) { option ->
+                    selectedRequest = option
+                    showDialog = true
+                }
+            }
+            item {
+                SectionGrid("🔑 Special", specialRequests) { option ->
+                    selectedRequest = option
+                    showDialog = true
+                }
+            }
+            item {
+                SectionGrid("✍️ Custom Request", customRequestOption) {
+                    showCustomDialog = true
+                }
+            }
+            item {
+                SectionGrid("🏁 Checkout", checkoutOption) { option ->
+                    selectedRequest = option
+                    showDialog = true
+                }
+            }
         }
     }
 
-    // --- Confirmation Dialog only for quick + checkout requests ---
+    // --- Confirmation Dialog ---
     if (showDialog && selectedRequest != null) {
         ConfirmationDialog(
             request = selectedRequest!!,
@@ -96,7 +143,7 @@ fun HouseKeepingScreen(onBackClick: () -> Unit) {
         )
     }
 
-    // --- Custom Request Dialog (no confirmation popup after send) ---
+    // --- Custom Request Dialog ---
     if (showCustomDialog) {
         CustomRequestDialog(
             value = customRequest,
@@ -104,7 +151,6 @@ fun HouseKeepingScreen(onBackClick: () -> Unit) {
             onDismiss = { showCustomDialog = false },
             onSend = {
                 if (customRequest.isNotBlank()) {
-                    // Directly send custom request here
                     // TODO: send customRequest to backend
                     customRequest = ""
                     showCustomDialog = false
@@ -127,10 +173,10 @@ fun SectionGrid(
             fontWeight = FontWeight.Bold
         )
         LazyVerticalGrid(
-            columns = GridCells.Fixed(6),
+            columns = GridCells.Adaptive(minSize = 120.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.heightIn(max = 200.dp)
+            modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp) // ✅ constrain height
         ) {
             items(options) { optionPair ->
                 val (option, icon) = optionPair
@@ -151,15 +197,21 @@ fun HousekeepingOptionCard(
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        modifier = Modifier.width(120.dp).height(150.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(0.85f)
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxSize().padding(12.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp)
         ) {
             Box(
-                modifier = Modifier.size(48.dp).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), shape = CircleShape),
+                modifier = Modifier
+                    .size(52.dp)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), shape = CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(icon, contentDescription = option, tint = MaterialTheme.colorScheme.primary)
@@ -244,7 +296,10 @@ fun ConfirmationDialog(
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
         ) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
                 Text("Confirm Request", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Text("Do you want to send the request: \"$request\"?")
                 Row(
