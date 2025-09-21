@@ -35,6 +35,7 @@ import com.example.roommitra.service.ApiService
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import android.provider.Settings
+import com.example.roommitra.view.ConciergeScreen
 
 class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
 
@@ -96,26 +97,33 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     AutoDimWrapper(screenDimService) {
                         NavHost(navController = navController, startDestination = "home") {
-                        composable("home") {
-                            HomeScreen(
-                                onFinalUtterance = { userQuery -> sendUtteranceToServer(userQuery) },
-                                navController = navController,
-                                autoListenTrigger = autoListenTrigger
-                            )
+                            composable("home") {
+                                HomeScreen(
+                                    onFinalUtterance = { userQuery ->
+                                        sendUtteranceToServer(
+                                            userQuery
+                                        )
+                                    },
+                                    navController = navController,
+                                    autoListenTrigger = autoListenTrigger
+                                )
+                            }
+                            composable("menu") {
+                                RestaurantMenuScreen(onBackClick = { navController.popBackStack() })
+                            }
+                            composable("entertainment") {
+                                EntertainmentScreen(onBackClick = { navController.popBackStack() })
+                            }
+                            composable("amenities") {
+                                AmenitiesScreen(onBackClick = { navController.popBackStack() })
+                            }
+                            composable("housekeeping") {
+                                HouseKeepingScreen(onBackClick = { navController.popBackStack() })
+                            }
+                            composable("concierge") {
+                                ConciergeScreen(onBackClick = { navController.popBackStack() })
+                            }
                         }
-                        composable("menu") {
-                            RestaurantMenuScreen(onBackClick = {navController.popBackStack()})
-                        }
-                        composable("entertainment") {
-                            EntertainmentScreen(onBackClick = {navController.popBackStack()})
-                        }
-                        composable("amenities") {
-                            AmenitiesScreen(onBackClick = {navController.popBackStack()})
-                        }
-                        composable("housekeeping") {
-                            HouseKeepingScreen(onBackClick = {navController.popBackStack()})
-                        }
-                    }
                     }
                 }
             }
@@ -171,6 +179,7 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
         tts.stop()
         tts.shutdown()
     }
+
     private fun safeSpeak(text: String) {
         if (this::tts.isInitialized) {       // check if TTS is initialized
             try {

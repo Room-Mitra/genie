@@ -50,7 +50,7 @@ fun DealsCardSlideshow(deals: List<Deal>) {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp)
+            .height(250.dp)
     ) {
         Box {
             // Single pager

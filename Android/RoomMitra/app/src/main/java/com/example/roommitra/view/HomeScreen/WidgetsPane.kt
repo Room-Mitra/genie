@@ -31,8 +31,8 @@ fun WidgetsPane(
             WidgetCard("Entertainment", Icons.Default.Movie) { navController.navigate("entertainment") },
             WidgetCard("Amenities", Icons.Default.Pool) { navController.navigate("amenities") },
             WidgetCard("Housekeeping", Icons.Default.CleaningServices) { navController.navigate("housekeeping") },
-            WidgetCard("Concierge", Icons.Default.DirectionsCar) { },
-            WidgetCard("Your Requests", Icons.Default.ListAlt) { },
+            WidgetCard("Concierge", Icons.Default.DirectionsCar) {  navController.navigate("concierge")},
+//            WidgetCard("Your Requests", Icons.Default.ListAlt) { },
             WidgetCard("Reception", Icons.Default.Call) { },
             WidgetCard("My Notifications", Icons.Default.Notifications) { },
             //            WidgetCard("Emergency", "Call Ambulance, Fire Services etc") { },
@@ -92,7 +92,6 @@ fun WidgetsPane(
         Spacer(Modifier.height(20.dp))
 
         // --- Special widgets at the bottom ---
-//        NotificationsCard(unreadCount = 3, titles = listOf("Room Service ready"))
         Spacer(Modifier.height(12.dp))
         OrderStatusCard(
             orders = listOf(
@@ -105,8 +104,8 @@ fun WidgetsPane(
         Spacer(Modifier.height(12.dp))
         DealsCardSlideshow(
             deals = listOf(
-                Deal("Kayak in the Banasura Lake", "https://picsum.photos/600/300?2"),
-                Deal("Private Party invite for members", "https://media.istockphoto.com/id/501387734/photo/dancing-friends.jpg?s=1024x1024&w=is&k=20&c=qneEFMVnKvFkagvbMmZqYU1rLRweq9889MXbu6f8mO4=" ),
+                Deal("Kayak in the Banasura Sagar Lake", "https://picsum.photos/600/300?2"),
+                Deal("Book your passes for the New Year Party @ Rs.3000/couple !", "https://media.istockphoto.com/id/501387734/photo/dancing-friends.jpg?s=1024x1024&w=is&k=20&c=qneEFMVnKvFkagvbMmZqYU1rLRweq9889MXbu6f8mO4=" ),
                 Deal("Try Cocktails in our  Beach Bar", "https://picsum.photos/600/300?3")
             )
         )
@@ -114,38 +113,6 @@ fun WidgetsPane(
     }
 }
 
-
-//@Composable
-//fun NotificationsCard(unreadCount: Int, titles: List<String>) {
-//    Card(
-//        shape = RoundedCornerShape(16.dp),
-//        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-//        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-//        modifier = Modifier.fillMaxWidth()
-//    ) {
-//        Row(
-//            modifier = Modifier.padding(12.dp),
-//            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-//        ) {
-//            BadgedBox(badge = {
-//                if (unreadCount > 0) {
-//                    Badge { Text(unreadCount.toString()) }
-//                }
-//            }) {
-//                Icon(Icons.Default.Notifications, contentDescription = "Notifications")
-//            }
-//            Spacer(Modifier.width(12.dp))
-//            Column {
-//                titles.take(2).forEach { title ->
-//                    Text(title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
-//                }
-//                if (titles.size > 2) {
-//                    Text("+${titles.size - 2} more", style = MaterialTheme.typography.bodySmall)
-//                }
-//            }
-//        }
-//    }
-//}
 @Composable
 fun OrderStatusCard(orders: List<Order>) {
     Card(
