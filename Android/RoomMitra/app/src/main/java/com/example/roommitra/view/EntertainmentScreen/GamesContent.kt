@@ -33,10 +33,11 @@ fun GamesContent() {
     val games = listOf(
         GameItem("Tower Builder", "https://iamkun.github.io/tower_game/", false),
         GameItem("Connect 4", "https://kenrick95.github.io/c4/", false),
+        GameItem("Tic Tac Toe", "https://marcft.github.io/tic-tac-toe/", false),
         GameItem("2048", "games/2048/index.html"),
         GameItem("Clumsy Bird", "games/clumsybird/index.html"),
-        GameItem("Pacman", "games/pacman/index.htm"),
-        GameItem("Simon Says", "https://weslley.co/react-simon-says/", false)
+        GameItem("Pong", "games/pong/pong/index.html"),
+
     )
 
     var selectedGame by remember { mutableStateOf<GameItem?>(null) }
