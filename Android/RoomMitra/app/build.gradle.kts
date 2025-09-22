@@ -106,4 +106,9 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform("androidx.compose:compose-bom:2024.05.00"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+
+
+    // deals card - slideshow
+    implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation("androidx.compose.foundation:foundation:1.6.2")
 }

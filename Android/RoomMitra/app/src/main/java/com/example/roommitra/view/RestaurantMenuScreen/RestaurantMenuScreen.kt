@@ -1,61 +1,58 @@
 package com.example.roommitra.view
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import android.util.Log
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview
 @Composable
 fun RestaurantMenuScreen(
-    onBackClick: () -> Unit = {}
+    onBackClick: () -> Unit = {},
 ) {
     val menuData = getRestaurantMenuData()
     val categories = menuData.keys.toList()
 
     var cart by remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
-    val listState = remember { LazyListState() }
+    val mainListState = remember { LazyListState() }
     val coroutineScope = rememberCoroutineScope()
-    val configuration = LocalConfiguration.current
-    val columns = if (configuration.screenWidthDp > 600) 3 else 2
-
-    // Left list scroll state
-    val categoryListState = remember { LazyListState() }
+    val columns = 2
 
     val categoryIndexMap = remember {
         val map = mutableMapOf<String, Int>()
         var index = 0
         categories.forEach { category ->
             map[category] = index
-            index++ // category header
             val rows = menuData[category]!!.chunked(columns)
-            index += rows.size // each row is 1 item
+            index += rows.size + 1
         }
         map
     }
+
+    val visibleCategory by remember {
+        derivedStateOf {
+            val firstVisible = mainListState.firstVisibleItemIndex
+            categories.lastOrNull { categoryIndexMap[it] ?: 0 <= firstVisible } ?: categories.first()
+        }
+    }
+
+    var showCartPopup by remember { mutableStateOf(false) }
 
     fun calculateTotal(): Int {
         var total = 0
@@ -69,7 +66,7 @@ fun RestaurantMenuScreen(
     Scaffold(
         topBar = {
             SmallTopAppBar(
-                title = { Text("Menu") },
+                title = { Text("Restaurant Menu", fontWeight = FontWeight.SemiBold) },
                 navigationIcon = {
                     IconButton(onClick = { onBackClick() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -79,92 +76,48 @@ fun RestaurantMenuScreen(
         },
         floatingActionButton = {
             if (cart.isNotEmpty()) {
-                FloatingActionButton(onClick = { /* Navigate to cart screen */ }) {
+                FloatingActionButton(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    onClick = { showCartPopup = true }
+                ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(horizontal = 12.dp)
                     ) {
-                        Icon(Icons.Default.ShoppingCart, contentDescription = "Cart")
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("₹${calculateTotal()}")
+                        Icon(Icons.Default.ShoppingCart, contentDescription = "Cart", tint = Color.White)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            "₹${calculateTotal()}",
+                            color = Color.White,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     }
                 }
             }
         }
-    ) { innerPadding ->
-        Row(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-            // Left shortcuts column with scroll indicators
-            Box(
-                modifier = Modifier
-                    .width(100.dp)
-                    .fillMaxHeight()
-                    .background(Color(0xFFF5F5F5))
-            ) {
-                LazyColumn(
-                    state = categoryListState,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(categories) { category ->
-                        Text(
-                            text = category,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp)
-                                .clickable {
-                                    coroutineScope.launch {
-                                        categoryIndexMap[category]?.let { targetIndex ->
-                                            listState.animateScrollToItem(targetIndex)
-                                        }
-                                    }
-                                }
-                        )
-                    }
-                }
+    ) { paddingValues ->
 
-                // Scroll Up indicator
-                if (categoryListState.firstVisibleItemIndex > 0) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowUpward,
-                        contentDescription = "Scroll up",
-                        tint = Color.Gray,
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .padding(top = 4.dp)
-                    )
-                }
+        Row(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
 
-                // Scroll Down indicator
-                val showDownArrow by remember {
-                    derivedStateOf {
-                        val lastVisible = categoryListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-                        lastVisible < (categories.size - 1)
-                    }
-                }
-                if (showDownArrow) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowDownward,
-                        contentDescription = "Scroll down",
-                        tint = Color.Gray,
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 4.dp)
-                    )
-                }
-            }
+            // ✅ Reusable Left Menu Composable
+            LeftMenu(
+                categories = categories,
+                visibleCategory = visibleCategory,
+                categoryIndexMap = categoryIndexMap,
+                coroutineScope = coroutineScope,
+                mainListState = mainListState
+            )
 
-            // Main menu list with multiple items per row
+            // Main Menu List
             LazyColumn(
-                state = listState,
+                state = mainListState,
                 modifier = Modifier.weight(1f).fillMaxHeight()
             ) {
                 categories.forEach { category ->
                     item(key = category) {
                         Text(
                             text = category,
-                            fontSize = 20.sp,
+                            fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(16.dp)
                         )
@@ -178,81 +131,32 @@ fun RestaurantMenuScreen(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 8.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
                                 rowItems.forEach { dish ->
                                     val dishName = dish.first
                                     val dishPrice = dish.second
                                     val count = cart[dishName] ?: 0
 
-                                    Card(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .height(120.dp) // fixed card height
-                                            .padding(vertical = 4.dp),
-                                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                                    ) {
-                                        Column(
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .padding(12.dp),
-                                            verticalArrangement = Arrangement.SpaceBetween
-                                        ) {
-                                            Text(
-                                                dishName,
-                                                fontWeight = FontWeight.Medium,
-                                                maxLines = 2
-                                            )
-
-                                            // Price + Counter in same row
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Text(
-                                                    "₹$dishPrice",
-                                                    fontSize = 14.sp,
-                                                    color = Color.Gray
-                                                )
-
-                                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                                    IconButton(
-                                                        onClick = {
-                                                            if (count > 0) {
-                                                                cart = cart.toMutableMap().apply {
-                                                                    this[dishName] = count - 1
-                                                                    if (this[dishName] == 0) remove(dishName)
-                                                                }
-                                                            }
-                                                        },
-                                                        enabled = count > 0
-                                                    ) {
-                                                        Icon(Icons.Default.Remove, contentDescription = "Decrease")
-                                                    }
-
-                                                    Text(
-                                                        text = count.toString(),
-                                                        modifier = Modifier.width(24.dp),
-                                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                                                    )
-
-                                                    IconButton(
-                                                        onClick = {
-                                                            cart = cart + (dishName to (count + 1))
-                                                        }
-                                                    ) {
-                                                        Icon(Icons.Default.Add, contentDescription = "Increase")
-                                                    }
+                                    DishCard(
+                                        dishName = dishName,
+                                        dishPrice = dishPrice,
+                                        count = count,
+                                        onIncrease = { cart = cart + (dishName to (count + 1)) },
+                                        onDecrease = {
+                                            if (count > 0) {
+                                                cart = cart.toMutableMap().apply {
+                                                    this[dishName] = count - 1
+                                                    if (this[dishName] == 0) remove(dishName)
                                                 }
                                             }
-                                        }
-                                    }
+                                        },
+                                        modifier = Modifier.weight(1f)
+                                    )
+
                                 }
 
-                                // Fill empty space if row not full
                                 if (rowItems.size < columns) {
                                     repeat(columns - rowItems.size) {
                                         Spacer(modifier = Modifier.weight(1f))
@@ -265,7 +169,309 @@ fun RestaurantMenuScreen(
             }
         }
     }
+
+    // ✅ Reusable Cart Popup Composable
+    if (showCartPopup) {
+        CartPopup(
+            cart = cart,
+            menuData = menuData,
+            calculateTotal = { calculateTotal() },
+            onPlaceOrder = {
+                Log.d("RestaurantMenu", "Order placed: $cart")
+                showCartPopup = false
+            },
+            onClearCart = {
+                cart = emptyMap()
+                showCartPopup = false
+            },
+            onDismiss = { showCartPopup = false }
+        )
+    }
 }
+
+
+@Composable
+fun DishCard(
+    dishName: String,
+    dishPrice: Int,
+    count: Int,
+    onIncrease: () -> Unit,
+    onDecrease: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .height(180.dp)
+            .shadow(4.dp, RoundedCornerShape(12.dp)),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(150.dp) // bigger image
+                    .background(Color(0xFFE0E0E0), RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Default.Fastfood,
+                    contentDescription = "Dish Image",
+                    tint = Color.Gray,
+                    modifier = Modifier.size(60.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        dishName,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 16.sp,
+                        maxLines = 2
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "Delicious ${dishName.lowercase()} prepared fresh",
+                        fontSize = 13.sp,
+                        color = Color.Gray,
+                        maxLines = 2
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "₹$dishPrice",
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Gray
+                    )
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(
+                            onClick = { onDecrease() },
+                            enabled = count > 0
+                        ) {
+                            Icon(Icons.Default.Remove, contentDescription = "Decrease")
+                        }
+
+                        Text(
+                            text = count.toString(),
+                            modifier = Modifier.width(28.dp),
+                            textAlign = TextAlign.Center
+                        )
+
+                        IconButton(onClick = { onIncrease() }) {
+                            Icon(Icons.Default.Add, contentDescription = "Increase")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+
+@Composable
+fun LeftMenu(
+    categories: List<String>,
+    visibleCategory: String,
+    categoryIndexMap: Map<String, Int>,
+    coroutineScope: CoroutineScope,
+    mainListState: LazyListState
+) {
+    val scrollState = rememberScrollState()
+
+    Box(
+        modifier = Modifier
+            .width(200.dp)
+            .fillMaxHeight()
+            .background(MaterialTheme.colorScheme.surface)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxHeight()
+                .verticalScroll(scrollState)
+                .padding(end = 4.dp)
+        ) {
+            categories.forEach { category ->
+                val isSelected = category == visibleCategory
+                Text(
+                    text = category,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = if (isSelected) Color.White else Color.Black,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp, horizontal = 12.dp)
+                        .background(
+                            if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .clickable {
+                            categoryIndexMap[category]?.let { targetIndex ->
+                                coroutineScope.launch {
+                                    mainListState.scrollToItem(targetIndex)
+                                }
+                            }
+                        },
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+
+        // Optional: thin scroll indicator for overflow
+        if (scrollState.maxValue > 0) {
+            val proportion = scrollState.value.toFloat() / scrollState.maxValue.toFloat()
+            val thumbHeight = 40.dp
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(4.dp)
+                    .background(Color.Gray.copy(alpha = 0.2f))
+                    .align(Alignment.CenterEnd)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .width(4.dp)
+                        .height(thumbHeight)
+                        .background(Color.Gray)
+                        .align(Alignment.TopCenter)
+                        .offset(y = (proportion * (scrollState.maxValue.dp.value)).dp)
+                )
+            }
+        }
+    }
+}
+
+
+@Composable
+fun CartPopup(
+    cart: Map<String, Int>,
+    menuData: Map<String, List<Pair<String, Int>>>,
+    calculateTotal: () -> Int,
+    onPlaceOrder: () -> Unit,
+    onClearCart: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                "Your Cart",
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                color = MaterialTheme.colorScheme.primary
+            )
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                if (cart.isEmpty()) {
+                    Text(
+                        "Your cart is empty.",
+                        fontSize = 16.sp,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(vertical = 16.dp)
+                    )
+                } else {
+                    cart.forEach { (dish, count) ->
+                        val price = menuData.values.flatten()
+                            .firstOrNull { it.first == dish }?.second ?: 0
+                        val itemTotal = price * count
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(dish, fontWeight = FontWeight.Medium, fontSize = 16.sp)
+                                Text("x$count", color = Color.Gray, fontSize = 13.sp)
+                            }
+                            Text(
+                                "₹$itemTotal",
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 15.sp,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+
+                        Divider(thickness = 0.5.dp, color = Color(0xFFE0E0E0))
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "Total",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                        Text(
+                            "₹${calculateTotal()}",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onPlaceOrder,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                ),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text("Place Order", color = Color.White, fontWeight = FontWeight.SemiBold)
+            }
+        },
+        dismissButton = {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedButton(
+                    onClick = onClearCart,
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("Clear Cart")
+                }
+                OutlinedButton(
+                    onClick = onDismiss,
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("Cancel")
+                }
+            }
+        }
+    )
+}
+
+
 // ---- Menu Data ----
 fun getRestaurantMenuData(): Map<String, List<Pair<String, Int>>> {
     return mapOf(
