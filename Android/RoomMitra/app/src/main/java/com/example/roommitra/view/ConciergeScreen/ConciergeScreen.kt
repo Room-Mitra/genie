@@ -33,7 +33,7 @@ fun ConciergeScreen(onBackClick: () -> Unit) {
         ConciergeService(
             title = "Airport Pickup & Drop",
             description = "Enjoy hassle-free airport transfers with professional drivers in comfortable vehicles. Schedule pickup or drop-off according to your flight timings.",
-            imageUrl = "https://www.shutterstock.com/shutterstock/photos/2054417627/display_1500/stock-photo-handsome-young-man-with-suitcase-getting-in-taxi-on-city-street-2054417627.jpg",
+            imageUrl = "https://media.istockphoto.com/id/519870714/photo/taxi.jpg?s=612x612&w=0&k=20&c=mzlqm5eisvu-B7hCyOK3LAsR4ugFTsHtC2kMWUmbA0Y=",
             icon = Icons.Default.DirectionsCar,
             tags = listOf("Private Vehicle", "On-demand", "Comfort"),
             onRequest = { /* Handle request */ }
@@ -41,7 +41,7 @@ fun ConciergeScreen(onBackClick: () -> Unit) {
         ConciergeService(
             title = "Restaurant Reservations",
             description = "Book tables at the best local and fine-dining restaurants. Popular spots include 'La Piazza' (Italian), 'Sushi World' (Japanese), 'Spice Route' (Indian), and bars like 'Skyline Lounge' and 'The Golden Hour'. Enjoy priority reservations and chef’s specials recommendations.",
-            imageUrl = "https://media.gettyimages.com/id/1446478827/photo/a-chef-is-cooking-in-his-restaurants-kitchen.jpg?s=612x612&w=0&k=20&c=jwKJmGErrLe2XsTWNYEEyiNicudYVA4j8jvnTiJdp58=",
+            imageUrl = "https://qul.imgix.net/8b728bde-7b55-44de-b928-84f5ac23545f/534341_sld.jpg",
             icon = Icons.Default.Restaurant,
             tags = listOf("Italian", "Japanese", "Indian", "Rooftop Bar"),
             onRequest = { /* Handle request */ }
@@ -65,7 +65,7 @@ fun ConciergeScreen(onBackClick: () -> Unit) {
         ConciergeService(
             title = "Spa & Wellness Appointments",
             description = "Book spa treatments, wellness sessions, massages, and yoga classes. Full-body rejuvenation, aromatherapy, and personalized care for a completely relaxed stay.",
-            imageUrl = "https://as2.ftcdn.net/v2/jpg/01/87/29/35/1000_F_187293579_mPGjfd0YI3lAICz473ORPEPJ3rpFcPIE.jpg",
+            imageUrl = "https://media.istockphoto.com/id/1479350890/photo/relax-spa-and-zen-woman-with-candles-for-beauty-physical-therapy-or-skincare-female-client-on.jpg?s=612x612&w=0&k=20&c=ODbmBr1IW1F21YC8pMvzytNnhZopOTRfFgulk7ISOqg=",
             icon = Icons.Default.Spa,
             tags = listOf("Massage", "Yoga", "Aromatherapy", "Couple"),
             onRequest = { /* Handle request */ }

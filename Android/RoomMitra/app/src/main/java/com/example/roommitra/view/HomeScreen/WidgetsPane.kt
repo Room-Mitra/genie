@@ -1,5 +1,7 @@
 package com.example.roommitra.view
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -17,8 +19,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun WidgetsPane(
@@ -105,7 +115,7 @@ fun WidgetsPane(
         DealsCardSlideshow(
             deals = listOf(
                 Deal("Kayak in the Banasura Sagar Lake", "https://picsum.photos/600/300?2"),
-                Deal("Book your passes for the New Year Party @ Rs.3000/couple !", "https://media.istockphoto.com/id/501387734/photo/dancing-friends.jpg?s=1024x1024&w=is&k=20&c=qneEFMVnKvFkagvbMmZqYU1rLRweq9889MXbu6f8mO4=" ),
+                Deal("Book your passes for the New Year Party @ Rs.3000/couple !", "https://static.vecteezy.com/system/resources/thumbnails/038/361/246/small_2x/ai-generated-concert-crowd-raising-hands-in-unison-under-bright-stage-lights-free-photo.jpg" ),
                 Deal("Try Cocktails in our  Beach Bar", "https://picsum.photos/600/300?3")
             )
         )
@@ -195,3 +205,94 @@ data class WidgetCard(
     val icon: ImageVector,
     val onClick: () -> Unit
 )
+
+data class Deal(
+    val title: String,
+    val imageUrl: String
+)
+
+
+
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun DealsCardSlideshow(deals: List<Deal>) {
+    val pagerState = rememberPagerState(pageCount = { deals.size })
+    val scope = rememberCoroutineScope()
+
+    // Auto-scroll every 30s
+    LaunchedEffect(pagerState.currentPage) {
+        delay(30_000L) // 30 seconds
+        val nextPage = (pagerState.currentPage + 1) % deals.size
+        scope.launch {
+            pagerState.animateScrollToPage(nextPage)
+        }
+    }
+
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(250.dp)
+    ) {
+        Box {
+            // Single pager
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize()
+            ) { page ->
+                DealsCard(deals[page]) // render only one deal at a time
+            }
+
+            // Page indicator (dots)
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                repeat(pagerState.pageCount) { index ->
+                    val isSelected = pagerState.currentPage == index
+                    Box(
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .size(if (isSelected) 10.dp else 8.dp)
+                            .background(
+                                if (isSelected) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                shape = RoundedCornerShape(50)
+                            )
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DealsCard(deal: Deal) {
+    Box {
+        AsyncImage(
+            model = deal.imageUrl,
+            contentDescription = deal.title,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomStart)
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f))
+                .padding(14.dp)
+        ) {
+            Text(
+                deal.title,
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
+}
+
