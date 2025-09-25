@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -40,13 +41,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.example.roommitra.ConversationMessage
 import com.example.roommitra.MainActivity
 import com.example.roommitra.R
 import kotlinx.coroutines.delay
 import java.util.*
 
-enum class ListenState { Idle, Listening, Thinking, Speaking }
-data class ConversationMessage(val text: String, val isUser: Boolean)
+enum class ListenState { Idle, Listening, Thinking, Speaking, Muted }
+//data class ConversationMessage(val text: String, val isUser: Boolean)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,8 +59,10 @@ fun MicPane(
 ) {
     var listenState by remember { mutableStateOf(ListenState.Idle) }
     val ctx = LocalContext.current
-    val conversation = remember { mutableStateListOf<ConversationMessage>() }
+//    val conversation = remember { mutableStateListOf<ConversationMessage>() }
     val listState = rememberLazyListState()
+    val conversation = MainActivity.conversation
+
 
     val speechRecognizer = remember {
         if (SpeechRecognizer.isRecognitionAvailable(ctx)) {
@@ -111,7 +115,8 @@ fun MicPane(
 
     LaunchedEffect(pendingAutoListen, ttsPlaying, listenState) {
         if (pendingAutoListen && !ttsPlaying &&
-            listenState != ListenState.Listening && listenState != ListenState.Thinking
+            listenState != ListenState.Listening && listenState != ListenState.Thinking &&
+            listenState != ListenState.Muted
         ) {
             if (hasRecordPerm.value) {
                 listenState = ListenState.Listening
@@ -122,7 +127,7 @@ fun MicPane(
     }
 
     LaunchedEffect(ttsPlaying) {
-        if (ttsPlaying) {
+        if (ttsPlaying && listenState != ListenState.Muted) {
             listenState = ListenState.Speaking
         } else if (listenState == ListenState.Speaking) {
             listenState = ListenState.Idle
@@ -132,12 +137,8 @@ fun MicPane(
     // 🔹 Auto-clear conversation if no new message in 2 minutes
     LaunchedEffect(conversation.size) {
         if (conversation.isNotEmpty()) {
-            delay(2 * 60 * 1000L) // 2 minutes
-            if (conversation.isNotEmpty() &&
-                conversation.size == conversation.size // ensures no change during delay
-            ) {
-                conversation.clear()
-            }
+            delay(1 * 60 * 1000L) // 2 minutes
+            conversation.clear()
         }
     }
 
@@ -146,18 +147,27 @@ fun MicPane(
             ListenState.Listening -> MaterialTheme.colorScheme.primary
             ListenState.Thinking -> MaterialTheme.colorScheme.tertiary
             ListenState.Speaking -> MaterialTheme.colorScheme.secondary
+            ListenState.Muted -> Color.Gray
             else -> MaterialTheme.colorScheme.outline
         }
     )
 
-    val pulseScale by rememberInfiniteTransition().animateFloat(
-        initialValue = 1f,
-        targetValue = if (listenState == ListenState.Listening) 1.15f else 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(900, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        )
-    )
+    val pulseScale: Float = when (listenState) {
+        ListenState.Listening -> {
+            val transition = rememberInfiniteTransition(label = "pulse")
+            transition.animateFloat(
+                initialValue = 1f,
+                targetValue = 1.15f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(900, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "pulseAnim"
+            ).value
+        }
+        else -> 1f
+    }
+
 
     Box(
         modifier = modifier
@@ -169,7 +179,7 @@ fun MicPane(
             )
             .padding(16.dp)
     ) {
-        val suggestionsVisible = true // Always true since SuggestionSlideshow is always displayed
+        val suggestionsVisible = true
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -191,6 +201,7 @@ fun MicPane(
                     ListenState.Listening -> "Listening..."
                     ListenState.Thinking -> "Thinking..."
                     ListenState.Speaking -> "Speaking..."
+                    ListenState.Muted -> "Muted"
                 },
                 style = MaterialTheme.typography.titleMedium.copy(
                     color = Color.White,
@@ -201,20 +212,55 @@ fun MicPane(
             Spacer(Modifier.height(20.dp))
 
             // Mic Control
-            Box(modifier = Modifier.fillMaxHeight(0.5f), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.fillMaxHeight(0.4f), contentAlignment = Alignment.Center) {
                 MicControl(
                     listenState = listenState,
                     micColor = micColor,
-                    pulseScale = pulseScale * 2f, // bigger mic
+                    pulseScale = pulseScale * 2f,
                     hasRecordPerm = hasRecordPerm.value,
                     onRequestPermission = { requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO) },
                     onStartListening = { startListening(ctx, speechRecognizer) },
                     onStopListening = { speechRecognizer?.stopListening() },
-                    onUpdateState = { listenState = it }
+                    onUpdateState = { newState ->
+                        if (newState == ListenState.Muted) {
+                            MainActivity.stopTtsImmediately()
+                            speechRecognizer?.stopListening()
+                        }
+                        listenState = newState
+                    }
                 )
             }
 
             Spacer(Modifier.height(12.dp))
+
+            // 🔹 Dedicated Mute/Unmute button
+            Button(
+                onClick = {
+                    if (listenState == ListenState.Muted) {
+                        listenState = ListenState.Idle
+                    } else {
+                        listenState = ListenState.Muted
+                        MainActivity.stopTtsImmediately()
+                        speechRecognizer?.stopListening()
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (listenState == ListenState.Muted) Color.Red else Color(0xFF141E30)
+                ),
+                shape = RoundedCornerShape(50),
+                modifier = Modifier.height(48.dp)
+            ) {
+                Icon(
+                    imageVector = if (listenState == ListenState.Muted) Icons.Default.MicOff else Icons.Default.Mic,
+                    contentDescription = "Mute/Unmute",
+                    tint = Color.White
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = if (listenState == ListenState.Muted) "Unmute" else "Mute",
+                    color = Color.White
+                )
+            }
 
             Spacer(Modifier.height(24.dp))
 
@@ -228,8 +274,6 @@ fun MicPane(
 
             Spacer(Modifier.weight(1f))
 
-            // Suggestions at the bottom
-            // Tip for guest
             Text(
                 text = "💡 Tip: Tap the mic icon and say a command",
                 color = Color.White.copy(alpha = 0.8f),
@@ -241,6 +285,163 @@ fun MicPane(
             Spacer(Modifier.height(32.dp))
         }
     }
+}
+
+@Composable
+private fun MicControl(
+    listenState: ListenState,
+    micColor: Color,
+    pulseScale: Float,
+    hasRecordPerm: Boolean,
+    onRequestPermission: () -> Unit,
+    onStartListening: () -> Unit,
+    onStopListening: () -> Unit,
+    onUpdateState: (ListenState) -> Unit
+) {
+    Box(contentAlignment = Alignment.Center) {
+        when (listenState) {
+            ListenState.Idle, ListenState.Listening -> {
+                MicButton(micColor, pulseScale) {
+                    if (!hasRecordPerm) {
+                        onRequestPermission()
+                        return@MicButton
+                    }
+                    when (listenState) {
+                        ListenState.Idle -> { onUpdateState(ListenState.Listening); onStartListening() }
+                        ListenState.Listening -> { onStopListening(); onUpdateState(ListenState.Idle) }
+                        else -> {}
+                    }
+                }
+            }
+            ListenState.Thinking -> ThinkingDots(micColor)
+            ListenState.Speaking -> SpeakingBars(micColor)
+            ListenState.Muted -> MicButton(micColor, 1f) {
+                // Just inform muted, no action
+            }
+        }
+    }
+}
+
+@Composable
+private fun MicButton(micColor: Color, pulseScale: Float, onMicClick: () -> Unit) {
+    Box(contentAlignment = Alignment.Center) {
+//        if (pulseScale > 1f) WaveAnimation(micColor)
+        if (pulseScale > 1f && micColor != MaterialTheme.colorScheme.outline) {
+            WaveAnimation(micColor)
+        }
+        Box(
+            modifier = Modifier
+                .size(100.dp)
+                .scale(pulseScale)
+                .background(Color.Transparent, CircleShape)
+                .border(4.dp, micColor.copy(alpha = 0.8f), CircleShape)
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }
+                ) { onMicClick() },
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = if (micColor == Color.Gray) Icons.Default.MicOff else Icons.Default.Mic,
+                contentDescription = "Mic",
+                tint = micColor,
+                modifier = Modifier.size(48.dp)
+            )
+        }
+    }
+}
+//
+//@Composable
+//private fun MicControl(
+//    listenState: ListenState,
+//    micColor: Color,
+//    pulseScale: Float,
+//    hasRecordPerm: Boolean,
+//    onRequestPermission: () -> Unit,
+//    onStartListening: () -> Unit,
+//    onStopListening: () -> Unit,
+//    onUpdateState: (ListenState) -> Unit
+//) {
+//    Box(contentAlignment = Alignment.Center) {
+//        when (listenState) {
+//            ListenState.Idle, ListenState.Listening -> {
+//                MicButton(micColor, pulseScale) {
+//                    if (!hasRecordPerm) {
+//                        onRequestPermission()
+//                        return@MicButton
+//                    }
+//                    when (listenState) {
+//                        ListenState.Idle -> { onUpdateState(ListenState.Listening); onStartListening() }
+//                        ListenState.Listening -> { onStopListening(); onUpdateState(ListenState.Idle) }
+//                        else -> {}
+//                    }
+//                }
+//            }
+//            ListenState.Thinking -> ThinkingDots(micColor)
+//            ListenState.Speaking -> SpeakingBars(micColor)
+//            ListenState.Muted -> MicButton(micColor, 1f) {
+//                // Unmute -> go back to Idle
+//                onUpdateState(ListenState.Idle)
+//            }
+//        }
+//    }
+//}
+
+//@Composable
+//private fun MicButton(micColor: Color, pulseScale: Float, onMicClick: () -> Unit) {
+//    Box(contentAlignment = Alignment.Center) {
+//        if (pulseScale > 1f) WaveAnimation(micColor)
+//        Box(
+//            modifier = Modifier
+//                .size(100.dp)
+//                .scale(pulseScale)
+//                .background(Color.Transparent, CircleShape)
+//                .border(4.dp, micColor.copy(alpha = 0.8f), CircleShape)
+//                .clickable(
+//                    indication = null,
+//                    interactionSource = remember { MutableInteractionSource() }
+//                ) { onMicClick() },
+//            contentAlignment = Alignment.Center
+//        ) {
+//            Icon(
+//                imageVector = if (micColor == Color.Gray) Icons.Default.MicOff else Icons.Default.Mic,
+//                contentDescription = "Mic",
+//                tint = micColor,
+//                modifier = Modifier.size(48.dp)
+//            )
+//        }
+//    }
+//}
+
+
+@Composable
+private fun WaveAnimation(color: Color) {
+    val transition = rememberInfiniteTransition(label = "wave")
+    val scale by transition.animateFloat(
+        initialValue = 1f,
+        targetValue = 2.5f,
+        animationSpec = infiniteRepeatable(
+            tween(1500, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "scale"
+    )
+    val alpha by transition.animateFloat(
+        initialValue = 0.4f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(
+            tween(1500, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "alpha"
+    )
+
+    Box(
+        modifier = Modifier
+            .size(120.dp)
+            .scale(scale)
+            .background(color.copy(alpha = alpha), CircleShape)
+    )
 }
 
 @Composable
@@ -297,45 +498,6 @@ private fun SuggestionSlideshow() {
         }
     }
 }
-
-@Composable
-private fun MicControl(
-    listenState: ListenState,
-    micColor: Color,
-    pulseScale: Float,
-    hasRecordPerm: Boolean,
-    onRequestPermission: () -> Unit,
-    onStartListening: () -> Unit,
-    onStopListening: () -> Unit,
-    onUpdateState: (ListenState) -> Unit
-) {
-    Box(contentAlignment = Alignment.Center) {
-        when (listenState) {
-            ListenState.Idle, ListenState.Listening -> {
-                MicButton(micColor, pulseScale) {
-                    if (!hasRecordPerm) {
-                        onRequestPermission()
-                        return@MicButton
-                    }
-                    when (listenState) {
-                        ListenState.Idle -> {
-                            onUpdateState(ListenState.Listening)
-                            onStartListening()
-                        }
-                        ListenState.Listening -> {
-                            onStopListening()
-                            onUpdateState(ListenState.Idle)
-                        }
-                        else -> {}
-                    }
-                }
-            }
-            ListenState.Thinking -> ThinkingDots(micColor)
-            ListenState.Speaking -> SpeakingBars(micColor)
-        }
-    }
-}
-
 @Composable
 private fun ConversationList(
     conversation: List<ConversationMessage>,
@@ -348,109 +510,71 @@ private fun ConversationList(
             .fillMaxHeight()
             .padding(12.dp)
             .background(
-                Color.White.copy(alpha = 0.08f),
+                Color.White.copy(alpha = 0.05f),
                 RoundedCornerShape(20.dp)
             )
             .border(
                 1.dp,
-                Color.White.copy(alpha = 0.15f),
+                Color.White.copy(alpha = 0.12f),
                 RoundedCornerShape(20.dp)
             )
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(conversation) { message ->
+
             val alignment = if (message.isUser) Alignment.CenterEnd else Alignment.CenterStart
+
+            // Bubble gradients
             val bubbleColors = if (message.isUser) {
                 Brush.horizontalGradient(
-                    listOf(Color(0xFF00C6FF), Color(0xFF0072FF))
+                    listOf(Color(0xFF141E30), Color(0xFF243B55))
                 )
             } else {
                 Brush.horizontalGradient(
-                    listOf(Color(0xFFEDE574), Color(0xFFE1F5C4))
+                    listOf(Color(0xFF243B55), Color(0xFF141E30))
                 )
             }
 
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = alignment
+            // Animate appearance
+            AnimatedVisibility(
+                visible = true,
+                enter = androidx.compose.animation.fadeIn(
+                    animationSpec = tween(400)
+                ) + androidx.compose.animation.expandHorizontally(),
+                exit = androidx.compose.animation.fadeOut()
             ) {
-                Text(
-                    text = message.text,
-                    color = if (message.isUser) Color.White else Color.Black,
-                    modifier = Modifier
-                        .shadow(6.dp, RoundedCornerShape(16.dp))
-                        .background(bubbleColors, RoundedCornerShape(16.dp))
-                        .padding(horizontal = 16.dp, vertical = 12.dp)
-                        .widthIn(max = 280.dp),
-                    fontSize = 16.sp,
-                    textAlign = if (message.isUser) TextAlign.End else TextAlign.Start
-                )
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = alignment
+                ) {
+                    Text(
+                        text = message.text,
+                        color = if (message.isUser) Color.Gray else MaterialTheme.colorScheme.surface,
+//                        color = if (message.isUser) Color.Gray else Color(0xFFFAFAFA),
+                        modifier = Modifier
+                            .shadow(8.dp, RoundedCornerShape(18.dp))
+                            .background(bubbleColors, RoundedCornerShape(18.dp))
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                            .widthIn(max = 280.dp),
+                        fontSize = 16.sp,
+                        lineHeight = 20.sp,
+                        textAlign = if (message.isUser) TextAlign.End else TextAlign.Start
+                    )
+                }
             }
         }
     }
 
+    // Auto-scroll to the latest message
     LaunchedEffect(conversation.size) {
-        if (conversation.isNotEmpty()) listState.animateScrollToItem(conversation.size - 1)
-    }
-}
-
-@Composable
-private fun MicButton(micColor: Color, pulseScale: Float, onMicClick: () -> Unit) {
-    Box(contentAlignment = Alignment.Center) {
-        WaveAnimation(micColor)
-
-        Box(
-            modifier = Modifier
-                .size(100.dp)
-                .scale(pulseScale)
-                .background(Color.Transparent, CircleShape)
-                .border(4.dp, micColor.copy(alpha = 0.8f), CircleShape)
-                .clickable(
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }
-                ) { onMicClick() },
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.Mic,
-                contentDescription = "Mic",
-                tint = micColor,
-                modifier = Modifier.size(48.dp)
-            )
+        if (conversation.isNotEmpty()) {
+            listState.animateScrollToItem(conversation.size - 1)
         }
     }
 }
 
-@Composable
-private fun WaveAnimation(color: Color) {
-    val transition = rememberInfiniteTransition(label = "wave")
-    val scale by transition.animateFloat(
-        initialValue = 1f,
-        targetValue = 2.5f,
-        animationSpec = infiniteRepeatable(
-            tween(1500, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "scale"
-    )
-    val alpha by transition.animateFloat(
-        initialValue = 0.4f,
-        targetValue = 0f,
-        animationSpec = infiniteRepeatable(
-            tween(1500, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "alpha"
-    )
 
-    Box(
-        modifier = Modifier
-            .size(120.dp)
-            .scale(scale)
-            .background(color.copy(alpha = alpha), CircleShape)
-    )
-}
 
 @Composable
 private fun ThinkingDots(micColor: Color) {

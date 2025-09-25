@@ -51,7 +51,7 @@ fun WidgetsPane(
 //            WidgetCard("News", "Read / listen / see news") { },
 //            WidgetCard("Select language", "Call Ambulance, Fire Services etc") { },
 //            WidgetCard("Notifications", "check notifications from hotel") { },
-//            WidgetCard("smart devices", "turn on lights, see who is at the door") { },
+            WidgetCard("Smart Devices", Icons.Default.Lightbulb) { },
 //            WidgetCard("Hotel Maps", "Call Ambulance, Fire Services etc") { },
 
         )
@@ -116,7 +116,7 @@ fun WidgetsPane(
             deals = listOf(
                 Deal("Kayak in the Banasura Sagar Lake", "https://picsum.photos/600/300?2"),
                 Deal("Book your passes for the New Year Party @ Rs.3000/couple !", "https://static.vecteezy.com/system/resources/thumbnails/038/361/246/small_2x/ai-generated-concert-crowd-raising-hands-in-unison-under-bright-stage-lights-free-photo.jpg" ),
-                Deal("Try Cocktails in our  Beach Bar", "https://picsum.photos/600/300?3")
+                Deal("Get VIP Dussehra Passes!", "https://www.vtiger.com/blog/wp-content/uploads/2022/10/Dasara-Feature-image-3-1.png")
             )
         )
 
@@ -134,7 +134,7 @@ fun OrderStatusCard(orders: List<Order>) {
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(
-                text = "Your Orders",
+                text = "Your Requests",
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(bottom = 8.dp)
             )

@@ -32,7 +32,7 @@ fun HouseKeepingScreen(onBackClick: () -> Unit) {
     val roomCleaning = listOf(
         "Change Towels" to Icons.Default.LocalLaundryService,
         "Room Cleaning" to Icons.Default.CleaningServices,
-        "Clean Toilet" to Icons.Default.Bathroom,
+        "Clean Bathroom" to Icons.Default.Bathroom,
         "Room Freshener" to Icons.Default.Spa,
     )
 
@@ -139,7 +139,7 @@ fun HouseKeepingScreen(onBackClick: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(32.dp),
                 modifier = Modifier.weight(1f)
             ) {
-                PremiumSectionCard("🍴 Food & Refreshments") {
+                PremiumSectionCard("🍴 Refreshments") {
                     SectionGrid(foodRefreshments) { option ->
                         selectedRequest = option
                         showDialog = true
@@ -183,7 +183,7 @@ fun PremiumSectionCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(1.dp),
+            .padding(2.dp),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)

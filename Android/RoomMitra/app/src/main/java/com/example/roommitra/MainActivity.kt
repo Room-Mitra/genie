@@ -46,6 +46,15 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
 
     companion object {
         val isTtsPlaying = mutableStateOf(false)
+        private var ttsInstance: TextToSpeech? = null
+        // 🔹 shared conversation state
+        val conversation = mutableStateListOf<ConversationMessage>()
+        fun stopTtsImmediately() {
+            ttsInstance?.let {
+                it.stop()                       // stop any ongoing speech
+                isTtsPlaying.value = false      // update the state
+            }
+        }
     }
 
     private var screenDimService: ScreenDimService? = null
@@ -150,9 +159,12 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
 
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
+            ttsInstance = tts
+            tts.voices.forEach { voice -> if(voice.name.contains("en-in", ignoreCase = true))Log.d("TTS","${voice.name}") }
             val selectedVoice = tts.voices?.find {
                 it.name.contains("en-in", ignoreCase = true) &&
-                        it.name.contains("en-in-x-ena-local", ignoreCase = true)
+                        it.name.contains("en-in-x-end-network", ignoreCase = true)
+//                it.name.contains("en-in-x-ena-local", ignoreCase = true)
             }
             if (selectedVoice != null) tts.voice = selectedVoice
             else tts.language = Locale("en", "IN")
@@ -210,7 +222,10 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                     val speech = jsonResp.optString("speech", "")
                     val isSessionOpen = jsonResp.optBoolean("isSessionOpen", false)
 
-                    if (speech.isNotEmpty()) safeSpeak(speech)
+                    if (speech.isNotEmpty()){
+                        MainActivity.conversation.add(ConversationMessage(speech, false))
+                        safeSpeak(speech)
+                    }
 
                     if (isSessionOpen) {
                         autoListenTrigger.value = System.currentTimeMillis()
