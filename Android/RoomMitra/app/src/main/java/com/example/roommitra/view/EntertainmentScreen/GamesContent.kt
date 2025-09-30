@@ -15,72 +15,128 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.VideogameAsset
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
 
-
-data class GameItem(val name: String, val assetPath: String, val isLocal: Boolean = true)
+data class GameItem(
+    val name: String,
+    val assetPath: String,
+    val isLocal: Boolean = true,
+    val imageUrl: String
+)
 
 @Composable
 fun GamesContent() {
     val games = listOf(
-        GameItem("Tower Builder", "https://iamkun.github.io/tower_game/", false),
-        GameItem("Connect 4", "https://kenrick95.github.io/c4/", false),
-        GameItem("2048", "games/2048/index.html"),
-        GameItem("Clumsy Bird", "games/clumsybird/index.html"),
-        GameItem("Pacman", "games/pacman/index.htm"),
-        GameItem("Simon Says", "https://weslley.co/react-simon-says/", false)
+        GameItem(
+            "Tower Building",
+            "https://iamkun.github.io/tower_game/",
+            false,
+            "https://riseuplabs.com/wp-content/uploads/2021/03/promotional-banner-tower-building-game-riseup-labs-gaming-platform.jpg"
+        ),
+        GameItem(
+            "Connect 4",
+            "https://kenrick95.github.io/c4/",
+            false,
+            "https://toybook.com/wp-content/uploads/sites/4/2024/02/EASTPOINT-SPORTS_GIANT-SIZED-CONNECT-4_TI_2024.webp"
+        ),
+        GameItem(
+            "Tic Tac Toe",
+            "https://marcft.github.io/tic-tac-toe/",
+            false,
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRCVGxn911Cx4EkYY0wv78qLfOBS6ftWRKf52MiN9ssipwVaknn0kFcHQ3MngoYB2SNi14&usqp=CAU"
+        ),
+        GameItem(
+            "2048",
+            "games/2048/index.html",
+            true,
+            "https://img.poki-cdn.com/cdn-cgi/image/q=78,scq=50,width=204,height=204,fit=cover,f=auto/cb8c967c-4a78-4ffa-8506-cbac69746f4f/2048.png"
+        ),
+        GameItem(
+            "Clumsy Bird",
+            "games/clumsybird/index.html",
+            true,
+            "https://i.imgur.com/Slbvt65.png"
+        ),
+        GameItem(
+            "Pong",
+            "games/pong/pong/index.html",
+            true,
+            "https://freepong.org/images/pong-game-card.png"
+        )
     )
 
     var selectedGame by remember { mutableStateOf<GameItem?>(null) }
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(4),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.fillMaxSize()
+        verticalArrangement = Arrangement.spacedBy(20.dp),
+        horizontalArrangement = Arrangement.spacedBy(20.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(12.dp)
     ) {
         items(games) { game ->
             Card(
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(1f) // square card
+                    .aspectRatio(1f)
                     .clickable { selectedGame = game }
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        Icons.Filled.VideogameAsset,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(40.dp)
+                Box(modifier = Modifier.fillMaxSize()) {
+                    AsyncImage(
+                        model = game.imageUrl,
+                        contentDescription = game.name,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
                     )
-                    Spacer(Modifier.height(12.dp))
+
+                    // Gradient overlay at bottom
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .height(70.dp)
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Transparent,
+                                        Color.Black.copy(alpha = 0.8f)
+                                    )
+                                )
+                            )
+                    )
+
+                    // Bigger Game title
                     Text(
-                        game.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        text = game.name,
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp,
+                            fontSize = 22.sp
+                        ),
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(12.dp)
                     )
                 }
             }
         }
     }
 
-    // Fullscreen WebView Dialog (same behavior as before)
     if (selectedGame != null) {
         Dialog(
             onDismissRequest = { selectedGame = null },
@@ -97,7 +153,6 @@ fun GamesContent() {
                         .background(MaterialTheme.colorScheme.background)
                 ) {
                     Column(Modifier.fillMaxSize()) {
-                        // Header with close button
                         Row(
                             Modifier
                                 .fillMaxWidth()
@@ -108,17 +163,16 @@ fun GamesContent() {
                             Text(
                                 selectedGame!!.name,
                                 Modifier.weight(1f),
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.titleLarge
                             )
                             IconButton(
                                 onClick = { selectedGame = null },
-                                modifier = Modifier.size(36.dp)
+                                modifier = Modifier.size(40.dp)
                             ) {
                                 Icon(Icons.Filled.Close, contentDescription = "Close")
                             }
                         }
 
-                        // WebView loading local asset or remote URL depending on GameItem.isLocal
                         var webView: WebView? by remember { mutableStateOf(null) }
                         AndroidView(
                             factory = { context ->
