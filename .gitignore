@@ -5,7 +5,7 @@ Lambda/*.DS_Store
 **/*.DS_Store
 Lambda/.env
 EC2/node_modules/
-EC2/.env
+EC2/.env*
 EC2/config/*.pem
 webapp/node_modules/
 
