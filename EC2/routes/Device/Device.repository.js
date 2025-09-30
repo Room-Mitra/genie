@@ -19,6 +19,7 @@ export const registerNewDevice = async (device) => {
   };
 
   await DDB.put(params).promise(); // TODO :: Handle Error
+  console.info('Device Registered :: ', params);
   return params.Item;
 };
 

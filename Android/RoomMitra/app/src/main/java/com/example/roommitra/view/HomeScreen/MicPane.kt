@@ -41,6 +41,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.navigation.NavHostController
 import com.example.roommitra.ConversationMessage
 import com.example.roommitra.MainActivity
 import com.example.roommitra.R
@@ -55,8 +56,16 @@ enum class ListenState { Idle, Listening, Thinking, Speaking, Muted }
 fun MicPane(
     modifier: Modifier = Modifier,
     onFinalUtterance: (String) -> Unit,
-    autoListenTrigger: State<Long>
+    autoListenTrigger: State<Long>,
+    navController: NavHostController
 ) {
+    //login redirection
+    val logoClickCount = remember { mutableStateOf(0) }
+    val lastLogoClickTime = remember { mutableStateOf(0L) }
+    val clickResetWindowMs = 1200L     // reset if > 1200ms between taps (adjustable)
+
+
+
     var listenState by remember { mutableStateOf(ListenState.Idle) }
     val ctx = LocalContext.current
 //    val conversation = remember { mutableStateListOf<ConversationMessage>() }
@@ -191,7 +200,26 @@ fun MicPane(
                 contentDescription = "Room Mitra Logo",
                 modifier = Modifier
                     .height(64.dp)
-                    .padding(top = 12.dp),
+                    .padding(top = 12.dp)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {
+                        val now = System.currentTimeMillis()
+                        if (now - lastLogoClickTime.value > clickResetWindowMs) {
+                            // too slow -> start fresh
+                            logoClickCount.value = 1
+                        } else {
+                            logoClickCount.value += 1
+                        }
+                        lastLogoClickTime.value = now
+
+                        if (logoClickCount.value >= 5) {
+                            // secret triggered
+                            logoClickCount.value = 0
+                            navController.navigate("login")
+                        }
+                    },
                 contentScale = ContentScale.Fit
             )
             Spacer(Modifier.height(8.dp))

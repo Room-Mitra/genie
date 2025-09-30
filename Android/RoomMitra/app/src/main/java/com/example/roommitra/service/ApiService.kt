@@ -29,11 +29,16 @@ class ApiService(private val context: Context) {
 
     // Example: default headers
     private val defaultHeaders: Map<String, String>
-        get() = mapOf(
-            "authorization" to "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaG90ZWxJZCI6IlJvb20gR2VuaWUiLCJpYXQiOjE3NTYyNzEzMDEsImV4cCI6MTc1NzEzNTMwMX0.k1G6tUeL_Q_mDND5Vsa657HqGKXJEQEvbWb0o--dPMI",
-            "Content-Type" to "application/json",
-            "X-Device-ID" to deviceId
-        )
+        get() {
+            val token = SessionManager(context).getAuthToken()
+            return mapOf(
+                "Content-Type" to "application/json",
+                "x-device-id" to deviceId
+            ) + if (!token.isNullOrBlank()) {
+                mapOf("authorization" to "Bearer $token")
+            } else emptyMap()
+        }
+
 
     // GET request
     suspend fun get(endpoint: String, headers: Map<String, String> = emptyMap()): ApiResult =

@@ -22,7 +22,8 @@ fun HomeScreen(
                     .weight(1f)
                     .fillMaxHeight(),
                 onFinalUtterance = onFinalUtterance,
-                autoListenTrigger = autoListenTrigger
+                autoListenTrigger = autoListenTrigger,
+                navController = navController
             )
             WidgetsPane(
                 modifier = Modifier
@@ -38,7 +39,8 @@ fun HomeScreen(
                     .weight(1f)
                     .fillMaxWidth(),
                 onFinalUtterance = onFinalUtterance,
-                autoListenTrigger = autoListenTrigger
+                autoListenTrigger = autoListenTrigger,
+                navController = navController
             )
             WidgetsPane(
                 modifier = Modifier

@@ -11,8 +11,9 @@ import {
 } from './Device.repository.js';
 
 export const registerDevice = async (deviceDetails) => {
+  // const { deviceId } = deviceDetails;
   addDeviceToCache(deviceDetails);
-  addDeviceToDB(deviceDetails);
+  await addDeviceToDB(deviceDetails);
 };
 
 export const getAllDevices = (hotelId) => {

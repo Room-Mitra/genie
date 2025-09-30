@@ -37,6 +37,7 @@ import kotlinx.coroutines.launch
 import android.provider.Settings
 import com.example.roommitra.service.ApiResult
 import com.example.roommitra.view.ConciergeScreen
+import com.example.roommitra.view.LoginScreen
 
 class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
 
@@ -132,6 +133,12 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                             }
                             composable("concierge") {
                                 ConciergeScreen(onBackClick = { navController.popBackStack() })
+                            }
+                            composable("login") {
+                                LoginScreen(
+                                    onBackClick = { navController.popBackStack() },
+                                    apiService
+                                )
                             }
                         }
                     }
