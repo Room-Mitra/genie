@@ -1,18 +1,25 @@
 package com.example.roommitra.service
 
+import android.content.Context
+import android.provider.Settings
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.IOException
-import android.provider.Settings
-import android.content.Context
+
+sealed class ApiResult {
+    data class Success(val data: JSONObject?) : ApiResult()
+    data class Error(val code: Int, val message: String? = null) : ApiResult()
+}
 class ApiService(private val context: Context) {
     companion object {
-        private const val BASE_URL = "http://192.168.29.120:3000"
+        private const val BASE_URL = "http://192.168.29.120:3000/android"
+//        private const val BASE_URL = "https://roommitra.com/api/android"
     }
     // Get device ID dynamically
     private val deviceId: String
@@ -29,19 +36,19 @@ class ApiService(private val context: Context) {
         )
 
     // GET request
-    suspend fun get(endpoint: String, headers: Map<String, String> = emptyMap()): JSONObject? =
+    suspend fun get(endpoint: String, headers: Map<String, String> = emptyMap()): ApiResult =
         request("GET", endpoint, null, headers)
 
     // POST request
-    suspend fun post(endpoint: String, body: JSONObject, headers: Map<String, String> = emptyMap()): JSONObject? =
+    suspend fun post(endpoint: String, body: JSONObject, headers: Map<String, String> = emptyMap()): ApiResult =
         request("POST", endpoint, body, headers)
 
     // PUT request
-    suspend fun put(endpoint: String, body: JSONObject, headers: Map<String, String> = emptyMap()): JSONObject? =
+    suspend fun put(endpoint: String, body: JSONObject, headers: Map<String, String> = emptyMap()): ApiResult =
         request("PUT", endpoint, body, headers)
 
     // DELETE request
-    suspend fun delete(endpoint: String, headers: Map<String, String> = emptyMap()): JSONObject? =
+    suspend fun delete(endpoint: String, headers: Map<String, String> = emptyMap()): ApiResult =
         request("DELETE", endpoint, null, headers)
 
     private suspend fun request(
@@ -49,18 +56,19 @@ class ApiService(private val context: Context) {
         endpoint: String,
         body: JSONObject? = null,
         headers: Map<String, String>
-    ): JSONObject? = withContext(Dispatchers.IO) {
+    ): ApiResult = withContext(Dispatchers.IO) {
         try {
             val requestBuilder = Request.Builder()
                 .url("$BASE_URL/$endpoint")
 
-            // Merge default headers + call-specific headers
+            // Merge default + custom headers
             (defaultHeaders + headers).forEach { (key, value) ->
                 requestBuilder.addHeader(key, value)
             }
 
             if (body != null) {
-                val requestBody = body.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+                val requestBody = body.toString()
+                    .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
                 requestBuilder.method(method, requestBody)
             } else {
                 requestBuilder.method(method, null)
@@ -68,11 +76,16 @@ class ApiService(private val context: Context) {
 
             val response = client.newCall(requestBuilder.build()).execute()
             val respBody = response.body?.string()
-            Log.d("ApiService", "$method $endpoint → $respBody")
-            return@withContext if (!respBody.isNullOrEmpty()) JSONObject(respBody) else null
+
+            return@withContext if (response.isSuccessful) {
+                ApiResult.Success(if (!respBody.isNullOrEmpty()) JSONObject(respBody) else null)
+            } else {
+                Log.w("ApiService", "Error ${response.code}: $respBody")
+                ApiResult.Error(response.code, respBody)
+            }
         } catch (e: IOException) {
-            Log.e("ApiService", "Error during $method $endpoint", e)
-            return@withContext null
+            Log.e("ApiService", "Network error during $method $endpoint", e)
+            return@withContext ApiResult.Error(-1, e.message)
         }
     }
 }

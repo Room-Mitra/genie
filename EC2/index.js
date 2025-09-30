@@ -8,6 +8,8 @@ import cors from 'cors';
 import express from 'express';
 import bodyParser from 'body-parser';
 import path from 'path';
+import swaggerUi from 'swagger-ui-express';
+import swaggerJsdoc from 'swagger-jsdoc';
 
 // routes
 import deviceRoutes from './routes/Device/Device.controller.js';
@@ -37,8 +39,7 @@ const PORT = 3000;
 app.use(bodyParser.json());
 app.use(cors());
 
-// Middleware to Authenticate JWT
-
+// UI routes
 app.use('/devices', authenticator, deviceRoutes);
 app.use('/intents', authenticator, intentsRoutes);
 app.use('/guests', authenticator, guestRoutes);
@@ -46,26 +47,50 @@ app.use('/booking', authenticator, bookingRoutes);
 app.use('/staff', authenticator, staffRoutes);
 app.use('/mapping', authenticator, mappingRoutes);
 app.use('/faq', authenticator, faqRoutes);
-app.use('/utterance', authenticator, utteranceRoutes);
+// app.use('/utterance', utteranceRoutes);
 
+// Android Routes
+app.use('/android/utterance', authenticator, utteranceRoutes);
+
+
+
+// routes which dont need auth
 app.use('/login', loginRoutes);
 app.use('/leads', landingPageRoutes);
 
 // Serve static landing page
 app.use(express.static(path.join(__dirname, 'public')));
-
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/LandingPage/landing.html'));
 });
-
 app.get('/commands', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/Commands/Commands.html'));
 });
-
 app.get('/commands', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/Commands/Commands.html'));
 })
 
 app.listen(PORT, () => console.log(`Server running on port: http://localhost:${PORT}`));
 
+
+// run functions on server startup
 runFunctionsOnServerStartup();
+
+// swagger setup
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Room Mitra API',
+      version: '1.0.0',
+      description: 'API documentation for Room Mitra (Android + UI)',
+    },
+    servers: [
+      { url: `Android`, description: 'Android APIs' },
+      { url: `UI`, description: 'UI APIs' },
+    ],
+  },
+  apis: ['./routes/**/*.js'], // Path to your route files
+};
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

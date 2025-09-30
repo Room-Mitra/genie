@@ -35,6 +35,7 @@ import com.example.roommitra.service.ApiService
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import android.provider.Settings
+import com.example.roommitra.service.ApiResult
 import com.example.roommitra.view.ConciergeScreen
 
 class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
@@ -137,7 +138,6 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                 }
             }
         }
-//        resetDimTimer()
     }
 
     private fun hideSystemUI() {
@@ -213,30 +213,38 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                 val payload = JSONObject().apply {
                     put("userQuery", userQuery)
                     put("sessionId", sessionId)
-//                    put("deviceId", deviceId)
                 }
 
-                val jsonResp = apiService.post("utterance", payload)
+                when (val result = apiService.post("utterance", payload)) {
+                    is ApiResult.Success -> {
+                        val jsonResp = result.data
+                        Log.d("API_CALL", "Response: $jsonResp")
 
-                if (jsonResp != null) {
-                    val speech = jsonResp.optString("speech", "")
-                    val isSessionOpen = jsonResp.optBoolean("isSessionOpen", false)
+                        if (jsonResp != null) {
+                            val speech = jsonResp.optString("speech", "")
+                            val isSessionOpen = jsonResp.optBoolean("isSessionOpen", false)
 
-                    if (speech.isNotEmpty()){
-                        MainActivity.conversation.add(ConversationMessage(speech, false))
-                        safeSpeak(speech)
+                            if (speech.isNotEmpty()) {
+                                MainActivity.conversation.add(ConversationMessage(speech, false))
+                                safeSpeak(speech)
+                            }
+
+                            if (isSessionOpen) {
+                                autoListenTrigger.value = System.currentTimeMillis()
+                            } else {
+                                sessionId = UUID.randomUUID().toString()
+                            }
+                        } else {
+                            safeSpeak("No response from server.")
+                        }
                     }
+                    is ApiResult.Error -> {
+                        Log.e("API_CALL", "Error ${result.code}: ${result.message}")
+                        safeSpeak("Something went wrong. Please try later")
 
-                    if (isSessionOpen) {
-                        autoListenTrigger.value = System.currentTimeMillis()
-                    } else {
-                        sessionId = UUID.randomUUID().toString()
                     }
-                } else {
-                    // API call failed or returned null
-                    safeSpeak("Something went wrong. Please try later")
                 }
-            } catch (e: Exception) {  // <-- catch inside coroutine
+            } catch (e: Exception) {
                 Log.e("API_CALL", "Error sending utterance: ${e.message}")
                 safeSpeak("Something went wrong. Please try later")
             }
