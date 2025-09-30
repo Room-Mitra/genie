@@ -43,25 +43,25 @@ fun WidgetsPane(
             WidgetCard("Housekeeping", Icons.Default.CleaningServices) { navController.navigate("housekeeping") },
             WidgetCard("Concierge", Icons.Default.DirectionsCar) {  navController.navigate("concierge")},
 //            WidgetCard("Your Requests", Icons.Default.ListAlt) { },
-            WidgetCard("Reception", Icons.Default.Call) { },
-            WidgetCard("My Notifications", Icons.Default.Notifications) { },
+//            WidgetCard("Reception", Icons.Default.Call) { },
+//            WidgetCard("My Notifications", Icons.Default.Notifications) { },
             //            WidgetCard("Emergency", "Call Ambulance, Fire Services etc") { },
 //            WidgetCard("Deals", "Show offers in exchange for reviews") { },
 //            WidgetCard("DND", "Stop listening, dont play sounds, dim display to 0%") { },
 //            WidgetCard("News", "Read / listen / see news") { },
 //            WidgetCard("Select language", "Call Ambulance, Fire Services etc") { },
 //            WidgetCard("Notifications", "check notifications from hotel") { },
-            WidgetCard("Smart Devices", Icons.Default.Lightbulb) { },
+//            WidgetCard("Smart Devices", Icons.Default.Lightbulb) { },
 //            WidgetCard("Hotel Maps", "Call Ambulance, Fire Services etc") { },
 
         )
     }
 
-    Column(modifier = modifier.padding(16.dp)) {
+    Column(modifier = modifier.padding(10.dp)) {
 
         LazyVerticalGrid(
-            columns = GridCells.Fixed(4), // smaller widgets, more per row
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            columns = GridCells.Fixed(5), // smaller widgets, more per row
+            verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.weight(1f, fill = false)
         ) {
@@ -235,7 +235,7 @@ fun DealsCardSlideshow(deals: List<Deal>) {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         modifier = Modifier
             .fillMaxWidth()
-            .height(250.dp)
+            .height(450.dp)
     ) {
         Box {
             // Single pager
