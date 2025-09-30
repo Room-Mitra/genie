@@ -23,6 +23,10 @@ import intentsRoutes from './routes/Intents/Intent.controller.js';
 import loginRoutes from './routes/Login/Login.controller.js';
 import landingPageRoutes from './routes/LandingPage/leads.js';
 
+//Android Routes
+import androidLoginRoutes from './routes/Android/AndroidLogin.controller.js';
+
+
 import { runFunctionsOnServerStartup } from './common/services/startup.service.js';
 
 // Middlewares
@@ -56,6 +60,7 @@ app.use('/android/utterance', authenticator, utteranceRoutes);
 
 // routes which dont need auth
 app.use('/login', loginRoutes);
+app.use('/android/login', androidLoginRoutes);
 app.use('/leads', landingPageRoutes);
 
 // Serve static landing page
