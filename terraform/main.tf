@@ -104,7 +104,7 @@ resource "aws_instance" "web" {
   # If you really want SSH, flip create_key_pair=true and uncomment:
   # key_name = aws_key_pair.rm_key[0].key_name
 
-  user_data = templatefile("${path.module}/user_data.sh", {})
+  user_data                   = templatefile("${path.module}/user_data.sh", {})
   user_data_replace_on_change = true
 
 
