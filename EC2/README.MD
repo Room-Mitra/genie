@@ -41,3 +41,10 @@ secretAccessKey=local
 region=ap-south-1
 endpoint=http://localhost:8000
 ```
+
+
+## Certificate on the EC2
+Run this if EC2 instance was recreated 
+```sh
+sudo certbot --nginx -d roommitra.com -d api.roommitra.com -d app.roommitra.com --agree-tos -m chai@roommitra.com --redirect -n
+```
