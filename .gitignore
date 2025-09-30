@@ -53,3 +53,10 @@ AlexaSkill/RoomMitra/lambda/*.env
 
 mycroft-precise/data
 mycroft-precise/data2
+
+
+# Terraform
+terraform.tfstate
+terraform.tfstate.backup
+.terraform/
+.terraform.lock.hcl
