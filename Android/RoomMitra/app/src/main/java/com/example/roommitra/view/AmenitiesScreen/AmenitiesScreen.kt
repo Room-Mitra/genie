@@ -107,7 +107,7 @@ fun AmenitiesScreen(onBackClick: () -> Unit) {
                     title = selectedAmenity.title,
                     description = selectedAmenity.description,
                     imageUrl = selectedAmenity.imageUrl,
-                    onRegister = selectedAmenity.onRegister
+                    isRegistrationNeeded = selectedAmenity.isRegistrationNeeded
                 )
             }
         }

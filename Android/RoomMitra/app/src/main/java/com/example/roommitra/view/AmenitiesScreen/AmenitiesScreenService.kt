@@ -17,7 +17,7 @@ data class Amenity(
     val description: String,
     val imageUrl: String? = null,
     val icon: androidx.compose.ui.graphics.vector.ImageVector,
-    val onRegister: (() -> Unit)? = null
+    val isRegistrationNeeded: Boolean = false
 )
 
 object AmenitiesScreenService {
@@ -31,7 +31,7 @@ object AmenitiesScreenService {
                         "Perfect for families, fitness swimmers, or those simply seeking relaxation under the sun.",
                 imageUrl = "https://images.unsplash.com/photo-1575429198097-0414ec08e8cd?q=80&w=1170&auto=format&fit=crop",
                 icon = Icons.Default.Pool,
-                onRegister = null
+                isRegistrationNeeded = false
             ),
             Amenity(
                 title = "Spa & Wellness",
@@ -39,7 +39,7 @@ object AmenitiesScreenService {
                         "Our expert therapists curate treatments that harmonize body and mind. <Tertiary>Advance bookings</Tertiary> are recommended to secure your preferred time slot.",
                 imageUrl = "https://imgk.timesnownews.com/story/1537276571-massage.PNG?tr=w-1200,h-900",
                 icon = Icons.Default.Spa,
-                onRegister = { /* Handle spa registration */ }
+                isRegistrationNeeded = true
             ),
             Amenity(
                 title = "Guided Nature Walk",
@@ -48,7 +48,7 @@ object AmenitiesScreenService {
                         "An unforgettable experience for nature lovers and adventure seekers alike.",
                 imageUrl = "https://images.pexels.com/photos/289327/pexels-photo-289327.jpeg",
                 icon = Icons.Default.Terrain,
-                onRegister = { /* Handle walk registration */ }
+                isRegistrationNeeded = true
             ),
             Amenity(
                 title = "Fitness Center",
@@ -57,7 +57,7 @@ object AmenitiesScreenService {
                         "Personal trainers are available daily from <Primary>9 AM to 7 PM</Primary> to guide you.",
                 imageUrl = "https://t4.ftcdn.net/jpg/03/17/72/47/360_F_317724775_qHtWjnT8YbRdFNIuq5PWsSYypRhOmalS.jpg",
                 icon = Icons.Default.FitnessCenter,
-                onRegister = null
+//                onRegister = null
             ),
             Amenity(
                 title = "Rooftop Lounge",
@@ -66,7 +66,7 @@ object AmenitiesScreenService {
                         "The perfect setting for romantic evenings and stylish social gatherings.",
                 imageUrl = "https://www.fourseasons.com/alt/img-opt/~70.1530.0,0000-168,2955-3000,0000-1687,5000/publish/content/dam/fourseasons/images/web/MUM/MUM_396_original.jpg",
                 icon = Icons.Default.Celebration,
-                onRegister = null
+//                onRegister = null
             ),
             Amenity(
                 title = "Conference Room",
@@ -74,7 +74,7 @@ object AmenitiesScreenService {
                         "Featuring <Bold>high-speed internet</Bold>, AV equipment, and comfortable seating arrangements to ensure productive sessions.",
                 imageUrl = "https://media.istockphoto.com/id/1363104923/photo/diverse-modern-office-businessman-leads-business-meeting-with-managers-talks-uses.jpg?s=612x612&w=0&k=20&c=R6-SufHacJ6bCnviq37kik2Jl6RMdECybcUpEoRuMLs=",
                 icon = Icons.Default.MeetingRoom,
-                onRegister = null
+//                onRegister = null
             ),
             Amenity(
                 title = "Library & Reading Room",
@@ -82,7 +82,7 @@ object AmenitiesScreenService {
                         "Featuring a curated collection of <Bold>books</Bold>, comfortable seating, and quiet corners for uninterrupted reading and study.",
                 imageUrl = "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f",
                 icon = Icons.Default.MenuBook,
-                onRegister = null
+//                onRegister = null
             ),
             Amenity(
                 title = "Kids Play Area",
@@ -90,7 +90,7 @@ object AmenitiesScreenService {
                         "<Primary>Supervised activity sessions</Primary> ensure your little ones have fun while you relax.",
                 imageUrl = "https://images.unsplash.com/photo-1460788150444-d9dc07fa9dba?q=80&w=2070&auto=format&fit=crop",
                 icon = Icons.Default.ChildCare,
-                onRegister = null
+//                onRegister = null
             ),
             Amenity(
                 title = "Café & Bakery",
@@ -98,7 +98,7 @@ object AmenitiesScreenService {
                         "Perfect for breakfast, casual meetups, or an afternoon snack.",
                 imageUrl = "https://cdn.prod.website-files.com/60414b21f1ffcdbb0d5ad688/66181abf2dbc25ec0de5b763_nathan-dumlao-gOn7dKcCWKg-unsplash.jpg",
                 icon = Icons.Default.Coffee,
-                onRegister = null
+//                onRegister = null
             )
         )
     }
