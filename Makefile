@@ -8,11 +8,11 @@ setup-linter:
 clean:
 	# Clean up node_modules and lock files
 	rm -rf ./node_modules 
-	rm -rf ./EC2/node_modules ./EC2/dist
+	rm -rf ./api/node_modules ./api/dist
 
 
 create-dynamo-tables:
-	./EC2/scripts/create-dynamo-tables.sh
+	./api/scripts/create-dynamo-tables.sh
 
 # dev:
 # 	mkdir -p ./dynamodb-local-data && \
@@ -35,7 +35,7 @@ dev:
 	concurrently --kill-others-on-fail \
 		"docker run --rm --name $(DOCKER_CONTAINER_NAME) -p 8000:8000 -v $(DYNAMODB_DATA_DIR):/home/dynamodblocal/data amazon/dynamodb-local -jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data" \
 		"PORT=8001 AWS_REGION=ap-south-1 AWS_ACCESS_KEY_ID=local AWS_SECRET_ACCESS_KEY=local dynamodb-admin" \
-		"cd EC2 && ./scripts/create-dynamo-tables.sh && PORT=3000 npm run start" \
+		"cd api && ./scripts/create-dynamo-tables.sh && PORT=3000 npm run start" \
 		"cd webapp && PORT=3001 npm run start"
 
 stop:

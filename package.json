@@ -1,43 +1,30 @@
 {
   "type": "module",
   "devDependencies": {
-    "@eslint/js": "^9.36.0",
-    "@typescript-eslint/eslint-plugin": "^8.34.1",
-    "@typescript-eslint/parser": "^8.34.1",
-    "autoprefixer": "^10.4.21",
-    "eslint": "^9.36.0",
-    "eslint-plugin-jsx-a11y": "^6.10.2",
-    "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "globals": "^16.4.0",
-    "husky": "^9.1.7",
-    "lint-staged": "^16.1.2",
-    "postcss": "^8.5.6",
-    "prettier": "^3.6.2",
-    "tailwindcss": "^4.1.13",
-    "typescript": "^5.8.3",
-    "typescript-eslint": "^8.34.1"
+    "eslint": "^9.29.0",
+    "@eslint/js": "^9.29.0",
+    "globals": "^15.11.0",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-jsx-a11y": "^6.9.0",
+    "@next/eslint-plugin-next": "^14.2.5",
+    "prettier": "^3.3.3",
+    "lint-staged": "^15.2.9",
+    "husky": "^9.1.6"
   },
   "lint-staged": {
-    "website/**/*.{js,jsx,css,md,json}": [
-      "prettier --write --ignore-unknown"
-    ],
-    "website/**/*.{js,jsx}": [
+    "api/**/*.{js,jsx,ts,tsx}": [
       "eslint --fix"
     ],
-    "EC2/**/*.{js,jsx,css,md,json}": [
-      "prettier --write --ignore-unknown"
-    ],
-    "EC2/**/*.{js,jsx}": [
+    "webapp/**/*.{js,jsx,ts,tsx}": [
       "eslint --fix"
     ],
-    "webapp/**/*.{js,jsx,css,md,json}": [
-      "prettier --write --ignore-unknown"
-    ],
-    "webapp/**/*.{js,jsx}": [
+    "website/**/*.{js,jsx,ts,tsx}": [
       "eslint --fix"
     ],
-    "*.{js,css,md}": "prettier --write",
+    "**/*.{json,md,css,scss,html,yml,yaml}": [
+      "prettier --write --ignore-unknown"
+    ],
     "*.tf": [
       "terraform fmt -recursive"
     ]

@@ -1,12 +1,12 @@
 References :
-https://www.sammeechward.com/deploying-full-stack-js-to-aws-ec2
+https://www.sammeechward.com/deploying-full-stack-js-to-aws-api
 
 Commands :
 
-1. Local Instance of EC2 :
+1. Local Instance of api :
    npm start
 
-2. Code sync between local and EC2 : EC2 folder:
+2. Code sync between local and api : api folder:
    rsync -avz --exclude 'node_modules' --exclude '.git' \
    -e "ssh -i ./config/ireland-adithya-macAir.pem" \
    . ubuntu@ec2-34-240-95-34.eu-west-1.compute.amazonaws.com:~/app
@@ -107,10 +107,10 @@ https://theroomgenie.com You should see your Express app working securely!
 3. sudo systemctl restart nginx
 
 Changes to be made ::
-. Provide button in webapp to clear ec2 cache
+. Provide button in webapp to clear api cache
 . Logging and error handling
-. EC2 cache should have TTL
-. Uncached Webapp api calls should get uncached EC2 results
+. api cache should have TTL
+. Uncached Webapp api calls should get uncached api results
 . CICD pipeline
 . Register device intent confirmation needs to be fixed
 
@@ -171,7 +171,7 @@ sudo cp cwagent-config.json /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwat
 🚀 5. Start CloudWatch Agent
 sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
  -a fetch-config \
- -m ec2 \
+ -m api \
  -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json \
  -s
 This command:

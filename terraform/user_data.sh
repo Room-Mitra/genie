@@ -55,7 +55,7 @@ fi
 install -d -o appuser -g appuser -m 750 /home/appuser
 install -d -o appuser -g appuser -m 700 /home/appuser/.pm2
 
-mkdir -p /opt/roommitra/{website,api-express,app-cra}
+mkdir -p /opt/roommitra/{website,api,webapp}
 chmod 777 -R /opt/roommitra
 chown -R appuser:appuser /opt/roommitra
 
@@ -71,7 +71,7 @@ http.createServer((req,res)=>{
 EOF
 
 # 2) API (api.roommitra.com) on :4000  — plain Node to avoid express install
-cat >/opt/roommitra/api-express/server.js <<'EOF'
+cat >/opt/roommitra/api/server.js <<'EOF'
 const http = require('http');
 const port = 4000;
 http.createServer((req,res)=>{
@@ -85,7 +85,7 @@ http.createServer((req,res)=>{
 EOF
 
 # 3) Dashboard (app.roommitra.com) on :3001
-cat >/opt/roommitra/app-cra/server.js <<'EOF'
+cat >/opt/roommitra/webapp/server.js <<'EOF'
 const http = require('http');
 const port = 3001;
 http.createServer((req,res)=>{
@@ -98,8 +98,8 @@ chown -R appuser:appuser /opt/roommitra
 
 # ---------- Start apps with PM2 under appuser ----------
 su -s /bin/bash - appuser -c "pm2 start /opt/roommitra/website/server.js --name website || true"
-su -s /bin/bash - appuser -c "pm2 start /opt/roommitra/api-express/server.js --name api-express || true"
-su -s /bin/bash - appuser -c "pm2 start /opt/roommitra/app-cra/server.js   --name app-cra   || true"
+su -s /bin/bash - appuser -c "pm2 start /opt/roommitra/api/server.js --name api || true"
+su -s /bin/bash - appuser -c "pm2 start /opt/roommitra/webapp/server.js   --name webapp   || true"
 su -s /bin/bash - appuser -c "pm2 save || true"
 pm2 startup systemd -u appuser --hp /home/appuser
 
