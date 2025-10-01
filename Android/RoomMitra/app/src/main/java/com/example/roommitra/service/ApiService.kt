@@ -11,6 +11,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.IOException
+import java.time.Instant
 
 sealed class ApiResult {
     data class Success(val data: JSONObject?) : ApiResult()
@@ -31,9 +32,13 @@ class ApiService(private val context: Context) {
     private val defaultHeaders: Map<String, String>
         get() {
             val token = SessionManager(context).getAuthToken()
+
+            val utcTimestamp = Instant.now().toEpochMilli().toString()
             return mapOf(
                 "Content-Type" to "application/json",
-                "x-device-id" to deviceId
+                "x-device-id" to deviceId,
+                "x-timestamp" to utcTimestamp
+
             ) + if (!token.isNullOrBlank()) {
                 mapOf("authorization" to "Bearer $token")
             } else emptyMap()
