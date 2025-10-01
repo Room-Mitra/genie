@@ -104,12 +104,14 @@ resource "aws_instance" "web" {
   # If you really want SSH, flip create_key_pair=true and uncomment:
   # key_name = aws_key_pair.rm_key[0].key_name
 
-  user_data                   = templatefile("${path.module}/user_data.sh", {})
+  user_data = templatefile("${path.module}/user_data.sh", {
+    AWS_REGION = var.aws_region
+  })
   user_data_replace_on_change = true
 
-
-
-  tags = merge(var.tags, { Name = "roommitra-web" })
+  tags = merge(var.tags, {
+    Name = "roommitra-ec2"
+  })
 }
 
 # -- Elastic IP (free while attached)
@@ -119,3 +121,12 @@ resource "aws_eip" "web" {
   tags     = var.tags
 }
 
+module "cd_web_next" {
+  source             = "./codedeploy-ec2"
+  name               = "roommitra-website"
+  region             = "ap-south-1"
+  create_bucket      = false
+  bucket_name        = "roommitra-codedeploy"
+  instance_tag_key   = "Name"
+  instance_tag_value = "roommitra-ec2"
+}
