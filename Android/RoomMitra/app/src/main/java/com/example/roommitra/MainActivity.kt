@@ -37,7 +37,9 @@ import kotlinx.coroutines.launch
 import android.provider.Settings
 import com.example.roommitra.service.ApiResult
 import com.example.roommitra.view.ConciergeScreen
+import com.example.roommitra.view.GlobalSnackbarHost
 import com.example.roommitra.view.LoginScreen
+import com.example.roommitra.view.SnackbarManager
 
 class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
 
@@ -141,6 +143,7 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                                 )
                             }
                         }
+                        GlobalSnackbarHost(snackbarFlow = SnackbarManager.messages)
                     }
                 }
             }

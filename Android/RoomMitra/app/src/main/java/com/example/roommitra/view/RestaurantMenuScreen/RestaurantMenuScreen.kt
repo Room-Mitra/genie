@@ -145,6 +145,7 @@ fun RestaurantMenuScreen(
                             showCartPopup = false
                             cart = emptyMap()
                             Log.d("RestaurantMenu", "Order placed successfully: ${result.data}")
+                            SnackbarManager.showMessage("Order placed successfully!", SnackbarType.SUCCESS)
                         }
                         is ApiResult.Error -> {
                             Log.e("RestaurantMenu", "Order failed: ${result.code}, ${result.message}")
