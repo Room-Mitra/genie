@@ -149,7 +149,7 @@ fun RestaurantMenuScreen(
                         }
                         is ApiResult.Error -> {
                             Log.e("RestaurantMenu", "Order failed: ${result.code}, ${result.message}")
-                            SnackbarManager.showMessage("Something went wrong. Please try later", SnackbarType.ERROR)
+                            SnackbarManager.showMessage("Something went wrong. Please try again later. Sorry :(", SnackbarType.ERROR)
                         }
                     }
                 }

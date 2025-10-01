@@ -126,7 +126,7 @@ fun AmenityDetail(
                                 }
                                 is ApiResult.Error -> {
                                     Log.d("AmenityBooking", "Failed to book ${title} for ${bookingDateTime}")
-                                    SnackbarManager.showMessage("Failed to book ${title} for ${bookingDateTime!!.toLocalDate()} at ${bookingDateTime!!.toLocalTime()}. Please try again after some time.", SnackbarType.ERROR)
+                                    SnackbarManager.showMessage("Something went wrong. Please try again later. Sorry :(", SnackbarType.ERROR)
                                 }
                             }
                         }
