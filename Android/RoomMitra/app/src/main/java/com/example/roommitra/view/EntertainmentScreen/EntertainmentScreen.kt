@@ -28,7 +28,7 @@ import androidx.compose.foundation.lazy.grid.items
 enum class EntertainmentSection(val displayName: String) {
     Games("Games"),
     Music("Music"),
-    Movie("Movie")
+//    Movie("Movie")
 }
 
 
@@ -86,7 +86,7 @@ fun EntertainmentScreen(
             when (selectedSection) {
                 EntertainmentSection.Games -> GamesContent()
                 EntertainmentSection.Music -> MusicContent()
-                EntertainmentSection.Movie -> MovieContent()
+//                EntertainmentSection.Movie -> MovieContent()
             }
         }
     }
