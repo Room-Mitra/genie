@@ -121,7 +121,7 @@ resource "aws_eip" "web" {
   tags     = var.tags
 }
 
-module "cd_web_next" {
+module "cd_website" {
   source             = "./codedeploy-ec2"
   name               = "roommitra-website"
   region             = "ap-south-1"
