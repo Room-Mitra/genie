@@ -47,6 +47,16 @@ resource "aws_security_group" "web" {
     ipv6_cidr_blocks = ["::/0"]
   }
 
+  // Optional SSH (not recommended; use SSM instead)
+  # ingress {
+  #   description      = "SSH"
+  #   protocol         = "tcp"
+  #   from_port        = 22
+  #   to_port          = 22
+  #   cidr_blocks      = ["0.0.0.0/0"]
+  #   ipv6_cidr_blocks = ["::/0"]
+  # }
+
   egress {
     description      = "All egress"
     protocol         = "-1"
@@ -103,6 +113,13 @@ resource "aws_instance" "web" {
 
   # If you really want SSH, flip create_key_pair=true and uncomment:
   # key_name = aws_key_pair.rm_key[0].key_name
+
+
+  root_block_device {
+    volume_type           = "gp3"
+    volume_size           = 8 # <— increase this
+    delete_on_termination = true
+  }
 
   user_data = templatefile("${path.module}/user_data.sh", {
     AWS_REGION = var.aws_region

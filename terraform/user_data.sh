@@ -56,6 +56,7 @@ install -d -o appuser -g appuser -m 750 /home/appuser
 install -d -o appuser -g appuser -m 700 /home/appuser/.pm2
 
 mkdir -p /opt/roommitra/{website,api-express,app-cra}
+chmod 777 -R /opt/roommitra
 chown -R appuser:appuser /opt/roommitra
 
 # ---------- Placeholder apps (all pure Node HTTP; no npm deps) ----------
