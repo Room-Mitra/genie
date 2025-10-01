@@ -24,7 +24,8 @@ import loginRoutes from './routes/Login/Login.controller.js';
 import landingPageRoutes from './routes/LandingPage/leads.js';
 
 //Android Routes
-import androidLoginRoutes from './routes/Android/AndroidLogin.controller.js';
+import androidLoginRoutes from './routes/Android/AndroidLogin/AndroidLogin.controller.js';
+import androidRequestRoutes from './routes/Android/AndroidRequest/AndroidRequest.controller.js';
 
 
 import { runFunctionsOnServerStartup } from './common/services/startup.service.js';
@@ -51,10 +52,10 @@ app.use('/booking', authenticator, bookingRoutes);
 app.use('/staff', authenticator, staffRoutes);
 app.use('/mapping', authenticator, mappingRoutes);
 app.use('/faq', authenticator, faqRoutes);
-// app.use('/utterance', utteranceRoutes);
 
 // Android Routes
 app.use('/android/utterance', authenticator, utteranceRoutes);
+app.use('/android/request', authenticator, androidRequestRoutes);
 
 
 

@@ -14,11 +14,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.roommitra.service.ApiResult
+import com.example.roommitra.service.ApiService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 // ---- Data Model ----
 data class DishInfo(
@@ -39,6 +43,7 @@ fun RestaurantMenuScreen(
     val mainListState = remember { LazyListState() }
     val columns = 2
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     val categoryIndexMap = remember {
         val map = mutableMapOf<String, Int>()
@@ -99,11 +104,56 @@ fun RestaurantMenuScreen(
             cart = cart,
             menuData = menuData,
             calculateTotal = calculateTotal,
-            onPlaceOrder = {
-                Log.d("RestaurantMenu", "Order placed: $cart")
-                showCartPopup = false
+            onPlaceOrder = { instructions ->
+                coroutineScope.launch {
+                    Log.d("RestaurantMenu", "Placing order with instructions: $instructions, Cart = $cart")
+
+                    val apiService = ApiService(context)
+
+                    // Create a JSON array for cart items
+                    val cartArray = org.json.JSONArray()
+                    cart.forEach { (dish, count) ->
+                        val price = menuData.values.flatten().firstOrNull { it.first == dish }?.second?.cost ?: 0
+                        val dishTotal = price * count
+
+                        val dishJson = JSONObject().apply {
+                            put("dish", dish)
+                            put("unitPrice", price)
+                            put("count", count)
+                            put("dishTotal", dishTotal)
+                        }
+                        cartArray.put(dishJson) // add each dish object to array
+                    }
+
+                    // Wrap cart array inside `data`
+                    val dataJson = JSONObject().apply {
+                        put("cart", cartArray)
+                        put("instructions", instructions)
+                    }
+
+                    // Final request body
+                    val requestBody = JSONObject().apply {
+                        put("department", "Restaurant")
+                        put("totalAmount", calculateTotal())
+                        put("data", dataJson)
+                    }
+
+                    Log.d("RestaurantMenu", "Request body: $requestBody")
+
+                    when (val result = apiService.post("request", requestBody)) {
+                        is ApiResult.Success -> {
+                            showCartPopup = false
+                            cart = emptyMap()
+                            Log.d("RestaurantMenu", "Order placed successfully: ${result.data}")
+                        }
+                        is ApiResult.Error -> {
+                            Log.e("RestaurantMenu", "Order failed: ${result.code}, ${result.message}")
+                        }
+                    }
+                }
             },
-            onClearCart = {
+
+                    onClearCart = {
                 cart = emptyMap()
                 showCartPopup = false
             },

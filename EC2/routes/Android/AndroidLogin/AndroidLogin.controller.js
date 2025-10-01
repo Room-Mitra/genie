@@ -1,7 +1,7 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import { addHotelLogin, verifyHotelCredentials } from './AndroidLogin.service.js';
-import { registerDevice } from '../Device/Device.service.js';
+import { registerDevice } from '../../Device/Device.service.js';
 
 
 const router = express.Router();
