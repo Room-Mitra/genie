@@ -43,8 +43,39 @@ endpoint=http://localhost:8000
 ```
 
 
+## Configuring AWS CLI
+1. Get Access Key ID and Secret Access Key for an IAM
+2. Run this on your terminal to configure `roommitra` profile - `aws configure --profile roommitra`
+3. Enter the access key and secret. 
+4. Anytime you want to use terraform's roommitra IAM, run an `aws` command with `--profile roommitra`.
+
 ## Certificate on the EC2
-Run this if EC2 instance was recreated 
+### NOTE: Run this only if EC2 instance was recreated 
+1. Grab the EC2 instance ID using `terraform show`
+2. Create a ssm to the EC2
+```
+aws ssm start-session --target i-0547ae1ad3fe5c2f1 --profile roommitra
+```
+3. Run `certbot` to generate certificates
 ```sh
 sudo certbot --nginx -d roommitra.com -d api.roommitra.com -d app.roommitra.com --agree-tos -m chai@roommitra.com --redirect -n
 ```
+
+## Copying files into EC2
+1. There's no SSH access to EC2.
+2. Copy the files to S3 first
+  ```sh
+  aws s3 cp ./website s3://roommitra-codedeploy/website --recursive \
+  --exclude "node_modules/*" \
+  --exclude ".next/*" \
+  --exclude "*.log" \
+  --exclude ".git/*"
+  ```
+3. Then login to the EC2 using ssm.
+  ```sh
+  aws ssm start-session --target i-0547ae1ad3fe5c2f1 --profile roommitra
+  ```
+4. Copy the files from S3 to EC2
+```sh
+  aws s3 cp s3://roommitra-codedeploy/website /opt/roommitra/website --recursive
+  ```

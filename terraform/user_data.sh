@@ -3,9 +3,44 @@ set -euxo pipefail
 
 # ---------- Base OS & essentials ----------
 dnf -y update || true
-dnf -y install nginx git tar bind-utils amazon-ssm-agent || true
+dnf -y install nginx git tar bind-utils amazon-ssm-agent ruby wget || true
 systemctl enable --now amazon-ssm-agent
 systemctl enable nginx
+
+
+# ---------- AWS CodeDeploy Agent ----------
+
+# Install CodeDeploy agent via RPM (has a native systemd unit)
+rpm -Uvh "https://aws-codedeploy-${AWS_REGION}.s3.${AWS_REGION}.amazonaws.com/latest/codedeploy-agent.noarch.rpm"
+
+# Remove legacy SysV script so systemd won't try sysv-install
+rm -f /etc/init.d/codedeploy-agent || true
+for d in /etc/rc*.d; do rm -f "$d"/S??codedeploy-agent "$d"/K??codedeploy-agent 2>/dev/null || true; done
+
+# Create a native systemd unit
+cat >/etc/systemd/system/codedeploy-agent.service <<'UNIT'
+[Unit]
+Description=AWS CodeDeploy Host Agent
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Restart=on-failure
+ExecStart=/usr/bin/codedeploy-agent start
+ExecStop=/usr/bin/codedeploy-agent stop
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+
+# Reload units and enable the native one explicitly
+systemctl daemon-reload
+systemctl enable --now codedeploy-agent.service
+
+# Sanity check (won't fail cloud-init)
+systemctl is-active codedeploy-agent || true
+
 
 
 # ---------- Node.js 20 (Amazon Linux 2023 built-in) ----------
@@ -20,12 +55,13 @@ fi
 install -d -o appuser -g appuser -m 750 /home/appuser
 install -d -o appuser -g appuser -m 700 /home/appuser/.pm2
 
-mkdir -p /opt/roommitra/{web-next,api-express,app-cra}
+mkdir -p /opt/roommitra/{website,api-express,app-cra}
+chmod 777 -R /opt/roommitra
 chown -R appuser:appuser /opt/roommitra
 
 # ---------- Placeholder apps (all pure Node HTTP; no npm deps) ----------
 # 1) Landing (roommitra.com) on :3000
-cat >/opt/roommitra/web-next/server.js <<'EOF'
+cat >/opt/roommitra/website/server.js <<'EOF'
 const http = require('http');
 const port = 3000;
 http.createServer((req,res)=>{
@@ -61,7 +97,7 @@ EOF
 chown -R appuser:appuser /opt/roommitra
 
 # ---------- Start apps with PM2 under appuser ----------
-su -s /bin/bash - appuser -c "pm2 start /opt/roommitra/web-next/server.js --name web-next || true"
+su -s /bin/bash - appuser -c "pm2 start /opt/roommitra/website/server.js --name website || true"
 su -s /bin/bash - appuser -c "pm2 start /opt/roommitra/api-express/server.js --name api-express || true"
 su -s /bin/bash - appuser -c "pm2 start /opt/roommitra/app-cra/server.js   --name app-cra   || true"
 su -s /bin/bash - appuser -c "pm2 save || true"

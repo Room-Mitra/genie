@@ -1,0 +1,44 @@
+name: Deploy website
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'website/**'
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-south-1
+  APP_NAME: genie-webapp-app # from TF output for webapp module
+  DEPLOY_GROUP: genie-webapp-dg # from TF output
+  S3_BUCKET: genie-webapp-codedeploy-ap-south-1 # from TF output
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Zip ONLY the service folder so appspec.yml is at the bundle root
+      - name: Bundle website
+        run: |
+          cd website
+          zip -r ../website-deploy.zip . -x "*.git*"
+
+      - name: Upload to S3
+        run: aws s3 cp webapp-deploy.zip s3://${{ env.S3_BUCKET }}/deploy-${{ github.sha }}.zip
+
+      - name: Trigger CodeDeploy
+        run: |
+          aws deploy create-deployment \
+            --application-name "$APP_NAME" \
+            --deployment-group-name "$DEPLOY_GROUP" \
+            --s3-location bucket=${S3_BUCKET},key=deploy-${{ github.sha }}.zip,bundleType=zip
