@@ -46,11 +46,17 @@ fun MusicContent(controller: MusicPlayerController) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Row {
+            if(musicState == MusicState.LOADING) {
+                Button(
+                    onClick = {  },
+                    modifier = Modifier.weight(1f)
+                ) { Text("Loading ...") }
+            }else{
             Button(
                 onClick = { controller.play(query) },
                 modifier = Modifier.weight(1f)
             ) { Text("Play") }
-
+                }
             Spacer(modifier = Modifier.width(16.dp))
 
 //            Button(
