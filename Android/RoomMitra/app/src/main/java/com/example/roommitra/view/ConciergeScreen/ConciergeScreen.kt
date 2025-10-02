@@ -40,7 +40,7 @@ fun ConciergeScreen(onBackClick: () -> Unit) {
                 description = selectedService.description,
                 imageUrl = selectedService.imageUrl,
                 tags = selectedService.tags,
-                onRequest = selectedService.onRequest
+                isRegistrationNeeded = selectedService.isRegistrationNeeded
             )
         }
     }

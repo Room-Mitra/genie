@@ -29,10 +29,20 @@ fun DateTimePickerDialog(
     val today = LocalDate.now()
     val maxDate = today.plusMonths(1)
 
-    // Date state
+    // Date state with validator
     val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = initialDateTime.toLocalDate().toEpochDay() * 86_400_000
+        initialSelectedDateMillis = initialDateTime.toLocalDate().toEpochDay() * 86_400_000,
+        // Block invalid dates
+        selectableDates = object : androidx.compose.material3.SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                val pickedDate = Instant.ofEpochMilli(utcTimeMillis)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
+                return !pickedDate.isBefore(today) && !pickedDate.isAfter(maxDate)
+            }
+        }
     )
+
 
     // Time state
     val timePickerState = rememberTimePickerState(

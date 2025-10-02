@@ -1,5 +1,6 @@
 package com.example.roommitra.view
 
+import android.util.Log
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Celebration
 import androidx.compose.material.icons.filled.DirectionsCar
@@ -23,7 +24,7 @@ object ConciergeScreenService {
                 imageUrl = "https://media.istockphoto.com/id/519870714/photo/taxi.jpg?s=612x612&w=0&k=20&c=mzlqm5eisvu-B7hCyOK3LAsR4ugFTsHtC2kMWUmbA0Y=",
                 icon = Icons.Default.DirectionsCar,
                 tags = listOf("Private Vehicle", "On-demand", "Comfort"),
-                onRequest = { /* Handle request */ }
+                isRegistrationNeeded = true
             ),
             ConciergeService(
                 title = "Restaurant Reservations",
@@ -31,7 +32,6 @@ object ConciergeScreenService {
                 imageUrl = "https://qul.imgix.net/8b728bde-7b55-44de-b928-84f5ac23545f/534341_sld.jpg",
                 icon = Icons.Default.Restaurant,
                 tags = listOf("Italian", "Japanese", "Indian", "Rooftop Bar"),
-                onRequest = { /* Handle request */ }
             ),
             ConciergeService(
                 title = "Local Tours & Excursions",
@@ -39,7 +39,6 @@ object ConciergeScreenService {
                 imageUrl = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
                 icon = Icons.Default.Tour,
                 tags = listOf("Guided", "Private", "Cultural"),
-                onRequest = { /* Handle request */ }
             ),
             ConciergeService(
                 title = "Event & Party Planning",
@@ -47,7 +46,6 @@ object ConciergeScreenService {
                 imageUrl = "https://images.unsplash.com/photo-1469371670807-013ccf25f16a?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
                 icon = Icons.Default.Celebration,
                 tags = listOf("Corporate", "Private", "VIP"),
-                onRequest = { /* Handle request */ }
             ),
             ConciergeService(
                 title = "Spa & Wellness Appointments",
@@ -55,7 +53,6 @@ object ConciergeScreenService {
                 imageUrl = "https://media.istockphoto.com/id/1479350890/photo/relax-spa-and-zen-woman-with-candles-for-beauty-physical-therapy-or-skincare-female-client-on.jpg?s=612x612&w=0&k=20&c=ODbmBr1IW1F21YC8pMvzytNnhZopOTRfFgulk7ISOqg=",
                 icon = Icons.Default.Spa,
                 tags = listOf("Massage", "Yoga", "Aromatherapy", "Couple"),
-                onRequest = { /* Handle request */ }
             ),
             ConciergeService(
                 title = "Special Requests",
@@ -63,7 +60,6 @@ object ConciergeScreenService {
                 imageUrl = "https://www.shutterstock.com/image-photo/beautiful-delicate-flowers-bouquet-260nw-1698105454.jpg",
                 icon = Icons.Default.LocalFlorist,
                 tags = listOf("Personalized", "Gifts", "Flowers", "Date"),
-                onRequest = { /* Handle request */ }
             ),
             ConciergeService(
                 title = "Comedy & Theatre Tickets",
@@ -71,7 +67,6 @@ object ConciergeScreenService {
                 imageUrl = "https://static.vecteezy.com/system/resources/thumbnails/050/810/547/small_2x/comedian-performing-stand-up-show-on-stage-routine-in-comedy-club-photo.jpeg",
                 icon = Icons.Default.Theaters,
                 tags = listOf("Fun", "Comedy", "Drama", "Date"),
-                onRequest = { /* Handle request */ }
             ),
             ConciergeService(
                 title = "Concerts & Live Music",
@@ -79,7 +74,6 @@ object ConciergeScreenService {
                 imageUrl = "https://images.unsplash.com/photo-1507874457470-272b3c8d8ee2",
                 tags = listOf("Fun", "Music", "Songs", "Dance"),
                 icon = Icons.Default.MusicNote,
-                onRequest = { /* Handle request */ }
             ),
             ConciergeService(
                 title = "Nightlife & Bars",
@@ -87,7 +81,6 @@ object ConciergeScreenService {
                 imageUrl = "https://www.shutterstock.com/image-vector/night-bar-club-high-chair-600nw-2304087951.jpg",
                 tags = listOf("Music", "Dance", "Cocktails", "Date"),
                 icon = Icons.Default.Nightlife,
-                onRequest = { /* Handle request */ }
             )
         )
     }
@@ -101,7 +94,7 @@ data class ConciergeService(
     val imageUrl: String? = null,
     val icon: ImageVector,
     val tags: List<String> = emptyList(),
-    val onRequest: (() -> Unit)? = null
+    val isRegistrationNeeded: Boolean = false
 )
 
 
