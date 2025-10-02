@@ -1,5 +1,6 @@
 package com.example.roommitra.view
 
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -27,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
+import com.example.roommitra.service.TrackingService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -35,13 +37,21 @@ fun WidgetsPane(
     modifier: Modifier = Modifier,
     navController: NavHostController
 ) {
+    fun widgetClickHandler(widgetName:String){
+        TrackingService.getInstance().trackEvent(
+            "widget_click",
+            mapOf("widgetName" to widgetName)
+        )
+        Log.d("TrackingService", "Widget clicked: $widgetName")
+        navController.navigate(widgetName)
+    }
     val cards = remember {
         listOf(
-            WidgetCard("Restaurant", Icons.Default.Restaurant) { navController.navigate("menu") },
-            WidgetCard("Entertainment", Icons.Default.Movie) { navController.navigate("entertainment") },
-            WidgetCard("Amenities", Icons.Default.Pool) { navController.navigate("amenities") },
-            WidgetCard("Housekeeping", Icons.Default.CleaningServices) { navController.navigate("housekeeping") },
-            WidgetCard("Concierge", Icons.Default.DirectionsCar) {  navController.navigate("concierge")},
+            WidgetCard("Restaurant", Icons.Default.Restaurant) { widgetClickHandler("menu") },
+            WidgetCard("Entertainment", Icons.Default.Movie) { widgetClickHandler("entertainment") },
+            WidgetCard("Amenities", Icons.Default.Pool) { widgetClickHandler("amenities") },
+            WidgetCard("Housekeeping", Icons.Default.CleaningServices) { widgetClickHandler("housekeeping") },
+            WidgetCard("Concierge", Icons.Default.DirectionsCar) { widgetClickHandler("concierge")},
 //            WidgetCard("Your Requests", Icons.Default.ListAlt) { },
 //            WidgetCard("Reception", Icons.Default.Call) { },
 //            WidgetCard("My Notifications", Icons.Default.Notifications) { },
