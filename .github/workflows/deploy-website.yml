@@ -2,7 +2,7 @@ name: Deploy website via SSM
 on:
   push:
     branches: [main, chai/ssm-code-deploy]
-    paths: ['website/**']
+    # paths: ['website/**']
 
 permissions:
   id-token: write
