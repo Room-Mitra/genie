@@ -138,12 +138,8 @@ resource "aws_eip" "web" {
   tags     = var.tags
 }
 
-module "cd_website" {
-  source             = "./codedeploy-ec2"
-  name               = "roommitra-website"
-  region             = "ap-south-1"
-  create_bucket      = false
-  bucket_name        = "roommitra-codedeploy"
-  instance_tag_key   = "Name"
-  instance_tag_value = "roommitra-ec2"
+resource "aws_iam_openid_connect_provider" "github" {
+  url             = "https://token.actions.githubusercontent.com"
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
 }
