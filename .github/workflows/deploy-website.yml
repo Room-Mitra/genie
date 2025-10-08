@@ -53,6 +53,7 @@ jobs:
               \"set -e\",
               \"export PATH=\\\"$PATH:/usr/local/bin:/usr/bin\\\"\",
               \"mkdir -p ${SERVICE_PATH}/.deploy\",
+              \"chmod -R 777 ${SERVICE_PATH}/.deploy\",
               \"aws s3 cp s3://${ARTIFACT_BUCKET}/website-${{ github.sha }}.zip /opt/roommitra/tmp/website.zip\",
               \"rm -rf ${SERVICE_PATH}/.deploy/*\",
               \"unzip -o /opt/roommitra/tmp/website.zip -d ${SERVICE_PATH}/.deploy\",
