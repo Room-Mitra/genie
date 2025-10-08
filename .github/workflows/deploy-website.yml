@@ -27,6 +27,18 @@ jobs:
           role-to-assume: arn:aws:iam::086325458599:role/codedeploy
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Verify AWS identity
+        run: aws sts get-caller-identity
+
+      - name: Inspect GitHub OIDC token claims
+        id: oidc
+        run: |
+          set -e
+          TOKEN="$(curl -sLS $ACTIONS_ID_TOKEN_REQUEST_URL\&audience=sts.amazonaws.com \
+            -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" | jq -r .value)"
+          PAYLOAD="$(echo "$TOKEN" | cut -d'.' -f2 | base64 -d 2>/dev/null || true)"
+          echo "$PAYLOAD"
+
       - name: Zip website folder
         run: |
           cd website
