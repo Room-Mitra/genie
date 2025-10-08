@@ -24,7 +24,7 @@ jobs:
 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::086325458599:role/codedeploy
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Zip website folder
