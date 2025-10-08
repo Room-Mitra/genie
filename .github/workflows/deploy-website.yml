@@ -1,10 +1,8 @@
-name: Deploy website
-
+name: Deploy website via SSM
 on:
   push:
-    branches: [main]
-    paths:
-      - 'website/**'
+    branches: [main, chai/ssm-code-deploy]
+    paths: ['website/**']
 
 permissions:
   id-token: write
@@ -12,9 +10,11 @@ permissions:
 
 env:
   AWS_REGION: ap-south-1
-  APP_NAME: genie-webapp-app # from TF output for webapp module
-  DEPLOY_GROUP: genie-webapp-dg # from TF output
-  S3_BUCKET: genie-webapp-codedeploy-ap-south-1 # from TF output
+  ARTIFACT_BUCKET: roommitra-codedeploy
+  INSTANCE_TAG_KEY: Name
+  INSTANCE_TAG_VALUE: roommitra-ec2
+  SERVICE_PATH: /opt/roommitra/website
+  PM2_NAME: website
 
 jobs:
   deploy:
@@ -27,18 +27,40 @@ jobs:
           role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # Zip ONLY the service folder so appspec.yml is at the bundle root
-      - name: Bundle website
+      - name: Zip website folder
         run: |
           cd website
-          zip -r ../website-deploy.zip . -x "*.git*"
+          zip -r ../website-${{ github.sha }}.zip . -x "*.git*"
 
-      - name: Upload to S3
-        run: aws s3 cp webapp-deploy.zip s3://${{ env.S3_BUCKET }}/deploy-${{ github.sha }}.zip
+      - name: Upload artifact to S3
+        run: aws s3 cp website-${{ github.sha }}.zip s3://${{ env.ARTIFACT_BUCKET }}/website-${{ github.sha }}.zip
 
-      - name: Trigger CodeDeploy
+      - name: Find instance by tag
+        id: find
         run: |
-          aws deploy create-deployment \
-            --application-name "$APP_NAME" \
-            --deployment-group-name "$DEPLOY_GROUP" \
-            --s3-location bucket=${S3_BUCKET},key=deploy-${{ github.sha }}.zip,bundleType=zip
+          ID=$(aws ec2 describe-instances \
+            --filters "Name=tag:${INSTANCE_TAG_KEY},Values=${INSTANCE_TAG_VALUE}" "Name=instance-state-name,Values=running" \
+            --query "Reservations[0].Instances[0].InstanceId" --output text)
+          echo "instance_id=$ID" >> $GITHUB_OUTPUT
+
+      - name: Deploy via SSM
+        run: |
+          aws ssm send-command \
+            --instance-ids "${{ steps.find.outputs.instance_id }}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy website ${{ github.sha }}" \
+            --parameters commands="[
+              \"set -e\",
+              \"export PATH=\\\"$PATH:/usr/local/bin:/usr/bin\\\"\",
+              \"mkdir -p ${SERVICE_PATH}/.deploy\",
+              \"aws s3 cp s3://${ARTIFACT_BUCKET}/website-${{ github.sha }}.zip /tmp/website.zip\",
+              \"rm -rf ${SERVICE_PATH}/.deploy/*\",
+              \"unzip -o /tmp/website.zip -d ${SERVICE_PATH}/.deploy\",
+              \"cd ${SERVICE_PATH}/.deploy\",
+              \"npm ci\",
+              \"npm run build\",
+              \"rsync -a --delete ${SERVICE_PATH}/.deploy/ ${SERVICE_PATH}/\",
+              \"command -v pm2 >/dev/null || sudo npm i -g pm2\",
+              \"pm2 start ${SERVICE_PATH}/server-start.sh --name ${PM2_NAME} || pm2 reload ${PM2_NAME} --update-env\",
+              \"pm2 save\"
+            ]"
