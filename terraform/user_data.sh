@@ -3,7 +3,8 @@ set -euxo pipefail
 
 # ---------- Base OS & essentials ----------
 dnf -y update || true
-dnf -y install nginx git tar bind-utils amazon-ssm-agent ruby wget docker || true
+dnf -y install nginx git tar bind-utils amazon-ssm-agent ruby wget docker certbot python3-certbot-nginx rsync || true
+
 systemctl enable --now amazon-ssm-agent
 systemctl enable nginx
 
@@ -123,9 +124,48 @@ server {
 }
 NGINX
 
+
+# ---------- Restore SSL certificates ----------
+BUCKET="s3://roommitra-codedeploy/certs/"
+
+mkdir -p /root/letsencrypt-backup
+aws s3 sync "$BUCKET" /root/letsencrypt-backup/ || true
+if [ -d /root/letsencrypt-backup/live ]; then
+  sudo rsync -a /root/letsencrypt-backup/ /etc/letsencrypt/
+  
+  name="roommitra.com"
+  cd /etc/letsencrypt
+
+  # sanity: make sure archive exists
+  test -d "archive/$name" || { echo "archive/$name missing"; exit 1; }
+
+  # find latest version number (certN.pem)
+  latest=$(ls archive/$name/cert*.pem | sed -E "s/.*cert([0-9]+)\.pem/\1/" | sort -n | tail -1)
+  echo "Using version: $latest"
+
+  # ensure live dir exists
+  mkdir -p "live/$name"
+
+  # remove any existing files (non-symlink or wrong)
+  rm -f  "live/$name/cert.pem" "live/$name/chain.pem" "live/$name/fullchain.pem" "live/$name/privkey.pem"
+
+  # recreate symlinks (relative paths, as Certbot expects)
+  ln -s "../../archive/$name/cert${latest}.pem"      "live/$name/cert.pem"
+  ln -s "../../archive/$name/chain${latest}.pem"     "live/$name/chain.pem"
+  ln -s "../../archive/$name/fullchain${latest}.pem" "live/$name/fullchain.pem"
+  ln -s "../../archive/$name/privkey${latest}.pem"   "live/$name/privkey.pem"
+
+  chown -R root:root /etc/letsencrypt
+  find /etc/letsencrypt -type d -exec chmod 755 {} \;
+  find /etc/letsencrypt -type f -exec chmod 600 {} \;
+
+  echo "Symlinks recreated."
+  
+fi
+
+sudo certbot install --nginx --cert-name roommitra.com
+
+
 nginx -t
 systemctl restart nginx
 systemctl restart docker
-
-# ---------- Certbot (install only; issuance handled below) ----------
-dnf -y install certbot python3-certbot-nginx || true
