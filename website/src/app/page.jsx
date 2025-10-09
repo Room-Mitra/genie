@@ -14,7 +14,7 @@ export default function Home() {
             In-room Voice Assistant for Hotel Rooms
           </h1>
           <p className="mt-4 text-lg">
-            Elevate guest experience and streamline operations with Room Mitra
+            Elevate guest experiences and streamlines operations with Room Mitra
           </p>
           <Link
             href="#contact"
