@@ -15,7 +15,8 @@ permissions:
 env:
   AWS_REGION: ap-south-1
   AWS_ACCOUNT_ID: '086325458599'
-  ECR_REPOSITORY: roommitra/api
+  PUBLIC_ECR_ALIAS: p1s3y6q3
+  PUBLIC_ECR_REPO: roommitra/api
   INSTANCE_TAG_KEY: Name
   INSTANCE_TAG_VALUE: roommitra-ec2
 
@@ -66,16 +67,14 @@ jobs:
           role-to-assume: arn:aws:iam::086325458599:role/codedeploy
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Log in to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Amazon ECR
-        id: ecr
-        uses: aws-actions/amazon-ecr-login@v2
+      # --- PUBLIC ECR login (region must be us-east-1) ---
+      - name: Login to Amazon ECR Public
+        run: |
+          aws ecr-public get-login-password --region us-east-1 \
+            | docker login --username AWS --password-stdin public.ecr.aws
 
       - name: Build & Push with ECR cache
         uses: docker/build-push-action@v5
@@ -85,13 +84,13 @@ jobs:
           push: true
           provenance: false
           tags: |
-            ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+            public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:latest
           cache-from: |
             type=gha
-            type=registry,ref=${{ steps.ecr.outputs.registry }}/roommitra/api:buildcache
+            type=registry,ref=public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:buildcache
           cache-to: |
             type=gha,mode=max
-            type=registry,ref=${{ steps.ecr.outputs.registry }}/roommitra/api:buildcache,mode=max
+            type=registry,ref=public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:buildcache,mode=max
 
       - name: Find instance by tag
         id: find
@@ -103,14 +102,13 @@ jobs:
 
       - name: Create SSM Parameters file
         run: |
-          IMAGE_URI="${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest"
+          IMAGE_URI="public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:latest"
           echo "Resolved IMAGE_URI=$IMAGE_URI"
 
-          cat > /tmp/ssm-params.json <<EOL
+          cat > /tmp/ssm-params.json <<'EOL'
           {
             "commands": [
               "set -euo pipefail",
-              "sudo -u appuser -H bash -lc \"aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}\"",
               "sudo -u appuser -H bash -lc \"docker pull ${IMAGE_URI}\"",
               "sudo -u appuser -H bash -lc \"docker stop api || true\"",
               "sudo -u appuser -H bash -lc \"docker rm api || true\"",
@@ -146,7 +144,7 @@ jobs:
                 },
                 { "type": "context", "elements": [
                   { "type": "mrkdwn", "text": "*Author:* ${{ env.AUTHOR_NAME }}" },
-                   { "type": "mrkdwn", "text": "*Branch:* ${{ github.ref_name }}" },
+                  { "type": "mrkdwn", "text": "*Branch:* ${{ github.ref_name }}" },
                   { "type": "mrkdwn", "text": "*Workflow:* <${{ env.RUN_URL }}|open run>" }
                 ]}
               ]
@@ -169,7 +167,7 @@ jobs:
                 },
                 { "type": "context", "elements": [
                   { "type": "mrkdwn", "text": "*Author:* ${{ env.AUTHOR_NAME }}" },
-                   { "type": "mrkdwn", "text": "*Branch:* ${{ github.ref_name }}" },
+                  { "type": "mrkdwn", "text": "*Branch:* ${{ github.ref_name }}" },
                   { "type": "mrkdwn", "text": "*Workflow:* <${{ env.RUN_URL }}|open run>" }
                 ]}
               ]

@@ -146,7 +146,7 @@ jobs:
                 },
                 { "type": "context", "elements": [
                   { "type": "mrkdwn", "text": "*Author:* ${{ env.AUTHOR_NAME }}" },
-                   { "type": "mrkdwn", "text": "*Branch:* ${{ github.ref_name }}" },
+                  { "type": "mrkdwn", "text": "*Branch:* ${{ github.ref_name }}" },
                   { "type": "mrkdwn", "text": "*Workflow:* <${{ env.RUN_URL }}|open run>" }
                 ]}
               ]
@@ -169,7 +169,7 @@ jobs:
                 },
                 { "type": "context", "elements": [
                   { "type": "mrkdwn", "text": "*Author:* ${{ env.AUTHOR_NAME }}" },
-                   { "type": "mrkdwn", "text": "*Branch:* ${{ github.ref_name }}" },
+                  { "type": "mrkdwn", "text": "*Branch:* ${{ github.ref_name }}" },
                   { "type": "mrkdwn", "text": "*Workflow:* <${{ env.RUN_URL }}|open run>" }
                 ]}
               ]
