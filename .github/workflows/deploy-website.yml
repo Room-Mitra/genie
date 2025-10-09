@@ -11,7 +11,7 @@ permissions:
 
 env:
   AWS_REGION: ap-south-1
-  AWS_ACCOUNT_ID: 086325458599
+  AWS_ACCOUNT_ID: '086325458599'
   ECR_REPOSITORY: roommitra/website
   IMAGE_TAG: ${{ github.sha }}
   INSTANCE_TAG_KEY: Name
@@ -49,14 +49,19 @@ jobs:
       - name: Build & Push with ECR cache
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./website
+          file: ./website/Dockerfile
           push: true
           provenance: false
           tags: |
             ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
             ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
-          cache-from: type=registry,ref=${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:buildcache
-          cache-to: type=registry,ref=${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:buildcache,mode=max
+          cache-from: |
+            type=gha
+            type=registry,ref=${{ steps.ecr.outputs.registry }}/roommitra/website:buildcache
+          cache-to: |
+            type=gha,mode=max
+            type=registry,ref=${{ steps.ecr.outputs.registry }}/roommitra/website:buildcache,mode=max
 
       - name: Find instance by tag
         id: find
