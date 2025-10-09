@@ -1,4 +1,3 @@
-import React from 'react';
 import Navbar from '../components/Navbar';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -14,7 +13,7 @@ export default function Home() {
             In-room Voice Assistant for Hotel Rooms
           </h1>
           <p className="mt-4 text-lg">
-            Elevate guest experience and streamline operations with Room Mitra
+            Elevates guest experience and streamline operations with Room Mitra
           </p>
           <Link
             href="#contact"
