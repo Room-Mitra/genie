@@ -36,7 +36,7 @@ jobs:
           echo "COMMIT_URL=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}" >> $GITHUB_ENV
           echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
           echo "AUTHOR_NAME=$(git show -s --format='%an' ${GITHUB_SHA})" >> $GITHUB_ENV
-          echo "START_TIME=$(date -u -d "${{ github.event.workflow_run.run_started_at || github.run_started_at }}" +%s 2>/dev/null || date -u +%s)" >> $GITHUB_ENV
+          echo "start_time=$(date -u -d "${{ github.event.workflow_run.run_started_at || github.run_started_at }}" +%s 2>/dev/null || date -u +%s)" >> $GITHUB_OUTPUT
 
       - uses: slackapi/slack-github-action@v1.26.0
         with:
@@ -136,10 +136,20 @@ jobs:
       - name: Calculate duration
         run: |
           END_TIME=$(date -u +%s)
-          DURATION=$((END_TIME - $START_TIME))
-          MINUTES=$((DURATION / 60))
-          SECONDS=$((DURATION % 60))
-          echo "DURATION=${MINUTES}m ${SECONDS}s" >> $GITHUB_ENV
+          DURATION=$((END_TIME - ${{ steps.meta.outputs.start_time }}))
+          if [ "$DURATION" -lt 0 ]; then DURATION=0; fi
+
+          H=$((DURATION / 3600))
+          M=$(((DURATION % 3600) / 60))
+          S=$((DURATION % 60))
+          if [ "$H" -gt 0 ]; then
+            DURATION_STR="${H}h ${M}m ${S}s"
+          elif [ "$M" -gt 0 ]; then
+            DURATION_STR="${M}m ${S}s"
+          else
+            DURATION_STR="${S}s"
+          fi
+          echo "duration=${DURATION_STR}" >> "$GITHUB_OUTPUT"
 
       # Success message
       - uses: slackapi/slack-github-action@v1.26.0
@@ -151,7 +161,7 @@ jobs:
               "blocks": [
                 { "type": "section",
                   "text": { "type": "mrkdwn",
-                    "text": ":white_check_mark: *`website` Build passed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}> in ${{ env.DURATION }}"
+                    "text": ":white_check_mark: *`website` Build passed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}> in ${{ steps.calculate-duration.outputs.duration  }}"
                   }
                 },
                 { "type": "context", "elements": [
@@ -174,7 +184,7 @@ jobs:
               "blocks": [
                 { "type": "section",
                   "text": { "type": "mrkdwn",
-                    "text": ":x: *`website` Build failed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}> in ${{ env.DURATION }}"
+                    "text": ":x: *`website` Build failed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}> in ${{ steps.calculate-duration.outputs.duration }}"
                   }
                 },
                 { "type": "context", "elements": [
