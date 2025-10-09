@@ -2,8 +2,8 @@ name: Deploy Website
 
 on:
   push:
-    branches: [main]
-    paths: ['website/**']
+    branches: [main, chai/ssm-code-deploy]
+    # paths: ['website/**']
 
 permissions:
   id-token: write
@@ -26,6 +26,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: slackapi/slack-github-action@v1.26.0
+        with:
+          channel-id: ${{ secrets.ENG_OPS_CHANNEL_ID }}
+          payload: |
+            {
+              "blocks": [
+                { "type": "section", "text": { "type": "mrkdwn", "text": "*Deploy started* ⏰" } },
+                { "type": "section", "fields": [
+                    { "type": "mrkdwn", "text": "*Repo:*\n${{ github.repository }}" },
+                    { "type": "mrkdwn", "text": "*Ref:*\n${{ github.ref_name }}" },
+                    { "type": "mrkdwn", "text": "*Run:*\n#${{ github.run_number }}" }
+                ] }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
       - name: Checkout source
         uses: actions/checkout@v4
 
@@ -102,3 +119,20 @@ jobs:
             --document-name "AWS-RunShellScript" \
             --comment "Deploy website ${{ github.sha }}" \
             --parameters file:///tmp/ssm-params.json
+
+      - uses: slackapi/slack-github-action@v1.26.0
+        with:
+          channel-id: ${{ secrets.ENG_OPS_CHANNEL_ID }}
+          payload: |
+            {
+              "blocks": [
+                { "type": "section", "text": { "type": "mrkdwn", "text": "*Deploy complete* :tada:" } },
+                { "type": "section", "fields": [
+                    { "type": "mrkdwn", "text": "*Repo:*\n${{ github.repository }}" },
+                    { "type": "mrkdwn", "text": "*Ref:*\n${{ github.ref_name }}" },
+                    { "type": "mrkdwn", "text": "*Run:*\n#${{ github.run_number }}" }
+                ] }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
