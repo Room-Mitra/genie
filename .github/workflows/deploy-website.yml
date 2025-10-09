@@ -14,6 +14,10 @@ env:
   ECR_REPOSITORY: roommitra/website
   IMAGE_TAG: ${{ github.sha }}
 
+defaults:
+  run:
+    working-directory: ./website
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -37,7 +41,7 @@ jobs:
           IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
           echo "Building Docker image: $IMAGE_URI"
 
-          docker build -t $IMAGE_URI . -f ./website/Dockerfile
+          docker build -t $IMAGE_URI .
           docker push $IMAGE_URI
 
           echo "Image successfully pushed: $IMAGE_URI"
