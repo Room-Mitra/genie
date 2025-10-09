@@ -36,6 +36,7 @@ jobs:
           echo "COMMIT_URL=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}" >> $GITHUB_ENV
           echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
           echo "AUTHOR_NAME=$(git show -s --format='%an' ${GITHUB_SHA})" >> $GITHUB_ENV
+          echo "START_TIME=$(date -u -d "${{ github.event.workflow_run.run_started_at || github.run_started_at }}" +%s 2>/dev/null || date -u +%s)" >> $GITHUB_ENV
 
       - uses: slackapi/slack-github-action@v1.26.0
         with:
@@ -45,11 +46,12 @@ jobs:
               "blocks": [
                 { "type": "section",
                   "text": { "type": "mrkdwn",
-                    "text": ":alarm_clock: *`website` Build started* for <${{ env.COMMIT_URL }}|${{ github.ref_name }}@${{ env.SHORT_SHA }}>"
+                    "text": ":alarm_clock: *`website` Build started* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
                   }
                 },
                 { "type": "context", "elements": [
                   { "type": "mrkdwn", "text": "*Author:* ${{ env.AUTHOR_NAME }}" },
+                  { "type": "mrkdwn", "text": "*Branch:* ${{ github.ref_name }}" },
                   { "type": "mrkdwn", "text": "*Workflow:* <${{ env.RUN_URL }}|open run>" }
                 ]}
               ]
@@ -131,6 +133,15 @@ jobs:
             --comment "Deploy website ${{ github.sha }}" \
             --parameters file:///tmp/ssm-params.json
 
+      - name: Calculate duration
+        run: |
+          END_TIME=$(date -u +%s)
+          DURATION=$((END_TIME - $START_TIME))
+          MINUTES=$((DURATION / 60))
+          SECONDS=$((DURATION % 60))
+          echo "DURATION=${MINUTES}m ${SECONDS}s" >> $GITHUB_ENV
+
+      # Success message
       - uses: slackapi/slack-github-action@v1.26.0
         if: ${{ success() }}
         with:
@@ -140,11 +151,12 @@ jobs:
               "blocks": [
                 { "type": "section",
                   "text": { "type": "mrkdwn",
-                    "text": ":white_check_mark: *`website` Build passed* for <${{ env.COMMIT_URL }}|${{ github.ref_name }}@${{ env.SHORT_SHA }}>"
+                    "text": ":white_check_mark: *`website` Build passed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}> in ${{ env.DURATION }}"
                   }
                 },
                 { "type": "context", "elements": [
                   { "type": "mrkdwn", "text": "*Author:* ${{ env.AUTHOR_NAME }}" },
+                   { "type": "mrkdwn", "text": "*Branch:* ${{ github.ref_name }}" },
                   { "type": "mrkdwn", "text": "*Workflow:* <${{ env.RUN_URL }}|open run>" }
                 ]}
               ]
@@ -162,11 +174,12 @@ jobs:
               "blocks": [
                 { "type": "section",
                   "text": { "type": "mrkdwn",
-                    "text": ":x: *`website` Build failed* for <${{ env.COMMIT_URL }}|${{ github.ref_name }}@${{ env.SHORT_SHA }}>"
+                    "text": ":x: *`website` Build failed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}> in ${{ env.DURATION }}"
                   }
                 },
                 { "type": "context", "elements": [
                   { "type": "mrkdwn", "text": "*Author:* ${{ env.AUTHOR_NAME }}" },
+                   { "type": "mrkdwn", "text": "*Branch:* ${{ github.ref_name }}" },
                   { "type": "mrkdwn", "text": "*Workflow:* <${{ env.RUN_URL }}|open run>" }
                 ]}
               ]
