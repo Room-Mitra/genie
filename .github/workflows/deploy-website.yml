@@ -73,23 +73,25 @@ jobs:
 
       - name: Create SSM Parameters file
         run: |
+          IMAGE_URI="${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"
+          echo "Resolved IMAGE_URI=$IMAGE_URI"
+
           cat > /tmp/ssm-params.json <<EOL
           {
             "commands": [
               "set -euo pipefail",
-              "IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}",
               "sudo -u appuser -H bash -lc \"aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}\"",
               "sudo -u appuser -H bash -lc \"docker pull ${IMAGE_URI}\"",
-
               "sudo -u appuser -H bash -lc \"docker stop website || true\"",
               "sudo -u appuser -H bash -lc \"docker rm website || true\"",
               "sudo -u appuser -H bash -lc \"pm2 delete website || true\"", 
-              "sudo -u appuser -H bash -lc \"pm2 save\"", 
-              "sudo -u appuser -H bash -lc \"docker run -d --name website -p 3000:3000 ${IMAGE_URI}\""
+              "sudo -u appuser -H bash -lc \"pm2 save\"",
+              "sudo -u appuser -H bash -lc \"docker run -d --name website --restart unless-stopped -p 3000:3000 ${IMAGE_URI}\""
             ],
             "executionTimeout": ["3600"]
           }
           EOL
+
           echo "Wrote /tmp/ssm-params.json"
 
       - name: Deploy via SSM
