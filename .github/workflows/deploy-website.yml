@@ -14,6 +14,8 @@ env:
   AWS_ACCOUNT_ID: 086325458599
   ECR_REPOSITORY: roommitra/website
   IMAGE_TAG: ${{ github.sha }}
+  INSTANCE_TAG_KEY: Name
+  INSTANCE_TAG_VALUE: roommitra-ec2
 
 defaults:
   run:
