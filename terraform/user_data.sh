@@ -3,7 +3,7 @@ set -euxo pipefail
 
 # ---------- Base OS & essentials ----------
 dnf -y update || true
-dnf -y install nginx git tar bind-utils amazon-ssm-agent ruby wget || true
+dnf -y install nginx git tar bind-utils amazon-ssm-agent ruby wget unzip || true
 systemctl enable --now amazon-ssm-agent
 systemctl enable nginx
 

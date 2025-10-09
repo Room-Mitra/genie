@@ -1,4 +1,5 @@
-name: Deploy website via SSM
+name: Build and Push Docker Image to ECR
+
 on:
   push:
     branches: [main, chai/ssm-code-deploy]
@@ -10,72 +11,37 @@ permissions:
 
 env:
   AWS_REGION: ap-south-1
-  ARTIFACT_BUCKET: roommitra-codedeploy
-  INSTANCE_TAG_KEY: Name
-  INSTANCE_TAG_VALUE: roommitra-ec2
-  APP_ROOT: /opt/roommitra
-  APP_DIR: /opt/roommitra/website
-  PM2_NAME: website
+  ECR_REPOSITORY: roommitra/website
+  IMAGE_TAG: ${{ github.sha }}
 
 jobs:
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::086325458599:role/codedeploy
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Zip website folder
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push image to ECR
         run: |
-          cd website
-          zip -r ../website-${{ github.sha }}.zip . -x "*.git*"
+          IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          echo "Building Docker image: $IMAGE_URI"
 
-      - name: Upload artifact to S3
-        run: aws s3 cp website-${{ github.sha }}.zip s3://${{ env.ARTIFACT_BUCKET }}/website/website-${{ github.sha }}.zip
+          docker build -t $IMAGE_URI .
+          docker push $IMAGE_URI
 
-      - name: Find instance by tag
-        id: find
+          echo "Image successfully pushed: $IMAGE_URI"
+
+      - name: Output image URI
         run: |
-          ID=$(aws ec2 describe-instances \
-            --filters "Name=tag:${INSTANCE_TAG_KEY},Values=${INSTANCE_TAG_VALUE}" "Name=instance-state-name,Values=running" \
-            --query "Reservations[0].Instances[0].InstanceId" --output text)
-          echo "instance_id=$ID" >> $GITHUB_OUTPUT
-
-      - name: Create SSM Parameters file
-        run: |
-          cat > /tmp/ssm-params.json <<EOL
-          {
-            "commands": [
-              "set -euo pipefail",
-              "mkdir -p ${APP_ROOT}/tmp ${APP_DIR}/.deploy",
-              "chown -R appuser:appuser ${APP_ROOT}",
-             
-              "aws s3 cp s3://${ARTIFACT_BUCKET}/website/website-${{ github.sha }}.zip ${APP_ROOT}/tmp/website.zip",
-
-              "sudo -u appuser -H bash -lc \"rm -rf ${APP_DIR}/.deploy/*\"",
-              "sudo -u appuser -H bash -lc \"unzip -o ${APP_ROOT}/tmp/website.zip -d ${APP_DIR}/.deploy\"",
-              "rm -f ${APP_ROOT}/tmp/website.zip",
-              
-              "sudo -u appuser -H bash -lc \"cd ${APP_DIR}/.deploy && npm ci && npm run build\"",
-              "sudo -u appuser -H bash -lc \"rsync -a --delete ${APP_DIR}/.deploy/ ${APP_DIR}/\"",
-              "sudo -u appuser -H bash -lc \"pm2 start ${APP_DIR}/server-start.sh --name ${PM2_NAME} || pm2 reload ${PM2_NAME} --update-env\"",
-              "sudo -u appuser -H bash -lc \"pm2 save\""
-            ],
-            "executionTimeout": ["3600"]
-          }
-          EOL
-          echo "Wrote /tmp/ssm-params.json"
-
-      - name: Deploy via SSM
-        run: |
-          aws ssm send-command \
-            --region ${{ env.AWS_REGION }} \
-            --instance-ids "${{ steps.find.outputs.instance_id }}" \
-            --document-name "AWS-RunShellScript" \
-            --comment "Deploy website ${{ github.sha }}" \
-            --parameters file:///tmp/ssm-params.json \
-            --output-s3-bucket-name "${ARTIFACT_BUCKET}/website/logs" \
-            --output-s3-key-prefix "ssm-outputs/${GITHUB_RUN_ID}" \
+          echo "ECR Image URI: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"
