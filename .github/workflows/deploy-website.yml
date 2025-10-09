@@ -1,9 +1,9 @@
-name: Build and Push Docker Image to ECR
+name: Deploy Website
 
 on:
   push:
-    branches: [main, chai/ssm-code-deploy]
-    # paths: ['website/**']
+    branches: [main]
+    paths: ['website/**']
 
 permissions:
   id-token: write
