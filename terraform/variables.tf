@@ -39,6 +39,12 @@ variable "website_image_uri" {
   default     = "086325458599.dkr.ecr.ap-south-1.amazonaws.com/roommitra/website:latest"
 }
 
+variable "api_image_uri" {
+  type        = string
+  description = "ECR URI for the API Docker image"
+  default     = "public.ecr.aws/p1s3y6q3/roommitra/api:latest"
+}
+
 variable "ecr_registry" {
   type        = string
   description = "ECR registry URI"

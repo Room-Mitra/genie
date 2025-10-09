@@ -33,21 +33,7 @@ chmod 775 -R /opt/roommitra
 chown -R appuser:appuser /opt/roommitra
 
 # ---------- Placeholder apps (all pure Node HTTP; no npm deps) ----------
-# 1) API (api.roommitra.com) on :4000  — plain Node to avoid express install
-cat >/opt/roommitra/api/server.js <<'EOF'
-const http = require('http');
-const port = 4000;
-http.createServer((req,res)=>{
-  if (req.url === '/health') {
-    res.writeHead(200, {'Content-Type':'application/json'});
-    return res.end(JSON.stringify({ok:true}));
-  }
-  res.writeHead(200, {'Content-Type':'application/json'});
-  res.end(JSON.stringify({ok:true, app:"RoomMitra API placeholder"}));
-}).listen(port, ()=>console.log('API on',port));
-EOF
-
-# 2) Dashboard (app.roommitra.com) on :3001
+# 1) Dashboard (app.roommitra.com) on :3001
 cat >/opt/roommitra/webapp/server.js <<'EOF'
 const http = require('http');
 const port = 3001;
@@ -62,13 +48,22 @@ chown -R appuser:appuser /opt/roommitra
 # ---------- Start apps with Docker / PM2 under appuser ----------
 
 su -s /bin/bash - appuser -c "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${REGISTRY}"
+
+# website
 su -s /bin/bash - appuser -c "docker pull ${WEBSITE_IMAGE_URI}"
 su -s /bin/bash - appuser -c "docker stop website || true"
 su -s /bin/bash - appuser -c "docker rm website || true"
 su -s /bin/bash - appuser -c "docker run -d --name website --restart unless-stopped -p 3000:3000 ${WEBSITE_IMAGE_URI}"
 
 
-su -s /bin/bash - appuser -c "pm2 start /opt/roommitra/api/server.js --name api || true"
+# api
+su -s /bin/bash - appuser -c "docker pull ${API_IMAGE_URI}"
+su -s /bin/bash - appuser -c "docker stop api || true"
+su -s /bin/bash - appuser -c "docker rm api || true"
+su -s /bin/bash - appuser -c "docker run -d --name api --restart unless-stopped -p 4000:4000 ${API_IMAGE_URI}"
+
+
+# webapp
 su -s /bin/bash - appuser -c "pm2 start /opt/roommitra/webapp/server.js   --name webapp   || true"
 su -s /bin/bash - appuser -c "pm2 save || true"
 pm2 startup systemd -u appuser --hp /home/appuser
