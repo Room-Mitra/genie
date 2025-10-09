@@ -20,6 +20,7 @@ env:
   PUBLIC_ECR_REPO: roommitra/api
   INSTANCE_TAG_KEY: Name
   INSTANCE_TAG_VALUE: roommitra-ec2
+  IMAGE_TAG: ${{ github.sha }}
 
 defaults:
   run:
@@ -85,6 +86,7 @@ jobs:
           push: true
           provenance: false
           tags: |
+            public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:${{ env.IMAGE_TAG }}
             public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:latest
           cache-from: |
             type=gha
@@ -103,7 +105,7 @@ jobs:
 
       - name: Create SSM Parameters file
         run: |
-          IMAGE_URI="public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:latest"
+          IMAGE_URI="public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:${{ env.IMAGE_TAG }}"
           echo "Resolved IMAGE_URI=$IMAGE_URI"
 
           cat > /tmp/ssm-params.json <<'EOL'
