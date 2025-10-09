@@ -108,7 +108,7 @@ jobs:
           IMAGE_URI="public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:${{ env.IMAGE_TAG }}"
           echo "Resolved IMAGE_URI=$IMAGE_URI"
 
-          cat > /tmp/ssm-params.json <<'EOL'
+          cat > /tmp/ssm-params.json <<EOL
           {
             "commands": [
               "set -euo pipefail",
