@@ -3,44 +3,13 @@ set -euxo pipefail
 
 # ---------- Base OS & essentials ----------
 dnf -y update || true
-dnf -y install nginx git tar bind-utils amazon-ssm-agent ruby wget || true
+dnf -y install nginx git tar bind-utils amazon-ssm-agent ruby wget docker || true
 systemctl enable --now amazon-ssm-agent
 systemctl enable nginx
 
-
-# ---------- AWS CodeDeploy Agent ----------
-
-# Install CodeDeploy agent via RPM (has a native systemd unit)
-rpm -Uvh "https://aws-codedeploy-${AWS_REGION}.s3.${AWS_REGION}.amazonaws.com/latest/codedeploy-agent.noarch.rpm"
-
-# Remove legacy SysV script so systemd won't try sysv-install
-rm -f /etc/init.d/codedeploy-agent || true
-for d in /etc/rc*.d; do rm -f "$d"/S??codedeploy-agent "$d"/K??codedeploy-agent 2>/dev/null || true; done
-
-# Create a native systemd unit
-cat >/etc/systemd/system/codedeploy-agent.service <<'UNIT'
-[Unit]
-Description=AWS CodeDeploy Host Agent
-After=network.target
-
-[Service]
-Type=simple
-User=root
-Restart=on-failure
-ExecStart=/usr/bin/codedeploy-agent start
-ExecStop=/usr/bin/codedeploy-agent stop
-
-[Install]
-WantedBy=multi-user.target
-UNIT
-
-# Reload units and enable the native one explicitly
-systemctl daemon-reload
-systemctl enable --now codedeploy-agent.service
-
-# Sanity check (won't fail cloud-init)
-systemctl is-active codedeploy-agent || true
-
+# Enable and start the Docker service
+sudo systemctl enable docker
+sudo systemctl start docker
 
 
 # ---------- Node.js 20 (Amazon Linux 2023 built-in) ----------
@@ -52,11 +21,14 @@ npm install -g pm2
 if ! id appuser >/dev/null 2>&1; then
   useradd -m -d /home/appuser -s /bin/bash appuser
 fi
+
+usermod -aG docker appuser
+
 install -d -o appuser -g appuser -m 750 /home/appuser
 install -d -o appuser -g appuser -m 700 /home/appuser/.pm2
 
-mkdir -p /opt/roommitra/{website,api,webapp}
-chmod 777 -R /opt/roommitra
+mkdir -p /opt/roommitra/{website,api,webapp,tmp}
+chmod 775 -R /opt/roommitra
 chown -R appuser:appuser /opt/roommitra
 
 # ---------- Placeholder apps (all pure Node HTTP; no npm deps) ----------
@@ -153,6 +125,7 @@ NGINX
 
 nginx -t
 systemctl restart nginx
+systemctl restart docker
 
 # ---------- Certbot (install only; issuance handled below) ----------
 dnf -y install certbot python3-certbot-nginx || true

@@ -102,6 +102,11 @@ export default [
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
       'no-console': ['warn', { allow: ['warn', 'error'] }],
+      // You’re on /app router, not /pages
+      '@next/next/no-html-link-for-pages': 'off',
+
+      // Work around the plugin crash in your stack
+      '@next/next/no-duplicate-head': 'off',
     },
   },
 

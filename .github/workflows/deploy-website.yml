@@ -1,10 +1,12 @@
-name: Deploy website
+name: Deploy Website
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
     paths:
       - 'website/**'
+      - '.github/workflows/deploy-website.yml'
 
 permissions:
   id-token: write
@@ -12,33 +14,169 @@ permissions:
 
 env:
   AWS_REGION: ap-south-1
-  APP_NAME: genie-webapp-app # from TF output for webapp module
-  DEPLOY_GROUP: genie-webapp-dg # from TF output
-  S3_BUCKET: genie-webapp-codedeploy-ap-south-1 # from TF output
+  AWS_ACCOUNT_ID: '086325458599'
+  ECR_REPOSITORY: roommitra/website
+  IMAGE_TAG: ${{ github.sha }}
+  INSTANCE_TAG_KEY: Name
+  INSTANCE_TAG_VALUE: roommitra-ec2
+
+defaults:
+  run:
+    working-directory: ./website
 
 jobs:
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - uses: aws-actions/configure-aws-credentials@v4
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Collect meta
+        id: meta
+        run: |
+          echo "RUN_URL=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" >> $GITHUB_ENV
+          echo "COMMIT_URL=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}" >> $GITHUB_ENV
+          echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+          echo "AUTHOR_NAME=$(git show -s --format='%an' ${GITHUB_SHA})" >> $GITHUB_ENV
+
+      - uses: slackapi/slack-github-action@v1.26.0
         with:
-          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
+          channel-id: ${{ secrets.ENG_OPS_CHANNEL_ID }}
+          payload: |
+            {
+              "blocks": [
+                { "type": "section",
+                  "text": { "type": "mrkdwn",
+                    "text": ":alarm_clock: *`website` Build started* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
+                  }
+                },
+                { "type": "context", "elements": [
+                  { "type": "mrkdwn", "text": "*Author:* ${{ env.AUTHOR_NAME }}" },
+                  { "type": "mrkdwn", "text": "*Branch:* ${{ github.ref_name }}" },
+                  { "type": "mrkdwn", "text": "*Workflow:* <${{ env.RUN_URL }}|open run>" }
+                ]}
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::086325458599:role/codedeploy
           aws-region: ${{ env.AWS_REGION }}
 
-      # Zip ONLY the service folder so appspec.yml is at the bundle root
-      - name: Bundle website
-        run: |
-          cd website
-          zip -r ../website-deploy.zip . -x "*.git*"
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Upload to S3
-        run: aws s3 cp webapp-deploy.zip s3://${{ env.S3_BUCKET }}/deploy-${{ github.sha }}.zip
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Trigger CodeDeploy
+      - name: Log in to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build & Push with ECR cache
+        uses: docker/build-push-action@v5
+        with:
+          context: ./website
+          file: ./website/Dockerfile
+          push: true
+          provenance: false
+          tags: |
+            ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+            ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+          cache-from: |
+            type=gha
+            type=registry,ref=${{ steps.ecr.outputs.registry }}/roommitra/website:buildcache
+          cache-to: |
+            type=gha,mode=max
+            type=registry,ref=${{ steps.ecr.outputs.registry }}/roommitra/website:buildcache,mode=max
+
+      - name: Find instance by tag
+        id: find
         run: |
-          aws deploy create-deployment \
-            --application-name "$APP_NAME" \
-            --deployment-group-name "$DEPLOY_GROUP" \
-            --s3-location bucket=${S3_BUCKET},key=deploy-${{ github.sha }}.zip,bundleType=zip
+          ID=$(aws ec2 describe-instances \
+            --filters "Name=tag:${INSTANCE_TAG_KEY},Values=${INSTANCE_TAG_VALUE}" "Name=instance-state-name,Values=running" \
+            --query "Reservations[0].Instances[0].InstanceId" --output text)
+          echo "instance_id=$ID" >> $GITHUB_OUTPUT
+
+      - name: Create SSM Parameters file
+        run: |
+          IMAGE_URI="${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"
+          echo "Resolved IMAGE_URI=$IMAGE_URI"
+
+          cat > /tmp/ssm-params.json <<EOL
+          {
+            "commands": [
+              "set -euo pipefail",
+              "sudo -u appuser -H bash -lc \"aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}\"",
+              "sudo -u appuser -H bash -lc \"docker pull ${IMAGE_URI}\"",
+              "sudo -u appuser -H bash -lc \"docker stop website || true\"",
+              "sudo -u appuser -H bash -lc \"docker rm website || true\"",
+              "sudo -u appuser -H bash -lc \"pm2 delete website || true\"", 
+              "sudo -u appuser -H bash -lc \"pm2 save\"",
+              "sudo -u appuser -H bash -lc \"docker run -d --name website --restart unless-stopped -p 3000:3000 ${IMAGE_URI}\""
+            ],
+            "executionTimeout": ["3600"]
+          }
+          EOL
+
+          echo "Wrote /tmp/ssm-params.json"
+
+      - name: Deploy via SSM
+        run: |
+          aws ssm send-command \
+            --region ${{ env.AWS_REGION }} \
+            --instance-ids "${{ steps.find.outputs.instance_id }}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy website ${{ github.sha }}" \
+            --parameters file:///tmp/ssm-params.json
+
+      # Success message
+      - uses: slackapi/slack-github-action@v1.26.0
+        if: ${{ success() }}
+        with:
+          channel-id: ${{ secrets.ENG_OPS_CHANNEL_ID }}
+          payload: |
+            {
+              "blocks": [
+                { "type": "section",
+                  "text": { "type": "mrkdwn",
+                    "text": ":white_check_mark: *`website` Build passed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
+                  }
+                },
+                { "type": "context", "elements": [
+                  { "type": "mrkdwn", "text": "*Author:* ${{ env.AUTHOR_NAME }}" },
+                   { "type": "mrkdwn", "text": "*Branch:* ${{ github.ref_name }}" },
+                  { "type": "mrkdwn", "text": "*Workflow:* <${{ env.RUN_URL }}|open run>" }
+                ]}
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      # Failure message
+      - uses: slackapi/slack-github-action@v1.26.0
+        if: ${{ failure() }}
+        with:
+          channel-id: ${{ secrets.ENG_OPS_CHANNEL_ID }}
+          payload: |
+            {
+              "blocks": [
+                { "type": "section",
+                  "text": { "type": "mrkdwn",
+                    "text": ":x: *`website` Build failed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
+                  }
+                },
+                { "type": "context", "elements": [
+                  { "type": "mrkdwn", "text": "*Author:* ${{ env.AUTHOR_NAME }}" },
+                   { "type": "mrkdwn", "text": "*Branch:* ${{ github.ref_name }}" },
+                  { "type": "mrkdwn", "text": "*Workflow:* <${{ env.RUN_URL }}|open run>" }
+                ]}
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
