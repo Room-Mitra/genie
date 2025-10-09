@@ -72,10 +72,12 @@ sudo certbot --nginx -d roommitra.com -d api.roommitra.com -d app.roommitra.com 
 ```
 
 4. Backup the certificates to S3
+
 ```sh
-BUCKET="s3://roommitra-codedeploy/certs/"
-sudo rsync -a --delete /etc/letsencrypt/ /root/letsencrypt-backup/
-sudo aws s3 sync /root/letsencrypt-backup/ "$BUCKET" --delete
+BUCKET="s3://roommitra-codedeploy/certs"
+sudo tar --numeric-owner -C /etc -czf /root/letsencrypt-backup.tgz letsencrypt
+sudo aws s3 cp /root/letsencrypt-backup.tgz $BUCKET/letsencrypt-$(date +%F).tgz
+sudo aws s3 cp /root/letsencrypt-backup.tgz $BUCKET/letsencrypt-latest.tgz
 
 ```
 

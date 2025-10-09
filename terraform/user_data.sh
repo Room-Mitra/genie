@@ -28,20 +28,10 @@ usermod -aG docker appuser
 install -d -o appuser -g appuser -m 750 /home/appuser
 install -d -o appuser -g appuser -m 700 /home/appuser/.pm2
 
-mkdir -p /opt/roommitra/{website,api,webapp,tmp}
+mkdir -p /opt/roommitra/{api,webapp}
 chmod 775 -R /opt/roommitra
 chown -R appuser:appuser /opt/roommitra
 
-# ---------- Placeholder apps (all pure Node HTTP; no npm deps) ----------
-# 1) Landing (roommitra.com) on :3000
-cat >/opt/roommitra/website/server.js <<'EOF'
-const http = require('http');
-const port = 3000;
-http.createServer((req,res)=>{
-  res.writeHead(200, {'Content-Type':'text/plain'});
-  res.end('RoomMitra Landing (Next.js placeholder)');
-}).listen(port, ()=>console.log('Landing on',port));
-EOF
 
 # 2) API (api.roommitra.com) on :4000  — plain Node to avoid express install
 cat >/opt/roommitra/api/server.js <<'EOF'
@@ -69,8 +59,15 @@ EOF
 
 chown -R appuser:appuser /opt/roommitra
 
-# ---------- Start apps with PM2 under appuser ----------
-su -s /bin/bash - appuser -c "pm2 start /opt/roommitra/website/server.js --name website || true"
+# ---------- Start apps with Docker / PM2 under appuser ----------
+
+su -s /bin/bash - appuser -c "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${REGISTRY}"
+su -s /bin/bash - appuser -c "docker pull ${WEBSITE_IMAGE_URI}"
+su -s /bin/bash - appuser -c "docker stop website || true"
+su -s /bin/bash - appuser -c "docker rm website || true"
+su -s /bin/bash - appuser -c "docker run -d --name website --restart unless-stopped -p 3000:3000 ${WEBSITE_IMAGE_URI}"
+
+
 su -s /bin/bash - appuser -c "pm2 start /opt/roommitra/api/server.js --name api || true"
 su -s /bin/bash - appuser -c "pm2 start /opt/roommitra/webapp/server.js   --name webapp   || true"
 su -s /bin/bash - appuser -c "pm2 save || true"
@@ -126,45 +123,12 @@ NGINX
 
 
 # ---------- Restore SSL certificates ----------
-BUCKET="s3://roommitra-codedeploy/certs/"
+BUCKET="s3://roommitra-codedeploy/certs"
 
-mkdir -p /root/letsencrypt-backup
-aws s3 sync "$BUCKET" /root/letsencrypt-backup/ || true
-if [ -d /root/letsencrypt-backup/live ]; then
-  sudo rsync -a /root/letsencrypt-backup/ /etc/letsencrypt/
-  
-  name="roommitra.com"
-  cd /etc/letsencrypt
-
-  # sanity: make sure archive exists
-  test -d "archive/$name" || { echo "archive/$name missing"; exit 1; }
-
-  # find latest version number (certN.pem)
-  latest=$(ls archive/$name/cert*.pem | sed -E "s/.*cert([0-9]+)\.pem/\1/" | sort -n | tail -1)
-  echo "Using version: $latest"
-
-  # ensure live dir exists
-  mkdir -p "live/$name"
-
-  # remove any existing files (non-symlink or wrong)
-  rm -f  "live/$name/cert.pem" "live/$name/chain.pem" "live/$name/fullchain.pem" "live/$name/privkey.pem"
-
-  # recreate symlinks (relative paths, as Certbot expects)
-  ln -s "../../archive/$name/cert${latest}.pem"      "live/$name/cert.pem"
-  ln -s "../../archive/$name/chain${latest}.pem"     "live/$name/chain.pem"
-  ln -s "../../archive/$name/fullchain${latest}.pem" "live/$name/fullchain.pem"
-  ln -s "../../archive/$name/privkey${latest}.pem"   "live/$name/privkey.pem"
-
-  chown -R root:root /etc/letsencrypt
-  find /etc/letsencrypt -type d -exec chmod 755 {} \;
-  find /etc/letsencrypt -type f -exec chmod 600 {} \;
-
-  echo "Symlinks recreated."
-  
-fi
+sudo aws s3 cp "$BUCKET/letsencrypt-latest.tgz" /root/
+sudo tar -xzf /root/letsencrypt-latest.tgz -C /etc
 
 sudo certbot install --nginx --cert-name roommitra.com
-
 
 nginx -t
 systemctl restart nginx

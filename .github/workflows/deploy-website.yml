@@ -116,8 +116,6 @@ jobs:
               "sudo -u appuser -H bash -lc \"docker pull ${IMAGE_URI}\"",
               "sudo -u appuser -H bash -lc \"docker stop website || true\"",
               "sudo -u appuser -H bash -lc \"docker rm website || true\"",
-              "sudo -u appuser -H bash -lc \"pm2 delete website || true\"", 
-              "sudo -u appuser -H bash -lc \"pm2 save\"",
               "sudo -u appuser -H bash -lc \"docker run -d --name website --restart unless-stopped -p 3000:3000 ${IMAGE_URI}\""
             ],
             "executionTimeout": ["3600"]

@@ -32,3 +32,16 @@ variable "tags" {
     Project = "RoomMitra"
   }
 }
+
+variable "website_image_uri" {
+  type        = string
+  description = "ECR URI for the website Docker image"
+  default     = "086325458599.dkr.ecr.ap-south-1.amazonaws.com/roommitra/website:latest"
+}
+
+variable "ecr_registry" {
+  type        = string
+  description = "ECR registry URI"
+  default     = "086325458599.dkr.ecr.ap-south-1.amazonaws.com"
+
+}
