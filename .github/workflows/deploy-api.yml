@@ -110,6 +110,8 @@ jobs:
           {
             "commands": [
               "set -euo pipefail",
+              "sudo -u appuser -H bash -lc \"aws ssm get-parameter --name '/roommitra/api/env' --with-decryption --query 'Parameter.Value' --output text > /opt/roommitra/api/.env\"",
+              "sudo -u appuser -H bash -lc \"chmod 600 /opt/roommitra/api/.env\"",
               "sudo -u appuser -H bash -lc \"docker pull ${IMAGE_URI}\"",
               "sudo -u appuser -H bash -lc \"docker stop api || true\"",
               "sudo -u appuser -H bash -lc \"docker rm api || true\"",
