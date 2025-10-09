@@ -79,7 +79,7 @@ const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // --- Health check endpoint ---
-app.get('/health', (req, res) => {
+app.get('/healthz', (req, res) => {
   res.status(200).json({
     status: 'ok',
     uptime: process.uptime(),
