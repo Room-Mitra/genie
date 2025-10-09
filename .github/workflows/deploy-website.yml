@@ -16,7 +16,6 @@ env:
   AWS_REGION: ap-south-1
   AWS_ACCOUNT_ID: '086325458599'
   ECR_REPOSITORY: roommitra/website
-  IMAGE_TAG: ${{ github.sha }}
   INSTANCE_TAG_KEY: Name
   INSTANCE_TAG_VALUE: roommitra-ec2
 
@@ -86,7 +85,6 @@ jobs:
           push: true
           provenance: false
           tags: |
-            ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
             ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
           cache-from: |
             type=gha
@@ -105,7 +103,7 @@ jobs:
 
       - name: Create SSM Parameters file
         run: |
-          IMAGE_URI="${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"
+          IMAGE_URI="${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest"
           echo "Resolved IMAGE_URI=$IMAGE_URI"
 
           cat > /tmp/ssm-params.json <<EOL
