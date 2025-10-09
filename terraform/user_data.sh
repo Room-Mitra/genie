@@ -3,7 +3,7 @@ set -euxo pipefail
 
 # ---------- Base OS & essentials ----------
 dnf -y update || true
-dnf -y install nginx git tar bind-utils amazon-ssm-agent ruby wget docker certbot python3-certbot-nginx rsync || true
+dnf -y install nginx git tar bind-utils amazon-ssm-agent ruby wget docker certbot python3-certbot-nginx || true
 
 systemctl enable --now amazon-ssm-agent
 systemctl enable nginx
@@ -32,8 +32,8 @@ mkdir -p /opt/roommitra/{api,webapp}
 chmod 775 -R /opt/roommitra
 chown -R appuser:appuser /opt/roommitra
 
-
-# 2) API (api.roommitra.com) on :4000  — plain Node to avoid express install
+# ---------- Placeholder apps (all pure Node HTTP; no npm deps) ----------
+# 1) API (api.roommitra.com) on :4000  — plain Node to avoid express install
 cat >/opt/roommitra/api/server.js <<'EOF'
 const http = require('http');
 const port = 4000;
@@ -47,7 +47,7 @@ http.createServer((req,res)=>{
 }).listen(port, ()=>console.log('API on',port));
 EOF
 
-# 3) Dashboard (app.roommitra.com) on :3001
+# 2) Dashboard (app.roommitra.com) on :3001
 cat >/opt/roommitra/webapp/server.js <<'EOF'
 const http = require('http');
 const port = 3001;
