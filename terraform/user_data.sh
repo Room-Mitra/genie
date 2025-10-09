@@ -28,26 +28,12 @@ usermod -aG docker appuser
 install -d -o appuser -g appuser -m 750 /home/appuser
 install -d -o appuser -g appuser -m 700 /home/appuser/.pm2
 
-mkdir -p /opt/roommitra/{api,webapp}
+mkdir -p /opt/roommitra/{api,webapp,website}
 chmod 775 -R /opt/roommitra
 chown -R appuser:appuser /opt/roommitra
 
 # ---------- Placeholder apps (all pure Node HTTP; no npm deps) ----------
-# 1) API (api.roommitra.com) on :4000  — plain Node to avoid express install
-cat >/opt/roommitra/api/server.js <<'EOF'
-const http = require('http');
-const port = 4000;
-http.createServer((req,res)=>{
-  if (req.url === '/health') {
-    res.writeHead(200, {'Content-Type':'application/json'});
-    return res.end(JSON.stringify({ok:true}));
-  }
-  res.writeHead(200, {'Content-Type':'application/json'});
-  res.end(JSON.stringify({ok:true, app:"RoomMitra API placeholder"}));
-}).listen(port, ()=>console.log('API on',port));
-EOF
-
-# 2) Dashboard (app.roommitra.com) on :3001
+# 1) Dashboard (app.roommitra.com) on :3001
 cat >/opt/roommitra/webapp/server.js <<'EOF'
 const http = require('http');
 const port = 3001;
@@ -61,16 +47,28 @@ chown -R appuser:appuser /opt/roommitra
 
 # ---------- Start apps with Docker / PM2 under appuser ----------
 
-su -s /bin/bash - appuser -c "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${REGISTRY}"
-su -s /bin/bash - appuser -c "docker pull ${WEBSITE_IMAGE_URI}"
-su -s /bin/bash - appuser -c "docker stop website || true"
-su -s /bin/bash - appuser -c "docker rm website || true"
-su -s /bin/bash - appuser -c "docker run -d --name website --restart unless-stopped -p 3000:3000 ${WEBSITE_IMAGE_URI}"
+sudo -u appuser -H bash -lc "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${REGISTRY}"
+
+# website
+sudo -u appuser -H bash -lc "aws ssm get-parameter --name \"/roommitra/website/env\" --with-decryption --query \"Parameter.Value\" --output text > /opt/roommitra/website/.env"
+sudo -u appuser -H bash -lc "chmod 600 /opt/roommitra/website/.env"
+sudo -u appuser -H bash -lc "docker pull ${WEBSITE_IMAGE_URI}"
+sudo -u appuser -H bash -lc "docker stop website || true"
+sudo -u appuser -H bash -lc "docker rm website || true"
+sudo -u appuser -H bash -lc "docker run -d --name website --env-file /opt/roommitra/website/.env --restart unless-stopped -p 3000:3000 ${WEBSITE_IMAGE_URI}"
 
 
-su -s /bin/bash - appuser -c "pm2 start /opt/roommitra/api/server.js --name api || true"
-su -s /bin/bash - appuser -c "pm2 start /opt/roommitra/webapp/server.js   --name webapp   || true"
-su -s /bin/bash - appuser -c "pm2 save || true"
+# api
+sudo -u appuser -H bash -lc "aws ssm get-parameter --name \"/roommitra/api/env\" --with-decryption --query \"Parameter.Value\" --output text > /opt/roommitra/api/.env"
+sudo -u appuser -H bash -lc "chmod 600 /opt/roommitra/api/.env"
+sudo -u appuser -H bash -lc "docker pull ${API_IMAGE_URI}"
+sudo -u appuser -H bash -lc "docker stop api || true"
+sudo -u appuser -H bash -lc "docker rm api || true"
+sudo -u appuser -H bash -lc "docker run -d --name api --env-file /opt/roommitra/api/.env --restart unless-stopped -p 4000:4000 ${API_IMAGE_URI}"
+
+# webapp
+sudo -u appuser -H bash -lc "pm2 start /opt/roommitra/webapp/server.js   --name webapp   || true"
+sudo -u appuser -H bash -lc "pm2 save || true"
 pm2 startup systemd -u appuser --hp /home/appuser
 
 # ---------- Nginx reverse proxy (HTTP only pre-cert) ----------

@@ -15,9 +15,11 @@ permissions:
 env:
   AWS_REGION: ap-south-1
   AWS_ACCOUNT_ID: '086325458599'
-  ECR_REPOSITORY: roommitra/website
+  PUBLIC_ECR_ALIAS: p1s3y6q3
+  PUBLIC_ECR_REPO: roommitra/website
   INSTANCE_TAG_KEY: Name
   INSTANCE_TAG_VALUE: roommitra-ec2
+  IMAGE_TAG: ${{ github.sha }}
 
 defaults:
   run:
@@ -66,16 +68,14 @@ jobs:
           role-to-assume: arn:aws:iam::086325458599:role/codedeploy
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Log in to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Amazon ECR
-        id: ecr
-        uses: aws-actions/amazon-ecr-login@v2
+      # --- PUBLIC ECR login (region must be us-east-1) ---
+      - name: Login to Amazon ECR Public
+        run: |
+          aws ecr-public get-login-password --region us-east-1 \
+            | docker login --username AWS --password-stdin public.ecr.aws
 
       - name: Build & Push with ECR cache
         uses: docker/build-push-action@v5
@@ -85,13 +85,14 @@ jobs:
           push: true
           provenance: false
           tags: |
-            ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+            public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:${{ env.IMAGE_TAG }}
+            public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:latest
           cache-from: |
             type=gha
-            type=registry,ref=${{ steps.ecr.outputs.registry }}/roommitra/website:buildcache
+            type=registry,ref=public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:buildcache
           cache-to: |
             type=gha,mode=max
-            type=registry,ref=${{ steps.ecr.outputs.registry }}/roommitra/website:buildcache,mode=max
+            type=registry,ref=public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:buildcache,mode=max
 
       - name: Find instance by tag
         id: find
@@ -103,18 +104,19 @@ jobs:
 
       - name: Create SSM Parameters file
         run: |
-          IMAGE_URI="${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest"
+          IMAGE_URI="public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:${{ env.IMAGE_TAG }}"
           echo "Resolved IMAGE_URI=$IMAGE_URI"
 
           cat > /tmp/ssm-params.json <<EOL
           {
             "commands": [
               "set -euo pipefail",
-              "sudo -u appuser -H bash -lc \"aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}\"",
+              "sudo -u appuser -H bash -lc \"aws ssm get-parameter --name '/roommitra/website/env' --with-decryption --query 'Parameter.Value' --output text > /opt/roommitra/website/.env\"",
+              "sudo -u appuser -H bash -lc \"chmod 600 /opt/roommitra/website/.env\"",
               "sudo -u appuser -H bash -lc \"docker pull ${IMAGE_URI}\"",
               "sudo -u appuser -H bash -lc \"docker stop website || true\"",
               "sudo -u appuser -H bash -lc \"docker rm website || true\"",
-              "sudo -u appuser -H bash -lc \"docker run -d --name website --restart unless-stopped -p 3000:3000 ${IMAGE_URI}\""
+              "sudo -u appuser -H bash -lc \"docker run -d --name website --env-file /opt/roommitra/website/.env --restart unless-stopped -p 3000:3000 ${IMAGE_URI}\""
             ],
             "executionTimeout": ["3600"]
           }

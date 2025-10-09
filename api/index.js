@@ -1,6 +1,3 @@
-// https://www.freecodecamp.org/news/create-crud-api-project/#heading-how-to-set-up-your-development-environment
-// https://www.sammeechward.com/deploying-full-stack-js-to-aws-ec2
-
 import dotenv from 'dotenv';
 dotenv.config();
 

@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - chai/api-deploy
     paths:
       - 'api/**'
       - '.github/workflows/deploy-api.yml'
@@ -20,6 +19,7 @@ env:
   PUBLIC_ECR_REPO: roommitra/api
   INSTANCE_TAG_KEY: Name
   INSTANCE_TAG_VALUE: roommitra-ec2
+  IMAGE_TAG: ${{ github.sha }}
 
 defaults:
   run:
@@ -85,6 +85,7 @@ jobs:
           push: true
           provenance: false
           tags: |
+            public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:${{ env.IMAGE_TAG }}
             public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:latest
           cache-from: |
             type=gha
@@ -103,17 +104,19 @@ jobs:
 
       - name: Create SSM Parameters file
         run: |
-          IMAGE_URI="public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:latest"
+          IMAGE_URI="public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:${{ env.IMAGE_TAG }}"
           echo "Resolved IMAGE_URI=$IMAGE_URI"
 
-          cat > /tmp/ssm-params.json <<'EOL'
+          cat > /tmp/ssm-params.json <<EOL
           {
             "commands": [
               "set -euo pipefail",
+              "sudo -u appuser -H bash -lc \"aws ssm get-parameter --name '/roommitra/api/env' --with-decryption --query 'Parameter.Value' --output text > /opt/roommitra/api/.env\"",
+              "sudo -u appuser -H bash -lc \"chmod 600 /opt/roommitra/api/.env\"",
               "sudo -u appuser -H bash -lc \"docker pull ${IMAGE_URI}\"",
               "sudo -u appuser -H bash -lc \"docker stop api || true\"",
               "sudo -u appuser -H bash -lc \"docker rm api || true\"",
-              "sudo -u appuser -H bash -lc \"docker run -d --name api --restart unless-stopped -p 4000:4000 ${IMAGE_URI}\""
+              "sudo -u appuser -H bash -lc \"docker run -d --name api --env-file /opt/roommitra/api/.env --restart unless-stopped -p 4000:4000 ${IMAGE_URI}\""
             ],
             "executionTimeout": ["3600"]
           }
