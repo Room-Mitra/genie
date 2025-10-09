@@ -13,6 +13,7 @@ env:
   ARTIFACT_BUCKET: roommitra-codedeploy
   INSTANCE_TAG_KEY: Name
   INSTANCE_TAG_VALUE: roommitra-ec2
+  APP_ROOT: /opt/roommitra
   APP_DIR: /opt/roommitra/website
   PM2_NAME: website
 
@@ -49,20 +50,19 @@ jobs:
           {
             "commands": [
               "set -euo pipefail",
-              "export PATH=\"$PATH:/usr/local/bin:/usr/bin\"",
-              "mkdir -p ${APP_DIR}/.deploy",
-              "chmod -R 777 ${APP_DIR}/.deploy",
-              "aws s3 cp s3://${ARTIFACT_BUCKET}/website/website-${{ github.sha }}.zip /opt/roommitra/tmp/website.zip",
-              "rm -rf ${APP_DIR}/.deploy/*",
-              "unzip -o /opt/roommitra/tmp/website.zip -d ${APP_DIR}/.deploy",
-              "rm -rf /opt/roommitra/tmp/website.zip",
-              "cd ${APP_DIR}/.deploy",
-              "npm ci",
-              "npm run build",
-              "rsync -a --delete ${APP_DIR}/.deploy/ ${APP_DIR}/",
-              "command -v pm2 >/dev/null || sudo npm i -g pm2",
-              "pm2 start ${APP_DIR}/server-start.sh --name ${PM2_NAME} || pm2 reload ${PM2_NAME} --update-env",
-              "pm2 save"
+              "mkdir -p ${APP_ROOT}/tmp ${APP_DIR}/.deploy",
+              "chown -R appuser:appuser ${APP_ROOT}",
+             
+              "aws s3 cp s3://${ARTIFACT_BUCKET}/website/website-${{ github.sha }}.zip ${APP_ROOT}/tmp/website.zip",
+
+              "sudo -u appuser -H bash -lc \"rm -rf ${APP_DIR}/.deploy/*\"",
+              "sudo -u appuser -H bash -lc \"unzip -o ${APP_ROOT}/tmp/website.zip -d ${APP_DIR}/.deploy\"",
+              "rm -f ${APP_ROOT}/tmp/website.zip",
+              
+              "sudo -u appuser -H bash -lc \"cd ${APP_DIR}/.deploy && npm ci && npm run build\"",
+              "sudo -u appuser -H bash -lc \"rsync -a --delete ${APP_DIR}/.deploy/ ${APP_DIR}/\"",
+              "sudo -u appuser -H bash -lc \"pm2 start ${APP_DIR}/server-start.sh --name ${PM2_NAME} || pm2 reload ${PM2_NAME} --update-env\"",
+              "sudo -u appuser -H bash -lc \"pm2 save\""
             ],
             "executionTimeout": ["3600"]
           }
