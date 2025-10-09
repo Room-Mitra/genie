@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - chai/api-deploy-2
     paths:
       - 'api/**'
       - '.github/workflows/deploy-api.yml'
