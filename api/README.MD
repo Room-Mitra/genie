@@ -71,6 +71,16 @@ aws ssm start-session --target i-0547ae1ad3fe5c2f1 --profile roommitra
 sudo certbot --nginx -d roommitra.com -d api.roommitra.com -d app.roommitra.com --agree-tos -m chai@roommitra.com --redirect -n
 ```
 
+4. Backup the certificates to S3
+
+```sh
+BUCKET="s3://roommitra-codedeploy/certs"
+sudo tar --numeric-owner -C /etc -czf /root/letsencrypt-backup.tgz letsencrypt
+sudo aws s3 cp /root/letsencrypt-backup.tgz $BUCKET/letsencrypt-$(date +%F).tgz
+sudo aws s3 cp /root/letsencrypt-backup.tgz $BUCKET/letsencrypt-latest.tgz
+
+```
+
 ## Deploying new code
 
 - CodeDeploy isn't working right now.

@@ -3,7 +3,8 @@ set -euxo pipefail
 
 # ---------- Base OS & essentials ----------
 dnf -y update || true
-dnf -y install nginx git tar bind-utils amazon-ssm-agent ruby wget docker || true
+dnf -y install nginx git tar bind-utils amazon-ssm-agent ruby wget docker certbot python3-certbot-nginx || true
+
 systemctl enable --now amazon-ssm-agent
 systemctl enable nginx
 
@@ -27,22 +28,12 @@ usermod -aG docker appuser
 install -d -o appuser -g appuser -m 750 /home/appuser
 install -d -o appuser -g appuser -m 700 /home/appuser/.pm2
 
-mkdir -p /opt/roommitra/{website,api,webapp,tmp}
+mkdir -p /opt/roommitra/{api,webapp}
 chmod 775 -R /opt/roommitra
 chown -R appuser:appuser /opt/roommitra
 
 # ---------- Placeholder apps (all pure Node HTTP; no npm deps) ----------
-# 1) Landing (roommitra.com) on :3000
-cat >/opt/roommitra/website/server.js <<'EOF'
-const http = require('http');
-const port = 3000;
-http.createServer((req,res)=>{
-  res.writeHead(200, {'Content-Type':'text/plain'});
-  res.end('RoomMitra Landing (Next.js placeholder)');
-}).listen(port, ()=>console.log('Landing on',port));
-EOF
-
-# 2) API (api.roommitra.com) on :4000  — plain Node to avoid express install
+# 1) API (api.roommitra.com) on :4000  — plain Node to avoid express install
 cat >/opt/roommitra/api/server.js <<'EOF'
 const http = require('http');
 const port = 4000;
@@ -56,7 +47,7 @@ http.createServer((req,res)=>{
 }).listen(port, ()=>console.log('API on',port));
 EOF
 
-# 3) Dashboard (app.roommitra.com) on :3001
+# 2) Dashboard (app.roommitra.com) on :3001
 cat >/opt/roommitra/webapp/server.js <<'EOF'
 const http = require('http');
 const port = 3001;
@@ -68,8 +59,15 @@ EOF
 
 chown -R appuser:appuser /opt/roommitra
 
-# ---------- Start apps with PM2 under appuser ----------
-su -s /bin/bash - appuser -c "pm2 start /opt/roommitra/website/server.js --name website || true"
+# ---------- Start apps with Docker / PM2 under appuser ----------
+
+su -s /bin/bash - appuser -c "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${REGISTRY}"
+su -s /bin/bash - appuser -c "docker pull ${WEBSITE_IMAGE_URI}"
+su -s /bin/bash - appuser -c "docker stop website || true"
+su -s /bin/bash - appuser -c "docker rm website || true"
+su -s /bin/bash - appuser -c "docker run -d --name website --restart unless-stopped -p 3000:3000 ${WEBSITE_IMAGE_URI}"
+
+
 su -s /bin/bash - appuser -c "pm2 start /opt/roommitra/api/server.js --name api || true"
 su -s /bin/bash - appuser -c "pm2 start /opt/roommitra/webapp/server.js   --name webapp   || true"
 su -s /bin/bash - appuser -c "pm2 save || true"
@@ -123,9 +121,15 @@ server {
 }
 NGINX
 
+
+# ---------- Restore SSL certificates ----------
+BUCKET="s3://roommitra-codedeploy/certs"
+
+sudo aws s3 cp "$BUCKET/letsencrypt-latest.tgz" /root/
+sudo tar -xzf /root/letsencrypt-latest.tgz -C /etc
+
+sudo certbot install --nginx --cert-name roommitra.com
+
 nginx -t
 systemctl restart nginx
 systemctl restart docker
-
-# ---------- Certbot (install only; issuance handled below) ----------
-dnf -y install certbot python3-certbot-nginx || true
