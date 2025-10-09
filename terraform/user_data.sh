@@ -3,9 +3,13 @@ set -euxo pipefail
 
 # ---------- Base OS & essentials ----------
 dnf -y update || true
-dnf -y install nginx git tar bind-utils amazon-ssm-agent ruby wget unzip || true
+dnf -y install nginx git tar bind-utils amazon-ssm-agent ruby wget docker || true
 systemctl enable --now amazon-ssm-agent
 systemctl enable nginx
+
+# Enable and start the Docker service
+sudo systemctl enable docker
+sudo systemctl start docker
 
 
 # ---------- Node.js 20 (Amazon Linux 2023 built-in) ----------
@@ -17,6 +21,9 @@ npm install -g pm2
 if ! id appuser >/dev/null 2>&1; then
   useradd -m -d /home/appuser -s /bin/bash appuser
 fi
+
+usermod -aG docker appuser
+
 install -d -o appuser -g appuser -m 750 /home/appuser
 install -d -o appuser -g appuser -m 700 /home/appuser/.pm2
 
@@ -118,6 +125,7 @@ NGINX
 
 nginx -t
 systemctl restart nginx
+systemctl restart docker
 
 # ---------- Certbot (install only; issuance handled below) ----------
 dnf -y install certbot python3-certbot-nginx || true

@@ -11,6 +11,7 @@ permissions:
 
 env:
   AWS_REGION: ap-south-1
+  AWS_ACCOUNT_ID: 086325458599
   ECR_REPOSITORY: roommitra/website
   IMAGE_TAG: ${{ github.sha }}
 
@@ -46,6 +47,42 @@ jobs:
 
           echo "Image successfully pushed: $IMAGE_URI"
 
-      - name: Output image URI
+      - name: Find instance by tag
+        id: find
         run: |
-          echo "ECR Image URI: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"
+          ID=$(aws ec2 describe-instances \
+            --filters "Name=tag:${INSTANCE_TAG_KEY},Values=${INSTANCE_TAG_VALUE}" "Name=instance-state-name,Values=running" \
+            --query "Reservations[0].Instances[0].InstanceId" --output text)
+          echo "instance_id=$ID" >> $GITHUB_OUTPUT
+
+      - name: Create SSM Parameters file
+        run: |
+          cat > /tmp/ssm-params.json <<EOL
+          {
+            "commands": [
+              "set -euo pipefail",
+              "REG="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"",
+              "IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}",\
+              
+              "sudo -u appuser -H bash -lc \"aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${REG}\"",
+              "sudo -u appuser -H bash -lc \"docker pull ${IMAGE_URI}\"",
+
+              "sudo -u appuser -H bash -lc \"docker stop website || true\"",
+              "sudo -u appuser -H bash -lc \"docker rm website || true\"",
+              "sudo -u appuser -H bash -lc \"pm2 delete website || true\"", 
+              "sudo -u appuser -H bash -lc \"pm2 save\"", 
+              "sudo -u appuser -H bash -lc \"docker run -d --name website -p 3000:3000 ${IMAGE_URI}\"",
+            ],
+            "executionTimeout": ["3600"]
+          }
+          EOL
+          echo "Wrote /tmp/ssm-params.json"
+
+      - name: Deploy via SSM
+        run: |
+          aws ssm send-command \
+            --region ${{ env.AWS_REGION }} \
+            --instance-ids "${{ steps.find.outputs.instance_id }}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy website ${{ github.sha }}" \
+            --parameters file:///tmp/ssm-params.json \
