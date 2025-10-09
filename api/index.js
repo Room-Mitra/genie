@@ -27,7 +27,6 @@ import landingPageRoutes from './routes/LandingPage/leads.js';
 import androidLoginRoutes from './routes/Android/AndroidLogin/AndroidLogin.controller.js';
 import androidRequestRoutes from './routes/Android/AndroidRequest/AndroidRequest.controller.js';
 
-
 import { runFunctionsOnServerStartup } from './common/services/startup.service.js';
 
 // Middlewares
@@ -81,3 +80,12 @@ const swaggerOptions = {
 };
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// --- Health check endpoint ---
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+  });
+});
