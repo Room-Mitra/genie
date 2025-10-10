@@ -2,7 +2,7 @@ import React from 'react';
 import DataTable from '../../Common/DataTable/DataTable';
 import { useEffect, useState } from 'react';
 import { httpGet, httpPut } from '../../Services/APIService';
-import { API_ENDPOINT } from '../../Constants/Environment.constants';
+import { API_ENDPOINT } from '../../config/config';
 
 const DEVICES_API_URI = '/devices';
 

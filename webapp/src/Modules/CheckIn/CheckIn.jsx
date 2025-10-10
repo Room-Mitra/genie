@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { httpGet, httpPost } from '../../Services/APIService';
-import { API_ENDPOINT } from '../../Constants/Environment.constants';
+import { API_ENDPOINT } from '../../config/config';
 import { DateAndTimePicker } from '../../Common/DateTimePicker/DateAndTimePicker';
 
 const DEVICES_API_URI = '/devices';

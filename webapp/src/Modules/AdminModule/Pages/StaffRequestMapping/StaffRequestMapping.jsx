@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { API_ENDPOINT } from '../../../../Constants/Environment.constants';
+import { API_ENDPOINT } from '../../../../config/config';
 import { httpGet, httpPost } from '../../../../Services/APIService';
 import Select from 'react-select';
 const ROOMS_API_URI = '/devices';

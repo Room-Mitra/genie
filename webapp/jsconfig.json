@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "jsx": "react-jsx",
+    "checkJs": true,
+    "baseUrl": "src",
+    "paths": {
+      "@/*": ["*"]
+    },
+    "target": "ES2022"
+  },
+  "exclude": ["node_modules", "**/node_modules/*"]
+}

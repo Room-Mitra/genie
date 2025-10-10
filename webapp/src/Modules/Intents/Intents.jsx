@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { httpGet, httpPost } from '../../Services/APIService';
 import DataTable from '../../Common/DataTable/DataTable';
-import { API_ENDPOINT } from '../../Constants/Environment.constants';
+import { API_ENDPOINT } from '../../config/config';
 import { getDaysSinceEpoch } from '../../Services/Common.service';
 import chimeSound from '../../assets/room-mitra-chime.wav'; // Adjust path
 
@@ -134,7 +134,8 @@ const Intents = () => {
 
   return (
     <>
-      <audio ref={audioRef} src={chimeSound} preload="auto" />
+      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+      <audio ref={audioRef} src={chimeSound} preload="auto" hidden aria-hidden="true" />
       <div style={containerStyle}>
         <h1 style={titleStyle}>REQUESTS</h1>
         {allIntents ? (
