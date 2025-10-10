@@ -45,6 +45,12 @@ variable "api_image_uri" {
   default     = "public.ecr.aws/p1s3y6q3/roommitra/api:latest"
 }
 
+variable "webapp_image_uri" {
+  type        = string
+  description = "ECR URI for the webapp Docker image"
+  default     = "public.ecr.aws/p1s3y6q3/roommitra/webapp:latest"
+}
+
 variable "ecr_registry" {
   type        = string
   description = "ECR registry URI"

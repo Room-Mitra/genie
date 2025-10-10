@@ -125,6 +125,7 @@ resource "aws_instance" "web" {
     AWS_REGION        = var.aws_region
     WEBSITE_IMAGE_URI = var.website_image_uri
     API_IMAGE_URI     = var.api_image_uri
+    WEBAPP_IMAGE_URI  = var.webapp_image_uri
     REGISTRY          = var.ecr_registry
 
   })
