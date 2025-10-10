@@ -4,6 +4,7 @@ dotenv.config();
 import cors from 'cors';
 import express from 'express';
 import bodyParser from 'body-parser';
+import morgan from 'morgan';
 
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
@@ -31,6 +32,26 @@ import { runFunctionsOnServerStartup } from './common/services/startup.service.j
 import authenticator from './common/middleware/Authenticator.middleware.js';
 
 const app = express();
+
+// log format: method url status response-time ms - content-length
+app.use(morgan('combined')); // or "common", "tiny", or a custom format
+
+app.use(
+  morgan((tokens, req, res) =>
+    JSON.stringify({
+      t: tokens.date(req, res, 'iso'),
+      id: req.id,
+      method: tokens.method(req, res),
+      url: tokens.url(req, res),
+      status: Number(tokens.status(req, res)),
+      'resp-ms': Number(tokens['response-time'](req, res)),
+      'content-length': Number(tokens.res(req, res, 'content-length') || 0),
+      ref: tokens.referrer(req, res),
+      ua: tokens['user-agent'](req, res),
+    })
+  )
+);
+
 // use env var, fallback to 3000
 const PORT = process.env.PORT || 3000;
 
