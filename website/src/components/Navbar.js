@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -45,8 +45,8 @@ export default function Navbar() {
             <Image
               src="/room-mitra-logo.png"
               alt="Room Mitra Logo"
-              width={150}
-              height={50}
+              width={300}
+              height={100}
               className="h-8 w-auto"
             />
           </Link>

@@ -32,3 +32,28 @@ variable "tags" {
     Project = "RoomMitra"
   }
 }
+
+variable "website_image_uri" {
+  type        = string
+  description = "ECR URI for the website Docker image"
+  default     = "public.ecr.aws/p1s3y6q3/roommitra/website:latest"
+}
+
+variable "api_image_uri" {
+  type        = string
+  description = "ECR URI for the API Docker image"
+  default     = "public.ecr.aws/p1s3y6q3/roommitra/api:latest"
+}
+
+variable "webapp_image_uri" {
+  type        = string
+  description = "ECR URI for the webapp Docker image"
+  default     = "public.ecr.aws/p1s3y6q3/roommitra/webapp:latest"
+}
+
+variable "ecr_registry" {
+  type        = string
+  description = "ECR registry URI"
+  default     = "086325458599.dkr.ecr.ap-south-1.amazonaws.com"
+
+}

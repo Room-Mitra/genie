@@ -1,12 +1,12 @@
-name: Deploy Website
+name: Deploy webapp
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'website/**'
-      - '.github/workflows/deploy-website.yml'
+      - 'webapp/**'
+      - '.github/workflows/deploy-webapp.yml'
 
 permissions:
   id-token: write
@@ -16,14 +16,14 @@ env:
   AWS_REGION: ap-south-1
   AWS_ACCOUNT_ID: '086325458599'
   PUBLIC_ECR_ALIAS: p1s3y6q3
-  PUBLIC_ECR_REPO: roommitra/website
+  PUBLIC_ECR_REPO: roommitra/webapp
   INSTANCE_TAG_KEY: Name
   INSTANCE_TAG_VALUE: roommitra-ec2
   IMAGE_TAG: ${{ github.sha }}
 
 defaults:
   run:
-    working-directory: ./website
+    working-directory: ./webapp
 
 jobs:
   build-and-push:
@@ -49,7 +49,7 @@ jobs:
               "blocks": [
                 { "type": "section",
                   "text": { "type": "mrkdwn",
-                    "text": ":alarm_clock: *`website` Build started* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
+                    "text": ":alarm_clock: *`webapp` Build started* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
                   }
                 },
                 { "type": "context", "elements": [
@@ -80,8 +80,8 @@ jobs:
       - name: Build & Push with ECR cache
         uses: docker/build-push-action@v5
         with:
-          context: ./website
-          file: ./website/Dockerfile
+          context: ./webapp
+          file: ./webapp/Dockerfile
           push: true
           provenance: false
           tags: |
@@ -111,12 +111,12 @@ jobs:
           {
             "commands": [
               "set -euo pipefail",
-              "sudo -u appuser -H bash -lc \"aws ssm get-parameter --name '/roommitra/website/env' --with-decryption --query 'Parameter.Value' --output text > /opt/roommitra/website/.env\"",
-              "sudo -u appuser -H bash -lc \"chmod 600 /opt/roommitra/website/.env\"",
+              "sudo -u appuser -H bash -lc \"aws ssm get-parameter --name '/roommitra/webapp/env' --with-decryption --query 'Parameter.Value' --output text > /opt/roommitra/webapp/.env\"",
+              "sudo -u appuser -H bash -lc \"chmod 600 /opt/roommitra/webapp/.env\"",
               "sudo -u appuser -H bash -lc \"docker pull ${IMAGE_URI}\"",
-              "sudo -u appuser -H bash -lc \"docker stop website || true\"",
-              "sudo -u appuser -H bash -lc \"docker rm website || true\"",
-              "sudo -u appuser -H bash -lc \"docker run -d --name website --env-file /opt/roommitra/website/.env --restart unless-stopped -p 3000:3000 ${IMAGE_URI}\""
+              "sudo -u appuser -H bash -lc \"docker stop webapp || true\"",
+              "sudo -u appuser -H bash -lc \"docker rm webapp || true\"",
+              "sudo -u appuser -H bash -lc \"docker run -d --name webapp --env-file /opt/roommitra/webapp/.env --restart unless-stopped -p 3001:3001 ${IMAGE_URI}\""
             ],
             "executionTimeout": ["3600"]
           }
@@ -130,7 +130,7 @@ jobs:
             --region ${{ env.AWS_REGION }} \
             --instance-ids "${{ steps.find.outputs.instance_id }}" \
             --document-name "AWS-RunShellScript" \
-            --comment "Deploy website ${{ github.sha }}" \
+            --comment "Deploy webapp ${{ github.sha }}" \
             --parameters file:///tmp/ssm-params.json
 
       # Success message
@@ -143,7 +143,7 @@ jobs:
               "blocks": [
                 { "type": "section",
                   "text": { "type": "mrkdwn",
-                    "text": ":white_check_mark: *`website` Build passed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
+                    "text": ":white_check_mark: *`webapp` Build passed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
                   }
                 },
                 { "type": "context", "elements": [
@@ -166,7 +166,7 @@ jobs:
               "blocks": [
                 { "type": "section",
                   "text": { "type": "mrkdwn",
-                    "text": ":x: *`website` Build failed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
+                    "text": ":x: *`webapp` Build failed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
                   }
                 },
                 { "type": "context", "elements": [

@@ -40,13 +40,14 @@ export default [
   {
     files: ['webapp/**/*.{js,jsx}'],
     languageOptions: {
-      ecmaVersion: 'latest',
+      ecmaVersion: 2022,
       sourceType: 'module',
       parserOptions: { ecmaFeatures: { jsx: true } },
       globals: {
         // Browser first, allow some Node for tooling imports
         ...globals.browser,
         // If you want to allow import.meta, set ecmaVersion: 'latest'
+        process: 'readonly',
       },
     },
     plugins: { react, 'react-hooks': reactHooks, 'jsx-a11y': jsxA11y },
@@ -102,6 +103,11 @@ export default [
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
       'no-console': ['warn', { allow: ['warn', 'error'] }],
+      // You’re on /app router, not /pages
+      '@next/next/no-html-link-for-pages': 'off',
+
+      // Work around the plugin crash in your stack
+      '@next/next/no-duplicate-head': 'off',
     },
   },
 

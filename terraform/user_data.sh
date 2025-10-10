@@ -3,105 +3,57 @@ set -euxo pipefail
 
 # ---------- Base OS & essentials ----------
 dnf -y update || true
-dnf -y install nginx git tar bind-utils amazon-ssm-agent ruby wget || true
+dnf -y install nginx git tar bind-utils amazon-ssm-agent ruby wget docker certbot python3-certbot-nginx || true
+
 systemctl enable --now amazon-ssm-agent
 systemctl enable nginx
 
-
-# ---------- AWS CodeDeploy Agent ----------
-
-# Install CodeDeploy agent via RPM (has a native systemd unit)
-rpm -Uvh "https://aws-codedeploy-${AWS_REGION}.s3.${AWS_REGION}.amazonaws.com/latest/codedeploy-agent.noarch.rpm"
-
-# Remove legacy SysV script so systemd won't try sysv-install
-rm -f /etc/init.d/codedeploy-agent || true
-for d in /etc/rc*.d; do rm -f "$d"/S??codedeploy-agent "$d"/K??codedeploy-agent 2>/dev/null || true; done
-
-# Create a native systemd unit
-cat >/etc/systemd/system/codedeploy-agent.service <<'UNIT'
-[Unit]
-Description=AWS CodeDeploy Host Agent
-After=network.target
-
-[Service]
-Type=simple
-User=root
-Restart=on-failure
-ExecStart=/usr/bin/codedeploy-agent start
-ExecStop=/usr/bin/codedeploy-agent stop
-
-[Install]
-WantedBy=multi-user.target
-UNIT
-
-# Reload units and enable the native one explicitly
-systemctl daemon-reload
-systemctl enable --now codedeploy-agent.service
-
-# Sanity check (won't fail cloud-init)
-systemctl is-active codedeploy-agent || true
-
-
-
-# ---------- Node.js 20 (Amazon Linux 2023 built-in) ----------
-dnf -y install nodejs npm
-npm install -g pm2
+# Enable and start the Docker service
+sudo systemctl enable docker
+sudo systemctl start docker
 
 
 # ---------- App user & directories (PM2 needs a HOME) ----------
 if ! id appuser >/dev/null 2>&1; then
   useradd -m -d /home/appuser -s /bin/bash appuser
 fi
+
+usermod -aG docker appuser
+
 install -d -o appuser -g appuser -m 750 /home/appuser
 install -d -o appuser -g appuser -m 700 /home/appuser/.pm2
 
-mkdir -p /opt/roommitra/{website,api,webapp}
-chmod 777 -R /opt/roommitra
+mkdir -p /opt/roommitra/{api,webapp,website}
+chmod 775 -R /opt/roommitra
 chown -R appuser:appuser /opt/roommitra
 
-# ---------- Placeholder apps (all pure Node HTTP; no npm deps) ----------
-# 1) Landing (roommitra.com) on :3000
-cat >/opt/roommitra/website/server.js <<'EOF'
-const http = require('http');
-const port = 3000;
-http.createServer((req,res)=>{
-  res.writeHead(200, {'Content-Type':'text/plain'});
-  res.end('RoomMitra Landing (Next.js placeholder)');
-}).listen(port, ()=>console.log('Landing on',port));
-EOF
+# ---------- Start apps with Docker under appuser ----------
+sudo -u appuser -H bash -lc "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${REGISTRY}"
 
-# 2) API (api.roommitra.com) on :4000  — plain Node to avoid express install
-cat >/opt/roommitra/api/server.js <<'EOF'
-const http = require('http');
-const port = 4000;
-http.createServer((req,res)=>{
-  if (req.url === '/health') {
-    res.writeHead(200, {'Content-Type':'application/json'});
-    return res.end(JSON.stringify({ok:true}));
-  }
-  res.writeHead(200, {'Content-Type':'application/json'});
-  res.end(JSON.stringify({ok:true, app:"RoomMitra API placeholder"}));
-}).listen(port, ()=>console.log('API on',port));
-EOF
+# website
+sudo -u appuser -H bash -lc "aws ssm get-parameter --name \"/roommitra/website/env\" --with-decryption --query \"Parameter.Value\" --output text > /opt/roommitra/website/.env"
+sudo -u appuser -H bash -lc "chmod 600 /opt/roommitra/website/.env"
+sudo -u appuser -H bash -lc "docker pull ${WEBSITE_IMAGE_URI}"
+sudo -u appuser -H bash -lc "docker stop website || true"
+sudo -u appuser -H bash -lc "docker rm website || true"
+sudo -u appuser -H bash -lc "docker run -d --name website --env-file /opt/roommitra/website/.env --restart unless-stopped -p 3000:3000 ${WEBSITE_IMAGE_URI}"
 
-# 3) Dashboard (app.roommitra.com) on :3001
-cat >/opt/roommitra/webapp/server.js <<'EOF'
-const http = require('http');
-const port = 3001;
-http.createServer((req,res)=>{
-  res.writeHead(200, {'Content-Type':'text/plain'});
-  res.end('RoomMitra Dashboard (CRA placeholder)');
-}).listen(port, ()=>console.log('Dashboard on',port));
-EOF
 
-chown -R appuser:appuser /opt/roommitra
+# api
+sudo -u appuser -H bash -lc "aws ssm get-parameter --name \"/roommitra/api/env\" --with-decryption --query \"Parameter.Value\" --output text > /opt/roommitra/api/.env"
+sudo -u appuser -H bash -lc "chmod 600 /opt/roommitra/api/.env"
+sudo -u appuser -H bash -lc "docker pull ${API_IMAGE_URI}"
+sudo -u appuser -H bash -lc "docker stop api || true"
+sudo -u appuser -H bash -lc "docker rm api || true"
+sudo -u appuser -H bash -lc "docker run -d --name api --env-file /opt/roommitra/api/.env --restart unless-stopped -p 4000:4000 ${API_IMAGE_URI}"
 
-# ---------- Start apps with PM2 under appuser ----------
-su -s /bin/bash - appuser -c "pm2 start /opt/roommitra/website/server.js --name website || true"
-su -s /bin/bash - appuser -c "pm2 start /opt/roommitra/api/server.js --name api || true"
-su -s /bin/bash - appuser -c "pm2 start /opt/roommitra/webapp/server.js   --name webapp   || true"
-su -s /bin/bash - appuser -c "pm2 save || true"
-pm2 startup systemd -u appuser --hp /home/appuser
+# webapp
+sudo -u appuser -H bash -lc "aws ssm get-parameter --name \"/roommitra/webapp/env\" --with-decryption --query \"Parameter.Value\" --output text > /opt/roommitra/webapp/.env"
+sudo -u appuser -H bash -lc "chmod 600 /opt/roommitra/webapp/.env"
+sudo -u appuser -H bash -lc "docker pull ${WEBAPP_IMAGE_URI}"
+sudo -u appuser -H bash -lc "docker stop webapp || true"
+sudo -u appuser -H bash -lc "docker rm webapp || true"
+sudo -u appuser -H bash -lc "docker run -d --name webapp --env-file /opt/roommitra/webapp/.env --restart unless-stopped -p 3001:3001 ${WEBAPP_IMAGE_URI}"
 
 # ---------- Nginx reverse proxy (HTTP only pre-cert) ----------
 cat >/etc/nginx/conf.d/roommitra-precert.conf <<'NGINX'
@@ -151,8 +103,15 @@ server {
 }
 NGINX
 
+
+# ---------- Restore SSL certificates ----------
+BUCKET="s3://roommitra-codedeploy/certs"
+
+sudo aws s3 cp "$BUCKET/letsencrypt-latest.tgz" /root/
+sudo tar -xzf /root/letsencrypt-latest.tgz -C /etc
+
+sudo certbot install --nginx --cert-name roommitra.com
+
 nginx -t
 systemctl restart nginx
-
-# ---------- Certbot (install only; issuance handled below) ----------
-dnf -y install certbot python3-certbot-nginx || true
+systemctl restart docker

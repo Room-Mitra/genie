@@ -71,6 +71,16 @@ aws ssm start-session --target i-0547ae1ad3fe5c2f1 --profile roommitra
 sudo certbot --nginx -d roommitra.com -d api.roommitra.com -d app.roommitra.com --agree-tos -m chai@roommitra.com --redirect -n
 ```
 
+4. Backup the certificates to S3
+
+```sh
+BUCKET="s3://roommitra-codedeploy/certs"
+sudo tar --numeric-owner -C /etc -czf /root/letsencrypt-backup.tgz letsencrypt
+sudo aws s3 cp /root/letsencrypt-backup.tgz $BUCKET/letsencrypt-$(date +%F).tgz
+sudo aws s3 cp /root/letsencrypt-backup.tgz $BUCKET/letsencrypt-latest.tgz
+
+```
+
 ## Deploying new code
 
 - CodeDeploy isn't working right now.
@@ -124,3 +134,33 @@ sudo runuser -l appuser -c "pm2 delete website || true"
 ```sh
 sudo runuser -l appuser -c "cd /opt/roommitra/website && pm2 start 'PORT=3000 npm run start' --name website || true"
 ```
+
+## Updating environment secrets
+
+1. Define your production `.env.prod` file
+
+```sh
+
+```
+
+2. Update ssm parameter with secret name `/roommitra/api/env`
+
+```sh
+aws ssm put-parameter \
+  --name "/roommitra/api/env" \
+  --type "SecureString" \
+  --value "$(cat .env.prod)" \
+  --overwrite
+```
+
+3. Redeploy `api` for the new secrets to take effect
+
+### Note: 
+
+1. You can the existing environment file at `/roommitra/api/env` ssm parameter with this command
+
+```sh
+aws ssm get-parameter --name "/roommitra/api/env" --with-decryption --query "Parameter.Value" --output text
+```
+
+2. Do the same for `website` and `webapp`. Use ssm parameter name `/roommitra/api/website` and `/roommitra/api/webapp` respectively.

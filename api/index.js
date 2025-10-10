@@ -1,6 +1,3 @@
-// https://www.freecodecamp.org/news/create-crud-api-project/#heading-how-to-set-up-your-development-environment
-// https://www.sammeechward.com/deploying-full-stack-js-to-aws-ec2
-
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -27,7 +24,6 @@ import landingPageRoutes from './routes/LandingPage/leads.js';
 import androidLoginRoutes from './routes/Android/AndroidLogin/AndroidLogin.controller.js';
 import androidRequestRoutes from './routes/Android/AndroidRequest/AndroidRequest.controller.js';
 import androidEventsTrackerRoutes from './routes/Android/AndroidEventTracker/AndroidEventTracker.controller.js';
-
 
 import { runFunctionsOnServerStartup } from './common/services/startup.service.js';
 
@@ -83,3 +79,12 @@ const swaggerOptions = {
 };
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// --- Health check endpoint ---
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+  });
+});
