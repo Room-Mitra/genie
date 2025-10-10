@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { API_ENDPOINT } from 'Config/config';
+import { API_BASE_URL } from 'Config/config';
 import { httpPost } from 'Services/APIService';
 import BlueGoldButton from 'Common/Button/BlueGoldButton';
 import InputField from 'Common/InputField/InputField';
@@ -22,7 +22,7 @@ const Login = () => {
       return;
     }
     try {
-      const response = await httpPost(API_ENDPOINT + '/login', { username, password, hotelId });
+      const response = await httpPost(API_BASE_URL + '/login', { username, password, hotelId });
       if (!response || response.statusText !== 'OK') {
         setError('Invalid hotel id or username or password');
         return;
