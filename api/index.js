@@ -23,6 +23,7 @@ import landingPageRoutes from './routes/LandingPage/leads.js';
 //Android Routes
 import androidLoginRoutes from './routes/Android/AndroidLogin/AndroidLogin.controller.js';
 import androidRequestRoutes from './routes/Android/AndroidRequest/AndroidRequest.controller.js';
+import androidEventsTrackerRoutes from './routes/Android/AndroidEventTracker/AndroidEventTracker.controller.js';
 
 import { runFunctionsOnServerStartup } from './common/services/startup.service.js';
 
@@ -48,6 +49,7 @@ app.use('/faq', authenticator, faqRoutes);
 // Android Routes
 app.use('/android/utterance', authenticator, utteranceRoutes);
 app.use('/android/request', authenticator, androidRequestRoutes);
+app.use('/android/track-events', authenticator, androidEventsTrackerRoutes);
 
 // routes which dont need auth
 app.use('/login', loginRoutes);

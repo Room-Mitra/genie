@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.navigation.NavHostController
+import com.example.roommitra.view.WidgetPane.WidgetsPane
 
 @Composable
 fun HomeScreen(
