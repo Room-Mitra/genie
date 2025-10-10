@@ -13,11 +13,6 @@ sudo systemctl enable docker
 sudo systemctl start docker
 
 
-# ---------- Node.js 20 (Amazon Linux 2023 built-in) ----------
-dnf -y install nodejs npm
-npm install -g pm2
-
-
 # ---------- App user & directories (PM2 needs a HOME) ----------
 if ! id appuser >/dev/null 2>&1; then
   useradd -m -d /home/appuser -s /bin/bash appuser
@@ -32,21 +27,7 @@ mkdir -p /opt/roommitra/{api,webapp,website}
 chmod 775 -R /opt/roommitra
 chown -R appuser:appuser /opt/roommitra
 
-# ---------- Placeholder apps (all pure Node HTTP; no npm deps) ----------
-# 1) Dashboard (app.roommitra.com) on :3001
-cat >/opt/roommitra/webapp/server.js <<'EOF'
-const http = require('http');
-const port = 3001;
-http.createServer((req,res)=>{
-  res.writeHead(200, {'Content-Type':'text/plain'});
-  res.end('RoomMitra Dashboard (CRA placeholder)');
-}).listen(port, ()=>console.log('Dashboard on',port));
-EOF
-
-chown -R appuser:appuser /opt/roommitra
-
-# ---------- Start apps with Docker / PM2 under appuser ----------
-
+# ---------- Start apps with Docker under appuser ----------
 sudo -u appuser -H bash -lc "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${REGISTRY}"
 
 # website
@@ -67,9 +48,12 @@ sudo -u appuser -H bash -lc "docker rm api || true"
 sudo -u appuser -H bash -lc "docker run -d --name api --env-file /opt/roommitra/api/.env --restart unless-stopped -p 4000:4000 ${API_IMAGE_URI}"
 
 # webapp
-sudo -u appuser -H bash -lc "pm2 start /opt/roommitra/webapp/server.js   --name webapp   || true"
-sudo -u appuser -H bash -lc "pm2 save || true"
-pm2 startup systemd -u appuser --hp /home/appuser
+sudo -u appuser -H bash -lc "aws ssm get-parameter --name \"/roommitra/webapp/env\" --with-decryption --query \"Parameter.Value\" --output text > /opt/roommitra/webapp/.env"
+sudo -u appuser -H bash -lc "chmod 600 /opt/roommitra/webapp/.env"
+sudo -u appuser -H bash -lc "docker pull ${WEBAPP_IMAGE_URI}"
+sudo -u appuser -H bash -lc "docker stop webapp || true"
+sudo -u appuser -H bash -lc "docker rm webapp || true"
+sudo -u appuser -H bash -lc "docker run -d --name webapp --env-file /opt/roommitra/webapp/.env --restart unless-stopped -p 3001:3001 ${WEBAPP_IMAGE_URI}"
 
 # ---------- Nginx reverse proxy (HTTP only pre-cert) ----------
 cat >/etc/nginx/conf.d/roommitra-precert.conf <<'NGINX'

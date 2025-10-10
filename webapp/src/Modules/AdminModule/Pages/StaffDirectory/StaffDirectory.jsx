@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import BlueGoldButton from '../../../../Common/Button/BlueGoldButton';
-import SecondaryButton from '../../../../Common/Button/SecondaryButton';
-import { httpGet, httpPost } from '../../../../Services/APIService';
-import { API_ENDPOINT } from '../../../../Constants/Environment.constants';
+import BlueGoldButton from 'Common/Button/BlueGoldButton';
+import SecondaryButton from 'Common/Button/SecondaryButton';
+import { httpGet, httpPost } from 'Services/APIService';
+import { API_ENDPOINT } from 'Config/config';
 import Select from 'react-select';
 
 const STAFF_API_URI = '/staff';

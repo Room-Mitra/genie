@@ -40,13 +40,14 @@ export default [
   {
     files: ['webapp/**/*.{js,jsx}'],
     languageOptions: {
-      ecmaVersion: 'latest',
+      ecmaVersion: 2022,
       sourceType: 'module',
       parserOptions: { ecmaFeatures: { jsx: true } },
       globals: {
         // Browser first, allow some Node for tooling imports
         ...globals.browser,
         // If you want to allow import.meta, set ecmaVersion: 'latest'
+        process: 'readonly',
       },
     },
     plugins: { react, 'react-hooks': reactHooks, 'jsx-a11y': jsxA11y },
