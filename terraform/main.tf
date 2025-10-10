@@ -143,3 +143,36 @@ module "dynamodb" {
   existing_instance_role_name = aws_iam_role.ssm_role.name
   vpc_id                      = data.aws_vpc.default.id
 }
+
+resource "aws_cloudwatch_log_group" "roommitra_containers" {
+  name              = "/roommitra/containers"
+  retention_in_days = 30
+  tags = {
+    Project = "RoomMitra"
+    Env     = "prod"
+  }
+}
+
+
+data "aws_iam_policy_document" "cloudwatch_logs_access" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:DescribeLogStreams",
+      "logs:PutLogEvents"
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "cloudwatch_logs_policy" {
+  name   = "roommitra-cloudwatch-logs"
+  policy = data.aws_iam_policy_document.cloudwatch_logs_access.json
+}
+
+resource "aws_iam_role_policy_attachment" "attach_logs_policy" {
+  role       = aws_iam_role.ssm_role.name
+  policy_arn = aws_iam_policy.cloudwatch_logs_policy.arn
+}
