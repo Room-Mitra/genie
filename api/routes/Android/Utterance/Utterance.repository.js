@@ -1,4 +1,4 @@
-import { fetchFAQ } from '../FAQ/FAQ.service.js';
+import { fetchFAQ } from '../../FAQ/FAQ.service.js';
 
 export const getHotelPromopts = async (hotelId) => {
   const restaurantMenu = {

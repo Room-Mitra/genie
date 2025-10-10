@@ -1,8 +1,8 @@
 import { getHotelPromopts } from './Utterance.repository.js';
 import SessionManager from './SessionManager.js';
 import { callChatGptApi, parseGptResponse } from './ChatGpt.js';
-import { registerIntent } from '../Intents/Intent.service.js';
-import { registerDevice } from '../Device/Device.service.js';
+import { registerIntent } from '../../Intents/Intent.service.js';
+import { registerDevice } from '../../Device/Device.service.js';
 
 const ERROR_RESPONSE = {
   speech: 'Sorry, something went wrong. Please try again later',
