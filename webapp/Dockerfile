@@ -27,7 +27,7 @@ RUN npm i -g serve@14
 FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=3001
 RUN addgroup -g 1001 -S nodejs && adduser -S reactapp -u 1001
 
 # copy built app and the static server
@@ -38,5 +38,5 @@ COPY --from=prod-deps /usr/local       /usr/local
 RUN chown -R reactapp:nodejs /app
 USER reactapp
 
-EXPOSE 3000
+EXPOSE 3001
 CMD ["serve", "-s", "build", "-l", "3000"]
