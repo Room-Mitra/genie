@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - chai/webapp-deploy
     paths:
       - 'webapp/**'
       - '.github/workflows/deploy-webapp.yml'
