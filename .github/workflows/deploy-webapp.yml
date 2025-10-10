@@ -7,6 +7,7 @@ on:
     paths:
       - 'webapp/**'
       - '.github/workflows/deploy-webapp.yml'
+      - 'webapp/Dockerfile'
 
 permissions:
   id-token: write
