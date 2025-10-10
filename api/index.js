@@ -112,8 +112,6 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // --- Health check endpoint ---
 app.get('/health', (req, res) => {
-  console.log('testing');
-
   res.status(200).json({
     status: 'ok',
     uptime: process.uptime(),
