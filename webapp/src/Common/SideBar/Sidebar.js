@@ -6,8 +6,8 @@ import * as AiIcons from 'react-icons/ai';
 import { SidebarData } from './SidebarData';
 import SubMenu from './Submenu';
 import { IconContext } from 'react-icons/lib';
-import HOTEL_CONSTANTS from '@/Constants/Hotel.constants';
-import AuthContext from '@/Modules/Login/AuthContext';
+import HOTEL_CONSTANTS from 'Constants/Hotel.constants';
+import AuthContext from 'Modules/Login/AuthContext';
 
 const Sidebar = () => {
   const { isAuthenticated } = useContext(AuthContext);

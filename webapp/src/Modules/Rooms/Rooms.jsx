@@ -1,8 +1,8 @@
 import React from 'react';
-import DataTable from '@/Common/DataTable/DataTable';
+import DataTable from 'Common/DataTable/DataTable';
 import { useEffect, useState } from 'react';
-import { httpGet, httpPut } from '@/Services/APIService';
-import { API_ENDPOINT } from '@/config/config';
+import { httpGet, httpPut } from 'Services/APIService';
+import { API_ENDPOINT } from 'Config/config';
 
 const DEVICES_API_URI = '/devices';
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import BlueGoldButton from '@/Common/Button/BlueGoldButton';
-import SecondaryButton from '@/Common/Button/SecondaryButton';
+import BlueGoldButton from 'Common/Button/BlueGoldButton';
+import SecondaryButton from 'Common/Button/SecondaryButton';
 
 const StaffDirectoryPopup = ({ title, items, onAdd, onDelete, onClose }) => {
   const [newItem, setNewItem] = useState('');

@@ -18,7 +18,7 @@ const Logout = () => {
 
     // Cleanup timer on component unmount
     return () => clearTimeout(timer);
-  }, [navigate]);
+  }, [navigate, logout]);
 
   return (
     <div style={styles.container}>

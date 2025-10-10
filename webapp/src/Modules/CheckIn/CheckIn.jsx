@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { httpGet, httpPost } from '@/Services/APIService';
-import { API_ENDPOINT } from '@/config/config';
-import { DateAndTimePicker } from '@/Common/DateTimePicker/DateAndTimePicker';
+import { httpGet, httpPost } from 'Services/APIService';
+import { API_ENDPOINT } from 'Config/config';
+import { DateAndTimePicker } from 'Common/DateTimePicker/DateAndTimePicker';
 
 const DEVICES_API_URI = '/devices';
 const GUEST_API_URI = '/guests';

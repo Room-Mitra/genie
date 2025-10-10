@@ -1,10 +1,10 @@
 // Required imports
 import React, { useEffect, useState, useRef } from 'react';
-import { httpGet, httpPost } from '@/Services/APIService';
-import DataTable from '@/Common/DataTable/DataTable';
-import { API_ENDPOINT } from '@/config/config';
-import { getDaysSinceEpoch } from '@/Services/Common.service';
-import chimeSound from '@/assets/room-mitra-chime.wav'; // Adjust path
+import { httpGet, httpPost } from 'Services/APIService';
+import DataTable from 'Common/DataTable/DataTable';
+import { API_ENDPOINT } from 'Config/config';
+import { getDaysSinceEpoch } from 'Services/Common.service';
+import chimeSound from 'assets/room-mitra-chime.wav'; // Adjust path
 
 const INTENTS_API_URI = '/intents';
 

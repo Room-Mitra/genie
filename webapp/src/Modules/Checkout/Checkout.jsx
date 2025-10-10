@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { httpGet } from '@/Services/APIService';
-import { API_ENDPOINT } from '@/config/config';
+import { httpGet } from 'Services/APIService';
+import { API_ENDPOINT } from 'Config/config';
 
 const DEVICES_API_URI = '/devices';
 const BOOKINGS_API_URI = '/bookings';
