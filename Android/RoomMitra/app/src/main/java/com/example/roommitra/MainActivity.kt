@@ -36,6 +36,7 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import android.provider.Settings
 import com.example.roommitra.service.ApiResult
+import com.example.roommitra.service.TrackingService
 import com.example.roommitra.view.ConciergeScreen
 
 import com.example.roommitra.view.GlobalSnackbarHost
@@ -103,6 +104,7 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        TrackingService.initialize(this, apiService)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         hideSystemUI()
         tts = TextToSpeech(this, this)

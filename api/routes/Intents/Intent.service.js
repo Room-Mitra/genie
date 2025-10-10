@@ -14,7 +14,7 @@ import { sendWhatsAppTemplate } from '../../common/services/whatsapp.js';
 
 export const registerIntent = async (intent) => {
   if (!intent.roomId) {
-    updateIntentWithRoomInfo(intent); // TODO :: Handle Error
+    // updateIntentWithRoomInfo(intent); // TODO :: Handle Error
   }
   console.log('Intent : ', intent);
   addIntentToCache(intent);
