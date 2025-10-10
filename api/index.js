@@ -1,3 +1,14 @@
+import { getReqId, requestContext } from './middleware/requestContext.js';
+
+// Patch console methods to include request ID if available
+for (const k of ['log', 'info', 'warn', 'error']) {
+  const orig = console[k].bind(console);
+  console[k] = (...args) => {
+    const id = getReqId();
+    return id ? orig(`[${id}]`, ...args) : orig(...args);
+  };
+}
+
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -32,9 +43,7 @@ import { runFunctionsOnServerStartup } from './common/services/startup.service.j
 import authenticator from './common/middleware/Authenticator.middleware.js';
 
 const app = express();
-
-// log format: method url status response-time ms - content-length
-app.use(morgan('combined')); // or "common", "tiny", or a custom format
+app.use(requestContext);
 
 app.use(
   morgan((tokens, req, res) =>
@@ -103,6 +112,8 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // --- Health check endpoint ---
 app.get('/health', (req, res) => {
+  console.log('testing');
+
   res.status(200).json({
     status: 'ok',
     uptime: process.uptime(),
