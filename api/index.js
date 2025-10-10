@@ -11,7 +11,7 @@ import swaggerJsdoc from 'swagger-jsdoc';
 // routes
 import deviceRoutes from './routes/Device/Device.controller.js';
 import guestRoutes from './routes/Guest/Guest.controller.js';
-import utteranceRoutes from './routes/Utterance/Utterance.controller.js';
+import utteranceRoutes from './routes/Android/Utterance/Utterance.controller.js';
 import bookingRoutes from './routes/Booking/Booking.controller.js';
 import staffRoutes from './routes/Staff/Staff.controller.js';
 import mappingRoutes from './routes/StaffRoomDepartmentRequestMapping/StaffRoomDepartmentRequestMapping.controller.js';

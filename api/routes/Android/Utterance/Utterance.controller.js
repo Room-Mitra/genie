@@ -1,9 +1,9 @@
 import express from "express";
-import { getHotelId } from '../../common/services/common.service.js'
+import { getHotelId } from '../../../common/services/common.service.js'
 const router = express.Router();
 
 import { onUtterance, handleAdministrativeUtterances } from "./Utterance.service.js";
-import { getRoomInfoFromDeviceId } from "../Device/Device.service.js";
+import { getRoomInfoFromDeviceId } from "../../Device/Device.service.js";
 
 
 router.post('/', async (req, res) => {
