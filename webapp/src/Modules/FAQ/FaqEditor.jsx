@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import BlueGoldButton from '../../Common/Button/BlueGoldButton';
-import { httpGet, httpPost } from '../../Services/APIService';
-import { API_ENDPOINT } from '../../config/config';
+import BlueGoldButton from '@/Common/Button/BlueGoldButton';
+import { httpGet, httpPost } from '@/Services/APIService';
+import { API_ENDPOINT } from '@/config/config';
 
 const FAQ_API_URI = '/faq';
 

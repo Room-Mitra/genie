@@ -19,9 +19,9 @@ const StaffRequestMapping = lazy(
   () => import('./Modules/AdminModule/Pages/StaffRequestMapping/StaffRequestMapping')
 );
 const HotelAnalyticsDashboard = lazy(() => import('./Modules/Analytics/HotelAnalyticsDashboard'));
-const Sidebar = lazy(() => import('./Common/SideBar/Sidebar.js'));
+const Sidebar = lazy(() => import('./Common/SideBar/Sidebar'));
 const Login = lazy(() => import('./Modules/Login/Login'));
-const Logout = lazy(() => import('./Modules/Login/Logout.js'));
+const Logout = lazy(() => import('./Modules/Login/Logout'));
 
 function App() {
   return (

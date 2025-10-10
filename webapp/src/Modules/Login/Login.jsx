@@ -2,10 +2,10 @@ import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 // import AuthContext from "./AuthContext";
 import styled from 'styled-components';
-import { API_ENDPOINT } from '../../config/config';
-import { httpPost } from '../../Services/APIService';
-import BlueGoldButton from '../../Common/Button/BlueGoldButton';
-import InputField from '../../Common/InputField/InputField';
+import { API_ENDPOINT } from '@/config/config';
+import { httpPost } from '@/Services/APIService';
+import BlueGoldButton from '@/Common/Button/BlueGoldButton';
+import InputField from '@/Common/InputField/InputField';
 import AuthContext from './AuthContext';
 
 const Login = () => {
