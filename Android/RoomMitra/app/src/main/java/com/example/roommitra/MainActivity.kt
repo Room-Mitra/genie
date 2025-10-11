@@ -64,42 +64,17 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    private var screenDimService: ScreenDimService? = null
-    private var bound = false
-
-    private val connection = object : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            val binder = service as ScreenDimService.LocalBinder
-            screenDimService = binder.getService()
-            screenDimService?.attachWindow(window)
-            screenDimService?.resetAutoDimTimer() // start timer
-            bound = true
-            Log.d("MainActivity", "ScreenDimService connected and window attached")
-        }
-
-        override fun onServiceDisconnected(name: ComponentName?) {
-            bound = false
-            screenDimService = null
-        }
-    }
-
     override fun onStart() {
         super.onStart()
-        bindService(Intent(this, ScreenDimService::class.java), connection, BIND_AUTO_CREATE)
     }
 
     override fun onStop() {
         super.onStop()
-        if (bound) {
-            unbindService(connection)
-            bound = false
-        }
     }
 
     /** Reset auto-dim on any user interaction */
     override fun onUserInteraction() {
         super.onUserInteraction()
-        screenDimService?.resetAutoDimTimer()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -112,7 +87,7 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
             val navController = rememberNavController()
             MaterialTheme {
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    AutoDimWrapper(screenDimService) {
+                    AutoDimWrapper(window) {
                         NavHost(navController = navController, startDestination = "home") {
                             composable("home") {
                                 HomeScreen(
