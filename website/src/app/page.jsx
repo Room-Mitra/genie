@@ -7,7 +7,7 @@ export default function Home() {
     <>
       <main>
         {/* Hero */}
-        <section className="header text-center py-20 bg-indigo-50">
+        <section className="header text-center py-20 px-5 bg-indigo-50">
           <h1 className="text-4xl md:text-4xl font-bold pt-20">
             In-room Voice Assistant for Hotel Rooms
           </h1>

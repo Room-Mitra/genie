@@ -107,21 +107,15 @@ export default function Navbar() {
             <Link href="/blog" className="mobile-link" onClick={closeMenu}>
               Blog
             </Link>
+            <Link href="https://app.roommitra.com" className="mobile-link" onClick={closeMenu}>
+              Login
+            </Link>
             <Link href="/#request-a-demo" className="mobile-link" onClick={closeMenu}>
               Request a Demo
             </Link>
           </div>
         </div>
       </div>
-
-      {/* Optional dim backdrop on mobile when menu open */}
-      <div
-        onClick={closeMenu}
-        className={`md:hidden fixed inset-0 bg-black/30 transition-opacity ${
-          open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
-        aria-hidden="true"
-      />
     </nav>
   );
 }
