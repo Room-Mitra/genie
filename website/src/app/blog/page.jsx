@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { getAllPostsMeta } from '@/lib/blog';
 import Footer from '@/components/Footer';
+import { absoluteUrl } from '@/lib/urls';
 
 export const metadata = {
   title: 'Blog',
@@ -12,9 +13,47 @@ export const metadata = {
 export default async function BlogIndexPage() {
   const posts = await getAllPostsMeta();
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Blog',
+    url: absoluteUrl('/blog'),
+    name: 'Room Mitra Blog',
+    blogPost: posts.map((p) => ({
+      '@type': 'BlogPosting',
+      headline: p.title,
+      url: absoluteUrl(`/blog/${p.slug}`),
+      datePublished: new Date(p.date).toISOString(),
+      author: { '@type': 'Person', name: p.author },
+      image: p.hero ? absoluteUrl(p.hero) : undefined,
+    })),
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': absoluteUrl('/blog'),
+    },
+  };
+
+  // Optional ItemList for rich results
+  const itemListLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: posts.map((p, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: absoluteUrl(`/blog/${p.slug}`),
+    })),
+  };
+
   return (
     <>
       <main className="mx-auto max-w-5xl px-4 py-10 mt-10">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListLd) }}
+        />
         <h1 className="text-3xl font-bold mb-6 text-center">Hospitality Reimagined</h1>
         <p className="text-center text-gray-600 mb-12">
           How technology and design are shaping the modern guest experience.

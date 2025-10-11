@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { getAllPostSlugs, getPostBySlug } from '@/lib/blog';
 import RequestDemoForm from '@/components/RequestDemoForm';
 import Footer from '@/components/Footer';
+import { absoluteUrl } from '@/lib/urls';
 
 export async function generateStaticParams() {
   const slugs = await getAllPostSlugs();
@@ -11,27 +12,26 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }) {
-  const { slug } = params;
-  try {
-    const post = await getPostBySlug(slug);
-    return {
+  const { slug } = await params;
+  const post = await getPostBySlug(slug).catch(() => null);
+  if (!post) return { title: 'Post not found' };
+
+  return {
+    title: post.title,
+    description: post.description || `${post.title} by ${post.author}`,
+    openGraph: {
       title: post.title,
-      description: post.description || `${post.title} by ${post.author}`,
-      openGraph: {
-        title: post.title,
-        description: post.description || undefined,
-        images: post.hero ? [{ url: post.hero }] : undefined,
-      },
-      twitter: {
-        card: 'summary_large_image',
-        title: post.title,
-        description: post.description || undefined,
-        images: post.hero ? [post.hero] : undefined,
-      },
-    };
-  } catch {
-    return { title: 'Post not found' };
-  }
+      description: post.description || undefined,
+      images: post.hero ? [{ url: post.hero }] : undefined,
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.description || undefined,
+      images: post.hero ? [post.hero] : undefined,
+    },
+  };
 }
 
 export default async function BlogPostPage({ params }) {
@@ -44,9 +44,41 @@ export default async function BlogPostPage({ params }) {
     notFound();
   }
 
+  // Build JSON-LD
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: post.description,
+    image: post.hero ? absoluteUrl(post.hero) : undefined,
+    datePublished: new Date(post.date).toISOString(),
+    dateModified: new Date(post.date).toISOString(),
+    author: {
+      '@type': 'Person',
+      name: post.author,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Room Mitra',
+      logo: {
+        '@type': 'ImageObject',
+        url: absoluteUrl('/room-mitra-logo.png'), // put a real logo path
+      },
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': absoluteUrl(`/blog/${post.slug}`),
+    },
+  };
+
   return (
     <>
       <main className="mx-auto max-w-3xl px-4 py-10 mt-10">
+        {/* JSON-LD script */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <article>
           <header className="mb-6">
             <h1 className="text-3xl font-bold">{post.title}</h1>
