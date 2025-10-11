@@ -19,8 +19,8 @@ sealed class ApiResult {
 }
 class ApiService(private val context: Context) {
     companion object {
-        private const val BASE_URL = "http://192.168.29.120:3000/android"
-//        private const val BASE_URL = "https://roommitra.com/api/android"
+//        private const val BASE_URL = "http://192.168.29.120:3000/android"
+        private const val BASE_URL = "https://api.roommitra.com/android"
     }
     // Get device ID dynamically
     private val deviceId: String
