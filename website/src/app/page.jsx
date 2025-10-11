@@ -1,12 +1,10 @@
-import Navbar from '../components/Navbar';
 import Link from 'next/link';
-import Image from 'next/image';
 import RequestDemoForm from '@/components/RequestDemoForm';
+import Footer from '@/components/Footer';
 
 export default function Home() {
   return (
     <>
-      <Navbar />
       <main>
         {/* Hero */}
         <section className="header text-center py-20 bg-indigo-50">
@@ -130,30 +128,11 @@ export default function Home() {
             </div>
           </div>
         </section>
-        {/* Contact */}
-        <section id="contact" className="py-16 bg-gray-100 text-center">
-          <h2 className="text-3xl font-bold">Request a Demo</h2>
-          <RequestDemoForm />
-        </section>
+        {/* Request a Demo */}
+        <RequestDemoForm />
       </main>
 
-      <footer className="bg-gray-900 text-white py-6 text-center rounded-t-xl">
-        <div>
-          <Image
-            src="/room-mitra-logo.png"
-            alt="Room Mitra Logo"
-            width={300}
-            height={100}
-            className="mx-auto mb-4 h-8 w-auto"
-          />
-
-          <p className="my-4">
-            Email: <a href="mailto:info@roommitra.com">info@roommitra.com</a> | Phone:{' '}
-            <a href="tel:+919886653557">+91-9886653557</a>
-          </p>
-        </div>
-        © {new Date().getFullYear()} Room Mitra. All rights reserved.
-      </footer>
+      <Footer />
     </>
   );
 }
