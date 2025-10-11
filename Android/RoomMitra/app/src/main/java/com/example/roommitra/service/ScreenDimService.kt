@@ -15,7 +15,7 @@ class ScreenDimService : Service() {
     private val handler = Handler(Looper.getMainLooper())
     private var window: Window? = null
     private var skipAutoDim = false
-    private var dimTimeoutMs: Long = 30 * 1000 // default 1 minutes
+    private var dimTimeoutMs: Long = 30 * 1000 // default 0.5 minutes
 
     private val dimRunnable = Runnable {
         Log.d("ScreenDimService", "DimRunnable fired")
@@ -31,6 +31,7 @@ class ScreenDimService : Service() {
     /** Attach window from Activity */
     fun attachWindow(window: Window) {
         this.window = window
+        setBrightnessPercent(defaultbrightness)
     }
 
     /** Set brightness 0–100% */
