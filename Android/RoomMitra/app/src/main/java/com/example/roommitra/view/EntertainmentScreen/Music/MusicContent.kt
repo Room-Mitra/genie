@@ -19,16 +19,17 @@ import com.example.roommitra.view.MusicState
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
+
 @Composable
 fun MusicContent(controller: MusicPlayerController) {
-   var query by remember { mutableStateOf("") }
+    var query by remember { mutableStateOf("") }
 
     val videoId by controller.currentVideoId
     val musicState by controller.state
 
     // Observe the controller's videoId updates
- //   LaunchedEffect(controller.currentVideoId) {
-   //     videoId = controller.currentVideoId
+    //   LaunchedEffect(controller.currentVideoId) {
+    //     videoId = controller.currentVideoId
     //}
 
     Column(
@@ -46,23 +47,19 @@ fun MusicContent(controller: MusicPlayerController) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Row {
-            if(musicState == MusicState.LOADING) {
+            if (musicState == MusicState.LOADING) {
                 Button(
-                    onClick = {  },
+                    onClick = { },
                     modifier = Modifier.weight(1f)
                 ) { Text("Loading ...") }
-            }else{
-            Button(
-                onClick = { controller.play(query) },
-                modifier = Modifier.weight(1f)
-            ) { Text("Play") }
-                }
+            } else {
+                Button(
+                    onClick = { controller.play(query) },
+                    modifier = Modifier.weight(1f)
+                ) { Text("Play") }
+            }
             Spacer(modifier = Modifier.width(16.dp))
 
-//            Button(
-//                onClick = { controller.stop() },
-//                modifier = Modifier.weight(1f)
-//            ) { Text("Stop") }
         }
     }
 
