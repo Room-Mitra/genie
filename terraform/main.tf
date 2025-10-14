@@ -47,6 +47,16 @@ resource "aws_security_group" "web" {
     ipv6_cidr_blocks = ["::/0"]
   }
 
+  // Optional SSH (not recommended; use SSM instead)
+  # ingress {
+  #   description      = "SSH"
+  #   protocol         = "tcp"
+  #   from_port        = 22
+  #   to_port          = 22
+  #   cidr_blocks      = ["0.0.0.0/0"]
+  #   ipv6_cidr_blocks = ["::/0"]
+  # }
+
   egress {
     description      = "All egress"
     protocol         = "-1"
@@ -104,6 +114,7 @@ resource "aws_instance" "web" {
   # If you really want SSH, flip create_key_pair=true and uncomment:
   # key_name = aws_key_pair.rm_key[0].key_name
 
+
   root_block_device {
     volume_type           = "gp3"
     volume_size           = 8 # <— increase this
@@ -136,43 +147,4 @@ resource "aws_iam_openid_connect_provider" "github" {
   url             = "https://token.actions.githubusercontent.com"
   client_id_list  = ["sts.amazonaws.com"]
   thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
-}
-
-module "dynamodb" {
-  source                      = "./dynamodb"
-  existing_instance_role_name = aws_iam_role.ssm_role.name
-  vpc_id                      = data.aws_vpc.default.id
-}
-
-resource "aws_cloudwatch_log_group" "roommitra_containers" {
-  name              = "/roommitra/containers"
-  retention_in_days = 30
-  tags = {
-    Project = "RoomMitra"
-    Env     = "prod"
-  }
-}
-
-
-data "aws_iam_policy_document" "cloudwatch_logs_access" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:DescribeLogStreams",
-      "logs:PutLogEvents"
-    ]
-    resources = ["*"]
-  }
-}
-
-resource "aws_iam_policy" "cloudwatch_logs_policy" {
-  name   = "roommitra-cloudwatch-logs"
-  policy = data.aws_iam_policy_document.cloudwatch_logs_access.json
-}
-
-resource "aws_iam_role_policy_attachment" "attach_logs_policy" {
-  role       = aws_iam_role.ssm_role.name
-  policy_arn = aws_iam_policy.cloudwatch_logs_policy.arn
 }

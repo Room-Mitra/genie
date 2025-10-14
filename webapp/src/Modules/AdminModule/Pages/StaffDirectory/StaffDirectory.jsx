@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import BlueGoldButton from 'Common/Button/BlueGoldButton';
 import SecondaryButton from 'Common/Button/SecondaryButton';
 import { httpGet, httpPost } from 'Services/APIService';
-import { API_BASE_URL } from 'Config/config';
+import { API_ENDPOINT } from 'Config/config';
 import Select from 'react-select';
 
-const STAFF_ENDPOINT = '/staff';
+const STAFF_API_URI = '/staff';
 
 const StaffDirectory = () => {
   const [staffList, setStaffList] = useState([]);
@@ -38,7 +38,7 @@ const StaffDirectory = () => {
 
   useEffect(() => {
     const fetchStaffList = async () => {
-      const response = await httpGet(API_BASE_URL + STAFF_ENDPOINT, true);
+      const response = await httpGet(API_ENDPOINT + STAFF_API_URI, true);
       const staffData = response && response.staffData ? response.staffData : [];
       // Transform staffData to match the expected structure
       staffData.forEach((staff) => {
@@ -88,7 +88,7 @@ const StaffDirectory = () => {
       newStaffList[i].role = newStaffList[i].role.map((r) => r.value);
       newStaffList[i].department = newStaffList[i].department.map((d) => d.value);
     }
-    await httpPost(API_BASE_URL + STAFF_ENDPOINT, newStaffList);
+    await httpPost(API_ENDPOINT + STAFF_API_URI, newStaffList);
   };
 
   const handleEditStaff = (index) => {

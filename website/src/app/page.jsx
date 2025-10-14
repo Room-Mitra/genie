@@ -1,13 +1,14 @@
+import Navbar from '../components/Navbar';
 import Link from 'next/link';
-import RequestDemoForm from '@/components/RequestDemoForm';
-import Footer from '@/components/Footer';
+import Image from 'next/image';
 
 export default function Home() {
   return (
     <>
+      <Navbar />
       <main>
         {/* Hero */}
-        <section className="header text-center py-20 px-5 bg-indigo-50">
+        <section className="header text-center py-20 bg-indigo-50">
           <h1 className="text-4xl md:text-4xl font-bold pt-20">
             In-room Voice Assistant for Hotel Rooms
           </h1>
@@ -128,11 +129,112 @@ export default function Home() {
             </div>
           </div>
         </section>
-        {/* Request a Demo */}
-        <RequestDemoForm />
+
+        {/* Contact */}
+        <section id="contact" className="py-16 bg-gray-100 text-center">
+          <h2 className="text-3xl font-bold">Request a Demo</h2>
+          {/* Request demo form */}
+          <p className="mt-4 max-w-2xl mx-auto">
+            Interested in transforming your hotel with Room Mitra? Fill out the form below to
+            schedule a personalized demo and see how our in-room voice assistant can elevate your
+            guest experience.
+          </p>
+          <form
+            action="https://formspree.io/f/mayvldwp"
+            method="POST"
+            className="mt-8 max-w-xl mx-auto bg-white p-6 rounded-lg shadow"
+          >
+            <div className="mb-4 text-left">
+              <label htmlFor="name" className="block text-gray-700 font-semibold mb-2">
+                Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+            <div className="mb-4 text-left">
+              <label htmlFor="email" className="block text-gray-700 font-semibold mb-2">
+                Email <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+            <div className="mb-4 text-left">
+              <label htmlFor="phone" className="block text-gray-700 font-semibold mb-2">
+                Phone Number <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+            <div className="mb-4 text-left">
+              <label htmlFor="hotel" className="block text-gray-700 font-semibold mb-2">
+                Hotel Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="hotel"
+                name="hotel"
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+            <div className="mb-4 text-left">
+              <label htmlFor="message" className="block text-gray-700 font-semibold mb-2">
+                Message
+              </label>
+              <textarea
+                id="message"
+                name="message"
+                rows="4"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              ></textarea>
+            </div>
+            <button
+              type="submit"
+              className="cta-btn px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              Submit
+            </button>
+
+            {/* Form submitted message */}
+            <div className="mt-4 text-center">
+              <p>Thank you! We&apos;ll get in touch soon.</p>
+            </div>
+          </form>
+        </section>
       </main>
 
-      <Footer />
+      <footer className="bg-gray-900 text-white py-6 text-center rounded-t-xl">
+        <div>
+          <Image
+            src="/room-mitra-logo.png"
+            alt="Room Mitra Logo"
+            width={300}
+            height={100}
+            className="mx-auto mb-4 h-8 w-auto"
+          />
+
+          <p className="my-4">
+            Email: <a href="mailto:info@roommitra.com">info@roommitra.com</a> | Phone:{' '}
+            <a href="tel:+919886653557">+91-9886653557</a>
+          </p>
+        </div>
+        © {new Date().getFullYear()} Room Mitra. All rights reserved.
+      </footer>
     </>
   );
 }

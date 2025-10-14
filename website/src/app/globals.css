@@ -1,10 +1,4 @@
-/* globals.css (Tailwind v4) */
 @import 'tailwindcss';
-@plugin "@tailwindcss/typography";
-
-/* Optional: help the class scanner find files under /src and your markdown */
-@source "./src/**/*.{js,jsx,ts,tsx,md,mdx}";
-@source "./content/**/*.{md,mdx}";
 
 :root {
   --background: #ffffff;
@@ -41,6 +35,10 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer components {
   .nav-link {

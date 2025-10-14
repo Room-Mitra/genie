@@ -25,9 +25,7 @@ export const verifyUserCredentials = async ({ hotelId, username, password }) => 
 export const addUserLogin = async (userData) => {
   const isUserExists = await getUserDetails(userData);
   if (isUserExists) {
-    throw new Error(
-      'User already exists: userName: ' + userData.username + ', hotelId: ' + userData.hotelId
-    );
+    throw new Error('User already exists');
   }
 
   const { password, hotelId, username } = userData;
@@ -36,7 +34,7 @@ export const addUserLogin = async (userData) => {
   userData.password = hashedPassword;
   const isUserAdded = await addUser({ id, ...userData });
   if (!isUserAdded) {
-    throw new Error('Failed to add user: userName: ' + username + ', hotelId: ' + hotelId);
+    throw new Error('Failed to add user');
   }
   return isUserAdded;
 };
