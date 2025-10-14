@@ -71,6 +71,43 @@ export default [
     },
   },
 
+  // =====================================
+  // WEBAPP: Create React App style client
+  // =====================================
+  {
+    files: ['webapp2/**/*.{js,jsx}'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      parserOptions: { ecmaFeatures: { jsx: true } },
+      globals: {
+        // Browser first, allow some Node for tooling imports
+        ...globals.browser,
+        // If you want to allow import.meta, set ecmaVersion: 'latest'
+        process: 'readonly',
+      },
+    },
+    plugins: { react, 'react-hooks': reactHooks, 'jsx-a11y': jsxA11y },
+    settings: { react: { version: 'detect' } },
+    rules: {
+      // React
+      'react/jsx-uses-react': 'off',
+      'react/react-in-jsx-scope': 'off',
+      ...react.configs.recommended.rules,
+      // Hooks
+      ...reactHooks.configs.recommended.rules,
+      // A11y
+      ...jsxA11y.configs.recommended.rules,
+
+      // Keep client console warnings minimal
+      'no-console': ['warn', { allow: ['warn', 'error', 'log', 'info'] }],
+      // You are not using PropTypes in TS; disable if you prefer
+      'react/prop-types': 'off',
+
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+    },
+  },
+
   // ==================================
   // WEBSITE: Next.js client and config
   // ==================================
@@ -82,6 +119,7 @@ export default [
       parserOptions: { ecmaFeatures: { jsx: true } },
       globals: {
         ...globals.browser,
+        process: 'readonly',
       },
     },
     plugins: {
@@ -115,7 +153,11 @@ export default [
   {
     files: ['**/*.{test,spec}.{js,jsx}'],
     languageOptions: {
-      globals: { ...globals.jest, ...globals.node, ...globals.browser },
+      globals: {
+        ...globals.jest,
+        ...globals.node,
+        ...globals.browser,
+      },
     },
   },
 ];
