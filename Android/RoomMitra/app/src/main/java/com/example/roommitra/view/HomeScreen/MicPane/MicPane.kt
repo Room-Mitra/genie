@@ -61,15 +61,18 @@ class MicStateService {
     val isMuted: State<Boolean> get() = _isMuted
 
     fun setState(state: ListenState) {
+        Log.d("MicStateService", "State change: ${_listenState.value} → $state")
         _listenState.value = state
     }
 
     fun mute() {
         _isMuted.value = true
         _listenState.value = ListenState.Muted
+        Log.i("MicStateService", "Mic muted")
     }
 
     fun unmute() {
+        Log.i("MicStateService", "Mic unmuted")
         _isMuted.value = false
         _listenState.value = ListenState.Idle
     }
@@ -77,6 +80,7 @@ class MicStateService {
     fun reset() {
         _listenState.value = ListenState.Idle
         _isMuted.value = false
+        Log.d("MicStateService", "Mic state reset to Idle")
     }
 }
 // endregion
@@ -100,19 +104,23 @@ class TtsManager(private val ctx: Context) {
                 }
                 if (selected != null) tts?.voice = selected
                 else tts?.language = Locale("en", "IN")
+                Log.d("TtsManager", "Initialized with voice: ${tts?.voice?.name ?: "default"}")
 
                 tts?.setOnUtteranceProgressListener(object :
                     android.speech.tts.UtteranceProgressListener() {
                     override fun onStart(utteranceId: String?) {
                         isPlaying.value = true
+                        Log.d("TtsManager", "TTS started: $utteranceId")
                     }
 
                     override fun onDone(utteranceId: String?) {
                         isPlaying.value = false
+                        Log.d("TtsManager", "TTS done: $utteranceId")
                     }
 
                     override fun onError(utteranceId: String?) {
                         isPlaying.value = false
+                        Log.d("TtsManager", "TTS Error occurred: $utteranceId")
                     }
                 })
             } else Log.w("TtsManager", "TTS init failed: $status")
@@ -127,6 +135,7 @@ class TtsManager(private val ctx: Context) {
         try {
             val utteranceId = UUID.randomUUID().toString()
             tts?.speak(text, TextToSpeech.QUEUE_ADD, null, utteranceId)
+            Log.d("TtsManager", "Speaking: \"$text\"")
         } catch (e: Exception) {
             Log.e("TtsManager", "speak() error: ${e.message}")
         }
@@ -135,9 +144,11 @@ class TtsManager(private val ctx: Context) {
     fun stopImmediately() {
         tts?.stop()
         isPlaying.value = false
+        Log.d("TtsManager", "TTS stopImmediately called")
     }
 
     fun shutdown() {
+        Log.d("TtsManager", "TTS shutdown initiated")
         try {
             tts?.stop()
             tts?.shutdown()
@@ -170,20 +181,31 @@ class MicController(
         if (!SpeechRecognizer.isRecognitionAvailable(ctx)) return
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(ctx).apply {
             setRecognitionListener(object : RecognitionListener {
-                override fun onReadyForSpeech(params: Bundle?) {}
-                override fun onBeginningOfSpeech() {}
+                override fun onReadyForSpeech(params: Bundle?) {
+                    Log.d("MicController", "Ready for speech")
+                }
+
+                override fun onBeginningOfSpeech() {
+                    Log.d("MicController", "Speech input started")
+                }
+
                 override fun onEndOfSpeech() {
                     micStateService.setState(ListenState.Thinking)
+                    Log.d("MicController", "Speech input ended → Thinking")
                 }
 
                 override fun onError(error: Int) {
                     micStateService.setState(ListenState.Idle)
                     isListening = false
+                    Log.e("MicController", "STT Error code: $error")
                 }
 
                 override fun onResults(results: Bundle?) {
                     val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                    if (!matches.isNullOrEmpty()) onFinalUtterance(matches[0])
+                    if (!matches.isNullOrEmpty()) {
+                        onFinalUtterance(matches[0])
+                        Log.d("MicController", "STT Final Result: \"$matches[0]\"")
+                    }
                     isListening = false
                 }
 
@@ -196,11 +218,15 @@ class MicController(
     }
 
     fun startListening() {
+        Log.d("MicController", "Start listening called")
         if (isListening || micStateService.isMuted.value) return
         micStateService.setState(ListenState.Listening)
         isListening = true
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(
+                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+            )
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
             putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
         }
@@ -208,6 +234,7 @@ class MicController(
     }
 
     fun stopListening() {
+        Log.d("MicController", "Stop listening called")
         if (!isListening) return
         speechRecognizer?.stopListening()
         micStateService.setState(ListenState.Idle)
@@ -215,14 +242,19 @@ class MicController(
     }
 
     fun mute() {
+        Log.i("MicController", "Mic manually muted")
         micStateService.mute()
         ttsManager.stopImmediately()
         stopListening()
     }
 
-    fun unmute() = micStateService.unmute()
+    fun unmute() {
+        Log.i("MicController", "Mic manually unmuted")
+        micStateService.unmute()
+    }
 
     fun dispose() {
+        Log.d("MicController", "SpeechRecognizer destroyed")
         speechRecognizer?.destroy()
         speechRecognizer = null
         micStateService.reset()
@@ -230,14 +262,20 @@ class MicController(
     }
 
     suspend fun autoClearConversationAfter(delayMillis: Long = 60_000L) {
+        Log.d("MicController", "Auto clear timer started ($delayMillis ms)")
         if (conversation.isNotEmpty()) {
             kotlinx.coroutines.delay(delayMillis)
             conversation.clear()
             if (!micStateService.isMuted.value) onSessionReset()
         }
+        Log.d("MicController", "Conversation cleared, triggering session reset")
     }
 
     fun onTtsStateChanged(ttsPlaying: Boolean) {
+        Log.d(
+            "MicController",
+            "TTS State changed → ttsPlaying=$ttsPlaying, listenState=${micStateService.listenState.value}"
+        )
         val newState = when {
             micStateService.isMuted.value -> ListenState.Muted
             ttsPlaying -> ListenState.Speaking
@@ -283,7 +321,14 @@ fun rememberMicController(
     val ctx = LocalContext.current
     val micStateService = remember { MicStateService() }
     val controller = remember {
-        MicController(ctx, micStateService, onFinalUtterance, ttsManager, conversation, onSessionReset)
+        MicController(
+            ctx,
+            micStateService,
+            onFinalUtterance,
+            ttsManager,
+            conversation,
+            onSessionReset
+        )
     }
 
     val (hasRecordPerm, _) = rememberRecordAudioPermission { controller.startListening() }
@@ -301,7 +346,11 @@ fun rememberMicController(
 
     LaunchedEffect(pendingAutoListen, ttsPlaying, micStateService.listenState.value) {
         if (pendingAutoListen && !ttsPlaying &&
-            micStateService.listenState.value !in listOf(ListenState.Listening, ListenState.Thinking, ListenState.Muted)
+            micStateService.listenState.value !in listOf(
+                ListenState.Listening,
+                ListenState.Thinking,
+                ListenState.Muted
+            )
         ) {
             if (hasRecordPerm.value) controller.startListening()
             pendingAutoListen = false
@@ -344,6 +393,10 @@ fun MicPane(modifier: Modifier = Modifier, navController: NavHostController) {
                         put("userQuery", userQuery)
                         put("sessionId", sessionId)
                     }
+                    Log.i(
+                        "MicPane",
+                        "Attempting to send User query : \"$userQuery\" sessionId=$sessionId"
+                    )
                     when (val result = apiService.post("utterance", payload)) {
                         is ApiResult.Success -> {
                             val json = result.data
@@ -351,6 +404,10 @@ fun MicPane(modifier: Modifier = Modifier, navController: NavHostController) {
                             val isSessionOpen = json?.optBoolean("isSessionOpen", false) ?: false
 
                             if (speech.isNotEmpty()) {
+                                Log.d(
+                                    "MicPane",
+                                    "Server success: speech=\"${speech.take(100)}\" isSessionOpen=$isSessionOpen"
+                                )
                                 conversation.add(ConversationMessage(speech, false))
                                 ttsManager.speak(speech)
                             } else ttsManager.speak("No response from server.")
@@ -358,7 +415,11 @@ fun MicPane(modifier: Modifier = Modifier, navController: NavHostController) {
                             if (isSessionOpen)
                                 autoListenTrigger.value = System.currentTimeMillis()
                         }
-                        is ApiResult.Error -> ttsManager.speak("Something went wrong. Please try later")
+
+                        is ApiResult.Error -> {
+                            ttsManager.speak("Something went wrong. Please try later")
+                            Log.e("MicPane", "Server error: ${result}")
+                        }
                     }
                 } catch (e: Exception) {
                     ttsManager.speak("Something went wrong. Please try later")
@@ -455,7 +516,10 @@ fun MicPane(modifier: Modifier = Modifier, navController: NavHostController) {
             }
 
             Spacer(Modifier.height(24.dp))
-            if (conversation.isNotEmpty()) ConversationList(conversation = conversation, listState = listState)
+            if (conversation.isNotEmpty()) ConversationList(
+                conversation = conversation,
+                listState = listState
+            )
 
             Spacer(Modifier.weight(1f))
             Text(
