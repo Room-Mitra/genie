@@ -2,7 +2,13 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/sign-up", "/forgot-password"];
+const PUBLIC_PATHS = [
+  "/login",
+  "/sign-up",
+  "/forgot-password",
+  "/auth/session",
+  "/auth/logout",
+];
 
 function isPublicPath(pathname: string) {
   // let all /auth/* through
@@ -23,10 +29,11 @@ function isPublicPath(pathname: string) {
 
 export default function middleware(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
+
   if (isPublicPath(pathname)) return NextResponse.next();
 
   // Example auth check: HttpOnly cookie
-  const token = req.cookies.get("auth_token")?.value;
+  const token = req.cookies.get("rm_jwt")?.value;
 
   if (!token) {
     const url = req.nextUrl.clone();

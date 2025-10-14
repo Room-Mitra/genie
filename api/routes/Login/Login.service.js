@@ -1,5 +1,4 @@
 import bcrypt from 'bcrypt';
-import { getUserDetails } from '../User/User.service.js';
 import jwt from 'jsonwebtoken';
 import * as UserRepo from '../User/User.repository.js';
 
@@ -46,6 +45,8 @@ export async function login({ email, password }) {
     email: user.email,
     name: user.name,
     iat: nowSec,
+    hotelId: user?.hotelId,
+    groups: user?.groups,
   };
 
   const token = jwt.sign(payload, SECRET_KEY, { expiresIn: `${TOKEN_EXPIRES_IN_HOURS}h` });

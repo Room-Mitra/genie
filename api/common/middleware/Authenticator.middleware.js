@@ -3,15 +3,22 @@ import jwt from 'jsonwebtoken';
 const SECRET_KEY = process.env.SECRET_KEY;
 
 const authenticator = (req, res, next) => {
-  const token = req.headers['authorization']?.split(' ')[1];
+  // Read from HttpOnly cookie
+  const tokenFromCookie = req.cookies?.rm_jwt;
+
+  const authHeader = req.headers.authorization;
+  const tokenFromHeader = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+
+  const token = tokenFromCookie || tokenFromHeader;
 
   if (!token) return res.status(401).json({ message: 'Unauthorized' });
 
-  jwt.verify(token, SECRET_KEY, (err, userData) => {
-    if (err) return res.status(403).json({ message: 'Forbidden' });
-    req.userData = userData;
-    next();
-  });
+  try {
+    req.userData = jwt.verify(token, SECRET_KEY);
+    return next();
+  } catch (err) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
 };
 
 export default authenticator;

@@ -30,7 +30,8 @@
     "src/app/(app)/requests/active/page.jsx",
     "src/app/layout.jsx",
     "src/components/Auth/SigninWithPassword.jsx",
-    "src/app/(public)/sign-up/sign-up-form.jsx"
+    "src/app/(public)/sign-up/sign-up-form.jsx",
+    "src/components/Layouts/header/user-info/index.jsx"
   ],
   "exclude": ["node_modules"]
 }

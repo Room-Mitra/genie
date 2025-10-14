@@ -16,6 +16,7 @@ import cors from 'cors';
 import express from 'express';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
 
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
@@ -66,7 +67,13 @@ app.use(
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cookieParser());
+app.use(
+  cors({
+    origin: ['https://app.roommitra.com', 'http://localhost:3000'],
+    credentials: true,
+  })
+);
 
 // UI routes
 app.use('/devices', authenticator, deviceRoutes);

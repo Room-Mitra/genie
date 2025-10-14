@@ -34,7 +34,7 @@ export default function ConversationModal({ getConversation, roomId }) {
       </form>
 
       <div>
-        <Dialog open={open} onClose={setOpen} className="z-100 relative">
+        <Dialog open={open} onClose={setOpen} className="relative z-40">
           <DialogBackdrop
             transition
             className="data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in fixed inset-0 bg-gray-900/50 transition-opacity"

@@ -3,13 +3,13 @@
 import InputGroup from "@/components/FormElements/InputGroup";
 import Link from "next/link";
 import { useState } from "react";
-import { ToastContainer, toast } from "react-toastify";
+import {  toast } from "react-toastify";
 import { redirect } from "next/navigation";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // example: https://api.roommitra.com
 
-export async function signUpUser({ name, email, password }) {
+async function signUpUser({ name, email, password }) {
   const res = await fetch(`${API_BASE_URL}/user/sign-up`, {
     method: "POST",
     headers: {
@@ -118,6 +118,9 @@ export function SignUpForm() {
 
           <button className="mt-10 flex w-full justify-center rounded-lg bg-primary p-[13px] font-medium text-white hover:bg-opacity-90">
             Sign Up
+            {loading && (
+              <span className="inline-block size-3 h-4 w-4 animate-spin rounded-full border-2 border-solid border-white border-t-transparent" />
+            )}
           </button>
         </form>
 
@@ -133,7 +136,6 @@ export function SignUpForm() {
           </p>
         </div>
       </div>
-      <ToastContainer />
     </>
   );
 }

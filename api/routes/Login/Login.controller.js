@@ -21,6 +21,8 @@ router.post('/', async (req, res) => {
         name: result.user.name,
         email: result.user.email,
         createdAt: result.user.createdAt,
+        hotelId: result.user?.hotelId,
+        groups: result.user?.groups,
       },
     });
   } catch (err) {

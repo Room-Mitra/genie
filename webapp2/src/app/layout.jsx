@@ -6,6 +6,7 @@ import "jsvectormap/dist/jsvectormap.css";
 
 import NextTopLoader from "nextjs-toploader";
 import { Providers } from "./providers";
+import { ToastContainer } from "react-toastify";
 
 export const metadata = {
   title: {
@@ -24,6 +25,7 @@ export default function RootLayout({ children, params }) {
 
           {children}
         </Providers>
+        <ToastContainer />
       </body>
     </html>
   );
