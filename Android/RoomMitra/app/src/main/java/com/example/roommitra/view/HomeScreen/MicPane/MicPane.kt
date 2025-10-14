@@ -510,7 +510,7 @@ fun MicPane(modifier: Modifier = Modifier, navController: NavHostController) {
 
             Text(
                 text = when (listenState) {
-                    ListenState.Idle -> ""
+                    ListenState.Idle -> "Tap the mic or say your wake word"
                     ListenState.Listening -> "Listening..."
                     ListenState.Thinking -> "Thinking..."
                     ListenState.Speaking -> "Speaking..."
