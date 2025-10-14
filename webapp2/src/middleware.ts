@@ -2,9 +2,11 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+const PUBLIC_PATHS = ["/login", "/sign-up", "/forgot-password"];
+
 function isPublicPath(pathname: string) {
   // let all /auth/* through
-  if (pathname.startsWith("/login")) return true;
+  if (PUBLIC_PATHS.includes(pathname)) return true;
 
   // static and public assets
   if (
