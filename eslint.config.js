@@ -31,6 +31,8 @@ export default [
       'no-console': 'off',
       // Typical Node style relaxations
       'no-process-env': 'off', // in case a shared rule appears
+
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
     },
   },
 

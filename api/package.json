@@ -23,6 +23,7 @@
     "nodemon": "^3.1.7",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "sync-request": "6.1.0"
+    "sync-request": "6.1.0",
+    "ulid": "^3.0.1"
   }
 }
