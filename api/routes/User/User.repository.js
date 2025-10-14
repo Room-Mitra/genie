@@ -13,7 +13,7 @@ export async function transactCreateUserWithEmailGuard({ userItem }) {
           TableName: ENTITY_TABLE_NAME,
           Item: {
             pk: emailKey,
-            sk: `USER#${userItem.userId}`,
+            sk: `EMAIL_REGISTRY`,
             entityType: 'EMAIL_REGISTRY',
             userId: userItem.userId,
             createdAt: userItem.createdAt,
@@ -81,16 +81,15 @@ export const addUser = async (userData) => {
   return null;
 };
 
-
 export async function getEmailRegistryByEmail(email) {
   const pk = `USER#${email}`;
 
   // We wrote exactly one item per email in sign-up, so query with pk and limit 1
   const params = {
     TableName: ENTITY_TABLE_NAME,
-    KeyConditionExpression: "pk = :pk",
+    KeyConditionExpression: 'pk = :pk',
     ExpressionAttributeValues: {
-      ":pk": pk,
+      ':pk': pk,
     },
     Limit: 1,
   };
@@ -108,7 +107,7 @@ export async function getUserProfileById(userId) {
     TableName: ENTITY_TABLE_NAME,
     Key: {
       pk: `USER#${userId}`,
-      sk: "PROFILE",
+      sk: 'PROFILE',
     },
   };
 

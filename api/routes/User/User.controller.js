@@ -23,7 +23,11 @@ router.post('/sign-up', async (req, res) => {
       },
     });
   } catch (err) {
-    if (err.code === 'ConditionalCheckFailedException') {
+    console.log(err.CancellationReasons[0].Code);
+    if (
+      err.code === 'TransactionCanceledException' &&
+      err?.CancellationReasons?.[0].Code === 'ConditionalCheckFailed'
+    ) {
       // Email already taken due to our transactional guard
       return res.status(409).json({ error: 'Email already registered' });
     }

@@ -30,8 +30,6 @@ export default function SigninWithPassword() {
     setTimeout(() => {
       setLoading(false);
     }, 1000);
-
-    
   };
 
   return (

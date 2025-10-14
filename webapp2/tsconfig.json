@@ -28,7 +28,9 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "src/app/(app)/requests/active/page.jsx",
-    "src/app/layout.jsx"
+    "src/app/layout.jsx",
+    "src/components/Auth/SigninWithPassword.jsx",
+    "src/app/(public)/sign-up/sign-up-form.jsx"
   ],
   "exclude": ["node_modules"]
 }
