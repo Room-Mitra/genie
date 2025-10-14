@@ -23,7 +23,6 @@ async function logout() {
     localStorage.removeItem("rm_user");
     window.location.assign("/login");
   } catch (err) {
-    console.log(err);
     toast.error(
       "Error logging out user" + (err?.message && `: ${err.message}`),
     );

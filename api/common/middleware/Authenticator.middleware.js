@@ -3,13 +3,8 @@ import jwt from 'jsonwebtoken';
 const SECRET_KEY = process.env.SECRET_KEY;
 
 const authenticator = (req, res, next) => {
-  // Read from HttpOnly cookie
-  const tokenFromCookie = req.cookies?.rm_jwt;
-
   const authHeader = req.headers.authorization;
-  const tokenFromHeader = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
-
-  const token = tokenFromCookie || tokenFromHeader;
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
 
   if (!token) return res.status(401).json({ message: 'Unauthorized' });
 
