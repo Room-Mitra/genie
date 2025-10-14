@@ -46,11 +46,11 @@ export default function Page() {
               </p>
 
               <Image
-                src={"/images/bell.png"}
-                alt="Logo"
-                width={250}
-                height={250}
-                className="mx-auto mt-3"
+                className="mx-auto my-5"
+                src={"/images/reception.png"}
+                alt="reception"
+                width={300}
+                height={300}
               />
             </div>
           </div>
