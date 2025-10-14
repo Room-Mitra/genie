@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
@@ -176,7 +178,6 @@ class MicController(
 ) {
     private var speechRecognizer: SpeechRecognizer? = null
     private var isListening = false
-
     fun initialize() {
         if (!SpeechRecognizer.isRecognitionAvailable(ctx)) return
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(ctx).apply {
@@ -191,14 +192,40 @@ class MicController(
 
                 override fun onEndOfSpeech() {
                     micStateService.setState(ListenState.Thinking)
-                    Log.d("MicController", "Speech input ended → Thinking")
+//                    Handler(Looper.getMainLooper()).postDelayed({
+//                        if (isListening) {
+//                            speechRecognizer?.cancel()
+//                            micStateService.setState(ListenState.Idle)
+//                        }
+//                    }, 1500) // 1.5s grace period
                 }
 
+
                 override fun onError(error: Int) {
-                    micStateService.setState(ListenState.Idle)
-                    isListening = false
                     Log.e("MicController", "STT Error code: $error")
+
+                    when (error) {
+                        SpeechRecognizer.ERROR_NO_MATCH -> {
+                            Log.d("MicController", "No match – possibly short utterance.")
+                            micStateService.setState(ListenState.Idle)
+                            isListening = false
+//                            onFinalUtterance("") // treat as unclear speech
+                        }
+
+                        SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> {
+                            Log.d("MicController", "Speech timeout, restarting listener")
+                            micStateService.setState(ListenState.Idle)
+                            isListening = false
+//                            onFinalUtterance("") // Optionally restart listening automatically here
+                        }
+
+                        else -> {
+                            micStateService.setState(ListenState.Idle)
+                            isListening = false
+                        }
+                    }
                 }
+
 
                 override fun onResults(results: Bundle?) {
                     val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
@@ -209,26 +236,50 @@ class MicController(
                     isListening = false
                 }
 
-                override fun onPartialResults(partialResults: Bundle?) {}
-                override fun onEvent(eventType: Int, params: Bundle?) {}
-                override fun onBufferReceived(buffer: ByteArray?) {}
+                //                override fun onPartialResults(partialResults: Bundle?) {Log.d("MicController", "STT Partial Result ${partialResults}")}
+                override fun onPartialResults(partialResults: Bundle?) {
+                    val partial =
+                        partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                    if (!partial.isNullOrEmpty()) {
+                        val text = partial[0].trim()
+                        Log.d("MicController", "STT Partial Result: \"$text\"")
+                      /*  if (text.equals("yes", true) || text.equals("no", true)) {
+                            onFinalUtterance(text)
+                            speechRecognizer?.stopListening()
+                        }*/
+                    }
+                }
+
+                override fun onSegmentResults(segmentResults: Bundle) {
+                    Log.d("MicController", "onSegmentResults  ${segmentResults}")
+                }
+
+                override fun onEvent(eventType: Int, params: Bundle?) {
+                    Log.d("MicController", "onEvent ${eventType} ,, ${params}")
+                }
+
+                override fun onBufferReceived(buffer: ByteArray?) {
+                    Log.d("MicController", "onBufferReceived ${buffer}")
+                }
+
                 override fun onRmsChanged(rmsdB: Float) {}
             })
         }
     }
 
     fun startListening() {
-        Log.d("MicController", "Start listening called")
+        Log.d("MicController", "Start listening called - ${Locale.getDefault()}")
         if (isListening || micStateService.isMuted.value) return
         micStateService.setState(ListenState.Listening)
         isListening = true
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(
                 RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+                RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH
             )
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
             putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+//            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
         }
         speechRecognizer?.startListening(intent)
     }
