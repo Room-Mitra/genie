@@ -1,23 +1,20 @@
-import Signin from "@/components/Auth/Signin";
-import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
+import Login from "@/components/Auth/Login";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Sign in",
+  title: "Login",
 };
 
-export default function SignIn() {
+export default function Page() {
   return (
     <>
-      <Breadcrumb pageName="Sign In" />
-
-      <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card">
+      <div className="rounded-[10px] bg-zinc-400/30 shadow-1 dark:bg-gray-dark dark:shadow-card">
         <div className="flex flex-wrap items-center">
           <div className="w-full xl:w-1/2">
             <div className="w-full p-4 sm:p-12.5 xl:p-15">
-              <Signin />
+              <Login />
             </div>
           </div>
 
@@ -39,28 +36,22 @@ export default function SignIn() {
                   height={32}
                 />
               </Link>
-              <p className="mb-3 text-xl font-medium text-dark dark:text-white">
-                Sign in to your account
-              </p>
 
               <h1 className="mb-4 text-2xl font-bold text-dark dark:text-white sm:text-heading-3">
                 Welcome Back!
               </h1>
 
               <p className="w-full max-w-[375px] font-medium text-dark-4 dark:text-dark-6">
-                Please sign in to your account by completing the necessary
-                fields below
+                Your hotel operations assistant
               </p>
 
-              <div className="mt-31">
-                <Image
-                  src={"/images/grids/grid-02.svg"}
-                  alt="Logo"
-                  width={405}
-                  height={325}
-                  className="mx-auto dark:opacity-30"
-                />
-              </div>
+              <Image
+                src={"/images/bell.png"}
+                alt="Logo"
+                width={250}
+                height={250}
+                className="mx-auto mt-3"
+              />
             </div>
           </div>
         </div>

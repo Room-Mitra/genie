@@ -27,7 +27,8 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "src/app/requests/active/page.jsx"
+    "src/app/(app)/requests/active/page.jsx",
+    "src/app/layout.jsx"
   ],
   "exclude": ["node_modules"]
 }

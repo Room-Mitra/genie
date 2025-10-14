@@ -47,7 +47,7 @@ export function Checkbox({
               withBg
                 ? "peer-checked:bg-primary [&>*]:text-white"
                 : "peer-checked:bg-gray-2 dark:peer-checked:bg-transparent",
-              minimal && "mr-3 border-stroke dark:border-dark-3",
+              minimal && "mr-3 border-dark-3 dark:border-dark-3",
               radius === "md" && "rounded-md",
             )}
           >
