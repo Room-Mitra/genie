@@ -7,7 +7,6 @@ const getId = ({ hotelId, username }) => `${ID_TYPE}${hotelId}:${username}`;
 const getUserDetails = async ({ hotelId, username }) => {
   const id = getId({ hotelId, username });
   const userData = await getUser(id);
-  console.info(`${username} -> ` + 'USER DATA :: ', userData);
   if (userData) {
     return userData;
   }
