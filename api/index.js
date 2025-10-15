@@ -21,22 +21,22 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 
 // routes
-import deviceRoutes from '#routes/public/Device/Device.controller.js';
-import guestRoutes from '#routes/public/Guest/Guest.controller.js';
-import utteranceRoutes from '#routes/public/Android/Utterance/Utterance.controller.js';
-import bookingRoutes from '#routes/public/Booking/Booking.controller.js';
-import staffRoutes from '#routes/public/Staff/Staff.controller.js';
-import mappingRoutes from '#routes/public/StaffRoomDepartmentRequestMapping/StaffRoomDepartmentRequestMapping.controller.js';
-import faqRoutes from '#routes/public/FAQ/FAQ.controller.js';
-import intentsRoutes from '#routes/public/Intents/Intent.controller.js';
-import loginRoutes from '#routes/public/Login/Login.controller.js';
-import userRoutes from '#routes/public/User/User.controller.js';
-import landingPageRoutes from '#routes/public/LandingPage/leads.js';
+import deviceRoutes from '#routes/public/Device.controller.js';
+import guestRoutes from '#routes/public/Guest.controller.js';
+import utteranceRoutes from '#routes/public/Utterance.controller.js';
+import bookingRoutes from '#routes/public/Booking.controller.js';
+import staffRoutes from '#routes/public/Staff.controller.js';
+import mappingRoutes from '#routes/public/StaffRoomDepartmentRequestMapping.controller.js';
+import faqRoutes from '#routes/public/FAQ.controller.js';
+import intentsRoutes from '#routes/public/Intent.controller.js';
+import loginRoutes from '#routes/public/Login.controller.js';
+import userRoutes from '#routes/public/User.controller.js';
+import landingPageRoutes from '#routes/public/leads.route.js';
 
 //Android Routes
-import androidLoginRoutes from '#routes/public/Android/AndroidLogin/AndroidLogin.controller.js';
-import androidRequestRoutes from '#routes/public/Android/AndroidRequest/AndroidRequest.controller.js';
-import androidEventsTrackerRoutes from '#routes/public/Android/AndroidEventTracker/AndroidEventTracker.controller.js';
+import androidLoginRoutes from '#routes/public/AndroidLogin.controller.js';
+import androidRequestRoutes from '#routes/public/AndroidRequest.controller.js';
+import androidEventsTrackerRoutes from '#routes/public/AndroidEventTracker.controller.js';
 
 // Middlewares
 import authenticator from '#middleware/Authenticator.middleware.js';
