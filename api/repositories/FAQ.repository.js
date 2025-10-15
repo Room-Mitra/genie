@@ -1,5 +1,5 @@
-import { GUEST_TABLE_NAME as FAQ_TABLE_NAME } from '../Constants/DB.constants.js';
-import DDB from '../config/DynamoDb.config.js';
+import { GUEST_TABLE_NAME as FAQ_TABLE_NAME } from '#Constants/DB.constants.js';
+import DDB from '#config/DynamoDb.config.js';
 
 const ID_TYPE = 'FAQ:';
 

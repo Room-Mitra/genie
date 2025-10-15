@@ -2,7 +2,6 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "#root/*": ["./*"],
       "#services/*": ["./services/*"],
       "#routes/*": ["./routes/*"],
       "#middleware/*": ["./middleware/*"],

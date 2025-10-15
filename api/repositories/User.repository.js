@@ -1,7 +1,7 @@
-import DDB from '../config/DynamoDb.config.js';
+import DDB from '#config/DynamoDb.config.js';
 import AWS from 'aws-sdk';
-import { GUEST_TABLE_NAME as USER_LOGIN_TABLE_NAME } from '../Constants/DB.constants.js';
-import { ENTITY_TABLE_NAME } from '../Constants/DB.constants.js';
+import { GUEST_TABLE_NAME as USER_LOGIN_TABLE_NAME } from '#Constants/DB.constants.js';
+import { ENTITY_TABLE_NAME } from '#Constants/DB.constants.js';
 
 export async function transactCreateUserWithEmailGuard({ userItem }) {
   const emailKey = `USER#${userItem.email}`;

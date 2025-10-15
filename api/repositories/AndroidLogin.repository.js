@@ -1,5 +1,5 @@
-import { GUEST_TABLE_NAME as ANDROID_LOGIN_TABLE_NAME } from '../Constants/DB.constants.js';
-import DDB from '../config/DynamoDb.config.js';
+import { GUEST_TABLE_NAME as ANDROID_LOGIN_TABLE_NAME } from '#Constants/DB.constants.js';
+import DDB from '#config/DynamoDb.config.js';
 
 export const getHotel = async (hotelId) => {
   const params = {

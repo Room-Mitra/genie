@@ -10,7 +10,7 @@ import {
   getIntentsForDate as getIntentsForDateFromRepo,
 } from '#repositories/Intent.repository.js';
 
-import { sendWhatsAppTemplate } from '#root/libs/whatsapp.js';
+import { sendWhatsAppTemplate } from '#libs/whatsapp.js';
 
 export const registerIntent = async (intent) => {
   if (!intent.roomId) {

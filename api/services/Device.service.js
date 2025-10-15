@@ -3,7 +3,7 @@ import {
   getDevices as getAllDevicesFromCache,
   updateMultipleDevices as updateCache,
   getDevices,
-} from '#root/libs/Device.cache.js';
+} from '#libs/Device.cache.js';
 
 import {
   registerNewDevice as addDeviceToDB,
