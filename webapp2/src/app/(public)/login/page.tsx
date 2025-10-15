@@ -2,12 +2,20 @@ import Login from "@/components/Auth/Login";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
+import { getJwtFromCookie } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Login",
 };
 
-export default function Page() {
+export default async function Page() {
+  const token = await getJwtFromCookie();
+  if (token) {
+    redirect("/");
+  }
+
   return (
     <>
       <div className="rounded-[10px] bg-zinc-400/30 shadow-1 dark:bg-gray-dark dark:shadow-card">

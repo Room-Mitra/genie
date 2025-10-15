@@ -20,7 +20,6 @@ async function logout() {
       credentials: "include",
     });
 
-    localStorage.removeItem("rm_user");
     window.location.assign("/login");
   } catch (err) {
     toast.error(

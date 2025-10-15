@@ -1,20 +1,18 @@
 "use client";
 import { EmailIcon, PasswordIcon } from "@/assets/icons";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import InputGroup from "../FormElements/InputGroup";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import { redirect } from "next/navigation";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-
 async function loginUser({ email, password }) {
-  const res = await fetch(`${API_BASE_URL}/login`, {
+  const res = await fetch(`/api/login`, {
     method: "POST",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
-    credentials: "include",
     body: JSON.stringify({ email, password }),
   });
 
@@ -54,7 +52,6 @@ export default function SigninWithPassword() {
 
     try {
       const { token, user } = await loginUser({ email, password });
-      localStorage.setItem("rm_user", JSON.stringify(user));
 
       await fetch("/auth/session", {
         method: "POST",
