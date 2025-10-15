@@ -40,9 +40,14 @@ import androidEventsTrackerRoutes from '#routes/public/AndroidEventTracker.contr
 
 // Middlewares
 import authenticator from '#middleware/Authenticator.middleware.js';
+import adminAuthenticator from '#middleware/AdminAuthenticator.middleware.js';
 
+// Cache
 import { warmCache as warmDevicesCache } from '#libs/Device.cache.js';
 import { warmCache as warmIntentsCache } from '#libs/Intent.cache.js';
+
+// Admin Routes
+import adminHotelRoutes from '#routes/admin/Hotel.controller.js';
 
 const app = express();
 app.use(requestContext);
@@ -92,6 +97,11 @@ app.use('/user', userRoutes);
 app.use('/login', loginRoutes);
 app.use('/android/login', androidLoginRoutes);
 app.use('/leads', landingPageRoutes);
+
+// -------------------------
+// Admin Routes
+// -------------------------
+app.use('/admin/hotel', adminAuthenticator, adminHotelRoutes);
 
 app.listen(PORT, () => console.log(`Server running on port: http://localhost:${PORT}`));
 

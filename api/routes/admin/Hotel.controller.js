@@ -1,5 +1,5 @@
 import express from 'express';
-import * as hotelService from '#services/hotel.service.js';
+import * as hotelService from '#services/Hotel.service.js';
 
 const router = express.Router();
 
