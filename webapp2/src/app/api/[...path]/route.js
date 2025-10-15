@@ -37,6 +37,7 @@ async function proxy(req, params) {
     headers: {
       // forward JSON headers plus Authorization
       "Content-Type": req.headers.get("content-type") ?? "application/json",
+      "User-Agent": req.headers.get("user-agent") ?? "NextBFF",
       Authorization: `Bearer ${token}`,
     },
     body: ["GET", "HEAD"].includes(req.method) ? undefined : await req.text(),

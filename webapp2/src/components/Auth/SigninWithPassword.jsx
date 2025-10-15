@@ -52,6 +52,7 @@ export default function SigninWithPassword() {
 
     try {
       const { token, user } = await loginUser({ email, password });
+      localStorage.setItem("rm_user", user);
 
       await fetch("/auth/session", {
         method: "POST",
