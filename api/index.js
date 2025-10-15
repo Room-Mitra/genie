@@ -101,7 +101,7 @@ app.use('/leads', landingPageRoutes);
 // -------------------------
 // Admin Routes
 // -------------------------
-app.use('/admin/hotel', adminAuthenticator, adminHotelRoutes);
+app.use('/admin/hotels', adminAuthenticator, adminHotelRoutes);
 
 app.listen(PORT, () => console.log(`Server running on port: http://localhost:${PORT}`));
 
