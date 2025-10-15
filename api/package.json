@@ -25,5 +25,15 @@
     "swagger-ui-express": "^5.0.1",
     "sync-request": "6.1.0",
     "ulid": "^3.0.1"
+  },
+  "imports": {
+    "#root/*": "./*",
+    "#services/*": "./services/*",
+    "#routes/*": "./routes/*",
+    "#middleware/*": "./middleware/*",
+    "#repositories/*": "./repositories/*",
+    "#config/*": "./config/*",
+    "#Constants/*": "./Constants/*",
+    "#libs/*": "./libs/*"
   }
 }

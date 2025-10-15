@@ -1,4 +1,4 @@
-import { registerStaff, getStaffDetails } from './Staff.service.js';
+import { registerStaff, getStaffDetails } from '#services/Staff.service.js';
 
 import express from 'express';
 const router = express.Router();

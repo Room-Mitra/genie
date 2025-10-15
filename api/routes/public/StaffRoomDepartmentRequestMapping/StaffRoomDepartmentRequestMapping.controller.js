@@ -4,7 +4,7 @@ const router = express.Router();
 import {
   registerStaffRoomDepartmentMapping,
   getStaffRoomDepartmentMappings,
-} from './StaffRoomDepartmentRequestMapping.service.js';
+} from '#services/StaffRoomDepartmentRequestMapping.service.js';
 
 router.get('/', async (req, res) => {
   const { hotelId } = req.userData;

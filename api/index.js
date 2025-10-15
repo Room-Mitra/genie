@@ -21,27 +21,28 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 
 // routes
-import deviceRoutes from './routes/Device/Device.controller.js';
-import guestRoutes from './routes/Guest/Guest.controller.js';
-import utteranceRoutes from './routes/Android/Utterance/Utterance.controller.js';
-import bookingRoutes from './routes/Booking/Booking.controller.js';
-import staffRoutes from './routes/Staff/Staff.controller.js';
-import mappingRoutes from './routes/StaffRoomDepartmentRequestMapping/StaffRoomDepartmentRequestMapping.controller.js';
-import faqRoutes from './routes/FAQ/FAQ.controller.js';
-import intentsRoutes from './routes/Intents/Intent.controller.js';
-import loginRoutes from './routes/Login/Login.controller.js';
-import userRoutes from './routes/User/User.controller.js';
-import landingPageRoutes from './routes/LandingPage/leads.js';
+import deviceRoutes from '#routes/public/Device/Device.controller.js';
+import guestRoutes from '#routes/public/Guest/Guest.controller.js';
+import utteranceRoutes from '#routes/public/Android/Utterance/Utterance.controller.js';
+import bookingRoutes from '#routes/public/Booking/Booking.controller.js';
+import staffRoutes from '#routes/public/Staff/Staff.controller.js';
+import mappingRoutes from '#routes/public/StaffRoomDepartmentRequestMapping/StaffRoomDepartmentRequestMapping.controller.js';
+import faqRoutes from '#routes/public/FAQ/FAQ.controller.js';
+import intentsRoutes from '#routes/public/Intents/Intent.controller.js';
+import loginRoutes from '#routes/public/Login/Login.controller.js';
+import userRoutes from '#routes/public/User/User.controller.js';
+import landingPageRoutes from '#routes/public/LandingPage/leads.js';
 
 //Android Routes
-import androidLoginRoutes from './routes/Android/AndroidLogin/AndroidLogin.controller.js';
-import androidRequestRoutes from './routes/Android/AndroidRequest/AndroidRequest.controller.js';
-import androidEventsTrackerRoutes from './routes/Android/AndroidEventTracker/AndroidEventTracker.controller.js';
-
-import { runFunctionsOnServerStartup } from './common/services/startup.service.js';
+import androidLoginRoutes from '#routes/public/Android/AndroidLogin/AndroidLogin.controller.js';
+import androidRequestRoutes from '#routes/public/Android/AndroidRequest/AndroidRequest.controller.js';
+import androidEventsTrackerRoutes from '#routes/public/Android/AndroidEventTracker/AndroidEventTracker.controller.js';
 
 // Middlewares
-import authenticator from './common/middleware/Authenticator.middleware.js';
+import authenticator from '#middleware/Authenticator.middleware.js';
+
+import { warmCache as warmDevicesCache } from '#libs/Device.cache.js';
+import { warmCache as warmIntentsCache } from '#libs/Intent.cache.js';
 
 const app = express();
 app.use(requestContext);
@@ -91,7 +92,8 @@ app.use('/leads', landingPageRoutes);
 app.listen(PORT, () => console.log(`Server running on port: http://localhost:${PORT}`));
 
 // run functions on server startup
-runFunctionsOnServerStartup();
+warmDevicesCache();
+warmIntentsCache();
 
 // swagger setup
 const swaggerOptions = {
