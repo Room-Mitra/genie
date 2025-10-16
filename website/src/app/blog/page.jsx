@@ -8,6 +8,30 @@ import { absoluteUrl } from '@/lib/urls';
 export const metadata = {
   title: 'Blog',
   description: 'All posts',
+  keywords:
+    'hotel automation, in-room assistant, hospitality tech, voice assistant, Room Mitra, hotel guest experience',
+  authors: [{ name: 'Room Mitra' }],
+  robots: 'index, follow',
+  openGraph: {
+    title: 'Room Mitra | Blog',
+    description: 'How tehnology and design are shaping the modern guest experience.',
+    url: absoluteUrl('/blog'),
+    siteName: 'Room Mitra',
+    images: [{ url: absoluteUrl('/blog/post-1.png') }],
+    type: 'website',
+    locale: 'en_IN',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@RoomMitra',
+    creator: '@RoomMitra',
+    title: 'Room Mitra | Blog',
+    description: 'How tehnology and design are shaping the modern guest experience.',
+    image: absoluteUrl('/room-mitra-logo.png'),
+  },
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default async function BlogIndexPage() {

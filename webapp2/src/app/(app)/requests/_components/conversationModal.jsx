@@ -13,7 +13,7 @@ import {
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import { Spinner } from "@material-tailwind/react";
-import { Table, TableCell, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
 export default function ConversationModal({ getConversation, roomId }) {
   const [state, formAction, isPending] = useActionState(getConversation, []);
@@ -69,17 +69,19 @@ export default function ConversationModal({ getConversation, roomId }) {
                           </DialogTitle>
                           <div className="mt-2">
                             <Table>
-                              {state?.length > 0 &&
-                                state.map((log) => (
-                                  <TableRow>
-                                    <TableCell className="text-lg font-medium">
-                                      {log.role}
-                                    </TableCell>
-                                    <TableCell className="text-lg font-medium">
-                                      {log.content}
-                                    </TableCell>
-                                  </TableRow>
-                                ))}
+                              <TableBody>
+                                {state?.length > 0 &&
+                                  state.map((log, i) => (
+                                    <TableRow key={i}>
+                                      <TableCell className="text-lg font-medium">
+                                        {log.role}
+                                      </TableCell>
+                                      <TableCell className="text-lg font-medium">
+                                        {log.content}
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
+                              </TableBody>
                             </Table>
                           </div>
                         </div>

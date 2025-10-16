@@ -33,7 +33,7 @@ export default function SortTable({
         return 0;
       }),
     );
-  }, [sortConfig]);
+  }, [sortConfig, rows]);
 
   const handleSort = (key) => {
     setSortConfig((prev) => {

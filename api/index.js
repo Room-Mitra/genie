@@ -85,6 +85,7 @@ app.use('/android/track-events', authenticator, androidEventsTrackerRoutes);
 
 // routes which dont need auth
 app.use('/user', userRoutes);
+app.use('/user', userRoutes);
 app.use('/login', loginRoutes);
 app.use('/android/login', androidLoginRoutes);
 app.use('/leads', landingPageRoutes);
