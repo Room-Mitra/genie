@@ -17,3 +17,18 @@ export async function getUserFromCookie() {
     return null;
   }
 }
+
+export async function getTokenFromCookie() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("rm_jwt")?.value;
+
+  if (!token) return null;
+
+  try {
+    jwt.verify(token, SECRET_KEY);
+    return token;
+  } catch (err) {
+    console.error("Invalid or expired token", err);
+    return null;
+  }
+}

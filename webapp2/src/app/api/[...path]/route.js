@@ -1,6 +1,6 @@
 // src/app/api/bff/[...path]/route.ts
 import { NextResponse } from "next/server";
-import { getUserFromCookie } from "@/lib/auth";
+import { getTokenFromCookie } from "@/lib/auth";
 
 const API_BASE_URL = process.env.API_BASE_URL; // e.g. https://api.roommitra.com
 
@@ -21,7 +21,7 @@ export async function DELETE(req, { params }) {
 }
 
 async function proxy(req, params) {
-  const user = getUserFromCookie();
+  const user = await getTokenFromCookie();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -29,6 +29,8 @@ async function proxy(req, params) {
   const url = new URL(req.url);
   const { path } = await params;
   const target = `${API_BASE_URL}/${path.join("/")}${url.search}`;
+
+  console.log("route.js", user);
 
   const init = {
     method: req.method,

@@ -4,8 +4,8 @@ import { onUtterance } from '#services/Utterance.service.js';
 const router = express.Router();
 router.post('/', async (req, res) => {
   try {
-    const deviceId = req.headers['X-Device-ID"'];
-    const hotelId = req.headers['X-Hotel-ID"'];
+    const deviceId = req.headers['x-device-id'];
+    const hotelId = req.headers['x-hotel-id'];
     const { userQuery, sessionId } = req.body;
     const { speech, isSessionOpen } = await onUtterance(userQuery, hotelId, deviceId, sessionId);
     console.log({ speech, isSessionOpen });
