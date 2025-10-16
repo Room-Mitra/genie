@@ -3,7 +3,7 @@
 import InputGroup from "@/components/FormElements/InputGroup";
 import Link from "next/link";
 import { useState } from "react";
-import {  toast } from "react-toastify";
+import { toast } from "react-toastify";
 import { redirect } from "next/navigation";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -54,7 +54,6 @@ export function SignUpForm() {
 
     try {
       const result = await signUpUser({ name, email, password });
-      console.log("User signed up:", result.user);
       toast("User signed up successfully!");
       setTimeout(() => {
         redirect("/login");
