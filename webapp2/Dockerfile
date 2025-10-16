@@ -11,10 +11,8 @@ WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 
 ARG NEXT_PUBLIC_API_BASE_URL
-ARG NEXT_PUBLIC_SITE_URL
 
 ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
-ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -44,6 +42,6 @@ COPY --from=builder   /app/package.json   ./
 RUN mkdir -p /app/.next/cache/images && chown -R nextjs:nodejs /app
 
 USER nextjs
-EXPOSE 3000
-ENV PORT=3000
-CMD ["npx", "next", "start", "-p", "3000"]
+EXPOSE 3001
+ENV PORT=3001
+CMD ["npx", "next", "start", "-p", "3001"]

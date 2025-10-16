@@ -21,8 +21,8 @@ export async function DELETE(req, { params }) {
 }
 
 async function proxy(req, params) {
-  const user = await getTokenFromCookie();
-  if (!user) {
+  const token = await getTokenFromCookie();
+  if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -30,15 +30,13 @@ async function proxy(req, params) {
   const { path } = await params;
   const target = `${API_BASE_URL}/${path.join("/")}${url.search}`;
 
-  console.log("route.js", user);
-
   const init = {
     method: req.method,
     headers: {
       // forward JSON headers plus Authorization
       "Content-Type": req.headers.get("content-type") ?? "application/json",
       "User-Agent": req.headers.get("user-agent") ?? "NextBFF",
-      Authorization: `Bearer ${user}`,
+      Authorization: `Bearer ${token}`,
     },
     body: ["GET", "HEAD"].includes(req.method) ? undefined : await req.text(),
   };

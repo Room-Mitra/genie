@@ -12,6 +12,7 @@ const PUBLIC_PATHS = [
 ];
 
 function isPublicPath(pathname: string) {
+  console.log(pathname);
   // let all /auth/* through
   if (PUBLIC_PATHS.includes(pathname) || pathname.startsWith("/api"))
     return true;
