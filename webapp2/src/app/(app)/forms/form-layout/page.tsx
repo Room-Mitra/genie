@@ -3,7 +3,7 @@ import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import type { Metadata } from "next";
 import { ContactForm } from "./_components/contact-form";
 import { SignInForm } from "./_components/sign-in-form";
-import { SignUpForm } from "./_components/sign-up-form";
+import { SignUpForm } from "../../../(public)/sign-up/sign-up-form";
 
 export const metadata: Metadata = {
   title: "Form Layout",
@@ -22,7 +22,6 @@ export default function Page() {
         <div className="flex flex-col gap-9">
           <SignInForm />
 
-          <SignUpForm />
         </div>
       </div>
     </>

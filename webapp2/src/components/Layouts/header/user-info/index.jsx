@@ -11,6 +11,23 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { LogOutIcon, SettingsIcon, UserIcon } from "./icons";
+import { toast } from "react-toastify";
+
+async function logout() {
+  try {
+    await fetch("/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    });
+
+    localStorage.removeItem("rm_user");
+    window.location.assign("/login");
+  } catch (err) {
+    toast.error(
+      "Error logging out user" + (err?.message && `: ${err.message}`),
+    );
+  }
+}
 
 export function UserInfo() {
   const [isOpen, setIsOpen] = useState(false);
@@ -106,7 +123,9 @@ export function UserInfo() {
         <div className="p-2 text-base text-[#4B5563] dark:text-dark-6">
           <button
             className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-[9px] hover:bg-gray-2 hover:text-dark dark:hover:bg-dark-3 dark:hover:text-white"
-            onClick={() => setIsOpen(false)}
+            onClick={() => {
+              logout();
+            }}
           >
             <LogOutIcon />
 

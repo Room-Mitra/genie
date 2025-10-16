@@ -1,0 +1,94 @@
+{
+  "AttributeDefinitions": [
+    {
+      "AttributeName": "deviceId",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "ts",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "hotelId",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "eventName",
+      "AttributeType": "S"
+    }
+  ],
+  "CreationDateTime": "2025-10-14T07:52:56.481Z",
+  "DeletionProtectionEnabled": false,
+  "GlobalSecondaryIndexes": [
+    {
+      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/EVENT/index/gsi_hotelId_ts",
+      "IndexName": "gsi_hotelId_ts",
+      "IndexSizeBytes": 0,
+      "IndexStatus": "ACTIVE",
+      "ItemCount": 0,
+      "KeySchema": [
+        {
+          "AttributeName": "hotelId",
+          "KeyType": "HASH"
+        },
+        {
+          "AttributeName": "ts",
+          "KeyType": "RANGE"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "ALL"
+      },
+      "ProvisionedThroughput": {
+        "ReadCapacityUnits": 3,
+        "WriteCapacityUnits": 3
+      }
+    },
+    {
+      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/EVENT/index/gsi_eventName_ts",
+      "IndexName": "gsi_eventName_ts",
+      "IndexSizeBytes": 0,
+      "IndexStatus": "ACTIVE",
+      "ItemCount": 0,
+      "KeySchema": [
+        {
+          "AttributeName": "eventName",
+          "KeyType": "HASH"
+        },
+        {
+          "AttributeName": "ts",
+          "KeyType": "RANGE"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "ALL"
+      },
+      "ProvisionedThroughput": {
+        "ReadCapacityUnits": 3,
+        "WriteCapacityUnits": 3
+      }
+    }
+  ],
+  "ItemCount": 0,
+  "KeySchema": [
+    {
+      "AttributeName": "deviceId",
+      "KeyType": "HASH"
+    },
+    {
+      "AttributeName": "ts",
+      "KeyType": "RANGE"
+    }
+  ],
+  "ProvisionedThroughput": {
+    "LastDecreaseDateTime": "1970-01-01T00:00:00.000Z",
+    "LastIncreaseDateTime": "1970-01-01T00:00:00.000Z",
+    "NumberOfDecreasesToday": 0,
+    "ReadCapacityUnits": 3,
+    "WriteCapacityUnits": 3
+  },
+  "TableArn": "arn:aws:dynamodb:ddblocal:000000000000:table/EVENT",
+  "TableName": "EVENT",
+  "TableSizeBytes": 0,
+  "TableStatus": "ACTIVE"
+}

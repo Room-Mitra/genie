@@ -30,6 +30,7 @@ import mappingRoutes from './routes/StaffRoomDepartmentRequestMapping/StaffRoomD
 import faqRoutes from './routes/FAQ/FAQ.controller.js';
 import intentsRoutes from './routes/Intents/Intent.controller.js';
 import loginRoutes from './routes/Login/Login.controller.js';
+import userRoutes from './routes/User/User.controller.js';
 import landingPageRoutes from './routes/LandingPage/leads.js';
 
 //Android Routes
@@ -82,6 +83,7 @@ app.use('/android/request', authenticator, androidRequestRoutes);
 app.use('/android/track-events', authenticator, androidEventsTrackerRoutes);
 
 // routes which dont need auth
+app.use('/user', userRoutes);
 app.use('/login', loginRoutes);
 app.use('/android/login', androidLoginRoutes);
 app.use('/leads', landingPageRoutes);
