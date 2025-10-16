@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@headlessui/react";
 import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
-import { Table, TableCell, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
 export default function ConversationModal({ history }) {
   const [open, setOpen] = useState(false);
@@ -57,19 +57,21 @@ export default function ConversationModal({ history }) {
                         </DialogTitle>
                         <div className="mt-2">
                           <Table>
-                            {history?.length > 0 &&
-                              history.map((log, i) => (
-                                <TableRow key={i}>
-                                  <TableCell className="text-lg font-medium capitalize">
-                                    {log.role}
-                                  </TableCell>
-                                  <TableCell className="text-lg font-medium">
-                                    {log.role === "assistant"
-                                      ? parseMessage(log.content)
-                                      : log.content}
-                                  </TableCell>
-                                </TableRow>
-                              ))}
+                            <TableBody>
+                              {history?.length > 0 &&
+                                history.map((log, i) => (
+                                  <TableRow key={i}>
+                                    <TableCell className="text-lg font-medium capitalize">
+                                      {log.role}
+                                    </TableCell>
+                                    <TableCell className="text-lg font-medium">
+                                      {log.role === "assistant"
+                                        ? parseMessage(log.content)
+                                        : log.content}
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                            </TableBody>
                           </Table>
                         </div>
                       </div>
