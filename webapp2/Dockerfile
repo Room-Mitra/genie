@@ -44,4 +44,4 @@ RUN mkdir -p /app/.next/cache/images && chown -R nextjs:nodejs /app
 USER nextjs
 EXPOSE 3001
 ENV PORT=3001
-CMD ["npx", "next", "start", "-p", "3000"]
+CMD ["npx", "next", "start", "-p", "3001"]
