@@ -55,8 +55,6 @@ export default function SigninWithPassword() {
 
     try {
       const { token, user } = await loginUser({ email, password });
-      localStorage.setItem("rm_user", user);
-
       await fetch("/auth/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -68,7 +66,7 @@ export default function SigninWithPassword() {
 
       setTimeout(() => {
         redirect("/");
-      }, 500);
+      }, 1500);
     } catch (err) {
       toast.error(
         "Error logging in user" + (err?.message && `: ${err.message}`),
