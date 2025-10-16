@@ -9,6 +9,16 @@ systemctl enable --now amazon-ssm-agent
 systemctl enable nginx
 
 # Enable and start the Docker service
+cat >/etc/docker/daemon.json <<'DOCKER'
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  }
+}
+DOCKER
+
 sudo systemctl enable docker
 sudo systemctl start docker
 

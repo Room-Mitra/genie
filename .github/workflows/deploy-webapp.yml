@@ -120,7 +120,9 @@ jobs:
               "sudo -u appuser -H bash -lc \"docker pull ${IMAGE_URI}\"",
               "sudo -u appuser -H bash -lc \"docker stop webapp || true\"",
               "sudo -u appuser -H bash -lc \"docker rm webapp || true\"",
-              "sudo -u appuser -H bash -lc \"docker run -d --name webapp --env-file /opt/roommitra/webapp/.env --restart unless-stopped -p 3001:3001 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=webapp ${IMAGE_URI}\""
+              "sudo -u appuser -H bash -lc \"docker run -d --name webapp --env-file /opt/roommitra/webapp/.env --restart unless-stopped -p 3001:3001 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=webapp ${IMAGE_URI}\"",
+              "sudo -u appuser -H bash -lc \"docker system prune -af --volumes\"",
+              "sudo -u appuser -H bash -lc \"docker builder prune -af\""
             ],
             "executionTimeout": ["3600"]
           }
