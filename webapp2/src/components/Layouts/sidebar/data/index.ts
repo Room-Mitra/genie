@@ -1,3 +1,4 @@
+import { HandRaisedIcon } from "@heroicons/react/24/outline";
 import * as Icons from "../icons";
 
 export const NAV_DATA = [
@@ -18,6 +19,12 @@ export const NAV_DATA = [
             url: "/requests/completed",
           },
         ],
+      },
+      {
+        title: "Intents",
+        icon: HandRaisedIcon,
+        url: "/intents",
+        items: [],
       },
       {
         title: "Dashboard",

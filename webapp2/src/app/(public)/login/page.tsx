@@ -3,16 +3,15 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
-import { getJwtFromCookie } from "@/lib/auth";
+import { getUserFromCookie } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Login",
 };
 
 export default async function Page() {
-  const token = await getJwtFromCookie();
-  if (token) {
+  const user = await getUserFromCookie();
+  if (user) {
     redirect("/");
   }
 

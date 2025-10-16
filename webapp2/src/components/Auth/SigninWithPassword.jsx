@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import InputGroup from "../FormElements/InputGroup";
 import { toast } from "react-toastify";
 import { redirect } from "next/navigation";
+import { useUser } from "@/context/UserContext";
 
 async function loginUser({ email, password }) {
   const res = await fetch(`/api/login`, {
@@ -33,6 +34,8 @@ export default function SigninWithPassword() {
 
   const [loading, setLoading] = useState(false);
 
+  const { _user, _isUserLoading, refreshUser } = useUser();
+
   const handleChange = (e) => {
     setData({
       ...data,
@@ -60,6 +63,8 @@ export default function SigninWithPassword() {
         body: JSON.stringify({ token }),
         credentials: "include", // ensures cookie is stored
       });
+
+      refreshUser();
 
       setTimeout(() => {
         redirect("/");

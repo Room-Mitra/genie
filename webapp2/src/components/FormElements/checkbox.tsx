@@ -10,6 +10,7 @@ type PropsType = {
   minimal?: boolean;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   radius?: "default" | "md";
+  defaultChecked?: false;
 };
 
 export function Checkbox({
@@ -20,6 +21,7 @@ export function Checkbox({
   minimal,
   onChange,
   radius,
+  defaultChecked,
 }: PropsType) {
   const id = useId();
 
@@ -39,6 +41,7 @@ export function Checkbox({
             name={name}
             id={id}
             className="peer sr-only"
+            defaultChecked={defaultChecked}
           />
 
           <div

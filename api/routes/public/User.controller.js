@@ -23,7 +23,6 @@ router.post('/sign-up', async (req, res) => {
       },
     });
   } catch (err) {
-    console.log(err.CancellationReasons[0].Code);
     if (
       err.code === 'TransactionCanceledException' &&
       err?.CancellationReasons?.[0].Code === 'ConditionalCheckFailed'
@@ -35,5 +34,4 @@ router.post('/sign-up', async (req, res) => {
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
-
 export default router;
