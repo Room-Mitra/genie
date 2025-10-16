@@ -4,8 +4,8 @@ import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import InputGroup from "../FormElements/InputGroup";
 import { toast } from "react-toastify";
-import { redirect } from "next/navigation";
 import { useUser } from "@/context/UserContext";
+import { useRouter } from "next/navigation";
 
 async function loginUser({ email, password }) {
   const res = await fetch(`/api/login`, {
@@ -26,6 +26,8 @@ async function loginUser({ email, password }) {
 }
 
 export default function SigninWithPassword() {
+  const router = useRouter();
+
   const [data, setData] = useState({
     email: process.env.NEXT_PUBLIC_DEMO_USER_MAIL || "",
     password: process.env.NEXT_PUBLIC_DEMO_USER_PASS || "",
@@ -65,8 +67,8 @@ export default function SigninWithPassword() {
       refreshUser();
 
       setTimeout(() => {
-        redirect("/");
-      }, 1500);
+        router.push("/");
+      }, 750);
     } catch (err) {
       toast.error(
         "Error logging in user" + (err?.message && `: ${err.message}`),

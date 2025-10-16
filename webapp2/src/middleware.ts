@@ -40,7 +40,10 @@ export default function middleware(req: NextRequest) {
   if (!token) {
     const url = req.nextUrl.clone();
     url.pathname = "/login";
-    url.search = `?returnTo=${encodeURIComponent(pathname + search)}`;
+    url.search =
+      pathname !== "/"
+        ? `?returnTo=${encodeURIComponent(pathname + search)}`
+        : "";
     return NextResponse.redirect(url);
   }
 
