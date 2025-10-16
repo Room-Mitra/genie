@@ -52,6 +52,7 @@ export default function SigninWithPassword() {
     const { email, password } = data;
     if (!email || !password) {
       toast.error("Email and password required");
+      setLoading(false);
       return;
     }
 
@@ -64,7 +65,8 @@ export default function SigninWithPassword() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token }),
-        credentials: "include", // ensures cookie is stored
+        credentials: "include",
+        cache: "no-store",
       });
 
       if (!s.ok) {
@@ -72,11 +74,13 @@ export default function SigninWithPassword() {
         console.error(err.error || "Failed to set session");
       }
 
-      // Refresh User Context
-      await refreshUser();
-
       // Route to home dashboard
       router.replace("/");
+
+      // Refresh user context in the background
+      refreshUser().catch((e) => {
+        console.error("error refreshing user context", e);
+      });
     } catch (err) {
       toast.error(
         "Error logging in user" + (err?.message && `: ${err.message}`),
