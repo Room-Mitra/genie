@@ -19,17 +19,29 @@ export async function generateMetadata({ params }) {
   return {
     title: post.title,
     description: post.description || `${post.title} by ${post.author}`,
+    keywords:
+      'hotel automation, in-room assistant, hospitality tech, voice assistant, Room Mitra, hotel guest experience',
+    authors: [{ name: post.author }],
+    robots: 'index, follow',
     openGraph: {
       title: post.title,
       description: post.description || undefined,
-      images: post.hero ? [{ url: post.hero }] : undefined,
+      url: absoluteUrl('/blog/' + slug),
+      siteName: 'Room Mitra',
+      images: post.hero ? [{ url: absoluteUrl(post.hero) }] : undefined,
       type: 'article',
+      locale: 'en_IN',
     },
     twitter: {
       card: 'summary_large_image',
+      site: '@RoomMitra',
+      creator: '@RoomMitra',
       title: post.title,
       description: post.description || undefined,
-      images: post.hero ? [post.hero] : undefined,
+      images: post.hero ? [absoluteUrl(post.hero)] : undefined,
+    },
+    icons: {
+      icon: '/favicon.ico',
     },
   };
 }
