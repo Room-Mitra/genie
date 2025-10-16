@@ -10,25 +10,19 @@ export async function signUp({ name, email, password }) {
 
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
-  const now = new Date().toISOString();
-
-  const userItem = {
-    pk: `USER#${userId}`,
-    sk: 'PROFILE',
+  const user = {
     entityType: 'USER',
     userId,
     name: String(name).trim(),
     email: normalizedEmail,
     passwordHash,
-    createdAt: now,
-    updatedAt: now,
   };
 
   // This will also create a unique email registry item to prevent duplicates
-  await UserRepo.transactCreateUserWithEmailGuard({ userItem });
+  await UserRepo.transactCreateUserWithEmailGuard({ user });
 
   // Never return the hash
 
-  const { passwordHash: _, ...safeUser } = userItem;
+  const { passwordHash: _, ...safeUser } = user;
   return safeUser;
 }

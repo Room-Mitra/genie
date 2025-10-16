@@ -1,13 +1,20 @@
+import { buildEntityItem } from '#common/entity.helper.js';
 import DDB from '#config/DynamoDb.config.js';
-import AWS from 'aws-sdk';
 import { GUEST_TABLE_NAME as USER_LOGIN_TABLE_NAME } from '#Constants/DB.constants.js';
 import { ENTITY_TABLE_NAME } from '#Constants/DB.constants.js';
 
-export async function transactCreateUserWithEmailGuard({ userItem }) {
-  const emailKey = `USER#${userItem.email}`;
-
+export async function transactCreateUserWithEmailGuard({ user }) {
+  const userItem = buildEntityItem(user);
+  const emailKey = `USER#${user.email}`;
   const params = {
     TransactItems: [
+      {
+        Put: {
+          TableName: ENTITY_TABLE_NAME,
+          Item: userItem,
+          ConditionExpression: 'attribute_not_exists(pk)',
+        },
+      },
       {
         Put: {
           TableName: ENTITY_TABLE_NAME,
@@ -18,13 +25,6 @@ export async function transactCreateUserWithEmailGuard({ userItem }) {
             userId: userItem.userId,
             createdAt: userItem.createdAt,
           },
-          ConditionExpression: 'attribute_not_exists(pk)',
-        },
-      },
-      {
-        Put: {
-          TableName: ENTITY_TABLE_NAME,
-          Item: userItem,
           ConditionExpression: 'attribute_not_exists(pk)',
         },
       },
@@ -103,14 +103,20 @@ export async function getEmailRegistryByEmail(email) {
 }
 
 export async function getUserProfileById(userId) {
+  const pk = `USER#${userId}`;
   const params = {
     TableName: ENTITY_TABLE_NAME,
-    Key: {
-      pk: `USER#${userId}`,
-      sk: 'PROFILE',
+    KeyConditionExpression: 'pk = :pk',
+    ExpressionAttributeValues: {
+      ':pk': pk,
     },
+    Limit: 1,
   };
 
-  const { Item } = await DDB.get(params).promise();
-  return Item || null;
+  const { Items } = await DDB.query(params).promise();
+  if (!Items || Items.length === 0) return null;
+
+  // expected shape:
+  // { pk: 'USER#01L38..', name: 'Adi', passwordHash: '38adjh1' ... }
+  return Items[0];
 }

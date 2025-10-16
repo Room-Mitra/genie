@@ -8,7 +8,8 @@
       "#repositories/*": ["./repositories/*"],
       "#config/*": ["./config/*"],
       "#Constants/*": ["./Constants/*"],
-      "#libs/*": ["libs/*"]
+      "#libs/*": ["libs/*"],
+      "#common/*": ["common/*"]
     }
   }
 }
