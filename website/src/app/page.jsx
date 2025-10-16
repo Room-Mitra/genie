@@ -15,7 +15,7 @@ export default function Home() {
             Elevate guest experience and streamline operations with Room Mitra
           </p>
           <Link
-            href="#contact"
+            href="/#request-a-demo"
             className="cta-btn mt-6 mb-6 inline-block px-6 py-3 bg-indigo-600 text-white rounded-lg"
           >
             Request a Demo
