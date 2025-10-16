@@ -16,9 +16,12 @@ export async function generateMetadata({ params }) {
   const post = await getPostBySlug(slug).catch(() => null);
   if (!post) return { title: 'Post not found' };
 
+  const img = post.hero ? `/${post.hero.replace(/^\//, '')}` : '/room-mitra-logo.png';
+
   return {
     title: post.title,
     description: post.description || `${post.title} by ${post.author}`,
+    alternates: { canonical: `/blog/${post.slug}` },
     keywords:
       'hotel automation, in-room assistant, hospitality tech, voice assistant, Room Mitra, hotel guest experience',
     authors: [{ name: post.author }],
@@ -26,9 +29,9 @@ export async function generateMetadata({ params }) {
     openGraph: {
       title: post.title,
       description: post.description || undefined,
-      url: absoluteUrl('/blog/' + slug),
+      url: `/blog/${post.slug}`,
       siteName: 'Room Mitra',
-      images: post.hero ? [{ url: absoluteUrl(post.hero) }] : undefined,
+      images: [img],
       type: 'article',
       locale: 'en_IN',
     },
@@ -38,7 +41,7 @@ export async function generateMetadata({ params }) {
       creator: '@RoomMitra',
       title: post.title,
       description: post.description || undefined,
-      images: post.hero ? [absoluteUrl(post.hero)] : undefined,
+      images: [img],
     },
     icons: {
       icon: '/favicon.ico',
@@ -62,7 +65,7 @@ export default async function BlogPostPage({ params }) {
     '@type': 'BlogPosting',
     headline: post.title,
     description: post.description,
-    image: post.hero ? absoluteUrl(post.hero) : undefined,
+    image: post.hero ? absoluteUrl(post.hero) : absoluteUrl('/room-mitra-logo.png'),
     datePublished: new Date(post.date).toISOString(),
     dateModified: new Date(post.date).toISOString(),
     author: {
@@ -74,7 +77,7 @@ export default async function BlogPostPage({ params }) {
       name: 'Room Mitra',
       logo: {
         '@type': 'ImageObject',
-        url: absoluteUrl('/room-mitra-logo.png'), // put a real logo path
+        url: absoluteUrl('/room-mitra-logo.png'),
       },
     },
     mainEntityOfPage: {
