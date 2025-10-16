@@ -4,7 +4,6 @@ import Link from "next/link";
 import React, { useState } from "react";
 import InputGroup from "../FormElements/InputGroup";
 import { toast } from "react-toastify";
-import { useRouter } from "next/navigation";
 
 async function loginUser({ email, password }) {
   const res = await fetch(`/api/login`, {
@@ -25,8 +24,6 @@ async function loginUser({ email, password }) {
 }
 
 export default function SigninWithPassword() {
-  const router = useRouter();
-
   const [data, setData] = useState({
     email: process.env.NEXT_PUBLIC_DEMO_USER_MAIL || "",
     password: process.env.NEXT_PUBLIC_DEMO_USER_PASS || "",

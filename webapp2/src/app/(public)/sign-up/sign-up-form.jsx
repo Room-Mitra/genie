@@ -4,7 +4,7 @@ import InputGroup from "@/components/FormElements/InputGroup";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "react-toastify";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 async function signUpUser({ name, email, password }) {
   const res = await fetch(`/api/user/sign-up`, {
@@ -24,6 +24,8 @@ async function signUpUser({ name, email, password }) {
 }
 
 export function SignUpForm() {
+  const router = useRouter();
+
   const [data, setData] = useState({
     name: "",
     email: "",
@@ -52,9 +54,7 @@ export function SignUpForm() {
     try {
       await signUpUser({ name, email, password });
       toast("User signed up successfully!");
-      setTimeout(() => {
-        redirect("/login");
-      }, 2000);
+      router.replace("/login");
     } catch (err) {
       toast.error(
         "Error signing up user" + (err?.message && `: ${err.message}`),
@@ -114,12 +114,17 @@ export function SignUpForm() {
             showPasswordToggle={true}
           />
 
-          <button className="mt-10 flex w-full justify-center rounded-lg bg-primary p-[13px] font-medium text-white hover:bg-opacity-90">
-            Sign Up
-            {loading && (
-              <span className="inline-block size-3 h-4 w-4 animate-spin rounded-full border-2 border-solid border-white border-t-transparent" />
-            )}
-          </button>
+          <div className="mb-4.5">
+            <button
+              type="submit"
+              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary p-4 font-medium text-white transition hover:bg-opacity-90"
+            >
+              Sign Up
+              {loading && (
+                <span className="inline-block size-3 h-4 w-4 animate-spin rounded-full border-2 border-solid border-white border-t-transparent" />
+              )}
+            </button>
+          </div>
         </form>
 
         <div className="mt-6 text-center">
