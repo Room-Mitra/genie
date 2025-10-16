@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "#services/*": ["./services/*"],
+      "#routes/*": ["./routes/*"],
+      "#middleware/*": ["./middleware/*"],
+      "#repositories/*": ["./repositories/*"],
+      "#config/*": ["./config/*"],
+      "#Constants/*": ["./Constants/*"],
+      "#libs/*": ["libs/*"]
+    }
+  }
+}
