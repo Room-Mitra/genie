@@ -1,10 +1,9 @@
 "use client";
 import { EmailIcon, PasswordIcon } from "@/assets/icons";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import InputGroup from "../FormElements/InputGroup";
 import { toast } from "react-toastify";
-import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
 
 async function loginUser({ email, password }) {
@@ -36,8 +35,6 @@ export default function SigninWithPassword() {
 
   const [loading, setLoading] = useState(false);
 
-  const { _user, _isUserLoading, refreshUser } = useUser();
-
   const handleChange = (e) => {
     setData({
       ...data,
@@ -57,33 +54,29 @@ export default function SigninWithPassword() {
     }
 
     try {
-      // Login User
+      // 1) Login and get JWT token
       const { token } = await loginUser({ email, password });
 
-      // Set Session
+      // 2) Set session cookie with the token
       const s = await fetch("/auth/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token }),
         credentials: "include",
         cache: "no-store",
+        redirect: "manual", // ensure we don't silently follow any redirects
       });
 
       if (!s.ok) {
         const err = await s.json().catch(() => ({}));
-        console.error(err.error || "Failed to set session");
+        throw new Error(err.error || "Failed to set session");
       }
 
-      // Route to home dashboard
-      router.replace("/");
-
-      // Refresh user context in the background
-      refreshUser().catch((e) => {
-        console.error("error refreshing user context", e);
-      });
+      // 3) Hard navigation so middleware/SSR sees the cookie instantly
+      window.location.assign("/");
     } catch (err) {
       toast.error(
-        "Error logging in user" + (err?.message && `: ${err.message}`),
+        "Error logging in user" + (err?.message ? `: ${err.message}` : ""),
       );
       setLoading(false);
     }
