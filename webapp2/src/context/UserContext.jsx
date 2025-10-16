@@ -12,8 +12,7 @@ export function UserProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const skipFetch = isPublicPath(pathname);
 
-  const fetchUser = async () => {
-    if (skipFetch) return;
+  const refreshUser = async () => {
     try {
       const res = await fetch("/auth/me", {
         method: "GET",
@@ -35,13 +34,10 @@ export function UserProvider({ children }) {
     }
   };
 
-  const refreshUser = () => {
-    fetchUser();
-  };
-
   // Fetch user info from /auth/me
   useEffect(() => {
-    fetchUser();
+    if (skipFetch) return;
+    refreshUser();
   }, []);
 
   return (

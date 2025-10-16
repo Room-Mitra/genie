@@ -56,19 +56,27 @@ export default function SigninWithPassword() {
     }
 
     try {
-      const { token, user } = await loginUser({ email, password });
-      fetch("/auth/session", {
+      // Login User
+      const { token } = await loginUser({ email, password });
+
+      // Set Session
+      const s = await fetch("/auth/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token }),
         credentials: "include", // ensures cookie is stored
-      }).then((res) => {
-        refreshUser();
-
-        setTimeout(() => {
-          router.push("/");
-        }, 500);
       });
+
+      if (!s.ok) {
+        const err = await s.json().catch(() => ({}));
+        console.error(err.error || "Failed to set session");
+      }
+
+      // Refresh User Context
+      await refreshUser();
+
+      // Route to home dashboard
+      router.replace("/");
     } catch (err) {
       toast.error(
         "Error logging in user" + (err?.message && `: ${err.message}`),
