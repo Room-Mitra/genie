@@ -22,9 +22,6 @@ export async function DELETE(req, { params }) {
 
 async function proxy(req, params) {
   const token = await getTokenFromCookie();
-  if (!token) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
 
   const url = new URL(req.url);
   const { path } = await params;
@@ -36,7 +33,7 @@ async function proxy(req, params) {
       // forward JSON headers plus Authorization
       "Content-Type": req.headers.get("content-type") ?? "application/json",
       "User-Agent": req.headers.get("user-agent") ?? "NextBFF",
-      Authorization: `Bearer ${token}`,
+      Authorization: token ? `Bearer ${token}` : undefined,
     },
     body: ["GET", "HEAD"].includes(req.method) ? undefined : await req.text(),
   };

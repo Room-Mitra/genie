@@ -6,11 +6,8 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import { redirect } from "next/navigation";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-// example: https://api.roommitra.com
-
 async function signUpUser({ name, email, password }) {
-  const res = await fetch(`${API_BASE_URL}/user/sign-up`, {
+  const res = await fetch(`/user/sign-up`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
