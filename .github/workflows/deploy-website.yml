@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - chai/test-website-metadata
+      - chai/test-wesite-metadata
     paths:
       - 'website/**'
       - '.github/workflows/deploy-website.yml'
