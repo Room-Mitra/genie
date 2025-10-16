@@ -1,14 +1,19 @@
 "use client";
 
+import { isPublicPath } from "@/lib/path";
+import { usePathname } from "next/navigation";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 const UserContext = createContext(null);
 
 export function UserProvider({ children }) {
+  const pathname = usePathname();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const skipFetch = isPublicPath(pathname);
 
   const fetchUser = async () => {
+    if (skipFetch) return;
     try {
       const res = await fetch("/auth/me", {
         method: "GET",

@@ -1,33 +1,7 @@
 // middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-
-const PUBLIC_PATHS = [
-  "/login",
-  "/sign-up",
-  "/forgot-password",
-  "/auth/session",
-  "/auth/logout",
-  "/auth/me",
-];
-
-function isPublicPath(pathname: string) {
-  // let all /auth/* through
-  if (PUBLIC_PATHS.includes(pathname) || pathname.startsWith("/api"))
-    return true;
-
-  // static and public assets
-  if (
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/images") ||
-    pathname.startsWith("/assets") ||
-    pathname === "/favicon.ico"
-  )
-    return true;
-
-  // add more public pages here if you have any
-  return false;
-}
+import { isPublicPath } from "./lib/path";
 
 export default function middleware(req: NextRequest) {
   const { pathname, search } = req.nextUrl;

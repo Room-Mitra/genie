@@ -57,18 +57,18 @@ export default function SigninWithPassword() {
 
     try {
       const { token, user } = await loginUser({ email, password });
-      await fetch("/auth/session", {
+      fetch("/auth/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token }),
         credentials: "include", // ensures cookie is stored
+      }).then((res) => {
+        refreshUser();
+
+        setTimeout(() => {
+          router.push("/");
+        }, 500);
       });
-
-      refreshUser();
-
-      setTimeout(() => {
-        router.push("/");
-      }, 750);
     } catch (err) {
       toast.error(
         "Error logging in user" + (err?.message && `: ${err.message}`),
