@@ -25,6 +25,9 @@ export function Sidebar() {
   };
 
   useEffect(() => {
+
+
+
     // Keep collapsible open, when it's subpage is active
     NAV_DATA.some((section) => {
       return section.items.some((item) => {

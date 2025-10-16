@@ -104,7 +104,7 @@ export default function SigninWithPassword() {
           name="password"
           handleChange={handleChange}
           value={data.password}
-          icon={<PasswordIcon />}
+          showPasswordToggle={true}
         />
 
         <div className="mb-6 grid justify-items-end py-2 font-medium">

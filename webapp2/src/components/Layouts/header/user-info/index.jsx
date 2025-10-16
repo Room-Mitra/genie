@@ -9,7 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { LogOutIcon, SettingsIcon, UserIcon } from "./icons";
 import { toast } from "react-toastify";
 import { useUser } from "@/context/UserContext";
@@ -31,14 +31,7 @@ async function logout() {
 
 export function UserInfo() {
   const [isOpen, setIsOpen] = useState(false);
-
-  const { user, isUserLoading } = useUser();
-
-  const USER = {
-    name: "John Smith",
-    email: "johnson@nextadmin.com",
-    img: "/images/user/user-03.png",
-  };
+  const { user } = useUser();
 
   return (
     <Dropdown isOpen={isOpen} setIsOpen={setIsOpen}>
@@ -57,7 +50,7 @@ export function UserInfo() {
             />
           ) : (
             <div className="rounded-full border-2 border-solid border-gray-500 p-1">
-              <UserIcon width={35} height={35} />
+              <UserIcon width={30} height={30} />
             </div>
           )}
           <figcaption className="flex items-center gap-1 font-medium text-dark dark:text-dark-6 max-[1024px]:sr-only">
@@ -93,7 +86,7 @@ export function UserInfo() {
             />
           ) : (
             <div className="rounded-full border-2 border-solid border-gray-500 p-1">
-              <UserIcon width={35} height={35} />
+              <UserIcon width={30} height={30} />
             </div>
           )}
 

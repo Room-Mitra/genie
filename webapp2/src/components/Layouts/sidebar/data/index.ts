@@ -6,9 +6,18 @@ export const NAV_DATA = [
     label: "MAIN MENU",
     items: [
       {
+        title: "Dashboard",
+        icon: Icons.HomeIcon,
+        items: [
+          {
+            title: "Overview",
+            url: "/",
+          },
+        ],
+      },
+      {
         title: "Requests",
         icon: Icons.Bell,
-
         items: [
           {
             title: "Active",
@@ -24,22 +33,6 @@ export const NAV_DATA = [
         title: "Intents",
         icon: HandRaisedIcon,
         url: "/intents",
-        items: [],
-      },
-      {
-        title: "Dashboard",
-        icon: Icons.HomeIcon,
-        items: [
-          {
-            title: "Overview",
-            url: "/",
-          },
-        ],
-      },
-      {
-        title: "Calendar",
-        url: "/calendar",
-        icon: Icons.Calendar,
         items: [],
       },
       {

@@ -1,11 +1,12 @@
 import { cn } from "@/lib/utils";
-import { type HTMLInputTypeAttribute, useId } from "react";
+import { useId, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 type InputGroupProps = {
   className?: string;
   label: string;
   placeholder: string;
-  type: HTMLInputTypeAttribute;
+  type: React.HTMLInputTypeAttribute;
   fileStyleVariant?: "style1" | "style2";
   required?: boolean;
   disabled?: boolean;
@@ -17,6 +18,7 @@ type InputGroupProps = {
   iconPosition?: "left" | "right";
   height?: "sm" | "default";
   defaultValue?: string;
+  showPasswordToggle?: boolean;
 };
 
 const InputGroup: React.FC<InputGroupProps> = ({
@@ -29,9 +31,19 @@ const InputGroup: React.FC<InputGroupProps> = ({
   active,
   handleChange,
   icon,
+  showPasswordToggle,
   ...props
 }) => {
   const id = useId();
+  const [showPassword, setShowPassword] = useState(false);
+
+  const isPassword = type === "password";
+  const inputType =
+    isPassword && showPasswordToggle
+      ? showPassword
+        ? "text"
+        : "password"
+      : type;
 
   return (
     <div className={className}>
@@ -53,7 +65,7 @@ const InputGroup: React.FC<InputGroupProps> = ({
       >
         <input
           id={id}
-          type={type}
+          type={inputType}
           name={props.name}
           placeholder={placeholder}
           onChange={handleChange}
@@ -66,6 +78,7 @@ const InputGroup: React.FC<InputGroupProps> = ({
               : "px-5.5 py-3 text-dark placeholder:text-dark-6 dark:text-white",
             props.iconPosition === "left" && "pl-12.5",
             props.height === "sm" && "py-2.5",
+            isPassword && showPasswordToggle && "pr-12.5", // add right padding for icon
           )}
           required={required}
           disabled={disabled}
@@ -73,6 +86,17 @@ const InputGroup: React.FC<InputGroupProps> = ({
         />
 
         {icon}
+
+        {isPassword && showPasswordToggle && (
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            className="absolute right-1 top-1/2 -translate-y-1/2 text-dark-5 dark:text-dark-6"
+            tabIndex={-1}
+          >
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+        )}
       </div>
     </div>
   );

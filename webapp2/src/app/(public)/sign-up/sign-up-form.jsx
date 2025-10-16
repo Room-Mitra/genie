@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import { redirect } from "next/navigation";
 
 async function signUpUser({ name, email, password }) {
-  const res = await fetch(`/user/sign-up`, {
+  const res = await fetch(`/api/user/sign-up`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -50,11 +50,11 @@ export function SignUpForm() {
     }
 
     try {
-      const result = await signUpUser({ name, email, password });
+      await signUpUser({ name, email, password });
       toast("User signed up successfully!");
       setTimeout(() => {
         redirect("/login");
-      }, 4000);
+      }, 2000);
     } catch (err) {
       toast.error(
         "Error signing up user" + (err?.message && `: ${err.message}`),
@@ -100,6 +100,7 @@ export function SignUpForm() {
             handleChange={handleChange}
             name="password"
             required={true}
+            showPasswordToggle={true}
           />
 
           <InputGroup
@@ -110,6 +111,7 @@ export function SignUpForm() {
             handleChange={handleChange}
             name="repeatPassword"
             required={true}
+            showPasswordToggle={true}
           />
 
           <button className="mt-10 flex w-full justify-center rounded-lg bg-primary p-[13px] font-medium text-white hover:bg-opacity-90">

@@ -6,6 +6,8 @@ import { isPublicPath } from "./lib/path";
 export default function middleware(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
 
+  console.log(pathname, search);
+
   if (isPublicPath(pathname)) return NextResponse.next();
 
   // Example auth check: HttpOnly cookie
