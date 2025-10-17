@@ -1,0 +1,233 @@
+{
+  "HOTEL": [
+    {
+      "pk": "HOTEL#DATA",
+      "sk": "HOTEL#H1",
+
+      "name": "Chai's First Hotel",
+      "contactEmail": "chai@roommitra.com",
+      "contactPhone": "9611506563",
+      "address": {
+        "streetAddress1": "136, 16th Main Road",
+        "streetAddress2": "4th block east, jayanagar",
+        "city": "Bangalore",
+        "state": "KA",
+        "zip": "560011"
+      },
+
+      "hotelId": "H1"
+    }
+  ],
+
+  "ROOM": [
+    {
+      "pk": "HOTEL#H1",
+      "sk": "ROOM#R359",
+
+      "number": "123",
+      "type": "Deluxe",
+      "floor": 3,
+      "capacity": 2,
+      "hotelId": "H1",
+      "roomId": "R359",
+
+      "hotelType_pk": "HOTEL#H1",
+      "hotelType_sk": "ROOM#R359"
+    }
+  ],
+
+  "BOOKING": [
+    {
+      "pk": "HOTEL#H1",
+      "sk": "BOOKING#B112",
+
+      "entityType": "BOOKING",
+      "hotelId": "H1",
+      "userId": "U99",
+      "checkInTime": "10-10-2025 13:00:00",
+      "checkoutTime": "12-10-2025 11:00:00",
+
+      "hotelType_pk": "HOTEL#H1",
+      "hotelType_sk": "ROOM#R359",
+
+      "roomType_pk": "ROOM#R359",
+      "roomType_sk": "BOOKING#B112"
+    }
+  ],
+  "USER": [
+    {
+      "pk": "HOTEL#H1",
+      "sk": "USER#U77",
+
+      "entityType": "USER",
+      "hotelId": "H1",
+      "userId": "U77",
+      "emailLower": "staff@hotel.com",
+      "role": "Housekeeping",
+      "active": true,
+
+      "email_pk": "EMAIL#staff@hotel.com",
+      "email_sk": "USER#U77"
+    }
+  ],
+  "REQUEST": [
+    {
+      "pk": "HOTEL#H1",
+      "sk": "REQUEST#REQ1001",
+
+      "entityType": "REQUEST",
+      "hotelId": "H1",
+      "roomId": "R359",
+      "requestId": "REQ1001",
+      "status": "Open",
+      "priority": "P2",
+      "assignedToUserId": "U77",
+      "createdAtEpoch": 1730000000,
+
+      "hotelType_pk": "HOTEL#H1",
+      "hotelType_sk": "REQUEST#01JABCD...",
+
+      "roomType_pk": "ROOM#R359",
+      "roomType_sk": "REQUEST#01JABCD...",
+
+      "status_pk": "REQSTATUS#Open#HOTEL#H1",
+      "status_sk": "P2#01JABCD...",
+
+      "assignee_pk": "ASSIGNEE#U77",
+      "assignee_sk": "Open#HOTEL#H1#01JABCD..."
+    },
+
+    {
+      "pk": "HOTEL#H1",
+      "sk": "REQUEST#REQ9001",
+
+      "entityType": "REQUEST",
+      "hotelId": "H1",
+      "roomId": "R359",
+      "requestId": "REQ9001",
+      "status": "Open",
+      "summary": "Black coffee",
+
+      "conversationId": "C2002",
+
+      "hotelType_pk": "HOTEL#H1",
+      "hotelType_sk": "REQUEST#01JXYZ2...",
+
+      "roomType_pk": "ROOM#R359",
+      "roomType_sk": "REQUEST#01JXYZ2...",
+
+      "status_pk": "REQSTATUS#Open#HOTEL#H1",
+      "status_sk": "P2#01JXYZ2..."
+    }
+  ],
+  "CONVERSATION": [
+    {
+      "pk": "HOTEL#H1",
+      "sk": "CONV#C1001",
+
+      "entityType": "CONVERSATION",
+      "conversationId": "C1001",
+      "hotelId": "H1",
+      "roomId": "R247",
+      "channel": "tablet",
+      "status": "Resolved",
+      "createdAtEpoch": 1730000000,
+
+      "hotelType_pk": "HOTEL#H1",
+      "hotelType_sk": "CONV#01JABCD...",
+
+      "roomType_pk": "ROOM#R247",
+      "roomType_sk": "CONV#01JABCD...",
+
+      "convStatus_pk": "CONVSTATUS#Resolved#HOTEL#H1",
+      "convStatus_sk": "01JABCD..."
+    },
+
+    {
+      "pk": "HOTEL#H1",
+      "sk": "CONV#C2002",
+
+      "entityType": "CONVERSATION",
+      "conversationId": "C2002",
+      "hotelId": "H1",
+      "roomId": "R359",
+      "status": "Escalated",
+      "requestId": "REQ9001",
+
+      "hotelType_pk": "HOTEL#H1",
+      "hotelType_sk": "CONV#01JXYZ...",
+
+      "roomType_pk": "ROOM#R359",
+      "roomType_sk": "CONV#01JXYZ...",
+
+      "convStatus_pk": "CONVSTATUS#Escalated#HOTEL#H1",
+      "convStatus_sk": "01JXYZ..."
+    }
+  ],
+  "MESSAGE": [
+    {
+      "pk": "HOTEL#H1",
+      "sk": "MSG#C1001#01JABCE1...",
+
+      "entityType": "MESSAGE",
+      "conversationId": "C1001",
+      "hotelId": "H1",
+      "roomId": "R247",
+      "senderType": "guest",
+      "content": "How far is the airport?",
+      "createdAtEpoch": 1730000001,
+
+      "hotelType_pk": "HOTEL#H1",
+      "hotelType_sk": "MSG#01JABCE1...",
+
+      "roomType_pk": "ROOM#R247",
+      "roomType_sk": "MSG#01JABCE1...",
+
+      "conversation_pk": "CONV#C1001",
+      "conversation_sk": "MSG#01JABCE1..."
+    },
+    {
+      "pk": "HOTEL#H1",
+      "sk": "MSG#C1001#01JABCE2...",
+
+      "entityType": "MESSAGE",
+      "conversationId": "C1001",
+      "hotelId": "H1",
+      "roomId": "R247",
+      "senderType": "bot",
+      "content": "Kempegowda International Airport is ~44 km; about 60–90 minutes by car, depending on traffic.",
+      "createdAtEpoch": 1730000020,
+
+      "hotelType_pk": "HOTEL#H1",
+      "hotelType_sk": "MSG#01JABCE2...",
+
+      "roomType_pk": "ROOM#R247",
+      "roomType_sk": "MSG#01JABCE2...",
+
+      "conversation_pk": "CONV#C1001",
+      "conversation_sk": "MSG#01JABCE2..."
+    },
+
+    {
+      "pk": "HOTEL#H1",
+      "sk": "MSG#C2002#01JXYZ1...",
+
+      "entityType": "MESSAGE",
+      "conversationId": "C2002",
+      "hotelId": "H1",
+      "roomId": "R359",
+      "senderType": "guest",
+      "content": "Is there black coffee? Please get me one.",
+      "requestId": "REQ9001",
+
+      "hotelType_pk": "HOTEL#H1",
+      "hotelType_sk": "MSG#01JXYZ1...",
+
+      "roomType_pk": "ROOM#R359",
+      "roomType_sk": "MSG#01JXYZ1...",
+
+      "conversation_pk": "CONV#C2002",
+      "conversation_sk": "MSG#01JXYZ1..."
+    }
+  ]
+}
