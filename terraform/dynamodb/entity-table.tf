@@ -69,16 +69,6 @@ resource "aws_dynamodb_table" "entity" {
     type = "S"
   }
 
-  # GSI: DeviceBinding
-  attribute {
-    name = "device_pk"
-    type = "S"
-  }
-  attribute {
-    name = "device_sk"
-    type = "S"
-  }
-
   attribute {
     name = "conversation_pk"
     type = "S"
@@ -142,16 +132,7 @@ resource "aws_dynamodb_table" "entity" {
     projection_type = "KEYS_ONLY"
   }
 
-  # 6) Device→room/hotel binding
-  global_secondary_index {
-    name               = "GSI_DeviceBinding"
-    hash_key           = "device_pk"
-    range_key          = "device_sk"
-    projection_type    = "INCLUDE"
-    non_key_attributes = ["hotelId", "roomId", "deviceId", "lastSeenEpoch", "state"]
-  }
-
-  # 7) Messages by Conversation
+  # 6) Messages by Conversation
   global_secondary_index {
     name               = "GSI_ConversationMessages"
     hash_key           = "conversation_pk"
