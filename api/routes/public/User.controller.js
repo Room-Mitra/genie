@@ -25,7 +25,7 @@ router.post('/sign-up', async (req, res) => {
   } catch (err) {
     if (
       err.code === 'TransactionCanceledException' &&
-      err?.CancellationReasons?.[0].Code === 'ConditionalCheckFailed'
+      err?.CancellationReasons?.filter((r) => r.Code === 'ConditionalCheckFailed')?.length > 0
     ) {
       // Email already taken due to our transactional guard
       return res.status(409).json({ error: 'Email already registered' });
