@@ -9,34 +9,70 @@
       "AttributeType": "S"
     },
     {
-      "AttributeName": "hotelId",
+      "AttributeName": "hotelType_pk",
       "AttributeType": "S"
     },
     {
-      "AttributeName": "entityTypeTimestamp",
+      "AttributeName": "hotelType_sk",
       "AttributeType": "S"
     },
     {
-      "AttributeName": "roomId",
+      "AttributeName": "roomType_pk",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "roomType_sk",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "status_pk",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "status_sk",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "assignee_pk",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "assignee_sk",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "emai_pk",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "email_sk",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "conversation_pk",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "conversation_sk",
       "AttributeType": "S"
     }
   ],
-  "CreationDateTime": "2025-10-14T07:50:15.894Z",
+  "CreationDateTime": "2025-10-17T11:13:53.078Z",
   "DeletionProtectionEnabled": false,
   "GlobalSecondaryIndexes": [
     {
-      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/gsi_hotelId_entityTypeTs",
-      "IndexName": "gsi_hotelId_entityTypeTs",
+      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/GSI_HotelTypeTime",
+      "IndexName": "GSI_HotelTypeTime",
       "IndexSizeBytes": 0,
       "IndexStatus": "ACTIVE",
       "ItemCount": 0,
       "KeySchema": [
         {
-          "AttributeName": "hotelId",
+          "AttributeName": "hotelType_pk",
           "KeyType": "HASH"
         },
         {
-          "AttributeName": "entityTypeTimestamp",
+          "AttributeName": "hotelType_sk",
           "KeyType": "RANGE"
         }
       ],
@@ -49,18 +85,114 @@
       }
     },
     {
-      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/gsi_roomId_entityTypeTs",
-      "IndexName": "gsi_roomId_entityTypeTs",
+      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/GSI_ConversationMessages",
+      "IndexName": "GSI_ConversationMessages",
       "IndexSizeBytes": 0,
       "IndexStatus": "ACTIVE",
       "ItemCount": 0,
       "KeySchema": [
         {
-          "AttributeName": "roomId",
+          "AttributeName": "conversation_pk",
           "KeyType": "HASH"
         },
         {
-          "AttributeName": "entityTypeTimestamp",
+          "AttributeName": "conversation_sk",
+          "KeyType": "RANGE"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "ALL"
+      },
+      "ProvisionedThroughput": {
+        "ReadCapacityUnits": 3,
+        "WriteCapacityUnits": 3
+      }
+    },
+    {
+      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/GSI_AssigneeWorkload",
+      "IndexName": "GSI_AssigneeWorkload",
+      "IndexSizeBytes": 0,
+      "IndexStatus": "ACTIVE",
+      "ItemCount": 0,
+      "KeySchema": [
+        {
+          "AttributeName": "assignee_pk",
+          "KeyType": "HASH"
+        },
+        {
+          "AttributeName": "assignee_sk",
+          "KeyType": "RANGE"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "ALL"
+      },
+      "ProvisionedThroughput": {
+        "ReadCapacityUnits": 3,
+        "WriteCapacityUnits": 3
+      }
+    },
+    {
+      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/GSI_RoomTypeTime",
+      "IndexName": "GSI_RoomTypeTime",
+      "IndexSizeBytes": 0,
+      "IndexStatus": "ACTIVE",
+      "ItemCount": 0,
+      "KeySchema": [
+        {
+          "AttributeName": "roomType_pk",
+          "KeyType": "HASH"
+        },
+        {
+          "AttributeName": "roomType_sk",
+          "KeyType": "RANGE"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "ALL"
+      },
+      "ProvisionedThroughput": {
+        "ReadCapacityUnits": 3,
+        "WriteCapacityUnits": 3
+      }
+    },
+    {
+      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/GSI_RequestStatus",
+      "IndexName": "GSI_RequestStatus",
+      "IndexSizeBytes": 0,
+      "IndexStatus": "ACTIVE",
+      "ItemCount": 0,
+      "KeySchema": [
+        {
+          "AttributeName": "status_pk",
+          "KeyType": "HASH"
+        },
+        {
+          "AttributeName": "status_sk",
+          "KeyType": "RANGE"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "ALL"
+      },
+      "ProvisionedThroughput": {
+        "ReadCapacityUnits": 3,
+        "WriteCapacityUnits": 3
+      }
+    },
+    {
+      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/GSI_UserEmail",
+      "IndexName": "GSI_UserEmail",
+      "IndexSizeBytes": 0,
+      "IndexStatus": "ACTIVE",
+      "ItemCount": 0,
+      "KeySchema": [
+        {
+          "AttributeName": "emai_pk",
+          "KeyType": "HASH"
+        },
+        {
+          "AttributeName": "email_sk",
           "KeyType": "RANGE"
         }
       ],
@@ -93,6 +225,6 @@
   },
   "TableArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY",
   "TableName": "ENTITY",
-  "TableSizeBytes": 410,
+  "TableSizeBytes": 428,
   "TableStatus": "ACTIVE"
 }
