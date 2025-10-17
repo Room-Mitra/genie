@@ -91,7 +91,7 @@ export function buildEntityItem(pojo) {
 }
 
 /** Normalize to ISO string for lexicographic sort */
-function toIsoString(input) {
+export function toIsoString(input) {
   if (!input) return new Date().toISOString();
   if (typeof input === 'number') return new Date(input).toISOString();
   if (input instanceof Date) return input.toISOString();

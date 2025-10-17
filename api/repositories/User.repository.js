@@ -1,11 +1,22 @@
-import { buildEntityItem } from '#common/entity.helper.js';
+import { toIsoString } from '#common/entity.helper.js';
 import DDB from '#config/DynamoDb.config.js';
 import { GUEST_TABLE_NAME as USER_LOGIN_TABLE_NAME } from '#Constants/DB.constants.js';
 import { ENTITY_TABLE_NAME } from '#Constants/DB.constants.js';
 
 export async function transactCreateUserWithEmailGuard({ user }) {
-  user.entityType = 'USER';
-  const userItem = buildEntityItem(user);
+  const now = new Date();
+
+  const userItem = {
+    pk: `USER_DATA`,
+    sk: `USER#${user.userId}`,
+
+    userId: user.userId,
+    entityType: 'USER',
+    ...user,
+
+    createdAt: toIsoString(now),
+    updatedAt: toIsoString(now),
+  };
   const emailKey = `USER#${user.email}`;
   const params = {
     TransactItems: [
@@ -24,7 +35,8 @@ export async function transactCreateUserWithEmailGuard({ user }) {
             sk: `EMAIL_REGISTRY`,
             entityType: 'EMAIL_REGISTRY',
             userId: userItem.userId,
-            createdAt: userItem.createdAt,
+            createdAt: toIsoString(now),
+            updatedAt: toIsoString(now),
           },
           ConditionExpression: 'attribute_not_exists(pk)',
         },
@@ -44,14 +56,7 @@ export const getUser = async (userId) => {
     KeyConditionExpression: 'id=:id',
   };
   try {
-    console.info(`${userId} ->` + 'Accessing Login details from DB with params', params);
     const userData = await DDB.query(params).promise();
-    console.info(
-      `${userId} ->` + 'User Data From DB :: ',
-      userData,
-      ' :: for input params ::',
-      params
-    );
     if (userData && userData.Items && userData.Items.length) {
       return { ...userData.Items[0] };
     }
@@ -88,20 +93,14 @@ export async function getEmailRegistryByEmail(email) {
 }
 
 export async function getUserProfileById(userId) {
-  const pk = `USER#${userId}`;
   const params = {
     TableName: ENTITY_TABLE_NAME,
-    KeyConditionExpression: 'pk = :pk',
-    ExpressionAttributeValues: {
-      ':pk': pk,
+    Key: {
+      pk: 'USER_DATA',
+      sk: `USER#${userId}`,
     },
-    Limit: 1,
   };
 
-  const { Items } = await DDB.query(params).promise();
-  if (!Items || Items.length === 0) return null;
-
-  // expected shape:
-  // { pk: 'USER#01L38..', name: 'Adi', passwordHash: '38adjh1' ... }
-  return Items[0];
+  const { Item } = await DDB.get(params).promise();
+  return Item || null;
 }
