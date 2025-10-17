@@ -25,7 +25,7 @@ import deviceRoutes from '#routes/public/Device.controller.js';
 import guestRoutes from '#routes/public/Guest.controller.js';
 import utteranceRoutes from '#routes/public/Utterance.controller.js';
 import bookingRoutes from '#routes/public/Booking.controller.js';
-import staffRoutes from '#routes/public/Staff.controller.js';
+import staffRoutes from '#routes/admin/Staff.controller.js';
 import mappingRoutes from '#routes/public/StaffRoomDepartmentRequestMapping.controller.js';
 import faqRoutes from '#routes/public/FAQ.controller.js';
 import intentsRoutes from '#routes/public/Intent.controller.js';
@@ -83,7 +83,6 @@ app.use('/devices', authenticator, deviceRoutes);
 app.use('/intents', authenticator, intentsRoutes);
 app.use('/guests', authenticator, guestRoutes);
 app.use('/booking', authenticator, bookingRoutes);
-app.use('/staff', authenticator, staffRoutes);
 app.use('/mapping', authenticator, mappingRoutes);
 app.use('/faq', authenticator, faqRoutes);
 
@@ -102,6 +101,7 @@ app.use('/leads', landingPageRoutes);
 // Admin Routes
 // -------------------------
 app.use('/admin/hotels', adminAuthenticator, adminHotelRoutes);
+app.use('/admin/staff', adminAuthenticator, staffRoutes);
 
 app.listen(PORT, () => console.log(`Server running on port: http://localhost:${PORT}`));
 

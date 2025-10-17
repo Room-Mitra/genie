@@ -4,6 +4,7 @@ import { GUEST_TABLE_NAME as USER_LOGIN_TABLE_NAME } from '#Constants/DB.constan
 import { ENTITY_TABLE_NAME } from '#Constants/DB.constants.js';
 
 export async function transactCreateUserWithEmailGuard({ user }) {
+  user.entityType = 'USER';
   const userItem = buildEntityItem(user);
   const emailKey = `USER#${user.email}`;
   const params = {
@@ -61,22 +62,6 @@ export const getUser = async (userId) => {
       ' :: for input params ::',
       params
     );
-  }
-  return null;
-};
-
-export const addUser = async (userData) => {
-  console.info('Attempting to add user to Login DB :: ', userData);
-  const params = {
-    TableName: USER_LOGIN_TABLE_NAME,
-    Item: { ...userData },
-  };
-  try {
-    await DDB.put(params).promise();
-    console.info('USER ADDED :: ', params);
-    return params.Item;
-  } catch (e) {
-    console.error('Failed to add user. Error :: ', e, ' :: for input params ::', params);
   }
   return null;
 };

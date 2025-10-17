@@ -1,6 +1,7 @@
-import { ENTITY_TABLE_NAME } from '#Constants/DB.constants.js';
+import { ENTITY_TABLE_NAME, GSI_HOTELID_ENTITY_TYPE_TS_NAME } from '#Constants/DB.constants.js';
 import { buildEntityItem } from '#common/entity.helper.js';
 import DDB from '#config/DynamoDb.config.js';
+import { decodeToken, encodeToken } from './repository.helper.js';
 
 /**
  * Writes a Hotel entity.
@@ -11,13 +12,32 @@ export async function putHotel(hotel) {
   const hotelItem = buildEntityItem(hotel);
 
   const params = {
-    TableName: ENTITY_TABLE_NAME,
-    Item: hotelItem,
-    ConditionExpression: 'attribute_not_exists(pk) AND attribute_not_exists(entityTypeTs)',
+    TransactItems: [
+      {
+        Put: {
+          TableName: ENTITY_TABLE_NAME,
+          Item: hotelItem,
+          ConditionExpression: 'attribute_not_exists(pk) AND attribute_not_exists(entityTypeTs)',
+        },
+      },
+      {
+        Put: {
+          TableName: ENTITY_TABLE_NAME,
+          Item: {
+            pk: 'CATALOG#HOTEL',
+            sk: `${hotelItem.sk}#${hotelItem.hotelId}`,
+            entityType: 'HOTEL_INDEX',
+            hotelId: hotelItem.hotelId,
+            createdAt: hotelItem.createdAt,
+          },
+          ConditionExpression: 'attribute_not_exists(pk) and attribute_not_exists(sk)',
+        },
+      },
+    ],
   };
 
   try {
-    console.log(await DDB.put(params).promise());
+    await DDB.transactWrite(params).promise();
   } catch (err) {
     // Bubble up a clearer message on conditional failures
     if (err && err.code === 'ConditionalCheckFailedException') {
@@ -27,31 +47,23 @@ export async function putHotel(hotel) {
   }
 }
 
-/** Helpers for scan pagination tokens */
-function encodeToken(key) {
-  return key ? Buffer.from(JSON.stringify(key)).toString('base64') : undefined;
-}
-function decodeToken(token) {
-  return token ? JSON.parse(Buffer.from(token, 'base64').toString('utf8')) : undefined;
-}
-
 /** Scan all hotels with FilterExpression on entityType = HOTEL */
-export async function scanHotels({ limit = 25, nextToken }) {
+export async function queryAllHotels({ limit = 25, nextToken }) {
   const params = {
     TableName: ENTITY_TABLE_NAME,
+    KeyConditionExpression: '#pk = :p',
+    ExpressionAttributeNames: { '#pk': 'pk' },
+    ExpressionAttributeValues: { ':p': 'CATALOG#HOTEL' },
     Limit: Math.min(Number(limit) || 25, 100),
+    ScanIndexForward: false,
     ExclusiveStartKey: decodeToken(nextToken),
-    FilterExpression: '#et = :hotel',
-    ExpressionAttributeNames: { '#et': 'entityType' },
-    ExpressionAttributeValues: { ':hotel': 'HOTEL' },
   };
 
-  const data = await DDB.scan(params).promise();
+  const data = await DDB.query(params).promise();
   return {
     items: data.Items || [],
     nextToken: encodeToken(data.LastEvaluatedKey),
     count: data.Count || 0,
-    scannedCount: data.ScannedCount || 0,
   };
 }
 

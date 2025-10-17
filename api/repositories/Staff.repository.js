@@ -1,68 +1,66 @@
-import { GUEST_TABLE_NAME as STAFF_TABLE_NAME } from '#Constants/DB.constants.js';
+import { ENTITY_TABLE_NAME, GSI_HOTELID_ENTITY_TYPE_TS_NAME } from '#Constants/DB.constants.js';
+import { buildEntityItem } from '#common/entity.helper.js';
 import DDB from '#config/DynamoDb.config.js';
+import { decodeToken, encodeToken } from './repository.helper.js';
 
-const ID_TYPE = 'STAFF:';
+/**
+ * Staff membership row (idempotent):
+ *   pk = STAFF#USER#<userId>
+ *   sk = STAFF#<ts>
+ *   entityType = "STAFF"
+ *   entityTypeTimestamp = "STAFF#<ISO>"
+ *   hotelId (for your gsi_hotelId_entityTypeTs)
+ *   userId
+ *   role
+ */
 
-const addIdType = (staff) => {
-  staff.id = `${ID_TYPE}${staff.id}`;
-  return staff;
-};
-
-const removeIdType = (staff) => {
-  staff.id = staff.id.slice(ID_TYPE.length);
-  return staff;
-};
-
-export const addStaff = async (staff) => {
-  // const { staffData } = await getStaff(staff.id);
-  // if (staffData) {
-  //     throw new Error(" staff already exists")
-  // }
-  const params = {
-    TableName: STAFF_TABLE_NAME,
-    Item: { ...addIdType(staff) },
+export async function addStaff({ userId, role = 'STAFF', hotelId }) {
+  const staffId = `USER#${userId}`;
+  const staff = {
+    staffId,
+    entityType: 'STAFF',
+    userId,
+    hotelId,
+    role,
+    status: 'ACTIVE',
   };
-  await DDB.put(params).promise(); // TODO :: Handle Error
-  console.log('********STAFF ADDED*******', params);
-  return params.Item;
-};
 
-export const getStaff = async (staffId) => {
+  const staffItem = buildEntityItem(staff);
+
   const params = {
-    TableName: STAFF_TABLE_NAME,
-    ExpressionAttributeValues: {
-      ':id': `${ID_TYPE}${staffId}`,
+    TableName: ENTITY_TABLE_NAME,
+    Item: {
+      ...staffItem,
+      sk: 'STAFF',
     },
-    KeyConditionExpression: 'id=:id',
+    ConditionExpression: 'attribute_not_exists(pk) and attribute_not_exists(sk)',
   };
-  const staffData = await DDB.query(params).promise(); // TODO :: Handle Error
-  console.log('Staff Data From DB :: ', staffData, params);
-  if (staffData && staffData.Items && staffData.Items.length) {
-    return { ...removeIdType(staffData.Items[0]) };
-  }
-  return { staffData: null };
-};
 
-// const updateStaff = async (staffId, staffData) => {
-//     const staffDetails = await getStaff(staffId);
-//     staffData = { ...staffDetails, ...staffData };
-//     const params = {
-//         TableName: STAFF_TABLE_NAME,
-//         Item: { ...addIdType(staffData) },
+  await DDB.put(params).promise();
+  return params.Item;
+}
 
-//     };
+export async function queryStaffByHotelId(hotelId, { limit = 25, nextToken } = {}) {
+  const params = {
+    TableName: ENTITY_TABLE_NAME,
+    IndexName: GSI_HOTELID_ENTITY_TYPE_TS_NAME,
+    KeyConditionExpression: '#hid = :h AND begins_with(#etts, :pref)',
+    ExpressionAttributeNames: {
+      '#hid': 'hotelId',
+      '#etts': 'entityTypeTimestamp',
+    },
+    ExpressionAttributeValues: {
+      ':h': hotelId,
+      ':pref': 'STAFF#',
+    },
+    Limit: Math.min(Number(limit) || 25, 100),
+    ExclusiveStartKey: decodeToken(nextToken),
+  };
 
-//     await DDB.put(params).promise(); // TODO :: Handle Error
-//     return params.Item;
-// }
-
-// const deleteStaff = async (staffId) => {
-//     const params = {
-//         TableName: STAFF_TABLE_NAME,
-//         Key: {
-//             id: `${ID_TYPE}${staffId}`
-//         }
-//     };
-//     await DDB.delete(params).promise(); // TODO :: Handle Error
-//     return params.Item;
-// }
+  const out = await DDB.query(params).promise();
+  return {
+    items: out.Items || [],
+    nextToken: encodeToken(out.LastEvaluatedKey),
+    count: out.Count || 0,
+  };
+}
