@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import BlueGoldButton from 'Common/Button/BlueGoldButton';
 import { httpGet, httpPost } from 'Services/APIService';
-import { API_BASE_URL } from 'Config/config';
+import { API_ENDPOINT } from 'Config/config';
 
-const FAQ_ENDPOINT = '/faq';
+const FAQ_API_URI = '/faq';
 
 const FaqEditor = () => {
   const [faqs, setFaqs] = useState([]);
@@ -16,7 +16,7 @@ const FaqEditor = () => {
 
   useEffect(() => {
     const fetchFaqs = async () => {
-      const faq = await httpGet(API_BASE_URL + FAQ_ENDPOINT, true);
+      const faq = await httpGet(API_ENDPOINT + FAQ_API_URI, true);
       if (faq && faq.faqData) setFaqs(faq.faqData);
     };
     fetchFaqs();
@@ -37,13 +37,13 @@ const FaqEditor = () => {
     const updated = [...faqs];
     updated.splice(index, 1);
     setFaqs(updated);
-    await httpPost(API_BASE_URL + FAQ_ENDPOINT, { faqData: updated });
+    await httpPost(API_ENDPOINT + FAQ_API_URI, { faqData: updated });
   };
 
   const handleAddSave = async () => {
     setFaqs([...faqs, form]);
     setShowAddModal(false);
-    await httpPost(API_BASE_URL + FAQ_ENDPOINT, { faqData: [...faqs, form] });
+    await httpPost(API_ENDPOINT + FAQ_API_URI, { faqData: [...faqs, form] });
   };
 
   const handleEditSave = async () => {
@@ -51,7 +51,7 @@ const FaqEditor = () => {
     updated[currentEditIndex] = form;
     setFaqs(updated);
     setShowEditModal(false);
-    await httpPost(API_BASE_URL + FAQ_ENDPOINT, { faqData: updated });
+    await httpPost(API_ENDPOINT + FAQ_API_URI, { faqData: updated });
   };
 
   // const handleSaveAll = async () => {

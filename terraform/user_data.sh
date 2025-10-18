@@ -46,7 +46,7 @@ sudo -u appuser -H bash -lc "chmod 600 /opt/roommitra/website/.env"
 sudo -u appuser -H bash -lc "docker pull ${WEBSITE_IMAGE_URI}"
 sudo -u appuser -H bash -lc "docker stop website || true"
 sudo -u appuser -H bash -lc "docker rm website || true"
-sudo -u appuser -H bash -lc "docker run -d --name website --env-file /opt/roommitra/website/.env --restart unless-stopped -p 3000:3000 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=website ${WEBSITE_IMAGE_URI}"
+sudo -u appuser -H bash -lc "docker run -d --name website --env-file /opt/roommitra/website/.env --restart unless-stopped -p 3000:3000 ${WEBSITE_IMAGE_URI}"
 
 
 # api
@@ -55,7 +55,7 @@ sudo -u appuser -H bash -lc "chmod 600 /opt/roommitra/api/.env"
 sudo -u appuser -H bash -lc "docker pull ${API_IMAGE_URI}"
 sudo -u appuser -H bash -lc "docker stop api || true"
 sudo -u appuser -H bash -lc "docker rm api || true"
-sudo -u appuser -H bash -lc "docker run -d --name api --env-file /opt/roommitra/api/.env --restart unless-stopped -p 4000:4000 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=api ${API_IMAGE_URI}"
+sudo -u appuser -H bash -lc "docker run -d --name api --env-file /opt/roommitra/api/.env --restart unless-stopped -p 4000:4000 ${API_IMAGE_URI}"
 
 # webapp
 sudo -u appuser -H bash -lc "aws ssm get-parameter --name \"/roommitra/webapp/env\" --with-decryption --query \"Parameter.Value\" --output text > /opt/roommitra/webapp/.env"
@@ -63,7 +63,7 @@ sudo -u appuser -H bash -lc "chmod 600 /opt/roommitra/webapp/.env"
 sudo -u appuser -H bash -lc "docker pull ${WEBAPP_IMAGE_URI}"
 sudo -u appuser -H bash -lc "docker stop webapp || true"
 sudo -u appuser -H bash -lc "docker rm webapp || true"
-sudo -u appuser -H bash -lc "docker run -d --name webapp --env-file /opt/roommitra/webapp/.env --restart unless-stopped -p 3001:3001 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=webapp ${WEBAPP_IMAGE_URI}"
+sudo -u appuser -H bash -lc "docker run -d --name webapp --env-file /opt/roommitra/webapp/.env --restart unless-stopped -p 3001:3001 ${WEBAPP_IMAGE_URI}"
 
 # ---------- Nginx reverse proxy (HTTP only pre-cert) ----------
 cat >/etc/nginx/conf.d/roommitra-precert.conf <<'NGINX'

@@ -7,13 +7,15 @@ router.post('/', async (req, res) => {
     const deviceId = req.headers['x-device-id'];
     const hotelId = req.headers['x-hotel-id'];
     const { userQuery, sessionId } = req.body;
-    const { speech, isSessionOpen } = await onUtterance(userQuery, hotelId, deviceId, sessionId);
-    console.log({ speech, isSessionOpen });
+    const { speech, isSessionOpen } = await onUtterance(userQuery, hotelId, deviceId, sessionId)
+    console.log({ speech, isSessionOpen })
     res.send({ speech, isSessionOpen });
+
   } catch (error) {
     console.error('Error processing utterance:', error);
     res.status(500).send('Failed to process utterance');
   }
-});
+})
+
 
 export default router;
