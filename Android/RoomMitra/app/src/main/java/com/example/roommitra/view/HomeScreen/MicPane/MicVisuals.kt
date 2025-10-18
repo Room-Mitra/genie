@@ -183,7 +183,7 @@ fun MicVisuals(
             }
             ListenState.Thinking -> ThinkingDots(micColor)
             ListenState.Speaking -> SpeakingBars(micColor)
-            ListenState.Muted -> MicButton(micColor, 1f) { } // Inactive mic
+            ListenState.Muted -> MicButton(micColor, 2*1f) { } // Inactive mic
         }
     }
 }
