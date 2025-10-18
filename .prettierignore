@@ -1,3 +1,23 @@
-node_modules
-dist
-build
+# dependencies & builds
+**/node_modules
+**/.next
+**/build
+**/dist
+**/coverage
+**/.turbo
+**/.cache
+
+# lock & misc
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+.DS_Store
+
+# generated
+**/*.min.js
+
+
+.terraform/
+*.tfstate
+*.tfstate.backup
+

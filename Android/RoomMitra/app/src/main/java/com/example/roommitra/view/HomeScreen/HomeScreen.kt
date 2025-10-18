@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.navigation.NavHostController
+import com.example.roommitra.view.WidgetPane.WidgetsPane
 
 @Composable
 fun HomeScreen(
@@ -22,7 +23,8 @@ fun HomeScreen(
                     .weight(1f)
                     .fillMaxHeight(),
                 onFinalUtterance = onFinalUtterance,
-                autoListenTrigger = autoListenTrigger
+                autoListenTrigger = autoListenTrigger,
+                navController = navController
             )
             WidgetsPane(
                 modifier = Modifier
@@ -38,7 +40,8 @@ fun HomeScreen(
                     .weight(1f)
                     .fillMaxWidth(),
                 onFinalUtterance = onFinalUtterance,
-                autoListenTrigger = autoListenTrigger
+                autoListenTrigger = autoListenTrigger,
+                navController = navController
             )
             WidgetsPane(
                 modifier = Modifier

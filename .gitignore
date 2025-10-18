@@ -4,14 +4,23 @@ Lambda/*.DS_Store
 ./*DS_Store
 **/*.DS_Store
 Lambda/.env
-EC2/node_modules/
-EC2/.env*
-EC2/config/*.pem
+api/node_modules/
+api/.env*
+api/config/*.pem
 webapp/node_modules/
 api/node_modules/*
 api/.env*
 api/config/*.pem
 
+
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production
+.env.prod
 
 
 # Node
@@ -58,3 +67,10 @@ AlexaSkill/RoomMitra/lambda/*.env
 
 mycroft-precise/data
 mycroft-precise/data2
+
+
+# Terraform
+terraform.tfstate
+terraform.tfstate.backup
+.terraform/
+.terraform.lock.hcl

@@ -11,6 +11,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.IOException
+import java.time.Instant
 
 sealed class ApiResult {
     data class Success(val data: JSONObject?) : ApiResult()
@@ -18,8 +19,8 @@ sealed class ApiResult {
 }
 class ApiService(private val context: Context) {
     companion object {
-        private const val BASE_URL = "http://192.168.29.120:3000/android"
-//        private const val BASE_URL = "https://roommitra.com/api/android"
+//        private const val BASE_URL = "http://192.168.29.120:3000/android"
+        private const val BASE_URL = "https://api.roommitra.com/android"
     }
     // Get device ID dynamically
     private val deviceId: String
@@ -29,11 +30,20 @@ class ApiService(private val context: Context) {
 
     // Example: default headers
     private val defaultHeaders: Map<String, String>
-        get() = mapOf(
-            "authorization" to "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaG90ZWxJZCI6IlJvb20gR2VuaWUiLCJpYXQiOjE3NTYyNzEzMDEsImV4cCI6MTc1NzEzNTMwMX0.k1G6tUeL_Q_mDND5Vsa657HqGKXJEQEvbWb0o--dPMI",
-            "Content-Type" to "application/json",
-            "X-Device-ID" to deviceId
-        )
+        get() {
+            val token = SessionManager(context).getAuthToken()
+
+            val utcTimestamp = Instant.now().toEpochMilli().toString()
+            return mapOf(
+                "Content-Type" to "application/json",
+                "x-device-id" to deviceId,
+                "x-timestamp" to utcTimestamp
+
+            ) + if (!token.isNullOrBlank()) {
+                mapOf("authorization" to "Bearer $token")
+            } else emptyMap()
+        }
+
 
     // GET request
     suspend fun get(endpoint: String, headers: Map<String, String> = emptyMap()): ApiResult =

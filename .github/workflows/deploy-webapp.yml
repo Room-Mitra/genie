@@ -1,0 +1,186 @@
+name: Deploy webapp
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'webapp2/**'
+      - '.github/workflows/deploy-webapp2.yml'
+      - 'webapp2/Dockerfile'
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-south-1
+  AWS_ACCOUNT_ID: '086325458599'
+  PUBLIC_ECR_ALIAS: p1s3y6q3
+  PUBLIC_ECR_REPO: roommitra/webapp
+  INSTANCE_TAG_KEY: Name
+  INSTANCE_TAG_VALUE: roommitra-ec2
+  IMAGE_TAG: ${{ github.sha }}
+
+defaults:
+  run:
+    working-directory: ./webapp2
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Collect meta
+        id: meta
+        run: |
+          echo "RUN_URL=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" >> $GITHUB_ENV
+          echo "COMMIT_URL=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}" >> $GITHUB_ENV
+          echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+          echo "AUTHOR_NAME=$(git show -s --format='%an' ${GITHUB_SHA})" >> $GITHUB_ENV
+
+      - uses: slackapi/slack-github-action@v1.26.0
+        with:
+          channel-id: ${{ secrets.ENG_OPS_CHANNEL_ID }}
+          payload: |
+            {
+              "blocks": [
+                { "type": "section",
+                  "text": { "type": "mrkdwn",
+                    "text": ":alarm_clock: *`webapp` Build started* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
+                  }
+                },
+                { "type": "context", "elements": [
+                  { "type": "mrkdwn", "text": "*Author:* ${{ env.AUTHOR_NAME }}" },
+                  { "type": "mrkdwn", "text": "*Branch:* ${{ github.ref_name }}" },
+                  { "type": "mrkdwn", "text": "*Workflow:* <${{ env.RUN_URL }}|open run>" }
+                ]}
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::086325458599:role/codedeploy
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # --- PUBLIC ECR login (region must be us-east-1) ---
+      - name: Login to Amazon ECR Public
+        run: |
+          aws ecr-public get-login-password --region us-east-1 \
+            | docker login --username AWS --password-stdin public.ecr.aws
+
+      - name: Build & Push with ECR cache
+        uses: docker/build-push-action@v5
+        with:
+          context: ./webapp2
+          file: ./webapp2/Dockerfile
+          push: true
+          provenance: false
+          build-args: |
+            NODE_ENV=production
+            NEXT_PUBLIC_API_BASE_URL=https://api.roommitra.com
+          tags: |
+            public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:${{ env.IMAGE_TAG }}
+            public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:latest
+          cache-from: |
+            type=gha
+            type=registry,ref=public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:buildcache
+          cache-to: |
+            type=gha,mode=max
+            type=registry,ref=public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:buildcache,mode=max
+
+      - name: Find instance by tag
+        id: find
+        run: |
+          ID=$(aws ec2 describe-instances \
+            --filters "Name=tag:${INSTANCE_TAG_KEY},Values=${INSTANCE_TAG_VALUE}" "Name=instance-state-name,Values=running" \
+            --query "Reservations[0].Instances[0].InstanceId" --output text)
+          echo "instance_id=$ID" >> $GITHUB_OUTPUT
+
+      - name: Create SSM Parameters file
+        run: |
+          IMAGE_URI="public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:${{ env.IMAGE_TAG }}"
+          echo "Resolved IMAGE_URI=$IMAGE_URI"
+
+          cat > /tmp/ssm-params.json <<EOL
+          {
+            "commands": [
+              "set -euo pipefail",
+              "sudo -u appuser -H bash -lc \"aws ssm get-parameter --name '/roommitra/webapp/env' --with-decryption --query 'Parameter.Value' --output text > /opt/roommitra/webapp/.env\"",
+              "sudo -u appuser -H bash -lc \"chmod 600 /opt/roommitra/webapp/.env\"",
+              "sudo -u appuser -H bash -lc \"docker pull ${IMAGE_URI}\"",
+              "sudo -u appuser -H bash -lc \"docker stop webapp || true\"",
+              "sudo -u appuser -H bash -lc \"docker rm webapp || true\"",
+              "sudo -u appuser -H bash -lc \"docker run -d --name webapp --env-file /opt/roommitra/webapp/.env --restart unless-stopped -p 3001:3001 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=webapp ${IMAGE_URI}\"",
+              "sudo -u appuser -H bash -lc \"docker system prune -af --volumes\"",
+              "sudo -u appuser -H bash -lc \"docker builder prune -af\""
+            ],
+            "executionTimeout": ["3600"]
+          }
+          EOL
+
+          echo "Wrote /tmp/ssm-params.json"
+
+      - name: Deploy via SSM
+        run: |
+          aws ssm send-command \
+            --region ${{ env.AWS_REGION }} \
+            --instance-ids "${{ steps.find.outputs.instance_id }}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy webapp ${{ github.sha }}" \
+            --parameters file:///tmp/ssm-params.json
+
+      # Success message
+      - uses: slackapi/slack-github-action@v1.26.0
+        if: ${{ success() }}
+        with:
+          channel-id: ${{ secrets.ENG_OPS_CHANNEL_ID }}
+          payload: |
+            {
+              "blocks": [
+                { "type": "section",
+                  "text": { "type": "mrkdwn",
+                    "text": ":white_check_mark: *`webapp` Build passed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
+                  }
+                },
+                { "type": "context", "elements": [
+                  { "type": "mrkdwn", "text": "*Author:* ${{ env.AUTHOR_NAME }}" },
+                  { "type": "mrkdwn", "text": "*Branch:* ${{ github.ref_name }}" },
+                  { "type": "mrkdwn", "text": "*Workflow:* <${{ env.RUN_URL }}|open run>" }
+                ]}
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      # Failure message
+      - uses: slackapi/slack-github-action@v1.26.0
+        if: ${{ failure() }}
+        with:
+          channel-id: ${{ secrets.ENG_OPS_CHANNEL_ID }}
+          payload: |
+            {
+              "blocks": [
+                { "type": "section",
+                  "text": { "type": "mrkdwn",
+                    "text": ":x: *`webapp` Build failed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
+                  }
+                },
+                { "type": "context", "elements": [
+                  { "type": "mrkdwn", "text": "*Author:* ${{ env.AUTHOR_NAME }}" },
+                  { "type": "mrkdwn", "text": "*Branch:* ${{ github.ref_name }}" },
+                  { "type": "mrkdwn", "text": "*Workflow:* <${{ env.RUN_URL }}|open run>" }
+                ]}
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

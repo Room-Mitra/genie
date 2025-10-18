@@ -1,0 +1,3 @@
+ENV=production
+API_BASE_URL=https://api.roommitra.com
+SECRET_KEY=jXk3zWOhbUXWgfz9OUPOIn6S
