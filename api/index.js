@@ -9,33 +9,44 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 
 // routes
-import deviceRoutes from './routes/Device/Device.controller.js';
-import guestRoutes from './routes/Guest/Guest.controller.js';
-import utteranceRoutes from './routes/Android/Utterance/Utterance.controller.js';
-import bookingRoutes from './routes/Booking/Booking.controller.js';
-import staffRoutes from './routes/Staff/Staff.controller.js';
-import mappingRoutes from './routes/StaffRoomDepartmentRequestMapping/StaffRoomDepartmentRequestMapping.controller.js';
-import faqRoutes from './routes/FAQ/FAQ.controller.js';
-import intentsRoutes from './routes/Intents/Intent.controller.js';
-import loginRoutes from './routes/Login/Login.controller.js';
-import landingPageRoutes from './routes/LandingPage/leads.js';
+import deviceRoutes from '#routes/public/Device.controller.js';
+import guestRoutes from '#routes/public/Guest.controller.js';
+import utteranceRoutes from '#routes/public/Utterance.controller.js';
+import bookingRoutes from '#routes/public/Booking.controller.js';
+import staffRoutes from '#routes/public/Staff.controller.js';
+import mappingRoutes from '#routes/public/StaffRoomDepartmentRequestMapping.controller.js';
+import faqRoutes from '#routes/public/FAQ.controller.js';
+import intentsRoutes from '#routes/public/Intent.controller.js';
+import loginRoutes from '#routes/public/Login.controller.js';
+import userRoutes from '#routes/public/User.controller.js';
+import landingPageRoutes from '#routes/public/leads.route.js';
 
 //Android Routes
-import androidLoginRoutes from './routes/Android/AndroidLogin/AndroidLogin.controller.js';
-import androidRequestRoutes from './routes/Android/AndroidRequest/AndroidRequest.controller.js';
-import androidEventsTrackerRoutes from './routes/Android/AndroidEventTracker/AndroidEventTracker.controller.js';
-
-import { runFunctionsOnServerStartup } from './common/services/startup.service.js';
+import androidLoginRoutes from '#routes/public/AndroidLogin.controller.js';
+import androidRequestRoutes from '#routes/public/AndroidRequest.controller.js';
+import androidEventsTrackerRoutes from '#routes/public/AndroidEventTracker.controller.js';
 
 // Middlewares
-import authenticator from './common/middleware/Authenticator.middleware.js';
+import authenticator from '#middleware/Authenticator.middleware.js';
+import adminAuthenticator from '#middleware/AdminAuthenticator.middleware.js';
+
+// Cache
+import { warmCache as warmDevicesCache } from '#libs/Device.cache.js';
+import { warmCache as warmIntentsCache } from '#libs/Intent.cache.js';
+
+// Admin Routes
+import adminHotelRoutes from '#routes/admin/Hotel.controller.js';
 
 const app = express();
 // use env var, fallback to 3000
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: ['http://localhost:3000', 'https://app.roommitra.com'],
+  })
+);
 
 // UI routes
 app.use('/devices', authenticator, deviceRoutes);
@@ -52,14 +63,21 @@ app.use('/android/request', authenticator, androidRequestRoutes);
 app.use('/android/track-events', authenticator, androidEventsTrackerRoutes);
 
 // routes which dont need auth
+app.use('/user', userRoutes);
 app.use('/login', loginRoutes);
 app.use('/android/login', androidLoginRoutes);
 app.use('/leads', landingPageRoutes);
 
+// -------------------------
+// Admin Routes
+// -------------------------
+app.use('/admin/hotels', adminAuthenticator, adminHotelRoutes);
+
 app.listen(PORT, () => console.log(`Server running on port: http://localhost:${PORT}`));
 
 // run functions on server startup
-runFunctionsOnServerStartup();
+warmDevicesCache();
+warmIntentsCache();
 
 // swagger setup
 const swaggerOptions = {

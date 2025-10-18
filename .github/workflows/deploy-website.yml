@@ -84,6 +84,10 @@ jobs:
           file: ./website/Dockerfile
           push: true
           provenance: false
+          build-args: |
+            NODE_ENV=production
+            NEXT_PUBLIC_API_BASE_URL=https://api.roommitra.com
+            NEXT_PUBLIC_SITE_URL=https://roommitra.com
           tags: |
             public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:${{ env.IMAGE_TAG }}
             public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:latest
@@ -116,7 +120,9 @@ jobs:
               "sudo -u appuser -H bash -lc \"docker pull ${IMAGE_URI}\"",
               "sudo -u appuser -H bash -lc \"docker stop website || true\"",
               "sudo -u appuser -H bash -lc \"docker rm website || true\"",
-              "sudo -u appuser -H bash -lc \"docker run -d --name website --env-file /opt/roommitra/website/.env --restart unless-stopped -p 3000:3000 ${IMAGE_URI}\""
+              "sudo -u appuser -H bash -lc \"docker run -d --name website --env-file /opt/roommitra/website/.env --restart unless-stopped -p 3000:3000 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=website ${IMAGE_URI}\"",
+              "sudo -u appuser -H bash -lc \"docker system prune -af --volumes\"",
+              "sudo -u appuser -H bash -lc \"docker builder prune -af\""
             ],
             "executionTimeout": ["3600"]
           }

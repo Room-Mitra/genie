@@ -1,0 +1,70 @@
+{
+  "AttributeDefinitions": [
+    {
+      "AttributeName": "docId",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "sortKey",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "hotelId",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "categoryTitle",
+      "AttributeType": "S"
+    }
+  ],
+  "CreationDateTime": "2025-10-14T07:54:51.812Z",
+  "DeletionProtectionEnabled": false,
+  "GlobalSecondaryIndexes": [
+    {
+      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/DOCUMENT/index/gsi_hotelId_categoryTitle",
+      "IndexName": "gsi_hotelId_categoryTitle",
+      "IndexSizeBytes": 0,
+      "IndexStatus": "ACTIVE",
+      "ItemCount": 0,
+      "KeySchema": [
+        {
+          "AttributeName": "hotelId",
+          "KeyType": "HASH"
+        },
+        {
+          "AttributeName": "categoryTitle",
+          "KeyType": "RANGE"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "ALL"
+      },
+      "ProvisionedThroughput": {
+        "ReadCapacityUnits": 3,
+        "WriteCapacityUnits": 3
+      }
+    }
+  ],
+  "ItemCount": 0,
+  "KeySchema": [
+    {
+      "AttributeName": "docId",
+      "KeyType": "HASH"
+    },
+    {
+      "AttributeName": "sortKey",
+      "KeyType": "RANGE"
+    }
+  ],
+  "ProvisionedThroughput": {
+    "LastDecreaseDateTime": "1970-01-01T00:00:00.000Z",
+    "LastIncreaseDateTime": "1970-01-01T00:00:00.000Z",
+    "NumberOfDecreasesToday": 0,
+    "ReadCapacityUnits": 3,
+    "WriteCapacityUnits": 3
+  },
+  "TableArn": "arn:aws:dynamodb:ddblocal:000000000000:table/DOCUMENT",
+  "TableName": "DOCUMENT",
+  "TableSizeBytes": 0,
+  "TableStatus": "ACTIVE"
+}

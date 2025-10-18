@@ -5,8 +5,9 @@ on:
     branches:
       - main
     paths:
-      - 'webapp/**'
-      - '.github/workflows/deploy-webapp.yml'
+      - 'webapp2/**'
+      - '.github/workflows/deploy-webapp2.yml'
+      - 'webapp2/Dockerfile'
 
 permissions:
   id-token: write
@@ -23,7 +24,7 @@ env:
 
 defaults:
   run:
-    working-directory: ./webapp
+    working-directory: ./webapp2
 
 jobs:
   build-and-push:
@@ -80,10 +81,13 @@ jobs:
       - name: Build & Push with ECR cache
         uses: docker/build-push-action@v5
         with:
-          context: ./webapp
-          file: ./webapp/Dockerfile
+          context: ./webapp2
+          file: ./webapp2/Dockerfile
           push: true
           provenance: false
+          build-args: |
+            NODE_ENV=production
+            NEXT_PUBLIC_API_BASE_URL=https://api.roommitra.com
           tags: |
             public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:${{ env.IMAGE_TAG }}
             public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:latest
@@ -116,7 +120,9 @@ jobs:
               "sudo -u appuser -H bash -lc \"docker pull ${IMAGE_URI}\"",
               "sudo -u appuser -H bash -lc \"docker stop webapp || true\"",
               "sudo -u appuser -H bash -lc \"docker rm webapp || true\"",
-              "sudo -u appuser -H bash -lc \"docker run -d --name webapp --env-file /opt/roommitra/webapp/.env --restart unless-stopped -p 3001:3001 ${IMAGE_URI}\""
+              "sudo -u appuser -H bash -lc \"docker run -d --name webapp --env-file /opt/roommitra/webapp/.env --restart unless-stopped -p 3001:3001 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=webapp ${IMAGE_URI}\"",
+              "sudo -u appuser -H bash -lc \"docker system prune -af --volumes\"",
+              "sudo -u appuser -H bash -lc \"docker builder prune -af\""
             ],
             "executionTimeout": ["3600"]
           }
