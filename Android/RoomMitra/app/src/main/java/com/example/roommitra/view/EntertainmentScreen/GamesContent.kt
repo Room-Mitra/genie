@@ -6,6 +6,7 @@ import android.webkit.WebViewClient
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -93,7 +94,10 @@ fun GamesContent() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f)
-                    .clickable { selectedGame = game }
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) { selectedGame = game }
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {
                     AsyncImage(
