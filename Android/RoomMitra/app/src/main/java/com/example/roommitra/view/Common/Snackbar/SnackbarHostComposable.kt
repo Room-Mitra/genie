@@ -3,6 +3,7 @@ package com.example.roommitra.view
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -12,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,7 +39,9 @@ fun GlobalSnackbarHost(snackbarFlow: StateFlow<List<SnackbarMessage>>) {
                 enter = fadeIn() + slideInVertically(initialOffsetY = { -50 }),
                 exit = fadeOut() + slideOutVertically(targetOffsetY = { -50 })
             ) {
-                SnackbarItem(snackbar = snackbar, onDismiss = { SnackbarManager.dismiss(snackbar.id) })
+                SnackbarItem(
+                    snackbar = snackbar,
+                    onDismiss = { SnackbarManager.dismiss(snackbar.id) })
             }
         }
     }
@@ -69,7 +73,10 @@ fun SnackbarItem(snackbar: SnackbarMessage, onDismiss: () -> Unit) {
             tint = Color.White,
             modifier = Modifier
                 .size(20.dp)
-                .clickable { onDismiss() }
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }
+                ) { onDismiss() }
         )
     }
 }
