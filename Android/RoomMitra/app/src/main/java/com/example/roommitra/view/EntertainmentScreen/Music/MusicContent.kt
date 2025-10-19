@@ -16,9 +16,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.roommitra.view.MusicPlayerController
 import com.example.roommitra.view.MusicState
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
+//import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
+//import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
+//import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
 
 @Composable
 fun MusicContent(controller: MusicPlayerController) {
@@ -54,7 +54,7 @@ fun MusicContent(controller: MusicPlayerController) {
                 ) { Text("Loading ...") }
             } else {
                 Button(
-                    onClick = { controller.play(query) },
+                    onClick = { controller.play(query); query = ""  },
                     modifier = Modifier.weight(1f)
                 ) { Text("Play") }
             }
@@ -62,6 +62,7 @@ fun MusicContent(controller: MusicPlayerController) {
 
         }
     }
+}
 
     // show player when we have videoId
 //    if (videoId != null && musicState == MusicState.PLAYING) {
@@ -102,4 +103,3 @@ fun MusicContent(controller: MusicPlayerController) {
 //            }
 //        }
 //    }
-}

@@ -12,8 +12,8 @@ android {
         applicationId = "com.example.roommitra"
         minSdk = 26
         targetSdk = 36
-        versionCode = 8
-        versionName = "1.0.8"
+        versionCode = 11
+        versionName = "1.0.11"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -59,7 +59,7 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.9.0")
 
     // youtube
-    implementation("com.pierfrancescosoffritti.androidyoutubeplayer:core:11.1.0")
+    implementation("com.pierfrancescosoffritti.androidyoutubeplayer:core:12.1.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
     implementation("com.squareup.okhttp3:okhttp:4.11.0")
     implementation("com.squareup.moshi:moshi:1.15.0")
@@ -79,6 +79,7 @@ dependencies {
     // Material icons
     implementation("androidx.compose.material:material-icons-core")
     implementation("androidx.compose.material:material-icons-extended")
+    implementation(libs.androidx.lifecycle.common.jvm)
 
     // Debug utilities
     debugImplementation("androidx.compose.ui:ui-tooling")
