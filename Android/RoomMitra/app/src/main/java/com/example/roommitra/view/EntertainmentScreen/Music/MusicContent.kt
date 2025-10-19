@@ -64,42 +64,42 @@ fun MusicContent(controller: MusicPlayerController) {
     }
 
     // show player when we have videoId
-    if (videoId != null && musicState == MusicState.PLAYING) {
-        Dialog(
-            onDismissRequest = { controller.stop() },
-            properties = DialogProperties(usePlatformDefaultWidth = false)
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black)
-            ) {
-                AndroidView(
-                    modifier = Modifier.fillMaxSize(),
-                    factory = { context ->
-                        YouTubePlayerView(context).apply {
-                            enableAutomaticInitialization = false
-                            addYouTubePlayerListener(object : AbstractYouTubePlayerListener() {
-                                override fun onReady(youTubePlayer: YouTubePlayer) {
-                                    videoId?.let { id ->
-                                        youTubePlayer.loadVideo(id, 0f)
-                                    }
-                                }
-                            })
-                        }
-                    }
-                )
-
-                IconButton(
-                    onClick = { controller.stop() },
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(12.dp)
-                        .background(Color.White.copy(alpha = 0.6f), RoundedCornerShape(50))
-                ) {
-                    Icon(Icons.Default.Close, contentDescription = "Close")
-                }
-            }
-        }
-    }
+//    if (videoId != null && musicState == MusicState.PLAYING) {
+//        Dialog(
+//            onDismissRequest = { controller.stop() },
+//            properties = DialogProperties(usePlatformDefaultWidth = false)
+//        ) {
+//            Box(
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    .background(Color.Black)
+//            ) {
+//                AndroidView(
+//                    modifier = Modifier.fillMaxSize(),
+//                    factory = { context ->
+//                        YouTubePlayerView(context).apply {
+//                            enableAutomaticInitialization = false
+//                            addYouTubePlayerListener(object : AbstractYouTubePlayerListener() {
+//                                override fun onReady(youTubePlayer: YouTubePlayer) {
+//                                    videoId?.let { id ->
+//                                        youTubePlayer.loadVideo(id, 0f)
+//                                    }
+//                                }
+//                            })
+//                        }
+//                    }
+//                )
+//
+//                IconButton(
+//                    onClick = { controller.stop() },
+//                    modifier = Modifier
+//                        .align(Alignment.TopEnd)
+//                        .padding(12.dp)
+//                        .background(Color.White.copy(alpha = 0.6f), RoundedCornerShape(50))
+//                ) {
+//                    Icon(Icons.Default.Close, contentDescription = "Close")
+//                }
+//            }
+//        }
+//    }
 }
