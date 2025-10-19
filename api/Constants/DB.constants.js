@@ -11,6 +11,3 @@ export const GUEST_TABLE_NAME = 'GUEST'; // pk = guestId/bookingId
 //     "sk"     # e.g., ENTITY#<entityId> or REQUEST#<requestId> or META#<something>
 
 export const ENTITY_TABLE_NAME = 'ENTITY';
-
-
-export const GSI_HOTELID_ENTITY_TYPE_TS_NAME = "gsi_hotelId_entityTypeTs";
