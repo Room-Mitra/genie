@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { API_BASE_URL } from 'Config/config';
+import { API_ENDPOINT } from 'Config/config';
 import { httpGet, httpPost } from 'Services/APIService';
 import Select from 'react-select';
-const DEVICES_ENDPOINT = '/devices';
-const STAFF_ENDPOINT = '/staff';
-const MAPPING_ENDPOINT = '/mapping';
+const ROOMS_API_URI = '/devices';
+const STAFF_API_URI = '/staff';
+const MAPPING_API_URI = '/mapping';
 
 const StaffRequestMapping = () => {
   const [staffMappings, setStaffMappings] = useState([]);
@@ -31,11 +31,11 @@ const StaffRequestMapping = () => {
 
   useEffect(() => {
     const getAllRoomsData = async () => {
-      const rooms = await httpGet(API_BASE_URL + DEVICES_ENDPOINT);
+      const rooms = await httpGet(API_ENDPOINT + ROOMS_API_URI);
       setAvailableRooms(rooms.sort((b, a) => b.roomId - a.roomId).map((r) => r.roomId));
     };
     const fetchStaffList = async () => {
-      const response = await httpGet(API_BASE_URL + STAFF_ENDPOINT);
+      const response = await httpGet(API_ENDPOINT + STAFF_API_URI);
       const staffData = response && response.staffData ? response.staffData : [];
       setStaffList(staffData);
 
@@ -46,7 +46,7 @@ const StaffRequestMapping = () => {
       setManagerList(managerData);
     };
     const getMappings = async () => {
-      const { mappingData } = await httpGet(API_BASE_URL + MAPPING_ENDPOINT, true);
+      const { mappingData } = await httpGet(API_ENDPOINT + MAPPING_API_URI, true);
       setStaffMappings(mappingData || []);
     };
     getMappings();
@@ -77,11 +77,11 @@ const StaffRequestMapping = () => {
       setStaffMappings(updatedMappings);
       setIsEditing(false);
       setEditingIndex(null);
-      httpPost(API_BASE_URL + MAPPING_ENDPOINT, updatedMappings);
+      httpPost(API_ENDPOINT + MAPPING_API_URI, updatedMappings);
     } else {
       const updatedMappings = [...staffMappings, newMapping];
       setStaffMappings(updatedMappings);
-      httpPost(API_BASE_URL + MAPPING_ENDPOINT, updatedMappings);
+      httpPost(API_ENDPOINT + MAPPING_API_URI, updatedMappings);
     }
 
     setStaffName('');
@@ -109,14 +109,14 @@ const StaffRequestMapping = () => {
   const handleDeleteMapping = (index) => {
     const updatedMappings = staffMappings.filter((_, i) => i !== index);
     setStaffMappings(updatedMappings);
-    httpPost(API_BASE_URL + MAPPING_ENDPOINT, updatedMappings);
+    httpPost(API_ENDPOINT + MAPPING_API_URI, updatedMappings);
   };
 
   const handleToggleMappingStatus = (index) => {
     const updatedMappings = [...staffMappings];
     updatedMappings[index].isActive = !updatedMappings[index].isActive;
     setStaffMappings(updatedMappings);
-    httpPost(API_BASE_URL + MAPPING_ENDPOINT, updatedMappings);
+    httpPost(API_ENDPOINT + MAPPING_API_URI, updatedMappings);
   };
 
   const handleRoomSelectionChange = (e) => {

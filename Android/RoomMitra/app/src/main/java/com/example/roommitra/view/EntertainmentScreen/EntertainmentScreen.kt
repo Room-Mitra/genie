@@ -3,6 +3,7 @@ package com.example.roommitra.view
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -61,7 +62,10 @@ fun EntertainmentScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 12.dp)
-                        .clickable { selectedSection = section }
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) { selectedSection = section }
                         .background(
                             if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                             else Color.Transparent,

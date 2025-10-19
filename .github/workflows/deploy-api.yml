@@ -7,7 +7,6 @@ on:
     paths:
       - 'api/**'
       - '.github/workflows/deploy-api.yml'
-      - 'api/Dockerfile'
 
 permissions:
   id-token: write
