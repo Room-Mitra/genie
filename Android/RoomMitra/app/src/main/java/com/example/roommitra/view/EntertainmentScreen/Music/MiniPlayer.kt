@@ -7,6 +7,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -85,15 +86,33 @@ fun MiniPlayer(
                     },
                     modifier = Modifier.fillMaxSize()
                 )
-
-                IconButton(
-                    onClick = { isExpanded = false },
+                Row(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(12.dp)
-                        .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(50))
                 ) {
-                    Icon(Icons.Default.FullscreenExit, contentDescription = null, tint = Color.White)
+                    IconButton(
+                        onClick = { isExpanded = false },
+                        modifier = Modifier
+//                            .padding(12.dp)
+                            .size(32.dp)
+                            .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(50))
+                    ) {
+                        Icon(
+                            Icons.Default.FullscreenExit,
+                            contentDescription = null,
+                            tint = Color.White
+                        )
+                    }
+
+                    IconButton(
+                        onClick = { controller.stop() },
+                        modifier = Modifier
+                            .size(32.dp)
+                            .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(50))
+                    ) {
+                        Icon(Icons.Default.Close, contentDescription = null, tint = Color.White)
+                    }
                 }
             }
         }
@@ -110,7 +129,9 @@ fun MiniPlayer(
                         onDragEnd = {
                             val targetX = if (offsetX.value < screenWidthPx / 2) 0f
                             else screenWidthPx - with(density) { miniWidth.toPx() }
-                            val targetY = offsetY.value.coerceIn(0f, screenHeightPx - with(density) { miniHeight.toPx() })
+                            val targetY = offsetY.value.coerceIn(
+                                0f,
+                                screenHeightPx - with(density) { miniHeight.toPx() })
                             scope.launch {
                                 offsetX.animateTo(targetX, tween(400))
                                 offsetY.animateTo(targetY, tween(400))

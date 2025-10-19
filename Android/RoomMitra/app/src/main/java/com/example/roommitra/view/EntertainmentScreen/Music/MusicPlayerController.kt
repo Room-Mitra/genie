@@ -6,20 +6,21 @@ import android.util.Log
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.customui.DefaultPlayerUiController
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
 import kotlinx.coroutines.*
-import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.LifecycleOwner
-import java.util.concurrent.ConcurrentLinkedQueue
-import kotlin.coroutines.CoroutineContext
 
 enum class MusicState { IDLE, LOADING, PLAYING, STOPPED }
+
 class MusicPlayerController(private val context: Context) : LifecycleEventObserver {
+
     var currentVideoId = mutableStateOf<String?>(null)
         private set
     var state = mutableStateOf(MusicState.IDLE)
@@ -32,9 +33,34 @@ class MusicPlayerController(private val context: Context) : LifecycleEventObserv
     private val youTubePlayerView: YouTubePlayerView = YouTubePlayerView(context).apply {
         enableAutomaticInitialization = false
         addYouTubePlayerListener(object : AbstractYouTubePlayerListener() {
+
             override fun onReady(player: YouTubePlayer) {
                 youTubePlayer = player
                 currentVideoId.value?.let { player.loadVideo(it, 0f) }
+
+                // Use DefaultPlayerUiController to hide clickable overlays
+                val uiController = DefaultPlayerUiController(this@apply, player)
+                this@apply.setCustomPlayerUi(uiController.rootView)
+
+                // Hide all UI elements
+                uiController.showUi(false)
+                uiController.showMenuButton(false)
+                uiController.showFullscreenButton(false)
+                uiController.showVideoTitle(false)
+
+            }
+
+            override fun onStateChange(player: YouTubePlayer, stateConst: PlayerConstants.PlayerState) {
+                when (stateConst) {
+                    PlayerConstants.PlayerState.PLAYING -> this@MusicPlayerController.state.value = MusicState.PLAYING
+                    PlayerConstants.PlayerState.ENDED -> {
+                        scope.launch {
+                            Log.d("MusicPlayerController", "Video ended -> auto stopping player")
+                            stop()
+                        }
+                    }
+                    else -> { /* BUFFERING, UNSTARTED, etc — ignore */ }
+                }
             }
         })
     }
