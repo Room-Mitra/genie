@@ -1,5 +1,5 @@
-import { ENTITY_TABLE_NAME, GSI_HOTELID_ENTITY_TYPE_TS_NAME } from '#Constants/DB.constants.js';
-import { buildEntityItem } from '#common/entity.helper.js';
+import { ENTITY_TABLE_NAME } from '#Constants/DB.constants.js';
+import { buildHotelEntityItem } from '#common/hotelEntity.helper.js';
 import DDB from '#config/DynamoDb.config.js';
 import { decodeToken, encodeToken } from './repository.helper.js';
 
@@ -9,7 +9,7 @@ import { decodeToken, encodeToken } from './repository.helper.js';
  * Expects `hotel` to be a plain JS object with keys created in the service.
  */
 export async function putHotel(hotel) {
-  const hotelItem = buildEntityItem(hotel);
+  const hotelItem = buildHotelEntityItem(hotel);
 
   const params = {
     TransactItems: [

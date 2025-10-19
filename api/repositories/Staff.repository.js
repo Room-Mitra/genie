@@ -1,5 +1,5 @@
 import { ENTITY_TABLE_NAME, GSI_HOTELID_ENTITY_TYPE_TS_NAME } from '#Constants/DB.constants.js';
-import { buildEntityItem } from '#common/entity.helper.js';
+import { buildHotelEntityItem } from '#common/hotelEntity.helper.js';
 import DDB from '#config/DynamoDb.config.js';
 import { decodeToken, encodeToken } from './repository.helper.js';
 
@@ -25,7 +25,7 @@ export async function addStaff({ userId, role = 'STAFF', hotelId }) {
     status: 'ACTIVE',
   };
 
-  const staffItem = buildEntityItem(staff);
+  const staffItem = buildHotelEntityItem(staff);
 
   const params = {
     TableName: ENTITY_TABLE_NAME,

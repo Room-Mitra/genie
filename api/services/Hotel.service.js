@@ -12,7 +12,6 @@ export async function getHotelById(hotelId) {
 
 export async function addHotel({ name, address, contactEmail, contactPhone }) {
   const hotelId = ulid();
-  const now = Date.now();
 
   const hotel = {
     hotelId,
@@ -21,7 +20,6 @@ export async function addHotel({ name, address, contactEmail, contactPhone }) {
     address: address || '',
     contactEmail: contactEmail || '',
     contactPhone: contactPhone || '',
-    createdAt: now,
   };
 
   await hotelRepo.putHotel(hotel);

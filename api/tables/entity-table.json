@@ -41,11 +41,11 @@
       "AttributeType": "S"
     },
     {
-      "AttributeName": "emai_pk",
+      "AttributeName": "booking_pk",
       "AttributeType": "S"
     },
     {
-      "AttributeName": "email_sk",
+      "AttributeName": "booking_sk",
       "AttributeType": "S"
     },
     {
@@ -57,22 +57,22 @@
       "AttributeType": "S"
     }
   ],
-  "CreationDateTime": "2025-10-17T11:13:53.078Z",
+  "CreationDateTime": "2025-10-19T15:28:56.539Z",
   "DeletionProtectionEnabled": false,
   "GlobalSecondaryIndexes": [
     {
-      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/GSI_HotelTypeTime",
-      "IndexName": "GSI_HotelTypeTime",
+      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/GSI_RoomType",
+      "IndexName": "GSI_RoomType",
       "IndexSizeBytes": 0,
       "IndexStatus": "ACTIVE",
       "ItemCount": 0,
       "KeySchema": [
         {
-          "AttributeName": "hotelType_pk",
+          "AttributeName": "roomType_pk",
           "KeyType": "HASH"
         },
         {
-          "AttributeName": "hotelType_sk",
+          "AttributeName": "roomType_sk",
           "KeyType": "RANGE"
         }
       ],
@@ -85,18 +85,18 @@
       }
     },
     {
-      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/GSI_ConversationMessages",
-      "IndexName": "GSI_ConversationMessages",
+      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/GSI_HotelType",
+      "IndexName": "GSI_HotelType",
       "IndexSizeBytes": 0,
       "IndexStatus": "ACTIVE",
       "ItemCount": 0,
       "KeySchema": [
         {
-          "AttributeName": "conversation_pk",
+          "AttributeName": "hotelType_pk",
           "KeyType": "HASH"
         },
         {
-          "AttributeName": "conversation_sk",
+          "AttributeName": "hotelType_sk",
           "KeyType": "RANGE"
         }
       ],
@@ -133,30 +133,6 @@
       }
     },
     {
-      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/GSI_RoomTypeTime",
-      "IndexName": "GSI_RoomTypeTime",
-      "IndexSizeBytes": 0,
-      "IndexStatus": "ACTIVE",
-      "ItemCount": 0,
-      "KeySchema": [
-        {
-          "AttributeName": "roomType_pk",
-          "KeyType": "HASH"
-        },
-        {
-          "AttributeName": "roomType_sk",
-          "KeyType": "RANGE"
-        }
-      ],
-      "Projection": {
-        "ProjectionType": "ALL"
-      },
-      "ProvisionedThroughput": {
-        "ReadCapacityUnits": 3,
-        "WriteCapacityUnits": 3
-      }
-    },
-    {
       "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/GSI_RequestStatus",
       "IndexName": "GSI_RequestStatus",
       "IndexSizeBytes": 0,
@@ -181,18 +157,42 @@
       }
     },
     {
-      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/GSI_UserEmail",
-      "IndexName": "GSI_UserEmail",
+      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/GSI_BookingType",
+      "IndexName": "GSI_BookingType",
       "IndexSizeBytes": 0,
       "IndexStatus": "ACTIVE",
       "ItemCount": 0,
       "KeySchema": [
         {
-          "AttributeName": "emai_pk",
+          "AttributeName": "booking_pk",
           "KeyType": "HASH"
         },
         {
-          "AttributeName": "email_sk",
+          "AttributeName": "booking_sk",
+          "KeyType": "RANGE"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "ALL"
+      },
+      "ProvisionedThroughput": {
+        "ReadCapacityUnits": 3,
+        "WriteCapacityUnits": 3
+      }
+    },
+    {
+      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/GSI_ConversationMessage",
+      "IndexName": "GSI_ConversationMessage",
+      "IndexSizeBytes": 0,
+      "IndexStatus": "ACTIVE",
+      "ItemCount": 0,
+      "KeySchema": [
+        {
+          "AttributeName": "conversation_pk",
+          "KeyType": "HASH"
+        },
+        {
+          "AttributeName": "conversation_sk",
           "KeyType": "RANGE"
         }
       ],
@@ -205,7 +205,7 @@
       }
     }
   ],
-  "ItemCount": 2,
+  "ItemCount": 0,
   "KeySchema": [
     {
       "AttributeName": "pk",
@@ -225,6 +225,6 @@
   },
   "TableArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY",
   "TableName": "ENTITY",
-  "TableSizeBytes": 428,
+  "TableSizeBytes": 0,
   "TableStatus": "ACTIVE"
 }
