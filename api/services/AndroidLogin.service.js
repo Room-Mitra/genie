@@ -32,7 +32,7 @@ export const addHotelLogin = async (hotelId, password) => {
   const hotelData = { hotelId, password };
   const isHotelExists = await getHotelDetails({ hotelId });
   if (isHotelExists) {
-    throw new Error('Hotel already exists');
+    throw new Error('Hotel already exists: ' + hotelId);
   }
 
   const id = getId({ hotelId });
@@ -40,7 +40,7 @@ export const addHotelLogin = async (hotelId, password) => {
   hotelData.password = hashedPassword;
   const isUserAdded = await addHotel({ id, ...hotelData });
   if (!isUserAdded) {
-    throw new Error('Failed to add user');
+    throw new Error('Failed to add user for hotel: ' + hotelId);
   }
   return isUserAdded;
 };

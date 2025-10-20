@@ -3,7 +3,6 @@ package com.example.roommitra.view
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -60,8 +59,7 @@ fun RestaurantMenuScreen(
     val visibleCategory by remember {
         derivedStateOf {
             val firstVisible = mainListState.firstVisibleItemIndex
-            categories.lastOrNull { categoryIndexMap[it] ?: 0 <= firstVisible }
-                ?: categories.first()
+            categories.lastOrNull { categoryIndexMap[it] ?: 0 <= firstVisible } ?: categories.first()
         }
     }
 
@@ -69,8 +67,7 @@ fun RestaurantMenuScreen(
 
     val calculateTotal: () -> Int = {
         cart.entries.sumOf { (dish, count) ->
-            val price =
-                menuData.values.flatten().firstOrNull { it.first == dish }?.second?.cost ?: 0
+            val price = menuData.values.flatten().firstOrNull { it.first == dish }?.second?.cost ?: 0
             price * count
         }
     }
@@ -109,19 +106,14 @@ fun RestaurantMenuScreen(
             calculateTotal = calculateTotal,
             onPlaceOrder = { instructions ->
                 coroutineScope.launch {
-                    Log.d(
-                        "RestaurantMenu",
-                        "Placing order with instructions: $instructions, Cart = $cart"
-                    )
+                    Log.d("RestaurantMenu", "Placing order with instructions: $instructions, Cart = $cart")
 
                     val apiService = ApiService(context)
 
                     // Create a JSON array for cart items
                     val cartArray = org.json.JSONArray()
                     cart.forEach { (dish, count) ->
-                        val price =
-                            menuData.values.flatten().firstOrNull { it.first == dish }?.second?.cost
-                                ?: 0
+                        val price = menuData.values.flatten().firstOrNull { it.first == dish }?.second?.cost ?: 0
                         val dishTotal = price * count
 
                         val dishJson = JSONObject().apply {
@@ -153,27 +145,17 @@ fun RestaurantMenuScreen(
                             showCartPopup = false
                             cart = emptyMap()
                             Log.d("RestaurantMenu", "Order placed successfully: ${result.data}")
-                            SnackbarManager.showMessage(
-                                "Order placed successfully!",
-                                SnackbarType.SUCCESS
-                            )
+                            SnackbarManager.showMessage("Order placed successfully!", SnackbarType.SUCCESS)
                         }
-
                         is ApiResult.Error -> {
-                            Log.e(
-                                "RestaurantMenu",
-                                "Order failed: ${result.code}, ${result.message}"
-                            )
-                            SnackbarManager.showMessage(
-                                "Something went wrong. Please try again later. Sorry :(",
-                                SnackbarType.ERROR
-                            )
+                            Log.e("RestaurantMenu", "Order failed: ${result.code}, ${result.message}")
+                            SnackbarManager.showMessage("Something went wrong. Please try again later. Sorry :(", SnackbarType.ERROR)
                         }
                     }
                 }
             },
 
-            onClearCart = {
+                    onClearCart = {
                 cart = emptyMap()
                 showCartPopup = false
             },
@@ -257,11 +239,7 @@ fun MenuList(
                                 modifier = Modifier.weight(1f)
                             )
                         }
-                        if (rowItems.size < columns) repeat(columns - rowItems.size) {
-                            Spacer(
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
+                        if (rowItems.size < columns) repeat(columns - rowItems.size) { Spacer(modifier = Modifier.weight(1f)) }
                     }
                 }
             }
@@ -287,10 +265,7 @@ fun CartButton(cart: Map<String, Int>, calculateTotal: () -> Int, onClick: () ->
                 "₹${calculateTotal()} - View Cart & Add Instructions",
                 color = Color.White,
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.clickable(
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }
-                ) { onClick() }
+                modifier = Modifier.clickable { onClick() }
             )
         }
     }

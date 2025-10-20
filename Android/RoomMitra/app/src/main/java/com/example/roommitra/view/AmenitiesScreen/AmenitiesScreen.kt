@@ -3,7 +3,6 @@ package com.example.roommitra.view
 import AmenityDetail
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -72,10 +71,7 @@ fun AmenitiesScreen(onBackClick: () -> Unit) {
                                 if (isSelected)  MaterialTheme.colorScheme.surfaceVariant
                                 else Color.White
                             )
-                            .clickable(
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() }
-            )  { selectedAmenity = amenity }
+                            .clickable { selectedAmenity = amenity }
                             .padding(horizontal = 16.dp, vertical = 12.dp)
                     ) {
                         Icon(
