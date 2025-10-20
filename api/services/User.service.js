@@ -4,7 +4,7 @@ import * as UserRepo from '#repositories/User.repository.js';
 
 const SALT_ROUNDS = 12;
 
-export async function signUp({ name, email, password }) {
+export async function signUp({ firstName, lastName, email, password }) {
   const normalizedEmail = String(email).trim().toLowerCase();
   const userId = ulid();
 
@@ -13,7 +13,8 @@ export async function signUp({ name, email, password }) {
   const user = {
     entityType: 'USER',
     userId,
-    name: String(name).trim(),
+    firstName: String(firstName).trim(),
+    lastName: String(lastName).trim(),
     email: normalizedEmail,
     passwordHash,
   };

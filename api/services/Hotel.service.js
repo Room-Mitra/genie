@@ -80,7 +80,8 @@ export async function addStaffToHotel(hotelId, userPayload) {
 
     const newUser = {
       userId,
-      name: userPayload.name || '',
+      firstName: userPayload.firstName || '',
+      lastName: userPayload.lastName || '',
       email: userPayload.email || '',
       mobileNumber: userPayload.mobileNumber || '',
       password: userPayload.password || 'Room$123', // default password

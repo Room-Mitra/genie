@@ -20,19 +20,6 @@ export async function putHotel(hotel) {
           ConditionExpression: 'attribute_not_exists(pk) AND attribute_not_exists(entityTypeTs)',
         },
       },
-      {
-        Put: {
-          TableName: ENTITY_TABLE_NAME,
-          Item: {
-            pk: 'CATALOG#HOTEL',
-            sk: `${hotelItem.sk}#${hotelItem.hotelId}`,
-            entityType: 'HOTEL_INDEX',
-            hotelId: hotelItem.hotelId,
-            createdAt: hotelItem.createdAt,
-          },
-          ConditionExpression: 'attribute_not_exists(pk) and attribute_not_exists(sk)',
-        },
-      },
     ],
   };
 

@@ -1,5 +1,4 @@
-import { ENTITY_TABLE_NAME, GSI_HOTELID_ENTITY_TYPE_TS_NAME } from '#Constants/DB.constants.js';
-import { buildHotelEntityItem } from '#common/hotelEntity.helper.js';
+import { ENTITY_TABLE_NAME, GSI_HOTELTYPE_NAME } from '#Constants/DB.constants.js';
 import { toIsoString } from '#common/timestamp.helper.js';
 import DDB from '#config/DynamoDb.config.js';
 import { decodeToken, encodeToken } from './repository.helper.js';
@@ -57,15 +56,15 @@ export async function addStaff({ userId, role = 'STAFF', hotelId }) {
 export async function queryStaffByHotelId(hotelId, { limit = 25, nextToken } = {}) {
   const params = {
     TableName: ENTITY_TABLE_NAME,
-    IndexName: GSI_HOTELID_ENTITY_TYPE_TS_NAME,
-    KeyConditionExpression: '#hid = :h AND begins_with(#etts, :pref)',
+    IndexName: GSI_HOTELTYPE_NAME,
+    KeyConditionExpression: '#pk = :h AND begins_with(#sk, :pref)',
     ExpressionAttributeNames: {
-      '#hid': 'hotelId',
-      '#etts': 'entityTypeTimestamp',
+      '#pk': 'hotelType_pk',
+      '#sk': 'hotelType_sk',
     },
     ExpressionAttributeValues: {
-      ':h': hotelId,
-      ':pref': 'STAFF#',
+      ':h': `HOTEL#${hotelId}`,
+      ':pref': 'USER#',
     },
     Limit: Math.min(Number(limit) || 25, 100),
     ExclusiveStartKey: decodeToken(nextToken),
@@ -73,7 +72,17 @@ export async function queryStaffByHotelId(hotelId, { limit = 25, nextToken } = {
 
   const out = await DDB.query(params).promise();
   return {
-    items: out.Items || [],
+    items:
+      out.Items?.map((i) => {
+        return {
+          entityType: i.entityType,
+          roles: i.roles,
+          userId: i.userId,
+          createdAt: i.createdAt,
+          name: i.name,
+          email: i.email,
+        };
+      }) || [],
     nextToken: encodeToken(out.LastEvaluatedKey),
     count: out.Count || 0,
   };

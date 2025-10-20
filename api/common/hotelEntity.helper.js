@@ -50,11 +50,13 @@ export function buildHotelEntityItem(input, options) {
 
   switch (i.entityType) {
     case 'HOTEL': {
+      const pk = `CATALOG#HOTEL`;
       const sk = `HOTEL#${i.hotelId}`;
-      const base = baseKeys(i.hotelId, sk);
+
       const extra = maybeHotelType(options, i.hotelId, 'HOTEL', i.hotelId);
       return clean({
-        ...base,
+        pk,
+        sk,
         ...extra,
         entityType: 'HOTEL',
         hotelId: i.hotelId,
@@ -230,4 +232,3 @@ export function buildHotelEntityItem(input, options) {
       throw new Error(`Unsupported entityType: ${i?.entityType}`);
   }
 }
-
