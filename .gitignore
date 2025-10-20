@@ -4,12 +4,8 @@
 api/node_modules/
 api/.env*
 api/config/*.pem
-api/node_modules/*
-api/.env*
-api/config/*.pem
 
 webapp/node_modules/
-
 
 # Environment files
 .env
@@ -18,7 +14,6 @@ webapp/node_modules/
 .env.test.local
 .env.production
 .env.prod
-
 
 # Node
 node_modules/
@@ -57,7 +52,10 @@ local.properties
 
 dynamodb-local-data/
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 6d663b2187cbe4acd520f7594570c02543d6744c
 mycroft-precise/data
 mycroft-precise/data2
 
