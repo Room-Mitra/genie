@@ -41,15 +41,28 @@ import com.example.roommitra.view.ConciergeScreen
 
 import com.example.roommitra.view.GlobalSnackbarHost
 import com.example.roommitra.view.LoginScreen
-import com.example.roommitra.view.MiniPlayer
-import com.example.roommitra.view.MusicPlayerController
-import com.example.roommitra.view.MusicPlayerManager
 import com.example.roommitra.view.SnackbarManager
 
 
 class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
-    private lateinit var musicController: MusicPlayerController
+
     private val apiService by lazy { ApiService(this) }
+    private lateinit var tts: TextToSpeech
+    private var sessionId: String = UUID.randomUUID().toString()
+    private val autoListenTrigger = mutableStateOf(0L)
+
+    companion object {
+        val isTtsPlaying = mutableStateOf(false)
+        private var ttsInstance: TextToSpeech? = null
+        // 🔹 shared conversation state
+        val conversation = mutableStateListOf<ConversationMessage>()
+        fun stopTtsImmediately() {
+            ttsInstance?.let {
+                it.stop()                       // stop any ongoing speech
+                isTtsPlaying.value = false      // update the state
+            }
+        }
+    }
 
     override fun onStart() {
         super.onStart()
@@ -66,13 +79,10 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // initialize singleton
-        MusicPlayerManager.init(applicationContext)
-        musicController = MusicPlayerManager.get()
-
         TrackingService.initialize(this, apiService)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         hideSystemUI()
+        tts = TextToSpeech(this, this)
         setContent {
             val navController = rememberNavController()
             MaterialTheme {
@@ -80,7 +90,15 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                     AutoDimWrapper(window) {
                         NavHost(navController = navController, startDestination = "home") {
                             composable("home") {
-                                HomeScreen(  navController = navController )
+                                HomeScreen(
+                                    onFinalUtterance = { userQuery ->
+                                        sendUtteranceToServer(
+                                            userQuery
+                                        )
+                                    },
+                                    navController = navController,
+                                    autoListenTrigger = autoListenTrigger
+                                )
                             }
                             composable("menu") {
                                 RestaurantMenuScreen(onBackClick = { navController.popBackStack() })
@@ -98,15 +116,13 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                                 ConciergeScreen(onBackClick = { navController.popBackStack() })
                             }
                             composable("login") {
-                                LoginScreen(onBackClick = { navController.popBackStack() })
+                                LoginScreen(
+                                    onBackClick = { navController.popBackStack() },
+                                    apiService
+                                )
                             }
                         }
                         GlobalSnackbarHost(snackbarFlow = SnackbarManager.messages)
-
-
-                        // MiniPlayer overlay — always rendered at root level so it survives navigation
-                        // Place it last so it draws above NavHost
-                        MiniPlayer(controller = musicController)
                     }
                 }
             }
@@ -130,10 +146,98 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
 
     override fun onBackPressed() {}
 
-    override fun onInit(status: Int) {}
+    override fun onInit(status: Int) {
+        if (status == TextToSpeech.SUCCESS) {
+            ttsInstance = tts
+            tts.voices.forEach { voice -> if(voice.name.contains("en-in", ignoreCase = true))Log.d("TTS","${voice.name}") }
+            val selectedVoice = tts.voices?.find {
+                it.name.contains("en-in", ignoreCase = true) &&
+                        it.name.contains("en-in-x-end-network", ignoreCase = true)
+//                it.name.contains("en-in-x-ena-local", ignoreCase = true)
+            }
+            if (selectedVoice != null) tts.voice = selectedVoice
+            else tts.language = Locale("en", "IN")
+
+            tts.setOnUtteranceProgressListener(object :
+                android.speech.tts.UtteranceProgressListener() {
+                override fun onStart(utteranceId: String?) {
+                    this@MainActivity.runOnUiThread { isTtsPlaying.value = true }
+                }
+
+                override fun onDone(utteranceId: String?) {
+                    this@MainActivity.runOnUiThread { isTtsPlaying.value = false }
+                }
+
+                override fun onError(utteranceId: String?) {
+                    this@MainActivity.runOnUiThread { isTtsPlaying.value = false }
+                }
+            })
+        }
+    }
 
     override fun onDestroy() {
         super.onDestroy()
+        tts.stop()
+        tts.shutdown()
+    }
+
+    private fun safeSpeak(text: String) {
+        if (this::tts.isInitialized) {       // check if TTS is initialized
+            try {
+                if (!isFinishing) {          // ensure activity is not finishing
+                    val utteranceId = UUID.randomUUID().toString()
+                    tts.speak(text, TextToSpeech.QUEUE_ADD, null, utteranceId)
+                }
+            } catch (e: Exception) {
+                Log.e("TTS", "Failed to speak: ${e.message}")
+            }
+        } else {
+            Log.w("TTS", "TTS not initialized, cannot speak")
+        }
+    }
+
+    private fun sendUtteranceToServer(userQuery: String) {
+        lifecycleScope.launch {
+            try {
+                val payload = JSONObject().apply {
+                    put("userQuery", userQuery)
+                    put("sessionId", sessionId)
+                }
+
+                when (val result = apiService.post("utterance", payload)) {
+                    is ApiResult.Success -> {
+                        val jsonResp = result.data
+                        Log.d("API_CALL", "Response: $jsonResp")
+
+                        if (jsonResp != null) {
+                            val speech = jsonResp.optString("speech", "")
+                            val isSessionOpen = jsonResp.optBoolean("isSessionOpen", false)
+
+                            if (speech.isNotEmpty()) {
+                                MainActivity.conversation.add(ConversationMessage(speech, false))
+                                safeSpeak(speech)
+                            }
+
+                            if (isSessionOpen) {
+                                autoListenTrigger.value = System.currentTimeMillis()
+                            } else {
+                                sessionId = UUID.randomUUID().toString()
+                            }
+                        } else {
+                            safeSpeak("No response from server.")
+                        }
+                    }
+                    is ApiResult.Error -> {
+                        Log.e("API_CALL", "Error ${result.code}: ${result.message}")
+                        safeSpeak("Something went wrong. Please try later")
+
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("API_CALL", "Error sending utterance: ${e.message}")
+                safeSpeak("Something went wrong. Please try later")
+            }
+        }
     }
 
 }

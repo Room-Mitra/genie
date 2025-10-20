@@ -1,9 +1,21 @@
+import { getReqId, requestContext } from './middleware/requestContext.js';
+
+// Patch console methods to include request ID if available
+for (const k of ['log', 'info', 'warn', 'error']) {
+  const orig = console[k].bind(console);
+  console[k] = (...args) => {
+    const id = getReqId();
+    return id ? orig(`[${id}]`, ...args) : orig(...args);
+  };
+}
+
 import dotenv from 'dotenv';
 dotenv.config();
 
 import cors from 'cors';
 import express from 'express';
 import bodyParser from 'body-parser';
+import morgan from 'morgan';
 
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
@@ -38,6 +50,24 @@ import { warmCache as warmIntentsCache } from '#libs/Intent.cache.js';
 import adminHotelRoutes from '#routes/admin/Hotel.controller.js';
 
 const app = express();
+app.use(requestContext);
+
+app.use(
+  morgan((tokens, req, res) =>
+    JSON.stringify({
+      t: tokens.date(req, res, 'iso'),
+      id: req.id,
+      method: tokens.method(req, res),
+      url: tokens.url(req, res),
+      status: Number(tokens.status(req, res)),
+      'resp-ms': Number(tokens['response-time'](req, res)),
+      'content-length': Number(tokens.res(req, res, 'content-length') || 0),
+      ref: tokens.referrer(req, res),
+      ua: tokens['user-agent'](req, res),
+    })
+  )
+);
+
 // use env var, fallback to 3000
 const PORT = process.env.PORT || 3000;
 

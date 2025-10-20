@@ -2,11 +2,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { httpGet, httpPost } from 'Services/APIService';
 import DataTable from 'Common/DataTable/DataTable';
-import { API_ENDPOINT } from 'Config/config';
+import { API_BASE_URL } from 'Config/config';
 import { getDaysSinceEpoch } from 'Services/Common.service';
 import chimeSound from 'assets/room-mitra-chime.wav'; // Adjust path
 
-const INTENTS_API_URI = '/intents';
+const INTENTS_ENDPOINT = '/intents';
 
 const Intents = () => {
   const [allIntents, setAllIntents] = useState(null);
@@ -20,7 +20,7 @@ const Intents = () => {
     const intents = await getAllIntentsData();
     const intent = intents.find((i) => i.requestedTime === ts);
     intent.isAcknowledged = !intent.isAcknowledged;
-    await httpPost(API_ENDPOINT + INTENTS_API_URI, { ...intent });
+    await httpPost(API_BASE_URL + INTENTS_ENDPOINT, { ...intent });
     getAllIntentsData();
   };
   const AcknowledgeCheckboxComponent = (rowInfo) => {
@@ -111,7 +111,7 @@ const Intents = () => {
 
   const getAllIntentsData = async () => {
     const response = await httpGet(
-      API_ENDPOINT + INTENTS_API_URI + '/' + getDaysSinceEpoch(+Date.now()) + '?range=2',
+      API_BASE_URL + INTENTS_ENDPOINT + '/' + getDaysSinceEpoch(+Date.now()) + '?range=2',
       true
     );
     const intents = [];

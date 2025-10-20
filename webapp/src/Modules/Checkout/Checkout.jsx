@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { httpGet } from 'Services/APIService';
-import { API_ENDPOINT } from 'Config/config';
+import { API_BASE_URL } from 'Config/config';
 
-const DEVICES_API_URI = '/devices';
-const BOOKINGS_API_URI = '/bookings';
+const DEVICES_ENDPOINT = '/devices';
+const BOOKINGS_ENDPOINT = '/bookings';
 
 const Container = styled.div`
   max-width: 800px;
@@ -119,7 +119,7 @@ const CheckOut = () => {
 
     if (value) {
       try {
-        const bookingData = await httpGet(`${API_ENDPOINT}${BOOKINGS_API_URI}/${value}`);
+        const bookingData = await httpGet(`${API_BASE_URL}${BOOKINGS_ENDPOINT}/${value}`);
         setBookingDetails(bookingData);
         setRequests(bookingData.requests || []);
         setError(null);
@@ -136,7 +136,7 @@ const CheckOut = () => {
   };
 
   const getAllRoomsData = async () => {
-    const allRoomsData = await httpGet(API_ENDPOINT + DEVICES_API_URI);
+    const allRoomsData = await httpGet(API_BASE_URL + DEVICES_ENDPOINT);
     const allRoomNumbers = allRoomsData.map((room) => room.roomId);
     setAllRoomNumbers(allRoomNumbers);
   };

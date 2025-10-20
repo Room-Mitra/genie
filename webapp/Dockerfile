@@ -10,7 +10,9 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 ENV CI=true
 # Pass build-time vars if you use them - CRA only picks up REACT_APP_*
-# ARG REACT_APP_API_BASE=
+ARG REACT_APP_API_BASE_URL
+ENV REACT_APP_API_BASE_URL=$REACT_APP_API_BASE_URL
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build

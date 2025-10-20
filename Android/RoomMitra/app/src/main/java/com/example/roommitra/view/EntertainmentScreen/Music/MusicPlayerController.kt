@@ -1,4 +1,3 @@
-// MusicPlayerController.kt
 package com.example.roommitra.view
 
 import android.content.Context
@@ -7,20 +6,13 @@ import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.LifecycleOwner
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.customui.DefaultPlayerUiController
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
 import kotlinx.coroutines.*
 
 enum class MusicState { IDLE, LOADING, PLAYING, STOPPED }
 
-class MusicPlayerController(private val context: Context) : LifecycleEventObserver {
-
+class MusicPlayerController(
+    private val context: Context
+) {
     var currentVideoId = mutableStateOf<String?>(null)
         private set
     var state = mutableStateOf(MusicState.IDLE)
@@ -28,93 +20,52 @@ class MusicPlayerController(private val context: Context) : LifecycleEventObserv
 
     private var webView: WebView? = null
     private var extractionStarted = false
+
+    // Coroutine scope tied to the controller
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
-    private val youTubePlayerView: YouTubePlayerView = YouTubePlayerView(context).apply {
-        enableAutomaticInitialization = false
-        addYouTubePlayerListener(object : AbstractYouTubePlayerListener() {
+    fun play(query: String) {
+        if (query.isBlank()) return
+        state.value = MusicState.LOADING
+        currentVideoId.value = null
 
-            override fun onReady(player: YouTubePlayer) {
-                youTubePlayer = player
-                currentVideoId.value?.let { player.loadVideo(it, 0f) }
+        val searchQuery = query.replace(" ", "+") + "+music"
+        val searchUrl = "https://www.youtube.com/results?search_query=$searchQuery"
 
-                // Default UI controller to hide clickable overlays
-                val uiController = DefaultPlayerUiController(this@apply, player)
-                this@apply.setCustomPlayerUi(uiController.rootView)
-                uiController.showUi(false)
-                uiController.showMenuButton(false)
-                uiController.showFullscreenButton(false)
-                uiController.showVideoTitle(false)
-            }
-
-            override fun onStateChange(player: YouTubePlayer, stateConst: PlayerConstants.PlayerState) {
-                when (stateConst) {
-                    PlayerConstants.PlayerState.PLAYING -> this@MusicPlayerController.state.value = MusicState.PLAYING
-                    PlayerConstants.PlayerState.ENDED -> {
-                        scope.launch {
-                            playNextInPlaylist()
+        fun createWebView() {
+            webView = WebView(context).apply {
+                settings.javaScriptEnabled = true
+                settings.domStorageEnabled = true
+                webChromeClient = WebChromeClient()
+                webViewClient = object : WebViewClient() {
+                    override fun onPageFinished(view: WebView?, url: String?) {
+                        super.onPageFinished(view, url)
+                        if (!extractionStarted) {
+                            extractionStarted = true
+                            Log.d("MusicPlayerController", "Running extraction...")
+                            // Launch coroutine to extract videoId with retry
+                            scope.launch {
+                                extractVideoIdWithRetry(view, retries = 5, delayMs = 2000L)
+                            }
+                        } else {
+                            Log.d("MusicPlayerController", "Skipping duplicate onPageFinished")
                         }
                     }
-                    else -> { /* BUFFERING, UNSTARTED, etc — ignore */ }
                 }
+                loadUrl(searchUrl)
             }
-        })
-    }
-
-    private var youTubePlayer: YouTubePlayer? = null
-
-    private var playlistVideos: List<String> = emptyList()
-    private var currentPlaylistIndex = 0
-    private var isPlayingPlaylist = false
-
-    fun attachToLifecycle(lifecycle: Lifecycle) {
-        lifecycle.addObserver(this)
-    }
-
-    fun getPlayerView(): YouTubePlayerView = youTubePlayerView
-
-
-    fun playlist(queries: List<String>) {
-        if (queries.isEmpty()) return
-        isPlayingPlaylist = true
-        state.value = MusicState.LOADING
-        currentPlaylistIndex = 0
-        playlistVideos = queries
-        playNextInPlaylist()
-    }
-
-    private fun playNextInPlaylist() {
-        if (!isPlayingPlaylist || currentPlaylistIndex >= playlistVideos.size) {
-            stop()
-            return
         }
-        val query = playlistVideos[currentPlaylistIndex]
-        currentPlaylistIndex++
-        state.value = MusicState.LOADING
-        extractionStarted = false
 
-        val searchUrl = "https://www.youtube.com/results?search_query=${query.replace(" ", "+")}+music"
-        webView?.destroy()
-        webView = WebView(context).apply {
-            settings.javaScriptEnabled = true
-            settings.domStorageEnabled = true
-            webChromeClient = WebChromeClient()
-            webViewClient = object : WebViewClient() {
-                override fun onPageFinished(view: WebView?, url: String?) {
-                    super.onPageFinished(view, url)
-                    if (!extractionStarted) {
-                        extractionStarted = true
-                        scope.launch { extractVideoIdWithRetry(view, 5, 2000L) }
-                    }
-                }
-            }
-            loadUrl(searchUrl)
-        }
+        createWebView()
     }
 
+    // Suspend function to retry extraction
     private suspend fun extractVideoIdWithRetry(view: WebView?, retries: Int, delayMs: Long) {
+        Log.d("MusicPlayerController", "${retries} retries")
+
         if (view == null || retries <= 0) {
             state.value = MusicState.STOPPED
+            Log.d("MusicPlayerController", "Giving up after retries")
             return
         }
 
@@ -140,25 +91,36 @@ class MusicPlayerController(private val context: Context) : LifecycleEventObserv
             val cleanId = jsResult.replace("\"", "")
             currentVideoId.value = cleanId
             state.value = MusicState.PLAYING
-            youTubePlayer?.loadVideo(cleanId, 0f)
+            Log.d("MusicPlayerController", "Found videoId: $cleanId")
         } else {
+            Log.d("MusicPlayerController", "No videoId found, retrying in $delayMs ms, retries left: ${retries - 1}")
             delay(delayMs)
             extractVideoIdWithRetry(view, retries - 1, delayMs)
         }
     }
 
     fun stop() {
-        isPlayingPlaylist = false
-        youTubePlayer?.pause()
+        Log.d("MusicPlayerController", "Stopping music")
         state.value = MusicState.IDLE
         currentVideoId.value = null
+        extractionStarted = false
         webView?.destroy()
         webView = null
-    }
-
-    override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
-        if (event == Lifecycle.Event.ON_DESTROY) {
-            youTubePlayerView.release()
-        }
+        // Cancel all pending coroutines
+        scope.coroutineContext.cancelChildren()
     }
 }
+
+
+//fun handleVoiceCommand(command: String) {
+//    val controller = MusicPlayerManager.get()
+//    when {
+//        command.contains("play", ignoreCase = true) -> {
+//            val query = extractQueryFromCommand(command) // your logic
+//            controller.play(query)
+//        }
+//        command.equals("stop", ignoreCase = true) -> {
+//            controller.stop()
+//        }
+//    }
+//}

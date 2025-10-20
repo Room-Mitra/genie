@@ -24,14 +24,17 @@ export default function Navbar() {
       <Link href="/#features" className="nav-link" onClick={closeMenu}>
         Features
       </Link>
-      <Link href="/blogs" className="nav-link" onClick={closeMenu}>
-        Blogs
+      <Link href="/blog" className="nav-link" onClick={closeMenu}>
+        Blog
       </Link>
-      <Link href="/#contact" className="nav-link" onClick={closeMenu}>
+      <Link href="https://app.roommitra.com" className="nav-link" onClick={closeMenu}>
         Login
       </Link>
 
-      <Link href="#contact" className="cta-btn px-6 py-3 bg-indigo-600 text-white rounded-lg">
+      <Link
+        href="/#request-a-demo"
+        className="cta-btn px-6 py-3 bg-indigo-600 text-white rounded-lg"
+      >
         Request a Demo
       </Link>
     </>
@@ -101,24 +104,18 @@ export default function Navbar() {
             <Link href="/#features" className="mobile-link" onClick={closeMenu}>
               Features
             </Link>
-            <Link href="/blogs" className="mobile-link" onClick={closeMenu}>
-              Blogs
+            <Link href="/blog" className="mobile-link" onClick={closeMenu}>
+              Blog
             </Link>
-            <Link href="/#contact" className="mobile-link" onClick={closeMenu}>
+            <Link href="https://app.roommitra.com" className="mobile-link" onClick={closeMenu}>
               Login
+            </Link>
+            <Link href="/#request-a-demo" className="mobile-link" onClick={closeMenu}>
+              Request a Demo
             </Link>
           </div>
         </div>
       </div>
-
-      {/* Optional dim backdrop on mobile when menu open */}
-      <div
-        onClick={closeMenu}
-        className={`md:hidden fixed inset-0 bg-black/30 transition-opacity ${
-          open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
-        aria-hidden="true"
-      />
     </nav>
   );
 }

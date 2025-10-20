@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { httpGet, httpPost } from 'Services/APIService';
-import { API_ENDPOINT } from 'Config/config';
+import { API_BASE_URL } from 'Config/config';
 import { DateAndTimePicker } from 'Common/DateTimePicker/DateAndTimePicker';
 
-const DEVICES_API_URI = '/devices';
-const GUEST_API_URI = '/guests';
-const BOOKING_API_URI = '/booking';
+const DEVICES_ENDPOINT = '/devices';
+const GUESTS_ENDPOINT = '/guests';
+const BOOKING_ENDPOINT = '/booking';
 
 const CheckIn = () => {
   const [roomNumber, setRoomNumber] = useState('');
@@ -22,7 +22,7 @@ const CheckIn = () => {
   }, []);
 
   const getAllRoomsData = async () => {
-    const allRoomsData = await httpGet(API_ENDPOINT + DEVICES_API_URI);
+    const allRoomsData = await httpGet(API_BASE_URL + DEVICES_ENDPOINT);
     const allRoomNumbers = allRoomsData.map((room) => room.roomId);
     setAllRoomNumbers(allRoomNumbers);
   };
@@ -48,7 +48,7 @@ const CheckIn = () => {
     setError(null);
     setIsFetchingGuestDetails(true);
 
-    const guestData = await httpGet(API_ENDPOINT + GUEST_API_URI + '/' + guestPhoneNumber);
+    const guestData = await httpGet(API_BASE_URL + GUESTS_ENDPOINT + '/' + guestPhoneNumber);
 
     setGuestDetails(guestData);
     setIsFetchingGuestDetails(false);
@@ -61,7 +61,7 @@ const CheckIn = () => {
     }
     setError(null);
     guestDetails.id = guestPhoneNumber;
-    await httpPost(API_ENDPOINT + GUEST_API_URI, guestDetails); //TODO:: everytime this is clicked, guest data is over ridden in DB.. needs to be a put, not a post
+    await httpPost(API_BASE_URL + GUESTS_ENDPOINT, guestDetails); //TODO:: everytime this is clicked, guest data is over ridden in DB.. needs to be a put, not a post
   };
 
   const handleCheckInClick = async () => {
@@ -85,7 +85,7 @@ const CheckIn = () => {
       guestName: guestDetails.name,
       guestEmail: guestDetails.email,
     };
-    await httpPost(API_ENDPOINT + BOOKING_API_URI, bookingDetails); //TODO:: everytime this is clicked, guest data is over ridden in DB.. needs to be a put, not a post
+    await httpPost(API_BASE_URL + BOOKING_ENDPOINT, bookingDetails); //TODO:: everytime this is clicked, guest data is over ridden in DB.. needs to be a put, not a post
   };
 
   return (

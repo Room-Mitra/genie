@@ -2,9 +2,9 @@ import React from 'react';
 import DataTable from 'Common/DataTable/DataTable';
 import { useEffect, useState } from 'react';
 import { httpGet, httpPut } from 'Services/APIService';
-import { API_ENDPOINT } from 'Config/config';
+import { API_BASE_URL } from 'Config/config';
 
-const DEVICES_API_URI = '/devices';
+const DEVICES_ENDPOINT = '/devices';
 
 const Rooms = () => {
   const [allDevices, setAllDevices] = useState(null);
@@ -14,7 +14,7 @@ const Rooms = () => {
   }, []);
 
   const getAllRoomsData = async () => {
-    const rooms = await httpGet(API_ENDPOINT + DEVICES_API_URI, true);
+    const rooms = await httpGet(API_BASE_URL + DEVICES_ENDPOINT, true);
     rooms.sort((b, a) => b.roomId - a.roomId);
     setAllDevices(rooms);
     setRowData(rooms);
@@ -22,7 +22,7 @@ const Rooms = () => {
 
   const SaveChangesButtonComponent = (rowInfo) => {
     const handleClick = async (rowInfo, _) => {
-      await httpPut(API_ENDPOINT + DEVICES_API_URI, [rowInfo.data]);
+      await httpPut(API_BASE_URL + DEVICES_ENDPOINT, [rowInfo.data]);
       getAllRoomsData();
       alert(`Data updated for ${rowInfo.data.roomId}`);
     };
