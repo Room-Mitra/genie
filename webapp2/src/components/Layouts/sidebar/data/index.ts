@@ -1,4 +1,4 @@
-import { HandRaisedIcon } from "@heroicons/react/24/outline";
+import { BookOpenIcon, HandRaisedIcon } from "@heroicons/react/24/outline";
 import * as Icons from "../icons";
 
 export const NAV_DATA = [
@@ -26,6 +26,16 @@ export const NAV_DATA = [
           {
             title: "Completed",
             url: "/requests/completed",
+          },
+        ],
+      },
+      {
+        title: "Bookings",
+        icon: BookOpenIcon,
+        items: [
+          {
+            title: "+ Create New",
+            url: "/bookings/new",
           },
         ],
       },

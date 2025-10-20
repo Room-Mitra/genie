@@ -21,6 +21,8 @@ type InputGroupProps = {
   height?: "sm" | "default";
   defaultValue?: string;
   showPasswordToggle?: boolean;
+  min?: string | number;
+  onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
 };
 
 const InputGroup: React.FC<InputGroupProps> = ({
@@ -34,6 +36,8 @@ const InputGroup: React.FC<InputGroupProps> = ({
   handleChange,
   icon,
   showPasswordToggle,
+  min,
+  onFocus,
   ...props
 }) => {
   const id = useId();
@@ -85,6 +89,8 @@ const InputGroup: React.FC<InputGroupProps> = ({
           required={required}
           disabled={disabled}
           data-active={active}
+          onFocus={onFocus}
+          min={min}
         />
 
         {icon}

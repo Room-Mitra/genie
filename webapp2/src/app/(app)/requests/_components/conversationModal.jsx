@@ -1,6 +1,5 @@
 "use client";
 import { useActionState } from "react";
-import { useEffect } from "react";
 import { useState } from "react";
 import {
   Dialog,
@@ -8,10 +7,7 @@ import {
   DialogPanel,
   DialogTitle,
 } from "@headlessui/react";
-import {
-  ChatBubbleLeftRightIcon,
-  ExclamationTriangleIcon,
-} from "@heroicons/react/24/outline";
+import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
 import { Spinner } from "@material-tailwind/react";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
@@ -28,6 +24,7 @@ export default function ConversationModal({ getConversation, roomId }) {
           type="submit"
           disabled={isPending}
           onClick={() => setOpen(true)}
+          className="bg-primary text-white p-2 rounded-lg dark:bg-indigo-800 hover:bg-primary/80 hover:dark:bg-indigo-900"
         >
           {isPending ? "Loading..." : "View Conversation"}
         </button>
