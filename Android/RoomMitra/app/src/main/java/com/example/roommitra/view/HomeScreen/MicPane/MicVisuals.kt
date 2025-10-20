@@ -1,5 +1,6 @@
 package com.example.roommitra.view
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -35,10 +36,6 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun MicButton(micColor: Color, pulseScale: Float, onMicClick: () -> Unit) {
     Box(contentAlignment = Alignment.Center) {
-//        if (pulseScale > 1f) WaveAnimation(micColor)
-        if (pulseScale > 1f && micColor != MaterialTheme.colorScheme.outline) {
-            WaveAnimation(micColor)
-        }
         Box(
             modifier = Modifier
                 .size(100.dp)
@@ -59,36 +56,6 @@ fun MicButton(micColor: Color, pulseScale: Float, onMicClick: () -> Unit) {
             )
         }
     }
-}
-
-@Composable
-private fun WaveAnimation(color: Color) {
-    val transition = rememberInfiniteTransition(label = "wave")
-    val scale by transition.animateFloat(
-        initialValue = 1f,
-        targetValue = 2.5f,
-        animationSpec = infiniteRepeatable(
-            tween(1500, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "scale"
-    )
-    val alpha by transition.animateFloat(
-        initialValue = 0.4f,
-        targetValue = 0f,
-        animationSpec = infiniteRepeatable(
-            tween(1500, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "alpha"
-    )
-
-    Box(
-        modifier = Modifier
-            .size(120.dp)
-            .scale(scale)
-            .background(color.copy(alpha = alpha), CircleShape)
-    )
 }
 
 @Composable
@@ -152,19 +119,51 @@ fun SpeakingBars(micColor: Color) {
 @Composable
 fun MicVisuals(
     listenState: ListenState,
-    micColor: Color,
-    pulseScale: Float,
     hasRecordPerm: Boolean,
     onRequestPermission: () -> Unit,
     onStartListening: () -> Unit,
     onStopListening: () -> Unit,
     onUpdateState: (ListenState) -> Unit
 ) {
+    /**
+     * Animate microphone color based on current listening state.
+     * Each state maps to a distinct theme color for visual feedback.
+     */
+    val micColor by animateColorAsState(
+        when (listenState) {
+            ListenState.Listening -> MaterialTheme.colorScheme.primary     // Blue-ish
+            ListenState.Thinking -> MaterialTheme.colorScheme.tertiary     // Orange-ish
+            ListenState.Speaking -> MaterialTheme.colorScheme.secondary    // Green-ish
+            ListenState.Muted -> Color.Gray
+            else -> MaterialTheme.colorScheme.outline
+        }
+    )
+
+    /**
+     * Create a subtle "pulsing" animation when listening.
+     * The mic button scales up and down continuously while the system listens.
+     */
+    val pulseScale: Float = when (listenState) {
+        ListenState.Listening -> {
+            val transition = rememberInfiniteTransition(label = "pulse")
+            transition.animateFloat(
+                initialValue = 1f,
+                targetValue = 1.15f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(900, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "pulseAnim"
+            ).value
+        }
+
+        else -> 1f
+    }
     Box(contentAlignment = Alignment.Center) {
         when (listenState) {
             ListenState.Idle, ListenState.Listening -> {
                 // The main mic button – tap to start/stop listening
-                MicButton(micColor, pulseScale) {
+                MicButton(micColor, pulseScale*2) {
                     if (!hasRecordPerm) {
                         onRequestPermission()
                         return@MicButton
