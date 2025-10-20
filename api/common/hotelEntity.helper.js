@@ -8,6 +8,7 @@ function withTimestamps(input) {
   const now = Math.floor(Date.now() / 1000);
   return {
     createdAt: input.createdAt ?? new Date(now * 1000).toISOString(),
+    updatedAt: input.updatedAt ?? new Date(now * 1000).toISOString(),
     ...input,
   };
 }

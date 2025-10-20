@@ -56,12 +56,14 @@ export async function queryAllHotels({ limit = 25, nextToken }) {
 
 /** Query latest version of a hotel by id using pk and time-based sk */
 export async function queryLatestHotelById(hotelId) {
-  const pk = `HOTEL#${hotelId}`;
+  const pk = `CATALOG#HOTEL`;
+  const sk = `HOTEL#${hotelId}`;
+
   const params = {
     TableName: ENTITY_TABLE_NAME,
-    KeyConditionExpression: '#pk = :pk',
-    ExpressionAttributeNames: { '#pk': 'pk' },
-    ExpressionAttributeValues: { ':pk': pk },
+    KeyConditionExpression: '#pk = :pk and #sk = :sk',
+    ExpressionAttributeNames: { '#pk': 'pk', '#sk': 'sk' },
+    ExpressionAttributeValues: { ':pk': pk, ':sk': sk },
     ScanIndexForward: false, // newest first
     Limit: 1,
   };
