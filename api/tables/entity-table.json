@@ -9,34 +9,70 @@
       "AttributeType": "S"
     },
     {
-      "AttributeName": "hotelId",
+      "AttributeName": "hotelType_pk",
       "AttributeType": "S"
     },
     {
-      "AttributeName": "entityTypeTimestamp",
+      "AttributeName": "hotelType_sk",
       "AttributeType": "S"
     },
     {
-      "AttributeName": "roomId",
+      "AttributeName": "roomType_pk",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "roomType_sk",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "status_pk",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "status_sk",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "assignee_pk",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "assignee_sk",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "booking_pk",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "booking_sk",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "conversation_pk",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "conversation_sk",
       "AttributeType": "S"
     }
   ],
-  "CreationDateTime": "2025-10-14T07:50:15.894Z",
+  "CreationDateTime": "2025-10-19T15:28:56.539Z",
   "DeletionProtectionEnabled": false,
   "GlobalSecondaryIndexes": [
     {
-      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/gsi_hotelId_entityTypeTs",
-      "IndexName": "gsi_hotelId_entityTypeTs",
+      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/GSI_RoomType",
+      "IndexName": "GSI_RoomType",
       "IndexSizeBytes": 0,
       "IndexStatus": "ACTIVE",
       "ItemCount": 0,
       "KeySchema": [
         {
-          "AttributeName": "hotelId",
+          "AttributeName": "roomType_pk",
           "KeyType": "HASH"
         },
         {
-          "AttributeName": "entityTypeTimestamp",
+          "AttributeName": "roomType_sk",
           "KeyType": "RANGE"
         }
       ],
@@ -49,18 +85,114 @@
       }
     },
     {
-      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/gsi_roomId_entityTypeTs",
-      "IndexName": "gsi_roomId_entityTypeTs",
+      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/GSI_HotelType",
+      "IndexName": "GSI_HotelType",
       "IndexSizeBytes": 0,
       "IndexStatus": "ACTIVE",
       "ItemCount": 0,
       "KeySchema": [
         {
-          "AttributeName": "roomId",
+          "AttributeName": "hotelType_pk",
           "KeyType": "HASH"
         },
         {
-          "AttributeName": "entityTypeTimestamp",
+          "AttributeName": "hotelType_sk",
+          "KeyType": "RANGE"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "ALL"
+      },
+      "ProvisionedThroughput": {
+        "ReadCapacityUnits": 3,
+        "WriteCapacityUnits": 3
+      }
+    },
+    {
+      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/GSI_AssigneeWorkload",
+      "IndexName": "GSI_AssigneeWorkload",
+      "IndexSizeBytes": 0,
+      "IndexStatus": "ACTIVE",
+      "ItemCount": 0,
+      "KeySchema": [
+        {
+          "AttributeName": "assignee_pk",
+          "KeyType": "HASH"
+        },
+        {
+          "AttributeName": "assignee_sk",
+          "KeyType": "RANGE"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "ALL"
+      },
+      "ProvisionedThroughput": {
+        "ReadCapacityUnits": 3,
+        "WriteCapacityUnits": 3
+      }
+    },
+    {
+      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/GSI_RequestStatus",
+      "IndexName": "GSI_RequestStatus",
+      "IndexSizeBytes": 0,
+      "IndexStatus": "ACTIVE",
+      "ItemCount": 0,
+      "KeySchema": [
+        {
+          "AttributeName": "status_pk",
+          "KeyType": "HASH"
+        },
+        {
+          "AttributeName": "status_sk",
+          "KeyType": "RANGE"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "ALL"
+      },
+      "ProvisionedThroughput": {
+        "ReadCapacityUnits": 3,
+        "WriteCapacityUnits": 3
+      }
+    },
+    {
+      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/GSI_BookingType",
+      "IndexName": "GSI_BookingType",
+      "IndexSizeBytes": 0,
+      "IndexStatus": "ACTIVE",
+      "ItemCount": 0,
+      "KeySchema": [
+        {
+          "AttributeName": "booking_pk",
+          "KeyType": "HASH"
+        },
+        {
+          "AttributeName": "booking_sk",
+          "KeyType": "RANGE"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "ALL"
+      },
+      "ProvisionedThroughput": {
+        "ReadCapacityUnits": 3,
+        "WriteCapacityUnits": 3
+      }
+    },
+    {
+      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/GSI_ConversationMessage",
+      "IndexName": "GSI_ConversationMessage",
+      "IndexSizeBytes": 0,
+      "IndexStatus": "ACTIVE",
+      "ItemCount": 0,
+      "KeySchema": [
+        {
+          "AttributeName": "conversation_pk",
+          "KeyType": "HASH"
+        },
+        {
+          "AttributeName": "conversation_sk",
           "KeyType": "RANGE"
         }
       ],
@@ -73,7 +205,7 @@
       }
     }
   ],
-  "ItemCount": 2,
+  "ItemCount": 0,
   "KeySchema": [
     {
       "AttributeName": "pk",
@@ -93,6 +225,6 @@
   },
   "TableArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY",
   "TableName": "ENTITY",
-  "TableSizeBytes": 410,
+  "TableSizeBytes": 0,
   "TableStatus": "ACTIVE"
 }

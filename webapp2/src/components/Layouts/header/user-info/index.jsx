@@ -43,7 +43,7 @@ export function UserInfo() {
             <Image
               src={user?.image?.url}
               className="size-12"
-              alt={`Avatar of ${user?.name}`}
+              alt={`Avatar of ${user?.firstName} ${user?.lastName}`}
               role="presentation"
               width={200}
               height={200}
@@ -54,7 +54,9 @@ export function UserInfo() {
             </div>
           )}
           <figcaption className="flex items-center gap-1 font-medium text-dark dark:text-dark-6 max-[1024px]:sr-only">
-            <span>{user?.name}</span>
+            <span>
+              {user?.firstName} {user?.lastName}
+            </span>
 
             <ChevronUpIcon
               aria-hidden
@@ -79,7 +81,7 @@ export function UserInfo() {
             <Image
               src={user?.image?.url}
               className="size-12"
-              alt={`Avatar of ${user?.name}`}
+              alt={`Avatar of ${user?.firstName} ${user?.lastName}`}
               role="presentation"
               width={200}
               height={200}
@@ -92,7 +94,7 @@ export function UserInfo() {
 
           <figcaption className="space-y-1 text-base font-medium">
             <div className="mb-2 leading-none text-dark dark:text-white">
-              {user?.name}
+              {user?.firstName} {user?.lastName}
             </div>
 
             <div className="leading-none text-gray-6">{user?.email}</div>

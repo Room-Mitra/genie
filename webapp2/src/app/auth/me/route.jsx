@@ -10,7 +10,8 @@ export async function GET() {
 
   return NextResponse.json({
     email: user.email,
-    name: user.name,
+    firstName: user.firstName,
+    lastName: user.lastName,
     groups: user?.groups,
   });
 }

@@ -5,19 +5,20 @@ const router = express.Router();
 
 router.post('/sign-up', async (req, res) => {
   try {
-    const { name, email, password } = req.body ?? {};
+    const { firstName, lastName, email, password } = req.body ?? {};
 
     // Basic validation
-    if (!name || !email || !password) {
-      return res.status(400).json({ error: 'name, email, password are required' });
+    if (!firstName || !lastName || !email || !password) {
+      return res.status(400).json({ error: 'first name, last name, email, password are required' });
     }
 
-    const user = await UserService.signUp({ name, email, password });
+    const user = await UserService.signUp({ firstName, lastName, email, password });
 
     return res.status(201).json({
       user: {
         userId: user.userId,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
         createdAt: user.createdAt,
       },
@@ -25,7 +26,7 @@ router.post('/sign-up', async (req, res) => {
   } catch (err) {
     if (
       err.code === 'TransactionCanceledException' &&
-      err?.CancellationReasons?.[0].Code === 'ConditionalCheckFailed'
+      err?.CancellationReasons?.filter((r) => r.Code === 'ConditionalCheckFailed')?.length > 0
     ) {
       // Email already taken due to our transactional guard
       return res.status(409).json({ error: 'Email already registered' });

@@ -4,6 +4,7 @@
 api/node_modules/
 api/.env*
 api/config/*.pem
+
 webapp/node_modules/
 
 # Environment files
