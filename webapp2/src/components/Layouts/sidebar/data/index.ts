@@ -34,7 +34,7 @@ export const NAV_DATA = [
         icon: BookOpenIcon,
         items: [
           {
-            title: "New",
+            title: "+ Create New",
             url: "/bookings/new",
           },
         ],

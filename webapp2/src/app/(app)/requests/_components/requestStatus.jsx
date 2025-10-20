@@ -10,14 +10,14 @@ export default function RequestStatus({ status }) {
 
   return (
     <>
-      <button
+      <div
         className={cn(
-          "rounded-full bg-orange-500 px-3 py-2 font-medium text-white",
+          "rounded-full bg-orange-500 px-3 py-2 font-medium text-white w-fit",
           color[status],
         )}
       >
         {status}
-      </button>
+      </div>
     </>
   );
 }

@@ -5,19 +5,19 @@ import RequestStatus from "../_components/requestStatus";
 
 export default async function Page() {
   const columns = [
-    { key: "time", label: "TIME" },
+    { key: "requestedAt", label: "REQUESTED AT" },
     { key: "status", label: "STATUS" },
+    { key: "completedAt", label: "COMPLETED AT" },
     { key: "roomNumber", label: "ROOM NUMBER" },
     { key: "category", label: "CATEGORY" },
     { key: "summary", label: "SUMMARY" },
-
     { key: "viewConversation", label: "VIEW CONVERSATION", sortable: false },
-    { key: "acknowledge", label: "ACKNOWLEDGE", sortable: false },
   ];
 
   const data = [
     {
-      time: "10:00 AM",
+      requestedAt: "10:00 AM",
+      completedAt: "10:30 AM",
       roomNumber: "136",
       category: "Room Service",
       summary: "Breakfast",
@@ -25,10 +25,10 @@ export default async function Page() {
       viewConversation: (
         <ConversationModal getConversation={getConversation} roomId={136} />
       ),
-      acknowledge: acknowledge("136"),
     },
     {
-      time: "10:10 AM",
+      requestedAt: "10:10 AM",
+      completedAt: "10:30 AM",
       roomNumber: "247",
       category: "Housekeeping",
       summary: "Room Cleaning",
@@ -36,11 +36,11 @@ export default async function Page() {
       viewConversation: (
         <ConversationModal getConversation={getConversation} roomId={247} />
       ),
-      acknowledge: acknowledge("247"),
     },
 
     {
-      time: "10:15 AM",
+      requestedAt: "10:15 AM",
+      completedAt: "10:30 AM",
       roomNumber: "359",
       category: "Housekeeping",
       summary: "Fresh towels",
@@ -48,10 +48,10 @@ export default async function Page() {
       viewConversation: (
         <ConversationModal getConversation={getConversation} roomId={359} />
       ),
-      acknowledge: acknowledge("359"),
     },
     {
-      time: "9:45 AM",
+      requestedAt: "9:45 AM",
+      completedAt: "10:30 AM",
       roomNumber: "982",
       category: "Room Service",
       summary: "Breakfast",
@@ -59,16 +59,10 @@ export default async function Page() {
       viewConversation: (
         <ConversationModal getConversation={getConversation} roomId={982} />
       ),
-      acknowledge: acknowledge("982"),
     },
   ];
 
-  function acknowledge(a) {
-    return async () => {
-      "use server";
-      console.log("acknowledge", a);
-    };
-  }
+
 
   return (
     <div className="rounded-[10px] bg-white p-6 dark:bg-gray-dark">

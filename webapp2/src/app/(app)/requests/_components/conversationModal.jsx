@@ -24,6 +24,7 @@ export default function ConversationModal({ getConversation, roomId }) {
           type="submit"
           disabled={isPending}
           onClick={() => setOpen(true)}
+          className="bg-primary text-white p-2 rounded-lg dark:bg-indigo-800 hover:bg-primary/80 hover:dark:bg-indigo-900"
         >
           {isPending ? "Loading..." : "View Conversation"}
         </button>

@@ -5,7 +5,7 @@ import RequestStatus from "../_components/requestStatus";
 
 export default async function Page() {
   const columns = [
-    { key: "time", label: "TIME" },
+    { key: "requestedAt", label: "REQUESTED AT" },
     { key: "status", label: "STATUS" },
     { key: "roomNumber", label: "ROOM NUMBER" },
     { key: "category", label: "CATEGORY" },
@@ -17,7 +17,7 @@ export default async function Page() {
 
   const data = [
     {
-      time: "10:00 AM",
+      requestedAt: "10:00 AM",
       roomNumber: "136",
       category: "Room Service",
       summary: "Breakfast",
@@ -28,7 +28,7 @@ export default async function Page() {
       acknowledge: acknowledge("136"),
     },
     {
-      time: "10:10 AM",
+      requestedAt: "10:10 AM",
       roomNumber: "247",
       category: "Housekeeping",
       summary: "Room Cleaning",
@@ -40,7 +40,7 @@ export default async function Page() {
     },
 
     {
-      time: "10:15 AM",
+      requestedAt: "10:15 AM",
       roomNumber: "359",
       category: "Housekeeping",
       summary: "Fresh towels",
@@ -51,7 +51,7 @@ export default async function Page() {
       acknowledge: acknowledge("359"),
     },
     {
-      time: "9:45 AM",
+      requestedAt: "9:45 AM",
       roomNumber: "982",
       category: "Room Service",
       summary: "Breakfast",
