@@ -35,7 +35,7 @@ export const getRoomInfoFromDeviceId = (deviceId) => {
   const allDevices = getDevices();
   const deviceIndex = allDevices.findIndex((device) => device.deviceId === deviceId);
   if (deviceIndex === -1) {
-    throw new Error('Invalid Device');
+    throw new Error('Invalid Device: ' + deviceId);
   }
   return {
     roomId: allDevices[deviceIndex].roomId,

@@ -30,6 +30,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun LoginScreen(
     onBackClick: () -> Unit = {},
+    apiService: ApiService
 ) {
     var hotelId by remember { mutableStateOf("") }
     var roomNumber by remember { mutableStateOf("") }
@@ -47,7 +48,6 @@ fun LoginScreen(
 
     val context = LocalContext.current
     val sessionManager = remember { SessionManager(context) }
-    val apiService = ApiService(context)
 
     fun onLogin(hotelId: String, roomNumber: String, password: String) {
 

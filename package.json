@@ -1,16 +1,16 @@
 {
   "type": "module",
   "devDependencies": {
-    "eslint": "8.57.0",
     "@eslint/js": "^9.29.0",
-    "globals": "^15.11.0",
+    "@next/eslint-plugin-next": "^14.2.5",
+    "eslint": "8.57.0",
+    "eslint-plugin-jsx-a11y": "^6.9.0",
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^5.0.0",
-    "eslint-plugin-jsx-a11y": "^6.9.0",
-    "@next/eslint-plugin-next": "^14.2.5",
-    "prettier": "^3.3.3",
+    "globals": "^15.11.0",
+    "husky": "^9.1.6",
     "lint-staged": "^15.2.9",
-    "husky": "^9.1.6"
+    "prettier": "^3.3.3"
   },
   "lint-staged": {
     "api/**/*.{js,jsx,ts,tsx}": [
@@ -35,6 +35,7 @@
   },
   "dependencies": {
     "dotenv": "^16.5.0",
-    "nvm": "^0.0.4"
+    "nvm": "^0.0.4",
+    "prettier-plugin-tailwindcss": "^0.6.14"
   }
 }

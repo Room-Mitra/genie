@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { httpGet, httpPut } from 'Services/APIService';
 import DataTable from 'Common/DataTable/DataTable';
-import { API_ENDPOINT } from 'Config/config';
+import { API_BASE_URL } from 'Config/config';
 
-const DEVICES_API_URI = '/devices';
+const DEVICES_ENDPOINT = '/devices';
 
 const Devices = () => {
   const [allDevices, setAllDevices] = useState(null);
@@ -13,7 +13,7 @@ const Devices = () => {
   }, []);
 
   const getAllDevicesData = async () => {
-    const devices = await httpGet(API_ENDPOINT + DEVICES_API_URI);
+    const devices = await httpGet(API_BASE_URL + DEVICES_ENDPOINT);
     devices.sort((b, a) => b.roomId - a.roomId);
     setAllDevices(devices);
     setRowData(devices);
@@ -21,7 +21,7 @@ const Devices = () => {
 
   const SaveChangesButtonComponent = (rowInfo) => {
     const handleClick = async (rowInfo, _) => {
-      await httpPut(API_ENDPOINT + DEVICES_API_URI, [rowInfo.data]);
+      await httpPut(API_BASE_URL + DEVICES_ENDPOINT, [rowInfo.data]);
       getAllDevicesData();
       alert('Data updated');
     };
