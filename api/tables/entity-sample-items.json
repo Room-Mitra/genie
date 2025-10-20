@@ -74,7 +74,10 @@
       "email": "chai@roommitra.com",
       "passwordHash": "$2b$12$lrEGGnjanAHVzxSLVhrYD.PIA.9hZOaQ6xyozOwEB08UMkJTJGWEi",
       "createdAt": "2025-10-17T11:26:04.741Z",
-      "updatedAt": "2025-10-17T11:26:04.741Z"
+      "updatedAt": "2025-10-17T11:26:04.741Z",
+
+      "hotelType_pk": "HOTEL#H1",
+      "hotelType_sk": "USER#01K7RYP"
     }
   ],
   "REQUEST": [
@@ -136,6 +139,7 @@
       "conversationId": "C1001",
       "hotelId": "H1",
       "roomId": "R247",
+      "bookingId": "B112",
       "channel": "tablet",
       "status": "Resolved",
       "createdAtEpoch": 1730000000,

@@ -52,10 +52,6 @@ local.properties
 
 dynamodb-local-data/
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 6d663b2187cbe4acd520f7594570c02543d6744c
 mycroft-precise/data
 mycroft-precise/data2
 
