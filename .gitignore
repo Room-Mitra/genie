@@ -8,11 +8,6 @@ api/node_modules/
 api/.env*
 api/config/*.pem
 webapp/node_modules/
-api/node_modules/*
-api/.env*
-api/config/*.pem
-
-
 
 # Environment files
 .env
