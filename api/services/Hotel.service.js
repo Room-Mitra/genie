@@ -70,15 +70,15 @@ export async function addStaffToHotel(hotelId, userPayload) {
   const userId = userPayload.userId || ulid();
 
   // 3) Ensure user exists (create PROFILE row if missing)
-  const existingUser = await userRepo.getUserProfileById(userId);
-  if (!existingUser) {
+  let user = await userRepo.getUserProfileById(userId);
+  if (!user) {
     if (!userPayload.email || !userPayload.password || !userPayload.name) {
       const err = new Error('require email, password and name to create user');
       err.status = 400;
       throw err;
     }
 
-    const user = {
+    const newUser = {
       userId,
       name: userPayload.name || '',
       email: userPayload.email || '',
@@ -86,22 +86,21 @@ export async function addStaffToHotel(hotelId, userPayload) {
       password: userPayload.password || 'Room$123', // default password
     };
 
-    await userRepo.transactCreateUserWithEmailGuard({ user });
+    await userRepo.transactCreateUserWithEmailGuard({ user: newUser });
+    user = newUser;
   }
 
-  // 4) Create staff membership under the hotel (idempotent)
-  const role = userPayload.role || 'STAFF';
-  const staffItem = await staffRepo.addStaff({
+  // 4) Add STAFF row for (hotelId, userId)
+  await staffRepo.addStaff({
     hotelId,
     userId,
-    role,
+    role: 'STAFF',
   });
 
   return {
     message: 'Staff added to hotel',
     hotelId,
     userId,
-    role,
-    staff: staffItem,
+    role: 'STAFF',
   };
 }

@@ -4,7 +4,6 @@ import * as hotelService from '#services/Hotel.service.js';
 import express from 'express';
 const router = express.Router();
 
-// register all staff
 router.post('/', async (req, res) => {
   try {
     const { hotelId, user } = req.body || {};
