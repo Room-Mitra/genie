@@ -18,7 +18,8 @@ router.post('/', async (req, res) => {
       expiresInSeconds: result.expiresInSeconds,
       user: {
         userId: result.user.userId,
-        name: result.user.name,
+        firstName: result.user.firstName,
+        lastName: result.user.lastName,
         email: result.user.email,
         createdAt: result.user.createdAt,
         hotelId: result.user?.hotelId,

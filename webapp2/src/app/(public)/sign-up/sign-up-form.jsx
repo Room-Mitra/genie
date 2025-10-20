@@ -6,13 +6,13 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 
-async function signUpUser({ name, email, password }) {
+async function signUpUser({ firstName, lastName, email, password }) {
   const res = await fetch(`/api/user/sign-up`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ name, email, password }),
+    body: JSON.stringify({ firstName, lastName, email, password }),
   });
 
   if (!res.ok) {
@@ -44,7 +44,7 @@ export function SignUpForm() {
     e.preventDefault();
     setLoading(true);
 
-    const { name, email, password, repeatPassword } = data;
+    const { firstName, lastName, email, password, repeatPassword } = data;
 
     if (password != repeatPassword) {
       toast.error("Passwords don't match");
@@ -52,7 +52,7 @@ export function SignUpForm() {
     }
 
     try {
-      await signUpUser({ name, email, password });
+      await signUpUser({ firstName, lastName, email, password });
       toast("User signed up successfully!");
       router.replace("/login");
     } catch (err) {
@@ -72,15 +72,26 @@ export function SignUpForm() {
         </h2>
 
         <form onSubmit={handleSubmit}>
-          <InputGroup
-            label="Name"
-            type="text"
-            placeholder="Enter full name"
-            className="mb-4.5"
-            handleChange={handleChange}
-            name="name"
-            required={true}
-          />
+          <div className="grid grid-cols-1 sm:grid-cols-2">
+            <InputGroup
+              label="First Name"
+              type="text"
+              placeholder="Enter first name"
+              className="mb-4.5"
+              handleChange={handleChange}
+              name="firstName"
+              required={true}
+            />
+            <InputGroup
+              label="Last Name"
+              type="text"
+              placeholder="Enter last name"
+              className="mb-4.5 sm:ml-4"
+              handleChange={handleChange}
+              name="lastName"
+              required={true}
+            />
+          </div>
 
           <InputGroup
             label="Email"

@@ -91,7 +91,7 @@ export default function Page() {
           </div>
           <div className="mt-4">
             <h3 className="mb-1 text-heading-6 font-bold text-dark dark:text-white">
-              {user?.name}
+              {user?.firstName} {user?.lastName}
             </h3>
           </div>
         </div>
