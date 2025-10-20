@@ -38,13 +38,16 @@ class MusicPlayerController(private val context: Context) : LifecycleEventObserv
                 youTubePlayer = player
                 currentVideoId.value?.let { player.loadVideo(it, 0f) }
 
-                // Default UI controller to hide clickable overlays
+                // Use DefaultPlayerUiController to hide clickable overlays
                 val uiController = DefaultPlayerUiController(this@apply, player)
                 this@apply.setCustomPlayerUi(uiController.rootView)
+
+                // Hide all UI elements
                 uiController.showUi(false)
                 uiController.showMenuButton(false)
                 uiController.showFullscreenButton(false)
                 uiController.showVideoTitle(false)
+
             }
 
             override fun onStateChange(player: YouTubePlayer, stateConst: PlayerConstants.PlayerState) {
@@ -52,7 +55,8 @@ class MusicPlayerController(private val context: Context) : LifecycleEventObserv
                     PlayerConstants.PlayerState.PLAYING -> this@MusicPlayerController.state.value = MusicState.PLAYING
                     PlayerConstants.PlayerState.ENDED -> {
                         scope.launch {
-                            playNextInPlaylist()
+                            Log.d("MusicPlayerController", "Video ended -> auto stopping player")
+                            stop()
                         }
                     }
                     else -> { /* BUFFERING, UNSTARTED, etc — ignore */ }
@@ -63,34 +67,16 @@ class MusicPlayerController(private val context: Context) : LifecycleEventObserv
 
     private var youTubePlayer: YouTubePlayer? = null
 
-    private var playlistVideos: List<String> = emptyList()
-    private var currentPlaylistIndex = 0
-    private var isPlayingPlaylist = false
-
     fun attachToLifecycle(lifecycle: Lifecycle) {
         lifecycle.addObserver(this)
     }
 
     fun getPlayerView(): YouTubePlayerView = youTubePlayerView
 
-
-    fun playlist(queries: List<String>) {
-        if (queries.isEmpty()) return
-        isPlayingPlaylist = true
+    fun play(query: String) {
+        if (query.isBlank()) return
         state.value = MusicState.LOADING
-        currentPlaylistIndex = 0
-        playlistVideos = queries
-        playNextInPlaylist()
-    }
-
-    private fun playNextInPlaylist() {
-        if (!isPlayingPlaylist || currentPlaylistIndex >= playlistVideos.size) {
-            stop()
-            return
-        }
-        val query = playlistVideos[currentPlaylistIndex]
-        currentPlaylistIndex++
-        state.value = MusicState.LOADING
+        currentVideoId.value = null
         extractionStarted = false
 
         val searchUrl = "https://www.youtube.com/results?search_query=${query.replace(" ", "+")}+music"
@@ -148,7 +134,6 @@ class MusicPlayerController(private val context: Context) : LifecycleEventObserv
     }
 
     fun stop() {
-        isPlayingPlaylist = false
         youTubePlayer?.pause()
         state.value = MusicState.IDLE
         currentVideoId.value = null
