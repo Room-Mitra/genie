@@ -41,14 +41,11 @@ import com.example.roommitra.view.ConciergeScreen
 
 import com.example.roommitra.view.GlobalSnackbarHost
 import com.example.roommitra.view.LoginScreen
-import com.example.roommitra.view.MiniPlayer
-import com.example.roommitra.view.MusicPlayerController
-import com.example.roommitra.view.MusicPlayerManager
 import com.example.roommitra.view.SnackbarManager
 
 
 class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
-    private lateinit var musicController: MusicPlayerController
+
     private val apiService by lazy { ApiService(this) }
 
     override fun onStart() {
@@ -66,10 +63,6 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // initialize singleton
-        MusicPlayerManager.init(applicationContext)
-        musicController = MusicPlayerManager.get()
-
         TrackingService.initialize(this, apiService)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         hideSystemUI()
@@ -102,11 +95,6 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                             }
                         }
                         GlobalSnackbarHost(snackbarFlow = SnackbarManager.messages)
-
-
-                        // MiniPlayer overlay — always rendered at root level so it survives navigation
-                        // Place it last so it draws above NavHost
-                        MiniPlayer(controller = musicController)
                     }
                 }
             }
