@@ -34,15 +34,9 @@ fun WidgetsPane(
     val cards = remember {
         listOf(
             WidgetCard("Restaurant", Icons.Default.Restaurant) { widgetClickHandler("menu") },
-            WidgetCard(
-                "Entertainment",
-                Icons.Default.Movie
-            ) { widgetClickHandler("entertainment") },
+            WidgetCard(   "Entertainment",   Icons.Default.Movie ) { widgetClickHandler("entertainment") },
             WidgetCard("Amenities", Icons.Default.Pool) { widgetClickHandler("amenities") },
-            WidgetCard(
-                "Housekeeping",
-                Icons.Default.CleaningServices
-            ) { widgetClickHandler("housekeeping") },
+            WidgetCard( "Housekeeping", Icons.Default.CleaningServices) { widgetClickHandler("housekeeping") },
             WidgetCard("Concierge", Icons.Default.DirectionsCar) { widgetClickHandler("concierge") }
             //            WidgetCard("Your Requests", Icons.Default.ListAlt) { },
 //            WidgetCard("Reception", Icons.Default.Call) { },

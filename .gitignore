@@ -1,9 +1,6 @@
-Lambda/node_modules/
-Lambda/*.zip
-Lambda/*.DS_Store
 ./*DS_Store
 **/*.DS_Store
-Lambda/.env
+
 api/node_modules/
 api/.env*
 api/config/*.pem
@@ -16,7 +13,6 @@ webapp/node_modules/
 .env.test.local
 .env.production
 .env.prod
-
 
 # Node
 node_modules/
@@ -54,11 +50,6 @@ local.properties
 # Models 
 
 dynamodb-local-data/
-
-AlexaSkill/RoomMitra/lambda/config.js
-AlexaSkill/RoomMitra/lambda/.env
-AlexaSkill/RoomMitra/lambda/*.env
-
 
 mycroft-precise/data
 mycroft-precise/data2
