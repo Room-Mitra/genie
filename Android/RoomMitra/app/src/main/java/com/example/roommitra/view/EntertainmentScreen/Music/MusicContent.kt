@@ -38,7 +38,7 @@ fun MusicContent(controller: MusicPlayerController) {
             } else {
                 Button(
                     onClick = {
-                        controller.play(query)
+                        controller.playlist(listOf(query, "slim shady","lose yourself"))
                         query = ""
                         focusManager.clearFocus() // <-- hides the keyboard
                     },
