@@ -1,13 +1,15 @@
-Lambda/node_modules/
-Lambda/*.zip
-Lambda/*.DS_Store
 ./*DS_Store
 **/*.DS_Store
-Lambda/.env
+
 api/node_modules/
 api/.env*
 api/config/*.pem
+api/node_modules/*
+api/.env*
+api/config/*.pem
+
 webapp/node_modules/
+
 
 # Environment files
 .env
@@ -54,10 +56,6 @@ local.properties
 # Models 
 
 dynamodb-local-data/
-
-AlexaSkill/RoomMitra/lambda/config.js
-AlexaSkill/RoomMitra/lambda/.env
-AlexaSkill/RoomMitra/lambda/*.env
 
 
 mycroft-precise/data
