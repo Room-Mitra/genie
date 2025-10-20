@@ -1,6 +1,5 @@
 "use client";
 import { useActionState } from "react";
-import { useEffect } from "react";
 import { useState } from "react";
 import {
   Dialog,
@@ -8,10 +7,7 @@ import {
   DialogPanel,
   DialogTitle,
 } from "@headlessui/react";
-import {
-  ChatBubbleLeftRightIcon,
-  ExclamationTriangleIcon,
-} from "@heroicons/react/24/outline";
+import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
 import { Spinner } from "@material-tailwind/react";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
