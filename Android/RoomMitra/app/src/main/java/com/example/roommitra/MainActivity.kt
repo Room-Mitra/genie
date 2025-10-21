@@ -44,6 +44,7 @@ import com.example.roommitra.view.LoginScreen
 import com.example.roommitra.view.MiniPlayer
 import com.example.roommitra.view.MusicPlayerController
 import com.example.roommitra.view.MusicPlayerManager
+import com.example.roommitra.view.NoActiveBookingScreen
 import com.example.roommitra.view.SnackbarManager
 
 
@@ -78,7 +79,7 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
             MaterialTheme {
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     AutoDimWrapper(window) {
-                        NavHost(navController = navController, startDestination = "home") {
+                        NavHost(navController = navController, startDestination = "no-active-booking") {
                             composable("home") {
                                 HomeScreen(  navController = navController )
                             }
@@ -99,6 +100,10 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                             }
                             composable("login") {
                                 LoginScreen(onBackClick = { navController.popBackStack() })
+                            }
+                            composable("no-active-booking") {
+//                                NoActiveBookingScreen(navController = navController)
+                                NoActiveBookingScreen()
                             }
                         }
                         GlobalSnackbarHost(snackbarFlow = SnackbarManager.messages)
