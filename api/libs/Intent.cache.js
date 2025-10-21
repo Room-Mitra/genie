@@ -14,7 +14,6 @@ const getDaysSinceEpoch = (timeStamp) => {
 export const warmCache = async () => {
   const today_daysSinceEpoch = getDaysSinceEpoch(+Date.now());
   ALL_INTENTS = await getIntentsForDateRange(today_daysSinceEpoch, TTL_IN_DAYS, true);
-  console.log('INTENTS CACHE HAS BEEN WARMED  ::  ', JSON.stringify(ALL_INTENTS));
   setTimerForTTL();
 };
 

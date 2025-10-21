@@ -16,9 +16,7 @@ router.post('/', async (req, res) => {
 // get guest details
 router.get('/:guestId', async (req, res) => {
   const guestId = req.params.guestId;
-  console.log('Looking up Guest Details for id = ' + guestId);
   const guestData = await getGuestDetails(guestId);
-  console.log(`Guest Data :: ${JSON.stringify(guestData)}`);
   res.send(guestData);
 });
 

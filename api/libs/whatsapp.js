@@ -38,7 +38,6 @@ export async function sendWhatsAppTemplate(toPhoneNumber, roomNumber) {
 
   try {
     const response = await axios.post(url, payload, { headers });
-    console.log('Message sent:', response.data);
   } catch (error) {
     console.error('Failed to send message:', error.response?.data || error.message);
   }

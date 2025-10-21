@@ -5,7 +5,6 @@ let ALL_DEVICES = [];
 export const warmCache = async () => {
   const devices = await fetchAllDevicesFromRepository(); // TODO :: function call should be made to service layer..call to repo layer is bad practise
   ALL_DEVICES = [...devices];
-  console.log('DEVICES CACHE HAS BEEN WARMED  :  ', JSON.stringify(ALL_DEVICES));
 };
 
 export const registerNewDevice = (device) => {

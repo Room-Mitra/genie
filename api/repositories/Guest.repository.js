@@ -19,7 +19,6 @@ export const addGuest = async (guest) => {
     Item: { ...addIdType(guest) },
   };
   await DDB.put(params).promise(); // TODO :: Handle Error
-  // console.log("********GUEST ADDED*******", params)
   return params.Item;
 };
 
@@ -32,7 +31,6 @@ export const getGuest = async (guestId) => {
     KeyConditionExpression: 'id=:id',
   };
   const guestData = await DDB.query(params).promise(); // TODO :: Handle Error
-  console.log('Guest Data From DB :: ', guestData, params);
   if (guestData && guestData.Items && guestData.Items.length) {
     return { ...removeIdType(guestData.Items[0]) };
   }

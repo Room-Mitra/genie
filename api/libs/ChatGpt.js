@@ -27,11 +27,6 @@ export const parseGptResponse = (gptResponse) => {
   } catch (e) {
     console.error('Failed to parse GPT response as JSON:', e);
   }
-  console.log({
-    raw: gptMessage,
-    parsed,
-    full: JSON.stringify(gptText),
-  });
 
   return {
     raw: gptMessage,

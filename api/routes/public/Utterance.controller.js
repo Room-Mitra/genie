@@ -8,7 +8,6 @@ router.post('/', async (req, res) => {
     const hotelId = req.headers['x-hotel-id'];
     const { userQuery, sessionId } = req.body;
     const { speech, isSessionOpen } = await onUtterance(userQuery, hotelId, deviceId, sessionId);
-    console.log({ speech, isSessionOpen });
     res.send({ speech, isSessionOpen });
   } catch (error) {
     console.error('Error processing utterance:', error);
