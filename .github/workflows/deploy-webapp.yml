@@ -5,9 +5,9 @@ on:
     branches:
       - main
     paths:
-      - 'webapp2/**'
-      - '.github/workflows/deploy-webapp2.yml'
-      - 'webapp2/Dockerfile'
+      - 'webapp/**'
+      - '.github/workflows/deploy-webapp.yml'
+      - 'webapp/Dockerfile'
 
 permissions:
   id-token: write
@@ -24,7 +24,7 @@ env:
 
 defaults:
   run:
-    working-directory: ./webapp2
+    working-directory: ./webapp
 
 jobs:
   build-and-push:
@@ -81,8 +81,8 @@ jobs:
       - name: Build & Push with ECR cache
         uses: docker/build-push-action@v5
         with:
-          context: ./webapp2
-          file: ./webapp2/Dockerfile
+          context: ./webapp
+          file: ./webapp/Dockerfile
           push: true
           provenance: false
           build-args: |
