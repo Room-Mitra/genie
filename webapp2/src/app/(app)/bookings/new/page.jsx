@@ -7,21 +7,26 @@ import {
   DialogTitle,
   DialogPanel,
 } from "@headlessui/react";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { toast } from "react-toastify";
+import { Autocomplete } from "./_components/autocomplete";
+import { cn } from "@/lib/utils";
 
-// ---------------------------------------------
-// Utility helpers
-// ---------------------------------------------
-const cn = (...classes) => classes.filter(Boolean).join(" ");
+async function addRoom({ roomNumber, roomType, floor, description }) {
+  const res = await fetch(`/api/rooms`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ roomNumber, roomType, floor, description }),
+  });
 
-function useDebounce(value, delay = 250) {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const id = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(id);
-  }, [value, delay]);
-  return debounced;
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Failed to add room");
+  }
+
+  return res.json();
 }
 
 // ---------------------------------------------
@@ -29,7 +34,7 @@ function useDebounce(value, delay = 250) {
 // ---------------------------------------------
 const mockRooms = Array.from({ length: 30 }).map((_, i) => ({
   id: `room-${i + 101}`,
-  roomNumber: String(100 + i + 1),
+  number: String(100 + i + 1),
   type: i % 3 === 0 ? "Deluxe" : i % 3 === 1 ? "Suite" : "Standard",
 }));
 
@@ -60,7 +65,10 @@ const api = {
     const s = String(q || "").toLowerCase();
     return mockRooms
       .filter(
-        (r) => r.roomNumber.includes(s) || r.type.toLowerCase().includes(s),
+        (r) =>
+          r.number.includes(s) ||
+          r.type.toLowerCase().includes(s) ||
+          r.description?.includes(s),
       )
       .slice(0, 8);
   },
@@ -76,152 +84,18 @@ const api = {
     mockGuests.unshift(guest);
     return guest;
   },
+  async createRoom(data) {
+    await new Promise((r) => setTimeout(r, 350));
+    const id = `room-${Math.random().toString(36).slice(2, 8)}`;
+    const room = { id, ...data };
+    mockRooms.unshift(room);
+    return room;
+  },
   async createBooking(data) {
     await new Promise((r) => setTimeout(r, 500));
     return { id: `b-${Date.now()}`, ...data, status: "CONFIRMED" };
   },
 };
-
-// ---------------------------------------------
-// Autocomplete primitive
-// ---------------------------------------------
-function Autocomplete({
-  label,
-  placeholder,
-  value,
-  onChange,
-  onSelect,
-  fetcher,
-  renderItem,
-  getDisplayValue,
-  noResultsContent,
-  rightAddon,
-}) {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState(value ? getDisplayValue(value) : "");
-  const [loading, setLoading] = useState(false);
-  const [items, setItems] = useState([]);
-  const [activeIndex, setActiveIndex] = useState(-1);
-  const listRef = useRef(null);
-  const wrapperRef = useRef(null);
-
-  const debounced = useDebounce(query, 200);
-
-  useEffect(() => {
-    let alive = true;
-    async function load() {
-      setLoading(true);
-      try {
-        const res = await fetcher(debounced);
-        if (!alive) return;
-        setItems(res);
-      } finally {
-        if (alive) setLoading(false);
-      }
-    }
-    if (open) load();
-    return () => {
-      alive = false;
-    };
-  }, [debounced, fetcher, open]);
-
-  useEffect(() => {
-    onChange?.(query);
-  }, [query]);
-
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    if (!value) setQuery("");
-  }, [value]);
-
-  function handleKeyDown(e) {
-    if (!open) return;
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setActiveIndex((i) => Math.min(i + 1, items.length - 1));
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setActiveIndex((i) => Math.max(i - 1, 0));
-    } else if (e.key === "Enter") {
-      if (activeIndex >= 0 && items[activeIndex]) {
-        const chosen = items[activeIndex];
-        onSelect?.(chosen);
-        setQuery(getDisplayValue(chosen));
-        setOpen(false);
-      }
-    } else if (e.key === "Escape") {
-      setOpen(false);
-    }
-  }
-
-  return (
-    <div className="w-full" ref={wrapperRef}>
-      <div className="relative">
-        <InputGroup
-          label={label}
-          placeholder={placeholder}
-          value={query}
-          handleChange={(e) => {
-            setQuery(e.target.value);
-            setOpen(true);
-            setActiveIndex(-1);
-          }}
-          onFocus={() => setOpen(true)}
-          onKeyDown={handleKeyDown}
-        />
-
-        {rightAddon && (
-          <div className="absolute inset-y-0 right-2 flex items-center align-middle">
-            {rightAddon}
-          </div>
-        )}
-
-        {open && (
-          <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-gray-700 bg-gray-900 shadow-lg">
-            {loading ? (
-              <div className="p-3 text-sm text-gray-400">Searching...</div>
-            ) : items.length > 0 ? (
-              <ul ref={listRef} className="max-h-64 overflow-auto py-1">
-                {items.map((it, idx) => (
-                  <li
-                    key={idx}
-                    className={cn(
-                      "cursor-pointer px-3 py-2 text-sm text-gray-100 hover:bg-gray-800",
-                      idx === activeIndex && "bg-gray-800",
-                    )}
-                    onMouseEnter={() => setActiveIndex(idx)}
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => {
-                      onSelect?.(it);
-                      setQuery(getDisplayValue(it));
-                      setOpen(false);
-                    }}
-                  >
-                    {renderItem(it)}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="p-3 text-sm text-gray-400">
-                {noResultsContent || "No matches"}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-``;
 
 // ---------------------------------------------
 // Main booking form
@@ -230,7 +104,7 @@ export default function AddBookingPage() {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
 
-  const [roomQuery, setRoomQuery] = useState("");
+  // const [roomQuery, setRoomQuery] = useState("");
   const [selectedRoom, setSelectedRoom] = useState(null);
 
   const [guestQuery, setGuestQuery] = useState("");
@@ -266,8 +140,6 @@ export default function AddBookingPage() {
     setCheckOut("");
     setSelectedRoom(null);
     setSelectedGuest(null);
-    setRoomQuery("");
-    setGuestQuery("");
     setGuestForm({ firstName: "", lastName: "", mobile: "", email: "" });
     setRoomForm({ number: "", type: "", floor: "", description: "" });
   }
@@ -281,7 +153,7 @@ export default function AddBookingPage() {
         checkIn,
         checkOut,
         roomId: selectedRoom.id,
-        roomNumber: selectedRoom.roomNumber,
+        number: selectedRoom.number,
         guestId: selectedGuest.id,
         guestName: selectedGuest.name,
         guestMobile: selectedGuest.mobile,
@@ -308,36 +180,43 @@ export default function AddBookingPage() {
       setGuestQuery(newGuest.mobile);
       setShowGuestModal(false);
       setGuestForm({ name: "", mobile: "", email: "" });
-      setToast({ type: "success", message: "Guest added" });
+      toast.success("Guest added");
     } catch (e) {
-      setToast({ type: "error", message: e.message || "Failed to add guest" });
+      toast.error(e.message || "Failed to add guest");
     } finally {
       setSavingGuest(false);
-      setTimeout(() => setToast(null), 2500);
     }
   }
 
-  async function handleSaveRoom(e) {
+  const handleSaveRoomSubmit = async (e) => {
     e.preventDefault();
     setSavingRoom(true);
+    // Basic validation
+    if (!roomForm.number || !roomForm.type || !roomForm.floor) {
+      toast.error("Room number, type, and floor are required");
+      setSavingRoom(false);
+      return;
+    }
+
     try {
-      // Basic validation
-      if (!roomForm.number || !roomForm.type) {
-        throw new Error("Room number and type are required");
-      }
-      const newRoom = await api.createRoom(roomForm);
+      const newRoom = await addRoom({
+        roomNumber: roomForm.number,
+        roomType: roomForm.type,
+        floor: roomForm.floor,
+        description: roomForm.description,
+      });
+
       setSelectedRoom(newRoom);
-      setRoomQuery(newRoom.number);
       setShowRoomModal(false);
-      setRoomForm({ number: "", type: "" });
-      setToast({ type: "success", message: "Room added" });
-    } catch (e) {
-      setToast({ type: "error", message: e.message || "Failed to add room" });
+      setRoomForm({ number: "", type: "", floor: "", description: "" });
+
+      toast.success("Room added");
+    } catch (error) {
+      toast.error(error.message || "Failed to save room");
     } finally {
       setSavingRoom(false);
-      setTimeout(() => setToast(null), 2500);
     }
-  }
+  };
 
   return (
     <div className="mx-auto max-w-3xl rounded-[10px] bg-white p-6 dark:bg-gray-dark">
@@ -377,17 +256,14 @@ export default function AddBookingPage() {
           label="Room"
           placeholder="Search room number or type"
           value={selectedRoom}
-          onChange={(q) => setRoomQuery(q)}
           onSelect={(room) => setSelectedRoom(room)}
           fetcher={api.searchRooms}
-          getDisplayValue={(room) =>
-            room?.roomNumber ? `#${room.roomNumber}` : ""
-          }
+          getDisplayValue={(room) => (room?.number ? `#${room.number}` : "")}
           renderItem={(room) => (
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-indigo-600/20 text-xs text-indigo-300">
-                  {room.roomNumber}
+                  {room.number}
                 </span>
                 <span className="text-gray-200">{room.type}</span>
               </div>
@@ -398,7 +274,7 @@ export default function AddBookingPage() {
             <button
               type="button"
               onClick={() => setShowRoomModal(true)}
-              className="mt-8 rounded-lg border border-gray-700 bg-gray-300 px-2 py-1 text-xs text-dark hover:bg-gray-600"
+              className="mt-8 rounded-lg border border-gray-700 bg-gray-300 px-2 py-1 text-xs font-medium text-dark hover:bg-gray-500"
               aria-label="Add new room"
             >
               New
@@ -423,7 +299,6 @@ export default function AddBookingPage() {
           label="Guest by mobile"
           placeholder="Type mobile number"
           value={selectedGuest}
-          onChange={(q) => setGuestQuery(q)}
           onSelect={(guest) => setSelectedGuest(guest)}
           fetcher={api.searchGuestsByMobile}
           getDisplayValue={(guest) => guest?.mobile || ""}
@@ -440,7 +315,7 @@ export default function AddBookingPage() {
             <button
               type="button"
               onClick={() => setShowGuestModal(true)}
-              className="mt-8 rounded-lg border border-gray-700 bg-gray-300 px-2 py-1 text-xs text-dark hover:bg-gray-600"
+              className="mt-8 rounded-lg border border-gray-700 bg-gray-300 px-2 py-1 text-xs font-medium text-dark hover:bg-gray-500"
               aria-label="Add new guest"
             >
               New
@@ -473,7 +348,7 @@ export default function AddBookingPage() {
             <div className="text-md">
               <span>Room:</span>{" "}
               {selectedRoom
-                ? `#${selectedRoom.roomNumber} (${selectedRoom.type})`
+                ? `#${selectedRoom.number} (${selectedRoom.type})`
                 : "—"}
             </div>
             <div className="text-md">
@@ -501,7 +376,7 @@ export default function AddBookingPage() {
           <button
             type="button"
             onClick={resetForm}
-            className="rounded-xl border border-gray-700 px-4 py-2 text-sm text-dark dark:text-gray-300 hover:bg-gray-300"
+            className="rounded-xl border border-gray-700 px-4 py-2 text-sm text-dark hover:bg-gray-300 dark:text-gray-300"
           >
             Reset
           </button>
@@ -650,19 +525,22 @@ export default function AddBookingPage() {
                   </DialogTitle>
 
                   <div className="mt-4">
-                    <form onSubmit={handleSaveRoom} className="grid gap-4">
+                    <form
+                      onSubmit={handleSaveRoomSubmit}
+                      className="grid gap-4"
+                    >
                       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <InputGroup
                           required
                           type="text"
-                          name="roomType"
+                          name="type"
                           label="Room Type"
                           placeholder="Deluxe"
-                          value={roomForm.roomType}
+                          value={roomForm.type || ""}
                           handleChange={(e) =>
                             setRoomForm((s) => ({
                               ...s,
-                              roomType: e.target.value,
+                              type: e.target.value,
                             }))
                           }
                         />
@@ -670,14 +548,14 @@ export default function AddBookingPage() {
                         <InputGroup
                           required
                           type="text"
-                          name="roomNumber"
+                          name="number"
                           label="Room Number"
                           placeholder="101"
-                          value={roomForm.roomNumber}
+                          value={roomForm.number || ""}
                           handleChange={(e) =>
                             setRoomForm((s) => ({
                               ...s,
-                              roomNumber: e.target.value,
+                              number: e.target.value,
                             }))
                           }
                         />
@@ -690,7 +568,7 @@ export default function AddBookingPage() {
                           name="floor"
                           label="Floor"
                           placeholder="2"
-                          value={roomForm.floor}
+                          value={roomForm.floor || ""}
                           handleChange={(e) =>
                             setRoomForm((s) => ({
                               ...s,
@@ -705,7 +583,7 @@ export default function AddBookingPage() {
                         name="description"
                         label="Description"
                         placeholder="Room description"
-                        value={roomForm.description}
+                        value={roomForm.description || ""}
                         handleChange={(e) =>
                           setRoomForm((s) => ({
                             ...s,

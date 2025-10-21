@@ -73,9 +73,6 @@ export function buildHotelEntityItem(input, options) {
       const sk = `ROOM#${i.roomId}`;
       const base = baseKeys(i.hotelId, sk);
       const extra = {
-        // Room timeline GSI
-        roomType_pk: `ROOM#${i.roomId}`,
-        roomType_sk: `ROOM#${i.roomId}`,
         ...maybeHotelType(options, i.hotelId, 'ROOM', i.roomId),
       };
       return clean({
@@ -84,8 +81,10 @@ export function buildHotelEntityItem(input, options) {
         entityType: 'ROOM',
         hotelId: i.hotelId,
         roomId: i.roomId,
-        roomNumber: i.roomNumber,
+        number: i.number,
+        type: i.type,
         floor: i.floor,
+        description: i.description,
         createdAt: i.createdAt,
       });
     }
