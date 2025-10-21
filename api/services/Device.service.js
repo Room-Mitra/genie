@@ -50,6 +50,5 @@ export const getRoomInfoFromDeviceId = (deviceId) => {
 export const addBookingToRoom = async (roomId, bookingId) => {
   const [deviceInfo] = getAllDevices().filter((device) => device.roomId === roomId);
   deviceInfo['currentBooking'] = bookingId;
-  console.log(deviceInfo, '++++++++++++++DEVICE INFO++++++++++++');
   updateDevices([deviceInfo]);
 };

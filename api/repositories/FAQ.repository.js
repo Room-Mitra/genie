@@ -19,7 +19,6 @@ export const addFAQ = async (faq) => {
     Item: { ...addIdType(faq) },
   };
   await DDB.put(params).promise(); // TODO :: Handle Error
-  console.log('********FAQ ADDED*******', params);
   return params.Item;
 };
 
@@ -32,7 +31,6 @@ export const getFAQ = async (hotelId) => {
     KeyConditionExpression: 'id=:id',
   };
   const faqData = await DDB.query(params).promise(); // TODO :: Handle Error
-  console.log('FAQ Data From DB :: ', faqData, params);
   if (faqData && faqData.Items && faqData.Items.length) {
     return { ...removeIdType(faqData.Items[0]) };
   }

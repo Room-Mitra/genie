@@ -29,7 +29,6 @@ export const getAllDevices = async () => {
   };
 
   const devices = await DDB.scan(params).promise(); // TODO :: Handle Error
-  console.log(devices);
   return devices.Items;
 };
 

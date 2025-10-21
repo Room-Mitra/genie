@@ -24,8 +24,6 @@ export const onUtterance = async (userQuery, hotelId, deviceId, sessionId) => {
   const { raw, parsed } = parseGptResponse(gptResponse);
   SessionManager.addToSessionHistory(sessionId, 'assistant', raw);
 
-  console.log(`ChatGPT response for sessionId = ${sessionId} is :: `, { raw, parsed });
-
   registerRequests(session, deviceId, parsed.requestDetails || []);
 
   let responseSpeech = 'Okay.';
@@ -41,7 +39,6 @@ export const onUtterance = async (userQuery, hotelId, deviceId, sessionId) => {
 
 export const registerRequests = (session, deviceId, requestDetails) => {
   requestDetails.forEach((r) => {
-    console.log('Request :: ', JSON.stringify(r));
     const { hasUserConfirmedOrder, department, requestType, shortDescription } = r;
     const intent = {
       deviceId,

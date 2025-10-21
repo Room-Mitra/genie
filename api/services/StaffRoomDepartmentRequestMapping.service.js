@@ -26,9 +26,7 @@ export async function getStaffRoomDepartmentMappings(hotelId) {
 }
 
 export async function getMappingByRoomAndDepartment(hotelId, roomId, department) {
-  console.log('Hotel Id :: ', hotelId, 'Room Id :: ', roomId, 'Department :: ', department);
   const { mappingData } = await getStaffRoomDepartmentMappings(hotelId);
-  console.log('Mapping Data :: ', JSON.stringify(mappingData));
   const roomMapping =
     (mappingData &&
       roomId &&
@@ -42,11 +40,6 @@ export async function getMappingByRoomAndDepartment(hotelId, roomId, department)
         (mapping) => mapping && mapping.requestType && mapping.requestType === department
       )) ||
     [];
-  console.log(
-    'Room Mapping :: ',
-    JSON.stringify(roomMapping),
-    'Department Mapping :: ',
-    JSON.stringify(departmentMapping)
-  );
+
   return departmentMapping.filter((m) => m.isActive) || [];
 }

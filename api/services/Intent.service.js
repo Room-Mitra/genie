@@ -16,7 +16,6 @@ export const registerIntent = async (intent) => {
   if (!intent.roomId) {
     // updateIntentWithRoomInfo(intent); // TODO :: Handle Error
   }
-  console.log('Intent : ', intent);
   addIntentToCache(intent);
   addIntentToDB(intent);
   if (!intent.assignedTo) {
@@ -25,7 +24,6 @@ export const registerIntent = async (intent) => {
       intent.roomId,
       intent.intentType
     );
-    console.log('Mapping :: ', mapping);
     const names = mapping.map((o) => o.staffName).toLocaleString() || '';
     intent.assignedTo = names;
     const phoneNumbers = mapping.map((m) => m.staffPhone) || [];
@@ -52,7 +50,7 @@ export const getIntentsForDate = async (dateAsInteger, bypassCache = false) => {
       intent.roomTags = roomTags;
       intent.roomNotes = roomNotes;
     } catch (e) {
-      console.log(e);
+      console.error(e);
     }
   });
   return intents;
