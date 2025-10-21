@@ -4,7 +4,13 @@ import globals from 'globals';
 import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
-import next from '@next/eslint-plugin-next'; // install this
+import next from '@next/eslint-plugin-next';
+import tseslint from '@typescript-eslint/eslint-plugin';
+import tsParser from '@typescript-eslint/parser';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default [
   // Ignore build artifacts everywhere
@@ -37,76 +43,57 @@ export default [
   },
 
   // =====================================
-  // WEBAPP: Create React App style client
+  // WEBAPP: Next.js client and config
   // =====================================
   {
-    files: ['webapp/**/*.{js,jsx}'],
+    files: ['webapp/**/*.{js,jsx,ts,tsx}'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
-      parserOptions: { ecmaFeatures: { jsx: true } },
+      parser: tsParser,
+      parserOptions: {
+        tsconfigRootDir: __dirname, // repo root
+        project: ['./webapp/tsconfig.json'], // path from repo root
+        ecmaFeatures: { jsx: true },
+      },
       globals: {
-        // Browser first, allow some Node for tooling imports
         ...globals.browser,
-        // If you want to allow import.meta, set ecmaVersion: 'latest'
         process: 'readonly',
       },
     },
-    plugins: { react, 'react-hooks': reactHooks, 'jsx-a11y': jsxA11y },
+    plugins: {
+      '@typescript-eslint': tseslint,
+      react,
+      'react-hooks': reactHooks,
+      'jsx-a11y': jsxA11y,
+    },
     settings: { react: { version: 'detect' } },
     rules: {
-      // React
-      'react/jsx-uses-react': 'off',
-      'react/react-in-jsx-scope': 'off',
+      // React (spread first)
       ...react.configs.recommended.rules,
+
       // Hooks
       ...reactHooks.configs.recommended.rules,
+
       // A11y
       ...jsxA11y.configs.recommended.rules,
 
-      // Keep client console warnings minimal
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
-      // You are not using PropTypes in TS; disable if you prefer
-      'react/prop-types': 'off',
+      // TypeScript
+      ...tseslint.configs.recommended.rules,
 
-      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
-    },
-  },
-
-  // =====================================
-  // WEBAPP: Create React App style client
-  // =====================================
-  {
-    files: ['webapp2/**/*.{js,jsx}'],
-    languageOptions: {
-      ecmaVersion: 2022,
-      sourceType: 'module',
-      parserOptions: { ecmaFeatures: { jsx: true } },
-      globals: {
-        // Browser first, allow some Node for tooling imports
-        ...globals.browser,
-        // If you want to allow import.meta, set ecmaVersion: 'latest'
-        process: 'readonly',
-      },
-    },
-    plugins: { react, 'react-hooks': reactHooks, 'jsx-a11y': jsxA11y },
-    settings: { react: { version: 'detect' } },
-    rules: {
-      // React
-      'react/jsx-uses-react': 'off',
+      // Now override:
       'react/react-in-jsx-scope': 'off',
-      ...react.configs.recommended.rules,
-      // Hooks
-      ...reactHooks.configs.recommended.rules,
-      // A11y
-      ...jsxA11y.configs.recommended.rules,
+      'react/jsx-uses-react': 'off',
 
-      // Keep client console warnings minimal
+      // Prefer TS-aware unused-vars
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+
       'no-console': ['warn', { allow: ['warn', 'error', 'log', 'info'] }],
-      // You are not using PropTypes in TS; disable if you prefer
       'react/prop-types': 'off',
-
-      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
     },
   },
 
