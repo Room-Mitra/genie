@@ -12,8 +12,8 @@ android {
         applicationId = "com.example.roommitra"
         minSdk = 26
         targetSdk = 36
-        versionCode = 12
-        versionName = "1.0.12"
+        versionCode = 14
+        versionName = "1.0.14"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -81,6 +81,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-core")
     implementation("androidx.compose.material:material-icons-extended")
     implementation(libs.androidx.lifecycle.common.jvm)
+    implementation(libs.androidx.animation.core)
 
     // Debug utilities
     debugImplementation("androidx.compose.ui:ui-tooling")
@@ -113,4 +114,8 @@ dependencies {
     // deals card - slideshow
     implementation("io.coil-kt:coil-compose:2.5.0")
     implementation("androidx.compose.foundation:foundation:1.6.2")
+
+    //lottie
+    implementation("com.airbnb.android:lottie-compose:6.3.0")
+
 }

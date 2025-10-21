@@ -243,10 +243,10 @@ class MicController(
                     if (!partial.isNullOrEmpty()) {
                         val text = partial[0].trim()
                         Log.d("MicController", "STT Partial Result: \"$text\"")
-                      /*  if (text.equals("yes", true) || text.equals("no", true)) {
-                            onFinalUtterance(text)
-                            speechRecognizer?.stopListening()
-                        }*/
+                        /*  if (text.equals("yes", true) || text.equals("no", true)) {
+                              onFinalUtterance(text)
+                              speechRecognizer?.stopListening()
+                          }*/
                     }
                 }
 
