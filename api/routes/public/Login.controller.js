@@ -24,6 +24,7 @@ router.post('/', async (req, res) => {
         createdAt: result.user.createdAt,
         hotelId: result.user?.hotelId,
         groups: result.user?.groups,
+        roles: result.user?.roles,
       },
     });
   } catch (err) {
