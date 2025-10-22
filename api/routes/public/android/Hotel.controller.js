@@ -2,16 +2,19 @@ import express from 'express';
 
 const router = express.Router();
 
+// === Converter ===
+const BASE_EXAMPLE_URL = 'http://example.com/images';
+
 router.get('/config', async (req, res) => {
   try {
     // Fetch hotel data from the database or another service
     const config = {
       amenities: [
         {
-          title: 'spa',
-          description: 'book a spa',
+          title: 'Wellness Spa',
+          description: 'Very relaxing, and comes highly recommended by all our guests',
           headerImg: {
-            url: '',
+            url: `${BASE_EXAMPLE_URL}/wellness-spa.jpg`,
           },
           actions: [
             {
@@ -22,14 +25,14 @@ router.get('/config', async (req, res) => {
       ],
       concierge: [
         {
-          title: 'spa',
-          description: 'book a spa',
+          title: 'Airport Taxi',
+          description: 'Private airport taxi to drop you off',
           headerImg: {
-            url: '',
+            url: `${BASE_EXAMPLE_URL}/airport-taxi.jpg`,
           },
           actions: [
             {
-              label: 'Book an appointment',
+              label: 'Schedule',
             },
           ],
         },
@@ -41,7 +44,20 @@ router.get('/config', async (req, res) => {
               title: 'Have free time?',
               description: 'Find out exciting events nearby',
               asset: {
-                url: '',
+                url: `${BASE_EXAMPLE_URL}/free-time.jpg`,
+              },
+            },
+          ],
+        },
+      },
+      promotions: {
+        carousel: {
+          cards: [
+            {
+              title: 'Order Vegan Biryani',
+              description: 'Spare the animals!',
+              asset: {
+                url: `${BASE_EXAMPLE_URL}/vegan-biryani.jpg`,
               },
             },
           ],
