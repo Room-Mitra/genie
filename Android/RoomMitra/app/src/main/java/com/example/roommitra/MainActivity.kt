@@ -79,7 +79,7 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
             MaterialTheme {
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     AutoDimWrapper(window) {
-                        NavHost(navController = navController, startDestination = "no-active-booking") {
+                        NavHost(navController = navController, startDestination = "home") {
                             composable("home") {
                                 HomeScreen(  navController = navController )
                             }
