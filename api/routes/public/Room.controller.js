@@ -3,6 +3,19 @@ import * as roomService from '#services/Room.service.js';
 
 const router = express.Router();
 
+router.get('/', async (req, res) => {
+  try {
+    const { hotelId } = req.userData;
+    const { limit, nextToken } = req.query;
+
+    const rooms = await roomService.listRooms({ hotelId, limit, nextToken });
+    return res.status(200).json(rooms);
+  } catch (err) {
+    console.error('Error listing rooms:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 router.post('/', async (req, res) => {
   try {
     const { hotelId } = req.userData;
