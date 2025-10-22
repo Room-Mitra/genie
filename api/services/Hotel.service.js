@@ -96,13 +96,13 @@ export async function addStaffToHotel(hotelId, userPayload) {
   await staffRepo.addStaff({
     hotelId,
     userId,
-    role: 'STAFF',
+    role: 'staff',
   });
 
   return {
     message: 'Staff added to hotel',
     hotelId,
     userId,
-    role: 'STAFF',
+    role: 'staff',
   };
 }

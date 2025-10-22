@@ -3,4 +3,6 @@ export const registerBooking = async (bookingData) => {
   // await addBooking(bookingData);
   // await addBookingToGuest(bookingData.guestId, bookingData.id);
   // await addBookingToRoom(bookingData.roomId, bookingData.id);
+
+  
 };

@@ -61,7 +61,7 @@ export async function transactCreateUserWithMobileGuard({ user }) {
     createdAt: toIsoString(now),
     updatedAt: toIsoString(now),
   };
-  const mobileKey = `USER#${user.mobileNumber}`;
+  const mobileKey = `USER#${user.mobile}`;
   const params = {
     TransactItems: [
       {
