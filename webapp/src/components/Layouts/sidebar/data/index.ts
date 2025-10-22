@@ -1,5 +1,6 @@
 import { BookOpenIcon, HandRaisedIcon } from "@heroicons/react/24/outline";
 import * as Icons from "../icons";
+import { BedDoubleIcon } from "lucide-react";
 
 export const NAV_DATA = [
   {
@@ -38,6 +39,12 @@ export const NAV_DATA = [
             url: "/bookings/new",
           },
         ],
+      },
+      {
+        title: "Rooms",
+        icon: BedDoubleIcon,
+        items: [],
+        url: "/rooms",
       },
       {
         title: "Intents",
