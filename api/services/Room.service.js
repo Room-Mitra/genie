@@ -11,3 +11,11 @@ export async function addRoom({ hotelId, number, type, floor, description }) {
     description,
   });
 }
+
+export async function listRooms({ hotelId, limit, nextToken }) {
+  const rooms = await roomRepo.queryAllRooms({ hotelId, limit, nextToken });
+  return {
+    items: rooms,
+    count: rooms.length,
+  };
+}
