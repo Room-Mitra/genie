@@ -68,87 +68,73 @@ resource "aws_dynamodb_table" "intents" {
   }
 }
 
+
+locals {
+  table_keys = [
+    { name = "pk", type = "S" },
+    { name = "sk", type = "S" },
+  ]
+
+  gsis = [
+    # Hotel Type
+    { name = "GSI_HotelType", hash = "hotelType_pk", range = "hotelType_sk" },
+
+    # Room Type
+    { name = "GSI_RoomType", hash = "roomType_pk", range = "roomType_sk" },
+
+    # Request Status
+    { name = "GSI_RequestStatus", hash = "status_pk", range = "status_sk" },
+
+    # Assignee Workload
+    { name = "GSI_AssigneeType", hash = "assigneeType_pk", range = "assigneeType_sk" },
+
+    # Conversation Type
+    { name = "GSI_ConversationType", hash = "conversationType_pk", range = "conversationType_sk" },
+
+    # Booking Type
+    { name = "GSI_BookingType", hash = "bookingType_pk", range = "bookingType_sk" },
+  ]
+
+  # Build a unique set of attribute definitions actually used
+  gsi_keys = flatten([
+    for g in local.gsis : [
+      { name = g.hash, type = "S" },
+      { name = g.range, type = "S" },
+    ]
+  ])
+
+  all_keys = distinct(concat(local.table_keys, local.gsi_keys))
+}
+
 resource "aws_dynamodb_table" "entity" {
   name         = "ENTITY"
   billing_mode = "PAY_PER_REQUEST"
 
-  hash_key  = "pk" # e.g., HOTEL#<hotelId> or USER#<userId> or ROOM#<roomId>
-  range_key = "sk" # e.g., ENTITY#<entityId> or REQUEST#<requestId> or META#<something>
+  hash_key  = "pk"
+  range_key = "sk"
 
-  attribute {
-    name = "pk"
-    type = "S"
-  }
-  attribute {
-    name = "sk"
-    type = "S"
-  }
-  # GSI attributes
-  attribute {
-    name = "hotelType_pk"
-    type = "S"
+  # Emit only used attributes
+  dynamic "attribute" {
+    for_each = { for a in local.all_keys : a.name => a }
+    content {
+      name = attribute.value.name
+      type = attribute.value.type
+    }
   }
 
-  attribute {
-    name = "hotelType_sk"
-    type = "S"
+  # GSIs
+  dynamic "global_secondary_index" {
+    for_each = { for g in local.gsis : g.name => g }
+    content {
+      name            = global_secondary_index.value.name
+      hash_key        = global_secondary_index.value.hash
+      range_key       = global_secondary_index.value.range
+      projection_type = "ALL"
+    }
   }
 
-  attribute {
-    name = "roomType_pk"
-    type = "S"
-  }
-
-  attribute {
-    name = "roomType_sk"
-    type = "S"
-  }
-
-  attribute {
-    name = "statusType_pk"
-    type = "S"
-  }
-
-  attribute {
-    name = "statusType_sk"
-    type = "S"
-  }
-
-  attribute {
-    name = "assignee_pk"
-    type = "S"
-  }
-  attribute {
-    name = "assignee_sk"
-    type = "S"
-  }
-
-  attribute {
-    name = "booking_pk"
-    type = "S"
-  }
-
-  attribute {
-    name = "booking_sk"
-    type = "S"
-  }
-
-  attribute {
-    name = "conversation_pk"
-    type = "S"
-  }
-
-
-
-
-
-  point_in_time_recovery {
-    enabled = true
-  }
-
-  server_side_encryption {
-    enabled = true
-  }
+  point_in_time_recovery { enabled = true }
+  server_side_encryption { enabled = true }
 
   stream_enabled   = true
   stream_view_type = "NEW_AND_OLD_IMAGES"
