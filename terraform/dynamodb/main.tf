@@ -85,31 +85,62 @@ resource "aws_dynamodb_table" "entity" {
   }
   # GSI attributes
   attribute {
-    name = "hotelId"
-    type = "S"
-  }
-  attribute {
-    name = "entityTypeTimestamp"
-    type = "S" # format: <ENTITYTYPE>#<ISO8601>
-  }
-  attribute {
-    name = "roomId"
+    name = "hotelType_pk"
     type = "S"
   }
 
-  global_secondary_index {
-    name            = "gsi_hotelId_entityTypeTs"
-    hash_key        = "hotelId"
-    range_key       = "entityTypeTimestamp"
-    projection_type = "ALL"
+  attribute {
+    name = "hotelType_sk"
+    type = "S"
   }
 
-  global_secondary_index {
-    name            = "gsi_roomId_entityTypeTs"
-    hash_key        = "roomId"
-    range_key       = "entityTypeTimestamp"
-    projection_type = "ALL"
+  attribute {
+    name = "roomType_pk"
+    type = "S"
   }
+
+  attribute {
+    name = "roomType_sk"
+    type = "S"
+  }
+
+  attribute {
+    name = "statusType_pk"
+    type = "S"
+  }
+
+  attribute {
+    name = "statusType_sk"
+    type = "S"
+  }
+
+  attribute {
+    name = "assignee_pk"
+    type = "S"
+  }
+  attribute {
+    name = "assignee_sk"
+    type = "S"
+  }
+
+  attribute {
+    name = "booking_pk"
+    type = "S"
+  }
+
+  attribute {
+    name = "booking_sk"
+    type = "S"
+  }
+
+  attribute {
+    name = "conversation_pk"
+    type = "S"
+  }
+
+
+
+
 
   point_in_time_recovery {
     enabled = true
