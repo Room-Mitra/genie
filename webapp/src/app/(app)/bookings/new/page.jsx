@@ -29,6 +29,23 @@ async function addRoom({ roomNumber, roomType, floor, description }) {
   return res.json();
 }
 
+async function addGuest({ firstName, lastName, mobile }) {
+  const res = await fetch(`/api/guests`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ firstName, lastName, mobile }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Failed to add guest");
+  }
+
+  return res.json();
+}
+
 // ---------------------------------------------
 // Mock API layer (simulate latency)
 // ---------------------------------------------
@@ -41,21 +58,21 @@ const mockRooms = Array.from({ length: 30 }).map((_, i) => ({
 const mockGuests = [
   {
     id: "g-1",
-    name: "Ravi Kumar",
+    firstName: "Ravi",
+    lastName: "Kumar",
     mobile: "9876543210",
-    email: "ravi@example.com",
   },
   {
     id: "g-2",
-    name: "Anita Sharma",
+    firstName: "Anita",
+    lastName: "Sharma",
     mobile: "9988776655",
-    email: "anita@example.com",
   },
   {
     id: "g-3",
-    name: "Rahul Mehta",
+    firstName: "Rahul",
+    lastName: "Mehta",
     mobile: "9123456780",
-    email: "rahul@example.com",
   },
 ];
 
@@ -118,7 +135,6 @@ export default function AddBookingPage() {
     firstName: "",
     lastName: "",
     mobile: "",
-    email: "",
   });
 
   const [roomForm, setRoomForm] = useState({
@@ -139,7 +155,7 @@ export default function AddBookingPage() {
     setCheckOut("");
     setSelectedRoom(null);
     setSelectedGuest(null);
-    setGuestForm({ firstName: "", lastName: "", mobile: "", email: "" });
+    setGuestForm({ firstName: "", lastName: "", mobile: "" });
     setRoomForm({ number: "", type: "", floor: "", description: "" });
   }
 
@@ -175,10 +191,16 @@ export default function AddBookingPage() {
       if (!guestForm.firstName || !guestForm.lastName || !guestForm.mobile) {
         throw new Error("First name, last name, and mobile are required");
       }
-      const newGuest = await api.createGuest(guestForm);
+      const newGuest = await addGuest({
+        firstName: guestForm.firstName,
+        lastName: guestForm.lastName,
+        mobile: guestForm.mobile,
+      });
+
       setSelectedGuest(newGuest);
       setShowGuestModal(false);
-      setGuestForm({ name: "", mobile: "", email: "" });
+      setGuestForm({ firstName: "", lastName: "", mobile: "" });
+
       toast.success("Guest added");
     } catch (e) {
       toast.error(e.message || "Failed to add guest");
@@ -304,10 +326,11 @@ export default function AddBookingPage() {
           renderItem={(guest) => (
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-gray-200">{guest.name}</div>
+                <div className="text-gray-200">
+                  {guest.firstName} {guest.lastName}
+                </div>
                 <div className="text-xs text-gray-400">{guest.mobile}</div>
               </div>
-              <span className="text-xs text-gray-400">{guest.email}</span>
             </div>
           )}
           rightAddon={
@@ -454,17 +477,7 @@ export default function AddBookingPage() {
                             mobile: e.target.value,
                           }))
                         }
-                      />
-
-                      <InputGroup
-                        type="email"
-                        name="email"
-                        label="Email"
-                        placeholder="name@example.com"
-                        value={guestForm.email}
-                        handleChange={(e) =>
-                          setGuestForm((s) => ({ ...s, email: e.target.value }))
-                        }
+                        required
                       />
 
                       <div className="mt-2 flex items-center justify-end gap-3">

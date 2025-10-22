@@ -80,6 +80,7 @@ export async function addStaffToHotel(hotelId, userPayload) {
 
     const newUser = {
       userId,
+      entityType: 'USER',
       firstName: userPayload.firstName || '',
       lastName: userPayload.lastName || '',
       email: userPayload.email || '',

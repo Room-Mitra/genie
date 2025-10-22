@@ -47,6 +47,50 @@ export async function transactCreateUserWithEmailGuard({ user }) {
   return DDB.transactWrite(params).promise();
 }
 
+export async function transactCreateUserWithMobileGuard({ user }) {
+  const now = new Date();
+
+  const userItem = {
+    pk: `CATALOG#USER`,
+    sk: `USER#${user.userId}`,
+
+    userId: user.userId,
+    entityType: 'USER_INDEX',
+    ...user,
+
+    createdAt: toIsoString(now),
+    updatedAt: toIsoString(now),
+  };
+  const mobileKey = `USER#${user.mobileNumber}`;
+  const params = {
+    TransactItems: [
+      {
+        Put: {
+          TableName: ENTITY_TABLE_NAME,
+          Item: userItem,
+          ConditionExpression: 'attribute_not_exists(pk)',
+        },
+      },
+      {
+        Put: {
+          TableName: ENTITY_TABLE_NAME,
+          Item: {
+            pk: mobileKey,
+            sk: `MOBILE_REGISTRY`,
+            entityType: 'MOBILE_REGISTRY',
+            userId: userItem.userId,
+            createdAt: toIsoString(now),
+            updatedAt: toIsoString(now),
+          },
+          ConditionExpression: 'attribute_not_exists(pk)',
+        },
+      },
+    ],
+  };
+
+  return DDB.transactWrite(params).promise();
+}
+
 export const getUser = async (userId) => {
   const params = {
     TableName: USER_LOGIN_TABLE_NAME,
