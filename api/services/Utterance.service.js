@@ -25,16 +25,12 @@ export const onUtterance = async (userQuery, hotelId, deviceId, sessionId) => {
   SessionManager.addToSessionHistory(sessionId, 'assistant', raw);
 
   registerRequests(session, deviceId, parsed.requestDetails || []);
-
-  let responseSpeech = 'Okay.';
-  if (parsed && Array.isArray(parsed.messages)) {
-    responseSpeech = parsed.messages.join(' ');
-    return {
-      speech: responseSpeech,
-      isSessionOpen: parsed.isUserResponseNeeded,
-    };
-  }
-  return ERROR_RESPONSE;
+  //TODO :: Handle Error + Generic Error response
+  return {
+    speech: parsed.speech,
+    isSessionOpen: parsed.isUserResponseNeeded,
+    agents: parsed.agents
+  };
 };
 
 export const registerRequests = (session, deviceId, requestDetails) => {
