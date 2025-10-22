@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
@@ -27,13 +29,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
+import androidx.navigation.NavHostController
 import com.airbnb.lottie.compose.*
 import com.example.roommitra.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun NoActiveBookingScreen() {
+fun NoActiveBookingScreen(navController: NavHostController) {
     val scope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
@@ -50,58 +53,26 @@ fun NoActiveBookingScreen() {
     ) {
         // Decorative floating bubbles (fun, subtle)
         FloatingBubbles()
-
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // HEADER
-            Image(
-                painter = painterResource(id = R.drawable.goldlogo),
-                contentDescription = "Room Mitra Logo",
-                modifier = Modifier
-                    .size(100.dp)
-                    .padding(top = 8.dp),
-                contentScale = ContentScale.Fit
-            )
-
-            // HERO LOTTIE + headline (fun & big)
+            SecretLogoTrigger(navController)
             HeroLottieCarouselWithText()
-
             Spacer(modifier = Modifier.height(16.dp))
-
-            // FEATURES — horizontal, scaling items (swipeable feel)
-            val features = listOf(
-//                Feature("🎤", "Just say what you want. We handle the rest."),
-//                Feature("\uD83C\uDFAE", "Play Fun Games & Relax !"),
-//                Feature("🍽️", "Order Delicious Food in seconds."),
-                Feature("🛎️", "Request Housekeeping or amenities."),
-//                Feature("🎶", "Stream Your Music & Unwind!"),
-//                Feature("💆‍♀️", "Book Spa & Experiences instantly"),
-                Feature("\uD83D\uDDE3\uFE0F", "Voice Assistant - Just Ask, I’ll Handle It!"),
-                Feature("\uD83D\uDCB0️", "Get exclusive offers on handpicked experiences"),
-//                Feature("\uD83C\uDF89", "Discover the most happening places nearby!"),
-
-                Feature("🍽️", "Instant food—no queue, no awkward small talk"),
-//                Feature("🛎️", "Ask for fresh towels, anytime"),
-                Feature("🎶", "Music & mood—set the vibe"),
-                Feature("🎮", "Quick games for downtime"),
-                Feature("💆‍♀️", "Book the spa — bliss in minutes"),
-//                Feature("📍", "Discover nearby gems")
-            )
-            FeatureScroller(features = features)
-
             Spacer(modifier = Modifier.height(10.dp))
 
             // Cheeky line about price / delight
             Text(
                 "Included with your stay — absolutely free. Consider it our little extra 😉",
                 color = Color(0xFFBFCFD6),
-                fontSize = 14.sp,
+                fontSize = 20.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
+            Spacer(modifier = Modifier.height(20.dp))
 
             // CTA footer
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -118,23 +89,24 @@ fun NoActiveBookingScreen() {
                         }
                     }
                 )
+                Spacer(modifier = Modifier.height(20.dp))
 
                 if (message != null) {
-                    Spacer(modifier = Modifier.height(10.dp))
                     Text(
                         message!!,
                         color = Color(0xFFE8F1F4),
                         fontSize = 14.sp,
                         textAlign = TextAlign.Center
                     )
+                } else {
+                    Text(
+                        "💡 Tap the button above to enable your in-room AI concierge",
+                        color = Color(0xFF9FB2BB),
+                        fontSize = 15.sp
+                    )
                 }
 
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    "Tap to enable your in-room AI concierge",
-                    color = Color(0xFF9FB2BB),
-                    fontSize = 13.sp
-                )
+
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
@@ -148,196 +120,143 @@ fun NoActiveBookingScreen() {
    ---------------------------- */
 @Composable
 fun HeroLottieCarouselWithText() {
-    // items: (lottieUrl, headline, subtitle)
+    // carousel items: (url, headline, subtitle)
     val items = listOf(
         Triple(
-            "https://raw.githubusercontent.com/AdithyaPrabhu/roommitra/refs/heads/lottie/Headphone%20with%20blueberry%20cartoon.json",
+            "https://raw.githubusercontent.com/AdithyaPrabhu/roommitra/refs/heads/lottie/Customer%20service.json",
             "Welcome to RoomMitra",
-            "Your digital butler is ready — ask anything"
+            "Your personal butler — ask me anything anytime"
         ),
         Triple(
             "https://assets2.lottiefiles.com/packages/lf20_svy4ivvy.json",
             "Have some free time?",
-            "Find out the most exciting events nearby!"
+            "Discover the most happening places nearby!"
         ),
         Triple(
-            "https://raw.githubusercontent.com/AdithyaPrabhu/roommitra/refs/heads/lottie/Dino%20Dance.json",
+            "https://raw.githubusercontent.com/AdithyaPrabhu/roommitra/refs/heads/lottie/Dancing.json",
             "Chill Mode",
-            "Play music, games or book a spa — instant delight"
+            "Play music & games — instant delight"
         ),
-        // Dancing sample from user's suggestion area (example)
         Triple(
             "https://raw.githubusercontent.com/AdithyaPrabhu/roommitra/refs/heads/main/Massage.json",
             "Discover everything this hotel has to offer!",
-            "Spa, saloon and more.."
+            "Spa, salon, and more..."
         )
     )
 
-    var index by remember { mutableStateOf(0) }
+    val pagerState = rememberPagerState(pageCount = { items.size })
     val animAlpha = remember { Animatable(1f) }
+
+    // breathing effect
     val transition = rememberInfiniteTransition()
     val floatPulse by transition.animateFloat(
         initialValue = 0.98f, targetValue = 1.02f,
         animationSpec = infiniteRepeatable(tween(1000), RepeatMode.Reverse)
     )
 
-    // auto-rotate
+    // auto-scroll every few seconds
     LaunchedEffect(Unit) {
         while (true) {
             delay(6500)
-            animAlpha.animateTo(0f, tween(700))
-            index = (index + 1) % items.size
-            animAlpha.animateTo(1f, tween(700))
+            animAlpha.animateTo(0f, tween(500))
+            val nextPage = (pagerState.currentPage + 1) % items.size
+            pagerState.animateScrollToPage(nextPage)
+            animAlpha.animateTo(1f, tween(500))
         }
     }
-
-    val (url, headline, subtitle) = items[index]
-    val composition by rememberLottieComposition(LottieCompositionSpec.Url(url))
-    val progress by animateLottieCompositionAsState(
-        composition = composition,
-        iterations = LottieConstants.IterateForever,
-        isPlaying = true
-    )
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(360.dp)
+            .height(500.dp)
             .clip(RoundedCornerShape(24.dp))
             .background(Color(0x11000000))
-            .alpha(animAlpha.value)
-            .border(1.dp, Color.White.copy(alpha = 0.06f), RoundedCornerShape(24.dp)),
-        contentAlignment = Alignment.Center
     ) {
-        // Lottie animation background (full)
-        LottieAnimation(
-            composition = composition,
-            progress = { progress },
+        HorizontalPager(
+            state = pagerState,
+//            beyondBoundsPageCount = 1,
             modifier = Modifier
                 .fillMaxSize()
-                .graphicsLayer {
-                    // slight breathing effect
-                    scaleX = floatPulse
-                    scaleY = floatPulse
-                }
-        )
-
-        // gradient overlay to ensure text readability
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(Color.Transparent, Color(0xBB021224))))
-        )
-
-        // headline + subtitle
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 24.dp)
-        ) {
-            Text(
-                text = headline,
-                color = Color(0xFFF8FAFB),
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
+                .alpha(animAlpha.value)
+        ) { page ->
+            val (url, headline, subtitle) = items[page]
+            val composition by rememberLottieComposition(LottieCompositionSpec.Url(url))
+            val progress by animateLottieCompositionAsState(
+                composition = composition,
+                iterations = LottieConstants.IterateForever,
+                isPlaying = true
             )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = subtitle,
-                color = Color(0xFFD8E6EA),
-                fontSize = 14.sp,
-                textAlign = TextAlign.Center
-            )
-
-            // small pager dots
-            Spacer(modifier = Modifier.height(12.dp))
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                items.indices.forEach { i ->
-                    val dotColor = if (i == index) Color(0xFFFFD700) else Color(0xFF4A6B73)
-                    Box(
-                        modifier = Modifier
-                            .padding(horizontal = 6.dp)
-                            .size(if (i == index) 10.dp else 7.dp)
-                            .clip(CircleShape)
-                            .background(dotColor)
-                    )
-                }
-            }
-        }
-    }
-}
-
-/* ----------------------------
-   Feature Scroller — horizontal list with scaling of centered item
-   - fun, clickable, tactile
-   ---------------------------- */
-@Composable
-fun FeatureScroller(features: List<Feature>) {
-    val listState = rememberLazyListState()
-    var selectedIndex by remember { mutableStateOf(0) }
-    val scope = rememberCoroutineScope()
-
-    // auto-scroll highlight center item every few seconds (fun)
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(3600)
-            val next = (selectedIndex + 1) % features.size
-            selectedIndex = next
-            scope.launch {
-                listState.animateScrollToItem(selectedIndex)
-            }
-        }
-    }
-
-    LazyRow(
-        state = listState,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(140.dp)
-            .padding(horizontal = 4.dp)
-    ) {
-        itemsIndexed(features) { idx, feat ->
-            val isSelected = idx == selectedIndex
-            val scale by animateFloatAsState(if (isSelected) 1.05f else 0.93f, tween(350))
 
             Box(
                 modifier = Modifier
-                    .width(160.dp)
-                    .fillMaxHeight()
-                    .graphicsLayer { scaleX = scale; scaleY = scale }
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(if (isSelected) Color(0x20FFD700) else Color(0x11000000))
-                    .border(
-                        1.dp,
-                        Color.White.copy(alpha = if (isSelected) 0.12f else 0.06f),
-                        RoundedCornerShape(16.dp)
-                    )
-                    .pointerInput(Unit) {
-                        detectTapGestures {
-                            // on tap highlight this item immediately
-                            selectedIndex = idx
-                            // optional: do a preview action
-                        }
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        scaleX = floatPulse
+                        scaleY = floatPulse
                     },
                 contentAlignment = Alignment.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(feat.icon, fontSize = 36.sp)
+                // Lottie background
+                LottieAnimation(
+                    composition = composition,
+                    progress = { progress },
+                    modifier = Modifier.fillMaxSize()
+                )
+
+                // gradient overlay
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(Color.Transparent, Color(0xCC021224))
+                            )
+                        )
+                )
+
+                // Text content
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 40.dp)
+                ) {
+                    Text(
+                        text = headline,
+                        color = Color(0xFFF8FAFB),
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        feat.description,
-                        color = Color(0xFFF2F7F8),
-                        fontSize = 13.sp,
+                        text = subtitle,
+                        color = Color(0xFFD8E6EA),
+                        fontSize = 18.sp,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 8.dp)
+                        modifier = Modifier.padding(horizontal = 16.dp)
                     )
                 }
+            }
+        }
+
+        // pager dots (always visible)
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 16.dp)
+        ) {
+            repeat(items.size) { index ->
+                val isSelected = pagerState.currentPage == index
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 5.dp)
+                        .size(if (isSelected) 12.dp else 8.dp)
+                        .clip(CircleShape)
+                        .background(if (isSelected) Color(0xFFFFD700) else Color(0xFF4A6B73))
+                )
             }
         }
     }
@@ -376,8 +295,6 @@ fun FloatingBubbles() {
         }
     }
 }
-
-data class Feature(val icon: String, val description: String)
 
 /* ----------------------------
    CTA Button (glowing gold) — clickable fixed correctly
@@ -423,7 +340,7 @@ fun ConnectToReceptionButton(
             )
         } else {
             Text(
-                text = "Connect My Room",
+                text = "Alert Front Desk To Connect My Room",
                 color = Color.Black,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
