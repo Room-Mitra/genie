@@ -38,7 +38,7 @@ import roomRoutes from '#routes/public/Room.controller.js';
 import androidLoginRoutes from '#routes/public/AndroidLogin.controller.js';
 import androidRequestRoutes from '#routes/public/AndroidRequest.controller.js';
 import androidEventsTrackerRoutes from '#routes/public/AndroidEventTracker.controller.js';
-
+import androidHotelRoutes from '#routes/public/AndriodHotel.controller.js';
 // Middlewares
 import authenticator from '#middleware/Authenticator.middleware.js';
 import adminAuthenticator from '#middleware/AdminAuthenticator.middleware.js';
@@ -84,13 +84,14 @@ app.use('/devices', authenticator, deviceRoutes);
 app.use('/intents', authenticator, intentsRoutes);
 app.use('/guests', authenticator, guestRoutes);
 app.use('/booking', authenticator, bookingRoutes);
-app.use('/rooms', authenticator, roomRoutes);    
+app.use('/rooms', authenticator, roomRoutes);
 app.use('/mapping', authenticator, mappingRoutes);
 app.use('/faq', authenticator, faqRoutes);
 
 // Android Routes
 app.use('/android/utterance', authenticator, utteranceRoutes);
 app.use('/android/request', authenticator, androidRequestRoutes);
+app.use('/android/hotel', authenticator, androidHotelRoutes);
 app.use('/android/track-events', authenticator, androidEventsTrackerRoutes);
 
 // routes which dont need auth
