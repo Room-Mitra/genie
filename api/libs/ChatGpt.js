@@ -12,7 +12,7 @@ export const callChatGptApi = (messages) => {
     body: JSON.stringify({
       model: 'gpt-5-nano',
       messages,
-      temperature: 0.4,
+      // temperature: 0.4,
     }),
   });
 };
