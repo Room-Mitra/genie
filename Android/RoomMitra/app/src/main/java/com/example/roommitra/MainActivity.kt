@@ -102,8 +102,7 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                                 LoginScreen(onBackClick = { navController.popBackStack() })
                             }
                             composable("no-active-booking") {
-//                                NoActiveBookingScreen(navController = navController)
-                                NoActiveBookingScreen()
+                                NoActiveBookingScreen(navController = navController)
                             }
                         }
                         GlobalSnackbarHost(snackbarFlow = SnackbarManager.messages)
