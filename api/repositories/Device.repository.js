@@ -10,12 +10,7 @@ export const registerNewDevice = async (device) => {
     Item: deviceItem,
   };
 
-  try {
-    await DDB.put(params).promise();
-  } catch (err) {
-    console.log(err);
-    throw new Error('Unable to save device in db');
-  }
+  await DDB.put(params).promise();
   return params.Item;
 };
 
