@@ -62,3 +62,10 @@ export function formatTimeString(timeString: string) {
     hour12: true,
   }).format(date);
 }
+
+export function combineToUTC(dateStr: string, timeStr: string) {
+  const [y, m, d] = dateStr.split("-").map(Number); // "YYYY-MM-DD"
+  const [hh, mm] = timeStr.split(":").map(Number); // "HH:mm"
+  const local = new Date(y, m - 1, d, hh, mm); // interprets as local time
+  return local.toISOString(); // UTC "Z"
+}

@@ -11,7 +11,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { Autocomplete } from "./_components/autocomplete";
 import { cn } from "@/lib/utils";
-import { formatDate, formatTimeString } from "@/lib/format-message-time";
+import {
+  combineToUTC,
+  formatDate,
+  formatTimeString,
+} from "@/lib/format-message-time";
 
 async function addRoom({ roomNumber, roomType, floor, description }) {
   const res = await fetch(`/api/rooms`, {
@@ -40,61 +44,20 @@ async function fetchRooms() {
   return await res.json();
 }
 
-// ---------------------------------------------
-// Mock API layer (simulate latency)
-// ---------------------------------------------
-const mockRooms = Array.from({ length: 30 }).map((_, i) => ({
-  id: `room-${i + 101}`,
-  number: String(100 + i + 1),
-  type: i % 3 === 0 ? "Deluxe" : i % 3 === 1 ? "Suite" : "Standard",
-}));
+async function createBooking(bookingData) {
+  const res = await fetch(`/api/booking`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(bookingData),
+  });
 
-const mockGuests = [
-  {
-    id: "g-1",
-    firstName: "Ravi",
-    lastName: "Kumar",
-    mobile: "9876543210",
-  },
-  {
-    id: "g-2",
-    firstName: "Anita",
-    lastName: "Sharma",
-    mobile: "9988776655",
-  },
-  {
-    id: "g-3",
-    firstName: "Rahul",
-    lastName: "Mehta",
-    mobile: "9123456780",
-  },
-];
-
-const api = {
-  async searchGuestsByMobile(q) {
-    await new Promise((r) => setTimeout(r, 250));
-    const s = String(q || "");
-    return mockGuests.filter((g) => g.mobile.includes(s)).slice(0, 8);
-  },
-  async createGuest(data) {
-    await new Promise((r) => setTimeout(r, 350));
-    const id = `g-${Math.random().toString(36).slice(2, 8)}`;
-    const guest = { id, ...data };
-    mockGuests.unshift(guest);
-    return guest;
-  },
-  async createRoom(data) {
-    await new Promise((r) => setTimeout(r, 350));
-    const id = `room-${Math.random().toString(36).slice(2, 8)}`;
-    const room = { id, ...data };
-    mockRooms.unshift(room);
-    return room;
-  },
-  async createBooking(data) {
-    await new Promise((r) => setTimeout(r, 500));
-    return { id: `b-${Date.now()}`, ...data, status: "CONFIRMED" };
-  },
-};
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Failed to create booking");
+  }
+}
 
 // ---------------------------------------------
 // Main booking form
@@ -167,27 +130,20 @@ export default function AddBookingPage() {
     if (!canSubmit) return;
     setCreating(true);
     try {
-      const booking = await api.createBooking({
-        checkIn: checkInDate,
-        checkOut: checkOutDate,
-        roomId: selectedRoom.id,
-        number: selectedRoom.number,
-        // guestId: selectedGuest.id,
-        // guestName: selectedGuest.name,
-        // guestMobile: selectedGuest.mobile,
-      });
+      const data = {
+        checkInTime: combineToUTC(checkInDate, checkInTime),
+        checkOutTime: combineToUTC(checkOutDate, checkOutTime),
+        roomId: selectedRoom.roomId,
+        guest: {
+          firstName: firstName,
+          lastName: lastName,
+          mobile: mobile,
+        },
+      };
 
-      // const data = {
-      //   checkInDate: checkInDate,
-      //   checkInTime: checkInTime,
-      //   checkOutDate: checkOutDate,
-      //   checkOutTime: checkOutTime,
-      //   room: selectedRoom,
+      const booking = await createBooking(data);
 
-      //   booking: booking,
-      // };
-
-      toast.success(`Booking ${booking.id} created`);
+      toast.success(`Booking ${booking.bookingId} created`);
       resetForm();
     } catch (err) {
       console.error(err);
@@ -231,7 +187,6 @@ export default function AddBookingPage() {
   const refreshRooms = async () => {
     try {
       const rooms = await fetchRooms();
-      console.log(rooms);
       setRooms(rooms?.items);
     } catch (err) {
       console.error("Error fetching rooms:", err);
@@ -253,7 +208,7 @@ export default function AddBookingPage() {
 
   useEffect(() => {
     refreshRooms();
-  });
+  }, []);
 
   return (
     <div className="mx-auto max-w-3xl rounded-[10px] bg-white p-6 dark:bg-gray-dark">
@@ -276,6 +231,7 @@ export default function AddBookingPage() {
             value={checkInDate}
             handleChange={(e) => setCheckInDate(e.target.value)}
             min={new Date().toISOString().split("T")[0]}
+            required
           />
 
           <InputGroup
@@ -294,6 +250,7 @@ export default function AddBookingPage() {
             value={checkOutDate}
             handleChange={(e) => setCheckOutDate(e.target.value)}
             min={checkInDate || undefined}
+            required
           />
 
           <InputGroup
@@ -308,6 +265,7 @@ export default function AddBookingPage() {
 
         {/* Room autocomplete */}
         <Autocomplete
+          required
           label="Room"
           placeholder="Search room number or type"
           value={selectedRoom}
@@ -318,25 +276,25 @@ export default function AddBookingPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3">
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center justify-center rounded-md bg-indigo-600 p-2 text-xs text-white dark:bg-indigo-600/20 dark:text-indigo-300">
-                  {room.number}
+                  #{room.number}
                 </span>
                 <span className="text-dark dark:text-gray-200">
                   {room.type}
                 </span>
               </div>
-              <span className="text-sm text-dark dark:text-gray-200">
+              <div className="text-md align-middle text-dark dark:text-gray-200">
                 Floor: {room.floor}
-              </span>
-              <span className="text-xs text-dark dark:text-gray-400">
+              </div>
+              <div className="text-md align-middle text-dark dark:text-gray-200">
                 {room.description && `Desc: ${room.description}`}
-              </span>
+              </div>
             </div>
           )}
           rightAddon={
             <button
               type="button"
               onClick={() => setShowRoomModal(true)}
-              className="mt-8 rounded-lg border border-gray-700 bg-gray-300 px-2 py-1 text-xs font-medium text-dark hover:bg-gray-500"
+              className="mt-8 rounded-lg border border-gray-700 bg-gray-300 px-2 py-1 text-xs font-medium text-dark hover:bg-gray-400"
               aria-label="Add new room"
             >
               New
@@ -348,7 +306,7 @@ export default function AddBookingPage() {
               <button
                 type="button"
                 onClick={() => setShowRoomModal(true)}
-                className="rounded-lg border border-gray-700 px-2 py-1 text-xs text-gray-300 hover:bg-gray-800"
+                className="rounded-lg border border-gray-700 bg-gray-300 px-2 py-1 text-xs font-medium text-dark hover:bg-gray-400"
               >
                 Add new room
               </button>
@@ -356,7 +314,7 @@ export default function AddBookingPage() {
           }
         />
 
-        <hr className="my-6" />
+        <hr className="my-2" />
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <InputGroup
@@ -392,7 +350,7 @@ export default function AddBookingPage() {
           />
         </div>
 
-        <hr className="my-6" />
+        <hr className="my-2" />
 
         {/* Summary */}
         <div className="rounded-2xl border border-gray-700 p-4 text-dark dark:text-white">
@@ -421,7 +379,14 @@ export default function AddBookingPage() {
               </span>
             </div>
             <div className="text-md">
-              <span>Guest:</span> <span className="font-semibold">{"—"} </span>
+              <span>Guest:</span>{" "}
+              {!firstName && !lastName && !mobile ? (
+                <span className="font-semibold">{"—"} </span>
+              ) : (
+                <span className="font-semibold">
+                  {firstName} {lastName} {mobile && `(${mobile})`}
+                </span>
+              )}
             </div>
           </div>
         </div>

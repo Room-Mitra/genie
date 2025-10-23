@@ -89,6 +89,35 @@ export function buildHotelEntityItem(input, options) {
       });
     }
 
+    case 'BOOKING': {
+      const bookingId = i.bookingId ?? ulid();
+      const sk = `BOOKING#${bookingId}`;
+      const base = baseKeys(i.hotelId, sk);
+
+      return clean({
+        ...base,
+
+        // Room GSI (for bookings per room)
+        roomType_pk: `ROOM#${i.roomId}`,
+        roomType_sk: `BOOKING#${bookingId}`,
+
+        // Bookings by status
+        status_pk: `BOOKINGSTATUS#${i.status}#HOTEL#${i.hotelId}`,
+        status_sk: `BOOKING#${bookingId}`,
+
+        entityType: 'BOOKING',
+        hotelId: i.hotelId,
+        roomId: i.roomId,
+
+        checkInTime: i.checkInTime,
+        checkOutTime: i.checkOutTime,
+
+        guest: i.guest,
+
+        createdAt: i.createdAt,
+      });
+    }
+
     case 'REQUEST': {
       const reqId = i.requestId ?? ulid();
       const timeId = reqId; // ULID is time ordered

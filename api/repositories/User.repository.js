@@ -61,7 +61,7 @@ export async function transactCreateUserWithMobileGuard({ user }) {
     createdAt: toIsoString(now),
     updatedAt: toIsoString(now),
   };
-  const mobileKey = `USER#${user.mobile}`;
+  const mobileKey = `USER#${user.mobileNumber}`;
   const params = {
     TransactItems: [
       {
@@ -133,6 +133,25 @@ export async function getEmailRegistryByEmail(email) {
 
   // expected shape:
   // { pk: 'EMAIL#x@y.com', sk: 'USER#<userId>', userId: '<userId>', ... }
+  return Items[0];
+}
+
+export async function getMobileRegistryByMobile(mobile) {
+  const pk = `USER#${mobile}`;
+
+  // We wrote exactly one item per email in sign-up, so query with pk and limit 1
+  const params = {
+    TableName: ENTITY_TABLE_NAME,
+    KeyConditionExpression: 'pk = :pk',
+    ExpressionAttributeValues: {
+      ':pk': pk,
+    },
+    Limit: 1,
+  };
+
+  const { Items } = await DDB.query(params).promise();
+  if (!Items || Items.length === 0) return null;
+
   return Items[0];
 }
 

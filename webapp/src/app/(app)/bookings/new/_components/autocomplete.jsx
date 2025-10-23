@@ -12,6 +12,7 @@ function useDebounce(value, delay = 250) {
 }
 
 export function Autocomplete({
+  required = false,
   label,
   placeholder,
   value,
@@ -88,6 +89,7 @@ export function Autocomplete({
     <div className="w-full" ref={wrapperRef}>
       <div className="relative">
         <InputGroup
+          required={required}
           label={label}
           placeholder={placeholder}
           value={query}

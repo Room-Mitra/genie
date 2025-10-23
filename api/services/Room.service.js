@@ -15,7 +15,15 @@ export async function addRoom({ hotelId, number, type, floor, description }) {
 export async function listRooms({ hotelId, limit, nextToken }) {
   const rooms = await roomRepo.queryAllRooms({ hotelId, limit, nextToken });
   return {
-    items: rooms,
+    items: rooms.map(({ roomId, number, createdAt, description, hotelId, type, floor }) => ({
+      roomId,
+      number,
+      createdAt,
+      description,
+      hotelId,
+      type,
+      floor,
+    })),
     count: rooms.length,
   };
 }
