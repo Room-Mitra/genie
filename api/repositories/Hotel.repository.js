@@ -103,3 +103,19 @@ export async function updateHotelByPkSk(pk, sk, updates) {
   const data = await DDB.update(params).promise();
   return data.Attributes;
 }
+
+export async function queryLatestHotelByPrefix(hotelIdPrefix) {
+  const pk = `CATALOG#HOTEL`;
+  const sk = `HOTEL#${hotelIdPrefix.toUpperCase()}`;
+
+  const params = {
+    TableName: ENTITY_TABLE_NAME,
+    KeyConditionExpression: 'pk = :pk and begins_with(sk, :sk)',
+    ExpressionAttributeValues: { ':pk': pk, ':sk': sk },
+    ScanIndexForward: false, // newest first
+    Limit: 1,
+  };
+
+  const data = await DDB.query(params).promise();
+  return data.Items && data.Items[0];
+}

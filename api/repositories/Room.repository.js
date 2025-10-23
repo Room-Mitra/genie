@@ -11,7 +11,6 @@ export const createRoom = async (roomData) => {
   };
 
   await DDB.put(params).promise();
-
   return params.Item;
 };
 
@@ -56,4 +55,20 @@ export async function queryAllRooms({ hotelId, limit, nextToken }) {
     console.error('Failed to list rooms:', err);
     throw new Error('Failed to list rooms');
   }
+}
+
+export async function queryRoomByPrefix({ hotelId, roomIdPrefix }) {
+  const pk = `HOTEL#${hotelId}`;
+  const sk = `ROOM#${roomIdPrefix.toUpperCase()}`;
+
+  const params = {
+    TableName: ENTITY_TABLE_NAME,
+    KeyConditionExpression: 'pk = :pk and begins_with(sk, :sk)',
+    ExpressionAttributeValues: { ':pk': pk, ':sk': sk },
+    ScanIndexForward: false,
+    Limit: 1,
+  };
+
+  const data = await DDB.query(params).promise();
+  return data.Items && data.Items[0];
 }

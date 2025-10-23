@@ -233,18 +233,12 @@ export function buildHotelEntityItem(input, options) {
       const base = baseKeys(i.hotelId, sk);
       return clean({
         ...base,
-        // Device -> binding lookup
-        device_pk: `DEVICE#${deviceId}`,
-        device_sk: `ROOM#${i.roomId ?? 'UNBOUND'}#HOTEL#${i.hotelId}`,
-        // Room timeline if bound
-        ...(i.roomId
-          ? {
-              roomType_pk: `ROOM#${i.roomId}`,
-              roomType_sk: `DEVICE#${deviceId}`,
-            }
-          : {}),
         ...maybeHotelType(options, i.hotelId, 'DEVICE', deviceId),
 
+        // Room timeline if bound
+
+        roomType_pk: `ROOM#${i.roomId}`,
+        roomType_sk: `DEVICE#${deviceId}`,
         entityType: 'DEVICE',
         hotelId: i.hotelId,
         deviceId,
@@ -252,7 +246,7 @@ export function buildHotelEntityItem(input, options) {
         serial: i.serial,
         model: i.model,
         state: i.state,
-        lastSeenEpoch: i.lastSeenEpoch,
+        lastSeen: i.lastSeen,
         createdAt: i.createdAt,
       });
     }
