@@ -37,7 +37,9 @@ router.post('/', async (req, res) => {
     return res.status(201).json(result);
   } catch (err) {
     if (err.code === 'BOOKING_OVERLAP') {
-      return res.status(409).json({ error: 'Dates overlap with an existing booking' });
+      return res
+        .status(409)
+        .json({ error: 'Dates overlap with an existing booking for this room' });
     }
     if (err.code === 'VALIDATION_ERROR') {
       return res.status(400).json({ error: err.message });

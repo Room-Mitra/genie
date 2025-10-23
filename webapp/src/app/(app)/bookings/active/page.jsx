@@ -1,5 +1,8 @@
 "use client";
 
+import { DateTime } from "@/components/ui/datetime";
+import { ID } from "@/components/ui/id";
+import { Room } from "@/components/ui/room";
 import SortTable from "@/components/ui/sort-table";
 import { formatDateTime } from "@/lib/format-message-time";
 import { useMemo, useState, useEffect } from "react";
@@ -12,24 +15,6 @@ async function fetchActiveBookings() {
 
   if (!res.ok) throw new Error("Failed to fetch active bookings");
   return await res.json();
-}
-
-function Room({ room }) {
-  return (
-    <>
-      <div className="flex flex-col items-center gap-2 md:flex-row">
-        <div className="flex items-center gap-1">
-          <span className="inline-flex items-center justify-center rounded-md bg-indigo-600 p-2 text-xs text-white dark:bg-indigo-600/20 dark:text-indigo-300">
-            #{room.number}
-          </span>
-          <span className="text-dark dark:text-gray-200">{room.type}</span>
-        </div>
-        <div className="text-md align-middle text-dark dark:text-gray-200">
-          Floor: {room.floor}
-        </div>
-      </div>
-    </>
-  );
 }
 
 export default function Page() {
@@ -55,14 +40,11 @@ export default function Page() {
         if (!cancelled)
           setData(
             bookings?.items?.map((b) => ({
-              checkInTime: formatDateTime(b.checkInTime),
-              checkOutTime: formatDateTime(b.checkOutTime),
+              checkInTime: <DateTime dateTimeIso={b.checkInTime} />,
+              checkOutTime: <DateTime dateTimeIso={b.checkOutTime} />,
+
               room: <Room room={b.room} />,
-              guest: (
-                <span className="text-md text-gray-500">
-                  {b.guest.userId.slice(0, 8)}
-                </span>
-              ),
+              guest: <ID ulid={b.guest.userId} />,
             })),
           );
       } catch (err) {

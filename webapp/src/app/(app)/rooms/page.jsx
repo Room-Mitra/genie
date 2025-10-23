@@ -1,5 +1,6 @@
 "use client";
 
+import { ID } from "@/components/ui/id";
 import SortTable from "@/components/ui/sort-table";
 import { useState, useEffect, useMemo } from "react";
 
@@ -34,7 +35,26 @@ export default function Page() {
     (async () => {
       try {
         const rooms = await fetchRooms();
-        if (!cancelled) setData(rooms?.items);
+        if (!cancelled)
+          setData(
+            rooms?.items?.map((r) => ({
+              number: (
+                <span className="inline-flex items-center justify-center rounded-md bg-indigo-600 p-2 text-xs text-white dark:bg-indigo-600/20 dark:text-indigo-300">
+                  #{r.number}
+                </span>
+              ),
+              type: (
+                <span className="text-dark dark:text-gray-200">{r.type}</span>
+              ),
+              floor: (
+                <div className="text-md align-middle text-dark dark:text-gray-200">
+                  {r.floor}
+                </div>
+              ),
+              description: r.description,
+              roomId: <ID ulid={r.roomId} />,
+            })),
+          );
       } catch (err) {
         console.error("Error fetching rooms:", err);
       } finally {
