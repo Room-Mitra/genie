@@ -2,6 +2,7 @@
 import { ulid } from 'ulid';
 import * as bookingRepo from '#repositories/Booking.repository.js';
 import * as userRepo from '#repositories/User.repository.js';
+import * as roomRepo from '#repositories/Room.repository.js';
 import { toIsoString } from '#common/timestamp.helper.js';
 
 function parseAndValidateTimes(checkInTime, checkoutTime) {
@@ -92,4 +93,34 @@ export async function getBookingById({ hotelId, bookingId }) {
   return booking
     ? { bookingId, hotelId, checkInTime, checkOutTime, roomId, createdAt, updatedAt, guest }
     : null;
+}
+
+export async function listBookings({ hotelId, status }) {
+  const bookings = await bookingRepo.queryBookings({ hotelId, status });
+
+  const rooms = await roomRepo.queryAllRooms({ hotelId });
+  const roomMap = new Map(rooms.map((room) => [room.roomId, room]));
+
+  const getRoom = (room) => ({
+    type: room.type,
+    floor: room.floor,
+    number: room.number,
+    roomId: room.roomId,
+  });
+
+  return {
+    items: bookings?.map(
+      ({ bookingId, checkInTime, checkOutTime, roomId, createdAt, updatedAt, guest }) => ({
+        bookingId,
+        hotelId,
+        checkInTime,
+        checkOutTime,
+        room: getRoom(roomMap.get(roomId)),
+        createdAt,
+        updatedAt,
+        guest,
+      })
+    ),
+    count: bookings?.length || 0,
+  };
 }

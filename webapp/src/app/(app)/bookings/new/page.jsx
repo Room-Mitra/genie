@@ -57,6 +57,7 @@ async function createBooking(bookingData) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || "Failed to create booking");
   }
+  return await res.json();
 }
 
 // ---------------------------------------------
@@ -72,7 +73,7 @@ export default function AddBookingPage() {
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [mobile, setMobile] = useState("");
+  const [mobileNumber, setMobileNumber] = useState("");
 
   // const [roomQuery, setRoomQuery] = useState("");
   const [selectedRoom, setSelectedRoom] = useState(null);
@@ -98,7 +99,7 @@ export default function AddBookingPage() {
       selectedRoom &&
       firstName &&
       lastName &&
-      mobile &&
+      mobileNumber &&
       !creating
     );
   }, [
@@ -109,7 +110,7 @@ export default function AddBookingPage() {
     selectedRoom,
     firstName,
     lastName,
-    mobile,
+    mobileNumber,
     creating,
   ]);
 
@@ -121,7 +122,7 @@ export default function AddBookingPage() {
     setSelectedRoom(null);
     setFirstName("");
     setLastName("");
-    setMobile("");
+    setMobileNumber("");
     setRoomForm({ number: "", type: "", floor: "", description: "" });
   }
 
@@ -137,17 +138,16 @@ export default function AddBookingPage() {
         guest: {
           firstName: firstName,
           lastName: lastName,
-          mobile: mobile,
+          mobileNumber: mobileNumber,
         },
       };
 
       const booking = await createBooking(data);
 
-      toast.success(`Booking ${booking.bookingId} created`);
+      toast.success(`Booking ${booking.bookingId.slice(0, 6)} created`);
       resetForm();
     } catch (err) {
-      console.error(err);
-      toast.error("Failed to create booking", err);
+      toast.error(err?.message || "Failed to create booking");
     } finally {
       setCreating(false);
     }
@@ -342,9 +342,9 @@ export default function AddBookingPage() {
             name="mobile"
             label="Mobile"
             placeholder="9910203040"
-            value={mobile}
+            value={mobileNumber}
             handleChange={(e) =>
-              setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))
+              setMobileNumber(e.target.value.replace(/\D/g, "").slice(0, 10))
             }
             required
           />
@@ -380,11 +380,11 @@ export default function AddBookingPage() {
             </div>
             <div className="text-md">
               <span>Guest:</span>{" "}
-              {!firstName && !lastName && !mobile ? (
+              {!firstName && !lastName && !mobileNumber ? (
                 <span className="font-semibold">{"—"} </span>
               ) : (
                 <span className="font-semibold">
-                  {firstName} {lastName} {mobile && `(${mobile})`}
+                  {firstName} {lastName} {mobileNumber && `(${mobileNumber})`}
                 </span>
               )}
             </div>

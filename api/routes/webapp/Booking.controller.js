@@ -47,4 +47,43 @@ router.post('/', async (req, res) => {
   }
 });
 
+router.get('/active', async (req, res) => {
+  try {
+    const { hotelId } = req.userData;
+
+    const bookings = await bookingService.listBookings({ hotelId, status: 'active' });
+
+    return res.status(200).json(bookings);
+  } catch (err) {
+    console.error('Error querying active bookings', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.get('/past', async (req, res) => {
+  try {
+    const { hotelId } = req.userData;
+
+    const bookings = await bookingService.listBookings({ hotelId, status: 'past' });
+
+    return res.status(200).json(bookings);
+  } catch (err) {
+    console.error('Error querying active bookings', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.get('/upcoming', async (req, res) => {
+  try {
+    const { hotelId } = req.userData;
+
+    const bookings = await bookingService.listBookings({ hotelId, status: 'upcoming' });
+
+    return res.status(200).json(bookings);
+  } catch (err) {
+    console.error('Error querying active bookings', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;

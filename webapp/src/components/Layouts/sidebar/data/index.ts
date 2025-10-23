@@ -38,6 +38,18 @@ export const NAV_DATA = [
             title: "+ Create New",
             url: "/bookings/new",
           },
+          {
+            title: "Active",
+            url: "/bookings/active",
+          },
+          {
+            title: "Upcoming",
+            url: "/bookings/upcoming",
+          },
+          {
+            title: "Past",
+            url: "/bookings/past",
+          },
         ],
       },
       {

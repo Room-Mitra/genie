@@ -69,3 +69,22 @@ export function combineToUTC(dateStr: string, timeStr: string) {
   const local = new Date(y, m - 1, d, hh, mm); // interprets as local time
   return local.toISOString(); // UTC "Z"
 }
+
+export function formatDateTime(isoString: string): string {
+  const date = new Date(isoString);
+
+  const options: Intl.DateTimeFormatOptions = {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  };
+
+  // Example: "23 Oct 2025, 9:00 AM"
+  const formatted = date.toLocaleString("en-GB", options);
+
+  // remove the comma for a cleaner look -> "23 Oct 2025 9:00 AM"
+  return formatted.replace(",", "");
+}
