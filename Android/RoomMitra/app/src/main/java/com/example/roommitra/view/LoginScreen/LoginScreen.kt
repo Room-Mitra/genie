@@ -1,23 +1,16 @@
 package com.example.roommitra.view
 
-import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.roommitra.service.ApiResult
@@ -32,10 +25,10 @@ fun LoginScreen(
     onBackClick: () -> Unit = {},
 ) {
     var hotelId by remember { mutableStateOf("") }
-    var roomNumber by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    var roomId by remember { mutableStateOf("") }
+//    var password by remember { mutableStateOf("") }
 
-    var passwordVisible by remember { mutableStateOf(false) }
+//    var passwordVisible by remember { mutableStateOf(false) }
 
 
     var isLoading by remember { mutableStateOf(false) }
@@ -49,15 +42,14 @@ fun LoginScreen(
     val sessionManager = remember { SessionManager(context) }
     val apiService = ApiService(context)
 
-    fun onLogin(hotelId: String, roomNumber: String, password: String) {
+    fun onLogin(hotelId: String, roomId: String) {
 
         coroutineScope.launch {
             isLoading = true
             loginMessage = null
             val body = JSONObject().apply {
                 put("hotelId", hotelId)
-                put("roomNumber", roomNumber)
-                put("password", password)
+                put("roomId", roomId)
             }
 
             val result = apiService.post("login", body)
@@ -141,44 +133,44 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
-                value = roomNumber,
-                onValueChange = { roomNumber = it },
-                label = { Text("Room Number") },
+                value = roomId,
+                onValueChange = { roomId = it },
+                label = { Text("Room ID") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(0.5f)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Password") },
-                singleLine = true,
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                modifier = Modifier.fillMaxWidth(0.5f),
-                trailingIcon = {
-                    val image = if (passwordVisible) {
-                        Icons.Filled.Visibility
-                    } else {
-                        Icons.Filled.VisibilityOff
-                    }
-
-                    val description = if (passwordVisible) "Hide password" else "Show password"
-
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(imageVector = image, contentDescription = description)
-                    }
-                }
-            )
+//            OutlinedTextField(
+//                value = password,
+//                onValueChange = { password = it },
+//                label = { Text("Password") },
+//                singleLine = true,
+//                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+//                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+//                modifier = Modifier.fillMaxWidth(0.5f),
+//                trailingIcon = {
+//                    val image = if (passwordVisible) {
+//                        Icons.Filled.Visibility
+//                    } else {
+//                        Icons.Filled.VisibilityOff
+//                    }
+//
+//                    val description = if (passwordVisible) "Hide password" else "Show password"
+//
+//                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+//                        Icon(imageVector = image, contentDescription = description)
+//                    }
+//                }
+//            )
 
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
                 onClick = {
-                    if (hotelId.isNotBlank() && roomNumber.isNotBlank() && password.isNotBlank()) {
-                        onLogin(hotelId, roomNumber, password)
+                    if (hotelId.isNotBlank() && roomId.isNotBlank()) {
+                        onLogin(hotelId, roomId)
                     } else {
                         loginMessage = "Please fill in all fields."
                     }
