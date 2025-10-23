@@ -12,6 +12,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.IOException
 import java.time.Instant
+import java.util.concurrent.TimeUnit
 
 sealed class ApiResult {
     data class Success(val data: JSONObject?) : ApiResult()
@@ -19,14 +20,18 @@ sealed class ApiResult {
 }
 class ApiService(private val context: Context) {
     companion object {
-//        private const val BASE_URL = "http://192.168.29.120:3000/android"
+//        private const val BASE_URL = "https://silver-moose-juggle.loca.lt/android"
         private const val BASE_URL = "https://api.roommitra.com/android"
     }
     // Get device ID dynamically
     private val deviceId: String
         get() = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
 
-    private val client = OkHttpClient()
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)
+        .build()
 
     // Example: default headers
     private val defaultHeaders: Map<String, String>

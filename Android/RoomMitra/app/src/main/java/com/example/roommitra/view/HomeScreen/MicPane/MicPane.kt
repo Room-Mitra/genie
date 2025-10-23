@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
 import com.example.roommitra.ConversationMessage
+import com.example.roommitra.agent.AgenticHandlerRegistry
 import com.example.roommitra.service.ApiResult
 import com.example.roommitra.service.ApiService
 import kotlinx.coroutines.Dispatchers
@@ -425,7 +426,7 @@ fun rememberMicController(
 // ===========================================================================
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MicPane(modifier: Modifier = Modifier, navController: NavHostController) {
+fun MicPane(modifier: Modifier = Modifier, navController: NavHostController,musicController: MusicPlayerController) {
     val ctx = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val apiService = remember { ApiService(ctx) }
@@ -433,12 +434,12 @@ fun MicPane(modifier: Modifier = Modifier, navController: NavHostController) {
     val autoListenTrigger = remember { mutableStateOf(0L) }
     val ttsManager = remember { TtsManager(ctx) }
     var sessionId by remember { mutableStateOf(UUID.randomUUID().toString()) }
+    val agenticHandler = remember{ AgenticHandlerRegistry(ctx) }
 
     val sessionReset: () -> Unit = { sessionId = UUID.randomUUID().toString() }
 
     fun sendUtteranceToServer(userQuery: String) {
         coroutineScope.launch {
-            withContext(Dispatchers.IO) {
                 try {
                     val payload = JSONObject().apply {
                         put("userQuery", userQuery)
@@ -448,11 +449,44 @@ fun MicPane(modifier: Modifier = Modifier, navController: NavHostController) {
                         "MicPane",
                         "Attempting to send User query : \"$userQuery\" sessionId=$sessionId"
                     )
-                    when (val result = apiService.post("utterance", payload)) {
+                    val result = withContext(Dispatchers.IO) {
+                        apiService.post("utterance", payload)
+                    }
+                    when ( result) {
                         is ApiResult.Success -> {
                             val json = result.data
                             val speech = json?.optString("speech", "") ?: ""
                             val isSessionOpen = json?.optBoolean("isSessionOpen", false) ?: false
+                            val agentsArray = json?.optJSONArray("agents")
+                            Log.d("MicPane", "Server response: $speech")
+                            Log.d("MicPane", "Server response: $isSessionOpen")
+                            Log.d("MicPane", "Server response: $agentsArray")
+
+                            if (agentsArray != null && agentsArray.length() > 0) {
+                                for (i in 0 until agentsArray.length()) {
+                                    val agent = agentsArray.getJSONObject(i)
+                                    val agentType = agent.optString("type", "")
+
+                                    val parameters = mutableListOf<String>()
+                                    agent.optJSONArray("parameters")?.let { params ->
+                                        for (j in 0 until params.length()) {
+                                            params.optString(j)?.takeIf { it.isNotEmpty() }
+                                                ?.let { parameters.add(it) }
+                                        }
+                                    }
+
+
+                                    if (agentType.isNotEmpty()) {
+//                                        musicController.playlist(parameters)
+                                        // Safe to call agent handler
+                                        agenticHandler.callAgent(
+                                            agentType,
+                                            parameters,
+                                            coroutineScope
+                                        )
+                                    }
+                                }
+                            }
 
                             if (speech.isNotEmpty()) {
                                 Log.d(
@@ -462,7 +496,6 @@ fun MicPane(modifier: Modifier = Modifier, navController: NavHostController) {
                                 conversation.add(ConversationMessage(speech, false))
                                 ttsManager.speak(speech)
                             } else ttsManager.speak("No response from server.")
-
                             if (isSessionOpen)
                                 autoListenTrigger.value = System.currentTimeMillis()
                         }
@@ -475,7 +508,6 @@ fun MicPane(modifier: Modifier = Modifier, navController: NavHostController) {
                 } catch (e: Exception) {
                     ttsManager.speak("Something went wrong. Please try later")
                 }
-            }
         }
     }
 

@@ -115,8 +115,8 @@ app.use('/admin/staff', adminAuthenticator, staffRoutes);
 app.listen(PORT, () => console.log(`Server running on port: http://localhost:${PORT}`));
 
 // run functions on server startup
-warmDevicesCache();
-warmIntentsCache();
+// warmDevicesCache();
+// warmIntentsCache();
 
 // swagger setup
 const swaggerOptions = {
