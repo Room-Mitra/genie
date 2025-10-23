@@ -1,5 +1,6 @@
 package com.example.roommitra.view
 
+import android.util.Log
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -25,6 +26,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -32,8 +34,11 @@ import androidx.compose.ui.unit.*
 import androidx.navigation.NavHostController
 import com.airbnb.lottie.compose.*
 import com.example.roommitra.R
+import com.example.roommitra.service.ApiResult
+import com.example.roommitra.service.ApiService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 @Composable
 fun NoActiveBookingScreen(navController: NavHostController) {
@@ -41,6 +46,8 @@ fun NoActiveBookingScreen(navController: NavHostController) {
     var isLoading by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
 
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     // playful background gradient — premium but upbeat
     val bg = Brush.verticalGradient(listOf(Color(0xFF0F1724), Color(0xFF0F2434)))
 
@@ -82,10 +89,29 @@ fun NoActiveBookingScreen(navController: NavHostController) {
                         scope.launch {
                             isLoading = true
                             // trigger your API here
-                            delay(900)
+                            coroutineScope.launch {
+                                val apiService = ApiService(context)
+
+                                // Final request body
+                                val requestBody = JSONObject().apply {
+                                    put("department", "FrontDesk")
+                                    put("requestType", "Check In Guest")
+                                    put("bookingId", null)
+                                }
+
+                                when (val result = apiService.post("requests", requestBody)) {
+                                    is ApiResult.Success -> {
+                                        message =
+                                            "Reception has been notified — one moment while we set up your butler!"
+                                    }
+                                    is ApiResult.Error -> {
+                                        message =
+                                            "Something went wrong. Please try again later. Sorry :("
+                                    }
+                                }
+                            }
                             isLoading = false
-                            message =
-                                "Reception has been notified — one moment while we set up your butler!"
+
                         }
                     }
                 )
