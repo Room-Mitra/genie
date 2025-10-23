@@ -49,7 +49,7 @@ export const loginDevice = async ({ deviceId, hotelId, roomId }) => {
     iat: nowSec,
     hotelId: device.hotelId,
     roomId: device.roomId,
-    lastSeen: device.lastSeen,
+    deviceId: device.deviceId,
   };
 
   const token = jwt.sign(payload, SECRET_KEY, { expiresIn: `${TOKEN_EXPIRES_IN_HOURS}h` });
