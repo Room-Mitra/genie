@@ -1,25 +1,21 @@
-import { DEVICES_TABLE_NAME } from '#Constants/DB.constants.js';
+import { DEVICES_TABLE_NAME, ENTITY_TABLE_NAME } from '#Constants/DB.constants.js';
+import { buildHotelEntityItem } from '#common/hotelEntity.helper.js';
 import DDB from '#config/DynamoDb.config.js';
 
-// const ID_TYPE = "DEVICE:";
-// const addIdType = (device) => {
-//     device.deviceId = `${ID_TYPE}${device.deviceId}`;
-//     return device;
-// }
-
-// const removeIdType = (device) => {
-//     device.deviceId = device.deviceId.slice(ID_TYPE.length);
-//     return device;
-// }
-
 export const registerNewDevice = async (device) => {
+  const deviceItem = buildHotelEntityItem(device);
+
   const params = {
-    TableName: DEVICES_TABLE_NAME,
-    Item: { ...device },
+    TableName: ENTITY_TABLE_NAME,
+    Item: deviceItem,
   };
 
-  await DDB.put(params).promise(); // TODO :: Handle Error
-  console.info('Device Registered :: ', params);
+  try {
+    await DDB.put(params).promise();
+  } catch (err) {
+    console.log(err);
+    throw new Error('Unable to save device in db');
+  }
   return params.Item;
 };
 

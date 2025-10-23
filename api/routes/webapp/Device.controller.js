@@ -1,18 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import { registerDevice, getAllDevices, updateDevices } from '#services/Device.service.js';
-
-// register device
-router.post('/', async (req, res) => {
-  try {
-    const device = req.body;
-    await registerDevice(device);
-    res.send(`${JSON.stringify(device)} has been added to the Database`);
-  } catch (error) {
-    console.error('Error registering device:', error);
-    res.status(500).send('Failed to register device');
-  }
-});
+import { getAllDevices, updateDevices } from '#services/Device.service.js';
 
 // load devices from DB to memory on restart
 // hard refresh data to memory

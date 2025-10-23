@@ -44,6 +44,7 @@ import androidConversationRoutes from '#routes/android/Conversation.controller.j
 
 // Middlewares
 import authenticator from '#middleware/Authenticator.middleware.js';
+import androidAuthenticator from '#middleware/AndroidAuthenticator.middleware.js';
 import adminAuthenticator from '#middleware/AdminAuthenticator.middleware.js';
 
 // Cache
@@ -93,12 +94,12 @@ app.use('/faq', authenticator, faqRoutes);
 
 // Android Routes
 app.use('/android/login', androidLoginRoutes);
-app.use('/android/utterance', authenticator, utteranceRoutes);
-app.use('/android/requests', authenticator, androidRequestRoutes);
-app.use('/android/hotel', authenticator, androidHotelRoutes);
-app.use('/android/track-events', authenticator, androidEventsTrackerRoutes);
-app.use('/android/restaurant', authenticator, androidRestaurantRoutes);
-app.use('/android/conversations', authenticator, androidConversationRoutes);
+app.use('/android/utterance', androidAuthenticator, utteranceRoutes);
+app.use('/android/requests', androidAuthenticator, androidRequestRoutes);
+app.use('/android/hotel', androidAuthenticator, androidHotelRoutes);
+app.use('/android/track-events', androidAuthenticator, androidEventsTrackerRoutes);
+app.use('/android/restaurant', androidAuthenticator, androidRestaurantRoutes);
+app.use('/android/conversations', androidAuthenticator, androidConversationRoutes);
 
 // routes which dont need auth
 app.use('/user', userRoutes);
