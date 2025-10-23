@@ -13,15 +13,6 @@ const removeIdType = (guest) => {
   return guest;
 };
 
-export const addGuest = async (guest) => {
-  const params = {
-    TableName: GUEST_TABLE_NAME,
-    Item: { ...addIdType(guest) },
-  };
-  await DDB.put(params).promise(); // TODO :: Handle Error
-  return params.Item;
-};
-
 export const getGuest = async (guestId) => {
   const params = {
     TableName: GUEST_TABLE_NAME,

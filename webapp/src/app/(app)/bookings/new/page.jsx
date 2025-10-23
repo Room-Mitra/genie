@@ -7,10 +7,15 @@ import {
   DialogTitle,
   DialogPanel,
 } from "@headlessui/react";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { Autocomplete } from "./_components/autocomplete";
 import { cn } from "@/lib/utils";
+import {
+  combineToUTC,
+  formatDate,
+  formatTimeString,
+} from "@/lib/format-message-time";
 
 async function addRoom({ roomNumber, roomType, floor, description }) {
   const res = await fetch(`/api/rooms`, {
@@ -29,97 +34,51 @@ async function addRoom({ roomNumber, roomType, floor, description }) {
   return res.json();
 }
 
-// ---------------------------------------------
-// Mock API layer (simulate latency)
-// ---------------------------------------------
-const mockRooms = Array.from({ length: 30 }).map((_, i) => ({
-  id: `room-${i + 101}`,
-  number: String(100 + i + 1),
-  type: i % 3 === 0 ? "Deluxe" : i % 3 === 1 ? "Suite" : "Standard",
-}));
+async function fetchRooms() {
+  const res = await fetch("/api/rooms", {
+    method: "GET",
+    credentials: "include",
+  });
 
-const mockGuests = [
-  {
-    id: "g-1",
-    name: "Ravi Kumar",
-    mobile: "9876543210",
-    email: "ravi@example.com",
-  },
-  {
-    id: "g-2",
-    name: "Anita Sharma",
-    mobile: "9988776655",
-    email: "anita@example.com",
-  },
-  {
-    id: "g-3",
-    name: "Rahul Mehta",
-    mobile: "9123456780",
-    email: "rahul@example.com",
-  },
-];
+  if (!res.ok) throw new Error("Failed to fetch rooms");
+  return await res.json();
+}
 
-const api = {
-  async searchRooms(q) {
-    await new Promise((r) => setTimeout(r, 250));
-    const s = String(q || "").toLowerCase();
-    return mockRooms
-      .filter(
-        (r) =>
-          r.number.includes(s) ||
-          r.type.toLowerCase().includes(s) ||
-          r.description?.includes(s),
-      )
-      .slice(0, 8);
-  },
-  async searchGuestsByMobile(q) {
-    await new Promise((r) => setTimeout(r, 250));
-    const s = String(q || "");
-    return mockGuests.filter((g) => g.mobile.includes(s)).slice(0, 8);
-  },
-  async createGuest(data) {
-    await new Promise((r) => setTimeout(r, 350));
-    const id = `g-${Math.random().toString(36).slice(2, 8)}`;
-    const guest = { id, ...data };
-    mockGuests.unshift(guest);
-    return guest;
-  },
-  async createRoom(data) {
-    await new Promise((r) => setTimeout(r, 350));
-    const id = `room-${Math.random().toString(36).slice(2, 8)}`;
-    const room = { id, ...data };
-    mockRooms.unshift(room);
-    return room;
-  },
-  async createBooking(data) {
-    await new Promise((r) => setTimeout(r, 500));
-    return { id: `b-${Date.now()}`, ...data, status: "CONFIRMED" };
-  },
-};
+async function createBooking(bookingData) {
+  const res = await fetch(`/api/booking`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(bookingData),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Failed to create booking");
+  }
+}
 
 // ---------------------------------------------
 // Main booking form
 // ---------------------------------------------
 export default function AddBookingPage() {
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
+  const [rooms, setRooms] = useState([]);
+
+  const [checkInDate, setCheckInDate] = useState("");
+  const [checkInTime, setCheckInTime] = useState("13:00");
+  const [checkOutDate, setCheckOutDate] = useState("");
+  const [checkOutTime, setCheckOutTime] = useState("11:00");
+
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [mobile, setMobile] = useState("");
 
   // const [roomQuery, setRoomQuery] = useState("");
   const [selectedRoom, setSelectedRoom] = useState(null);
 
-  const [selectedGuest, setSelectedGuest] = useState(null);
-
-  const [showGuestModal, setShowGuestModal] = useState(false);
   const [showRoomModal, setShowRoomModal] = useState(false);
   const [creating, setCreating] = useState(false);
-
-  // Modal form state
-  const [guestForm, setGuestForm] = useState({
-    firstName: "",
-    lastName: "",
-    mobile: "",
-    email: "",
-  });
 
   const [roomForm, setRoomForm] = useState({
     number: "",
@@ -127,19 +86,42 @@ export default function AddBookingPage() {
     floor: "",
     description: "",
   });
-  const [savingGuest, setSavingGuest] = useState(false);
+
   const [savingRoom, setSavingRoom] = useState(false);
 
   const canSubmit = useMemo(() => {
-    return checkIn && checkOut && selectedRoom && selectedGuest && !creating;
-  }, [checkIn, checkOut, selectedRoom, selectedGuest, creating]);
+    return (
+      checkInDate &&
+      checkInTime &&
+      checkOutDate &&
+      checkOutTime &&
+      selectedRoom &&
+      firstName &&
+      lastName &&
+      mobile &&
+      !creating
+    );
+  }, [
+    checkInDate,
+    checkInTime,
+    checkOutDate,
+    checkOutTime,
+    selectedRoom,
+    firstName,
+    lastName,
+    mobile,
+    creating,
+  ]);
 
   function resetForm() {
-    setCheckIn("");
-    setCheckOut("");
+    setCheckInDate("");
+    setCheckInTime("13:00");
+    setCheckOutDate("");
+    setCheckOutTime("11:00");
     setSelectedRoom(null);
-    setSelectedGuest(null);
-    setGuestForm({ firstName: "", lastName: "", mobile: "", email: "" });
+    setFirstName("");
+    setLastName("");
+    setMobile("");
     setRoomForm({ number: "", type: "", floor: "", description: "" });
   }
 
@@ -148,42 +130,26 @@ export default function AddBookingPage() {
     if (!canSubmit) return;
     setCreating(true);
     try {
-      const booking = await api.createBooking({
-        checkIn,
-        checkOut,
-        roomId: selectedRoom.id,
-        number: selectedRoom.number,
-        guestId: selectedGuest.id,
-        guestName: selectedGuest.name,
-        guestMobile: selectedGuest.mobile,
-      });
-      toast.success(`Booking ${booking.id} created`);
+      const data = {
+        checkInTime: combineToUTC(checkInDate, checkInTime),
+        checkOutTime: combineToUTC(checkOutDate, checkOutTime),
+        roomId: selectedRoom.roomId,
+        guest: {
+          firstName: firstName,
+          lastName: lastName,
+          mobile: mobile,
+        },
+      };
+
+      const booking = await createBooking(data);
+
+      toast.success(`Booking ${booking.bookingId} created`);
       resetForm();
     } catch (err) {
       console.error(err);
       toast.error("Failed to create booking", err);
     } finally {
       setCreating(false);
-    }
-  }
-
-  async function handleSaveGuest(e) {
-    e.preventDefault();
-    setSavingGuest(true);
-    try {
-      // Basic validation
-      if (!guestForm.firstName || !guestForm.lastName || !guestForm.mobile) {
-        throw new Error("First name, last name, and mobile are required");
-      }
-      const newGuest = await api.createGuest(guestForm);
-      setSelectedGuest(newGuest);
-      setShowGuestModal(false);
-      setGuestForm({ name: "", mobile: "", email: "" });
-      toast.success("Guest added");
-    } catch (e) {
-      toast.error(e.message || "Failed to add guest");
-    } finally {
-      setSavingGuest(false);
     }
   }
 
@@ -208,6 +174,7 @@ export default function AddBookingPage() {
       setSelectedRoom(newRoom);
       setShowRoomModal(false);
       setRoomForm({ number: "", type: "", floor: "", description: "" });
+      refreshRooms();
 
       toast.success("Room added");
     } catch (error) {
@@ -216,6 +183,32 @@ export default function AddBookingPage() {
       setSavingRoom(false);
     }
   };
+
+  const refreshRooms = async () => {
+    try {
+      const rooms = await fetchRooms();
+      setRooms(rooms?.items);
+    } catch (err) {
+      console.error("Error fetching rooms:", err);
+    }
+  };
+
+  const searchRooms = async (q) => {
+    await new Promise((r) => setTimeout(r, 250));
+    const s = String(q || "").toLowerCase();
+    return rooms
+      .filter(
+        (r) =>
+          r.number.includes(s) ||
+          r.type.toLowerCase().includes(s) ||
+          r.description?.includes(s),
+      )
+      .slice(0, 8);
+  };
+
+  useEffect(() => {
+    refreshRooms();
+  }, []);
 
   return (
     <div className="mx-auto max-w-3xl rounded-[10px] bg-white p-6 dark:bg-gray-dark">
@@ -230,50 +223,78 @@ export default function AddBookingPage() {
 
       <form onSubmit={handleCreateBooking} className="grid grid-cols-1 gap-5">
         {/* Dates */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
           <InputGroup
             type="date"
             label="Check in"
-            name="checkin"
-            value={checkIn}
-            handleChange={(e) => setCheckIn(e.target.value)}
+            name="checkinDate"
+            value={checkInDate}
+            handleChange={(e) => setCheckInDate(e.target.value)}
+            min={new Date().toISOString().split("T")[0]}
+            required
+          />
+
+          <InputGroup
+            type="time"
+            label="&nbsp;"
+            name="checkinTime"
+            value={checkInTime}
+            handleChange={(e) => setCheckInTime(e.target.value)}
             min={new Date().toISOString().split("T")[0]}
           />
 
           <InputGroup
             type="date"
             label="Check out"
-            name="checkout"
-            value={checkOut}
-            handleChange={(e) => setCheckOut(e.target.value)}
-            min={checkIn || undefined}
+            name="checkoutDate"
+            value={checkOutDate}
+            handleChange={(e) => setCheckOutDate(e.target.value)}
+            min={checkInDate || undefined}
+            required
+          />
+
+          <InputGroup
+            type="time"
+            label="&nbsp;"
+            name="checkoutTime"
+            value={checkOutTime}
+            handleChange={(e) => setCheckOutTime(e.target.value)}
+            min={new Date().toISOString().split("T")[0]}
           />
         </div>
 
         {/* Room autocomplete */}
         <Autocomplete
+          required
           label="Room"
           placeholder="Search room number or type"
           value={selectedRoom}
           onSelect={(room) => setSelectedRoom(room)}
-          fetcher={api.searchRooms}
+          fetcher={searchRooms}
           getDisplayValue={(room) => (room?.number ? `#${room.number}` : "")}
           renderItem={(room) => (
-            <div className="flex items-center justify-between">
+            <div className="grid grid-cols-2 sm:grid-cols-3">
               <div className="flex items-center gap-2">
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-indigo-600/20 text-xs text-indigo-300">
-                  {room.number}
+                <span className="inline-flex items-center justify-center rounded-md bg-indigo-600 p-2 text-xs text-white dark:bg-indigo-600/20 dark:text-indigo-300">
+                  #{room.number}
                 </span>
-                <span className="text-gray-200">{room.type}</span>
+                <span className="text-dark dark:text-gray-200">
+                  {room.type}
+                </span>
               </div>
-              <span className="text-xs text-gray-400">ID {room.id}</span>
+              <div className="text-md align-middle text-dark dark:text-gray-200">
+                Floor: {room.floor}
+              </div>
+              <div className="text-md align-middle text-dark dark:text-gray-200">
+                {room.description && `Desc: ${room.description}`}
+              </div>
             </div>
           )}
           rightAddon={
             <button
               type="button"
               onClick={() => setShowRoomModal(true)}
-              className="mt-8 rounded-lg border border-gray-700 bg-gray-300 px-2 py-1 text-xs font-medium text-dark hover:bg-gray-500"
+              className="mt-8 rounded-lg border border-gray-700 bg-gray-300 px-2 py-1 text-xs font-medium text-dark hover:bg-gray-400"
               aria-label="Add new room"
             >
               New
@@ -285,7 +306,7 @@ export default function AddBookingPage() {
               <button
                 type="button"
                 onClick={() => setShowRoomModal(true)}
-                className="rounded-lg border border-gray-700 px-2 py-1 text-xs text-gray-300 hover:bg-gray-800"
+                className="rounded-lg border border-gray-700 bg-gray-300 px-2 py-1 text-xs font-medium text-dark hover:bg-gray-400"
               >
                 Add new room
               </button>
@@ -293,68 +314,79 @@ export default function AddBookingPage() {
           }
         />
 
-        {/* Guest autocomplete */}
-        <Autocomplete
-          label="Guest by mobile"
-          placeholder="Type mobile number"
-          value={selectedGuest}
-          onSelect={(guest) => setSelectedGuest(guest)}
-          fetcher={api.searchGuestsByMobile}
-          getDisplayValue={(guest) => guest?.mobile || ""}
-          renderItem={(guest) => (
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-gray-200">{guest.name}</div>
-                <div className="text-xs text-gray-400">{guest.mobile}</div>
-              </div>
-              <span className="text-xs text-gray-400">{guest.email}</span>
-            </div>
-          )}
-          rightAddon={
-            <button
-              type="button"
-              onClick={() => setShowGuestModal(true)}
-              className="mt-8 rounded-lg border border-gray-700 bg-gray-300 px-2 py-1 text-xs font-medium text-dark hover:bg-gray-500"
-              aria-label="Add new guest"
-            >
-              New
-            </button>
-          }
-          noResultsContent={
-            <div className="flex items-center justify-between">
-              <span>No guest found</span>
-              <button
-                type="button"
-                onClick={() => setShowGuestModal(true)}
-                className="rounded-lg border border-gray-700 px-2 py-1 text-xs text-gray-300 hover:bg-gray-800"
-              >
-                Add new guest
-              </button>
-            </div>
-          }
-        />
+        <hr className="my-2" />
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <InputGroup
+            required
+            type="text"
+            name="firstName"
+            label="First Name"
+            placeholder="Kiran"
+            value={firstName}
+            handleChange={(e) => setFirstName(e.target.value)}
+          />
+
+          <InputGroup
+            required
+            type="text"
+            name="lastName"
+            label="Last Name"
+            placeholder="Kumar"
+            value={lastName}
+            handleChange={(e) => setLastName(e.target.value)}
+          />
+
+          <InputGroup
+            type="tel"
+            name="mobile"
+            label="Mobile"
+            placeholder="9910203040"
+            value={mobile}
+            handleChange={(e) =>
+              setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))
+            }
+            required
+          />
+        </div>
+
+        <hr className="my-2" />
 
         {/* Summary */}
-        <div className="mt-7 rounded-2xl border border-gray-700 p-4 text-dark dark:text-white">
+        <div className="rounded-2xl border border-gray-700 p-4 text-dark dark:text-white">
           <h3 className="text-md mb-3 font-semibold">Summary</h3>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="text-md">
-              <span>Check in:</span> {checkIn || "—"}
+              <span>Check in:</span>{" "}
+              <span className="font-semibold">
+                {(checkInDate && formatDate(checkInDate)) || "—"}{" "}
+                {(checkInTime && formatTimeString(checkInTime)) || "—"}
+              </span>
             </div>
             <div className="text-md">
-              <span>Check out:</span> {checkOut || "—"}
+              <span>Check out:</span>{" "}
+              <span className="font-semibold">
+                {(checkOutDate && formatDate(checkOutDate)) || "—"}{" "}
+                {(checkOutTime && formatTimeString(checkOutTime)) || "—"}
+              </span>
             </div>
             <div className="text-md">
               <span>Room:</span>{" "}
-              {selectedRoom
-                ? `#${selectedRoom.number} (${selectedRoom.type})`
-                : "—"}
+              <span className="font-semibold">
+                {selectedRoom
+                  ? `#${selectedRoom.number} (${selectedRoom.type})`
+                  : "—"}
+              </span>
             </div>
             <div className="text-md">
               <span>Guest:</span>{" "}
-              {selectedGuest
-                ? `${selectedGuest.name} (${selectedGuest.mobile})`
-                : "—"}
+              {!firstName && !lastName && !mobile ? (
+                <span className="font-semibold">{"—"} </span>
+              ) : (
+                <span className="font-semibold">
+                  {firstName} {lastName} {mobile && `(${mobile})`}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -381,121 +413,6 @@ export default function AddBookingPage() {
           </button>
         </div>
       </form>
-
-      {/* Add Guest Modal */}
-      <div>
-        <Dialog
-          open={showGuestModal}
-          onClose={() => setShowGuestModal(false)}
-          className="relative z-40"
-        >
-          <DialogBackdrop
-            transition
-            className="data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in fixed inset-0 bg-gray-900/50 transition-opacity"
-          />
-
-          <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
-            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-              <DialogPanel
-                transition
-                className="data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in data-closed:sm:translate-y-0 data-closed:sm:scale-95 relative transform overflow-hidden rounded-lg bg-gray-800 text-left shadow-xl outline -outline-offset-1 outline-white/10 transition-all sm:my-8 sm:w-full sm:max-w-lg"
-              >
-                <div className="bg-white px-4 pb-4 pt-5 dark:bg-gray-800 sm:p-6 sm:pb-4">
-                  <DialogTitle
-                    as="h3"
-                    className="text-base font-semibold text-dark dark:text-white"
-                  >
-                    Add new guest
-                  </DialogTitle>
-
-                  <div className="mt-4">
-                    <form onSubmit={handleSaveGuest} className="grid gap-4">
-                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <InputGroup
-                          required
-                          type="text"
-                          name="firstName"
-                          label="First Name"
-                          placeholder="Kiran"
-                          value={guestForm.firstName}
-                          handleChange={(e) =>
-                            setGuestForm((s) => ({
-                              ...s,
-                              firstName: e.target.value,
-                            }))
-                          }
-                        />
-
-                        <InputGroup
-                          required
-                          type="text"
-                          name="lastName"
-                          label="Last Name"
-                          placeholder="Kumar"
-                          value={guestForm.lastName}
-                          handleChange={(e) =>
-                            setGuestForm((s) => ({
-                              ...s,
-                              lastName: e.target.value,
-                            }))
-                          }
-                        />
-                      </div>
-
-                      <InputGroup
-                        type="tel"
-                        name="mobile"
-                        label="Mobile"
-                        placeholder="10 digit mobile"
-                        value={guestForm.mobile}
-                        handleChange={(e) =>
-                          setGuestForm((s) => ({
-                            ...s,
-                            mobile: e.target.value,
-                          }))
-                        }
-                      />
-
-                      <InputGroup
-                        type="email"
-                        name="email"
-                        label="Email"
-                        placeholder="name@example.com"
-                        value={guestForm.email}
-                        handleChange={(e) =>
-                          setGuestForm((s) => ({ ...s, email: e.target.value }))
-                        }
-                      />
-
-                      <div className="mt-2 flex items-center justify-end gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setShowGuestModal(false)}
-                          className="rounded-xl border border-gray-700 px-4 py-2 text-sm text-dark hover:bg-gray-300 dark:text-white dark:hover:bg-gray-700"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="submit"
-                          className={cn(
-                            "rounded-xl px-4 py-2 text-sm font-medium",
-                            savingGuest
-                              ? "bg-gray-700 text-gray-400"
-                              : "bg-indigo-600 text-white hover:bg-indigo-500",
-                          )}
-                          disabled={savingGuest}
-                        >
-                          {savingGuest ? "Saving..." : "Save guest"}
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-              </DialogPanel>
-            </div>
-          </div>
-        </Dialog>
-      </div>
 
       {/* Add Room Modal */}
       <div>

@@ -82,8 +82,8 @@ locals {
     # Room Type
     { name = "GSI_RoomType", hash = "roomType_pk", range = "roomType_sk" },
 
-    # Request Status
-    { name = "GSI_RequestStatus", hash = "status_pk", range = "status_sk" },
+    # Status
+    { name = "GSI_Status", hash = "status_pk", range = "status_sk" },
 
     # Assignee Workload
     { name = "GSI_AssigneeType", hash = "assigneeType_pk", range = "assigneeType_sk" },

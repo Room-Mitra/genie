@@ -41,3 +41,31 @@ export function formatMessageTime(timestamp: string) {
     year: "numeric",
   });
 }
+
+export function formatDate(date: string | Date, opts = {}) {
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    ...opts,
+  }).format(new Date(date));
+}
+
+export function formatTimeString(timeString: string) {
+  if (!timeString) return "";
+  const [hours, minutes] = timeString.split(":").map(Number);
+  const date = new Date();
+  date.setHours(hours, minutes);
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(date);
+}
+
+export function combineToUTC(dateStr: string, timeStr: string) {
+  const [y, m, d] = dateStr.split("-").map(Number); // "YYYY-MM-DD"
+  const [hh, mm] = timeStr.split(":").map(Number); // "HH:mm"
+  const local = new Date(y, m - 1, d, hh, mm); // interprets as local time
+  return local.toISOString(); // UTC "Z"
+}

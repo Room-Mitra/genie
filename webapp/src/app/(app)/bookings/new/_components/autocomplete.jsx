@@ -12,6 +12,7 @@ function useDebounce(value, delay = 250) {
 }
 
 export function Autocomplete({
+  required = false,
   label,
   placeholder,
   value,
@@ -88,6 +89,7 @@ export function Autocomplete({
     <div className="w-full" ref={wrapperRef}>
       <div className="relative">
         <InputGroup
+          required={required}
           label={label}
           placeholder={placeholder}
           value={query}
@@ -107,7 +109,7 @@ export function Autocomplete({
         )}
 
         {open && (
-          <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-gray-700 bg-gray-900 shadow-lg">
+          <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-gray-700 bg-white shadow-lg dark:bg-gray-900">
             {loading ? (
               <div className="p-3 text-sm text-gray-400">Searching...</div>
             ) : items.length > 0 ? (
@@ -116,8 +118,8 @@ export function Autocomplete({
                   <li
                     key={idx}
                     className={cn(
-                      "cursor-pointer px-3 py-2 text-sm text-gray-100 hover:bg-gray-800",
-                      idx === activeIndex && "bg-gray-800",
+                      "cursor-pointer px-3 py-2 text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-800",
+                      idx === activeIndex && "bg-gray-200 dark:bg-gray-800",
                     )}
                     onMouseEnter={() => setActiveIndex(idx)}
                     onMouseDown={(e) => e.preventDefault()}

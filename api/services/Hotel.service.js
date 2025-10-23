@@ -80,6 +80,7 @@ export async function addStaffToHotel(hotelId, userPayload) {
 
     const newUser = {
       userId,
+      entityType: 'USER',
       firstName: userPayload.firstName || '',
       lastName: userPayload.lastName || '',
       email: userPayload.email || '',
@@ -95,13 +96,13 @@ export async function addStaffToHotel(hotelId, userPayload) {
   await staffRepo.addStaff({
     hotelId,
     userId,
-    role: 'STAFF',
+    role: 'staff',
   });
 
   return {
     message: 'Staff added to hotel',
     hotelId,
     userId,
-    role: 'STAFF',
+    role: 'staff',
   };
 }
