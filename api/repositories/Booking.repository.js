@@ -1,5 +1,6 @@
 import { ENTITY_TABLE_NAME, GSI_ROOMTYPE_NAME, GUEST_TABLE_NAME } from '#Constants/DB.constants.js';
 import { buildHotelEntityItem } from '#common/hotelEntity.helper.js';
+import { toIsoString } from '#common/timestamp.helper.js';
 import DDB from '#config/DynamoDb.config.js';
 
 const ID_TYPE = 'BOOKING:';
@@ -21,26 +22,36 @@ export const addBooking = async (bookingData) => {
 export async function existsOverlappingBooking({ roomId, checkInTime, checkOutTime }) {
   // Overlap condition:
   // existing.start < requested.end AND existing.end > requested.start
-  // Query by roomId where existing.start < requested.end
   const params = {
     TableName: ENTITY_TABLE_NAME,
     IndexName: GSI_ROOMTYPE_NAME,
-    KeyConditionExpression: 'roomType_pk = :roomId',
-    FilterExpression: '#checkOutTime > :requestedCheckin AND #checkInTime < :requestedCheckout',
+    KeyConditionExpression: '#gpk = :gpk AND begins_with(#gsk, :bookingPrefix)',
+    FilterExpression: '#checkInTime < :reqEnd AND #checkOutTime > :reqStart',
     ExpressionAttributeNames: {
+      '#gpk': 'roomType_pk',
+      '#gsk': 'roomType_sk',
       '#checkInTime': 'checkInTime',
       '#checkOutTime': 'checkOutTime',
     },
     ExpressionAttributeValues: {
-      ':roomId': roomId,
-      ':requestedCheckout': checkOutTime,
-      ':requestedCheckin': checkInTime,
+      ':gpk': `ROOM#${roomId}`, // important prefix
+      ':bookingPrefix': 'BOOKING#', // optional but narrows items on the index
+      ':reqStart': checkInTime, // ISO strings compare lexicographically by time
+      ':reqEnd': checkOutTime,
     },
-    Limit: 1, // we only need to know if one exists
+    // Do NOT set Limit with a FilterExpression
+    ProjectionExpression: '#checkInTime, #checkOutTime',
+    ReturnConsumedCapacity: 'NONE',
   };
 
-  const { Items } = await DDB.query(params).promise();
-  return Items && Items.length > 0;
+  let LastEvaluatedKey;
+  do {
+    const res = await DDB.query({ ...params, ExclusiveStartKey: LastEvaluatedKey }).promise();
+    if (res.Items && res.Items.length > 0) return true; // Items are already filtered
+    LastEvaluatedKey = res.LastEvaluatedKey;
+  } while (LastEvaluatedKey);
+
+  return false;
 }
 
 export async function createBooking(booking) {
@@ -69,4 +80,50 @@ export async function queryLatestBookingById({ hotelId, bookingId }) {
 
   const data = await DDB.query(params).promise();
   return data.Items && data.Items[0];
+}
+
+export async function queryBookings({ hotelId, status }) {
+  if (!hotelId) {
+    throw new Error('hotelId is required to query active bookings');
+  }
+
+  if (!['all', 'active', 'upcoming', 'past'].includes(status)) {
+    throw new Error('status needs to be one of all, active, upcoming or past');
+  }
+
+  const filterExpressions = {
+    active: 'checkOutTime > :now AND checkInTime < :now',
+    upcoming: 'checkInTime > :now',
+    past: 'checkOutTime < :now',
+  };
+
+  const params = {
+    TableName: ENTITY_TABLE_NAME,
+
+    KeyConditionExpression: 'pk = :pk and begins_with(sk, :sk)',
+    FilterExpression: filterExpressions[status],
+    ExpressionAttributeValues: {
+      ':pk': `HOTEL#${hotelId}`,
+      ':sk': `BOOKING#`,
+      ':now': toIsoString(),
+    },
+    ScanIndexForward: false,
+  };
+
+  const items = [];
+  let lastEvaluatedKey;
+
+  try {
+    do {
+      const res = await DDB.query(params).promise();
+      if (res.Items?.length) items.push(...res.Items);
+      lastEvaluatedKey = res.LastEvaluatedKey;
+      params.ExclusiveStartKey = lastEvaluatedKey;
+    } while (lastEvaluatedKey);
+
+    return items;
+  } catch (err) {
+    console.error('Failed to query active bookings:', err);
+    throw new Error('Failed to query active bookings');
+  }
 }
