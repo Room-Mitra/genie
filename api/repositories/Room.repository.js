@@ -15,9 +15,9 @@ export const createRoom = async (roomData) => {
 };
 
 // listRooms: fetch all rooms for a given hotel via GSI(hotelType_pk, hotelType_sk)
-export async function queryAllRooms({ hotelId, limit, nextToken }) {
+export async function queryAllRooms({ hotelId }) {
   if (!hotelId) {
-    throw new Error('hotelId is required');
+    throw new Error('hotelId is required to query all rooms for hotel');
   }
 
   const params = {
@@ -34,9 +34,7 @@ export async function queryAllRooms({ hotelId, limit, nextToken }) {
       ':gpk': `HOTEL#${hotelId}`,
       ':gsk': 'ROOM#',
     },
-    Limit: Math.min(Number(limit) || 25, 100),
     ScanIndexForward: false,
-    ExclusiveStartKey: decodeToken(nextToken),
   };
 
   const items = [];
@@ -45,7 +43,7 @@ export async function queryAllRooms({ hotelId, limit, nextToken }) {
   try {
     do {
       const res = await DDB.query(params).promise();
-      if (res.Items && res.Items.length) items.push(...res.Items);
+      if (res.Items?.length) items.push(...res.Items);
       lastEvaluatedKey = res.LastEvaluatedKey;
       params.ExclusiveStartKey = lastEvaluatedKey;
     } while (lastEvaluatedKey);

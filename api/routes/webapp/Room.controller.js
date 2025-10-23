@@ -6,9 +6,8 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const { hotelId } = req.userData;
-    const { limit, nextToken } = req.query;
 
-    const rooms = await roomService.listRooms({ hotelId, limit, nextToken });
+    const rooms = await roomService.listRooms({ hotelId });
     return res.status(200).json(rooms);
   } catch (err) {
     console.error('Error listing rooms:', err);
