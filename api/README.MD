@@ -6,7 +6,7 @@
 2. `mkdir -p dynamodb-local-data && chmod -R 777 dynamodb-local-data`
 
 ```sh
-docker run --rm -p 8000:8000 -v /home/chai/dynamodb-local-data:/home/dynamodblocal/data amazon/dynamodb-local -jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data
+docker run --rm -p 8000:8000 -v /Users/adithyaprabhu/dynamodb-local-data:/home/dynamodblocal/data amazon/dynamodb-local -jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data
 ```
 
 ## To run `dynamodb-admin` web console to view local dynamodb

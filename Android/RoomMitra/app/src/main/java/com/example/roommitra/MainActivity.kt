@@ -81,7 +81,7 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                     AutoDimWrapper(window) {
                         NavHost(navController = navController, startDestination = "home") {
                             composable("home") {
-                                HomeScreen(  navController = navController )
+                                HomeScreen(  navController = navController, musicController )
                             }
                             composable("menu") {
                                 RestaurantMenuScreen(onBackClick = { navController.popBackStack() })

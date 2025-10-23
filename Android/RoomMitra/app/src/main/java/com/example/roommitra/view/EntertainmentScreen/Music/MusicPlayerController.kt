@@ -89,6 +89,10 @@ class MusicPlayerController(private val context: Context) : LifecycleEventObserv
             return
         }
         val query = playlistVideos[currentPlaylistIndex]
+        if (query.isEmpty()) {
+            stop()
+            return
+        }
         currentPlaylistIndex++
         state.value = MusicState.LOADING
         extractionStarted = false

@@ -8,7 +8,7 @@ import androidx.navigation.NavHostController
 import com.example.roommitra.view.WidgetPane.WidgetsPane
 
 @Composable
-fun HomeScreen(navController: NavHostController) {
+fun HomeScreen(navController: NavHostController,musicController: MusicPlayerController) {
     val isLandscape =
         LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
 
@@ -18,7 +18,8 @@ fun HomeScreen(navController: NavHostController) {
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight(),
-                navController = navController
+                navController = navController,
+                musicController
             )
             WidgetsPane(
                 modifier = Modifier
@@ -33,7 +34,8 @@ fun HomeScreen(navController: NavHostController) {
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth(),
-                navController = navController
+                navController = navController,
+                musicController
             )
             WidgetsPane(
                 modifier = Modifier
