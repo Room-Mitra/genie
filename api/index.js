@@ -17,8 +17,8 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
 
-import swaggerUi from 'swagger-ui-express';
-import swaggerJsdoc from 'swagger-jsdoc';
+// import swaggerUi from 'swagger-ui-express';
+// import swaggerJsdoc from 'swagger-jsdoc';
 
 // routes
 import deviceRoutes from '#routes/webapp/Device.controller.js';
@@ -47,9 +47,9 @@ import authenticator from '#middleware/Authenticator.middleware.js';
 import androidAuthenticator from '#middleware/AndroidAuthenticator.middleware.js';
 import adminAuthenticator from '#middleware/AdminAuthenticator.middleware.js';
 
-// Cache
-import { warmCache as warmDevicesCache } from '#libs/Device.cache.js';
-import { warmCache as warmIntentsCache } from '#libs/Intent.cache.js';
+// // Cache
+// import { warmCache as warmDevicesCache } from '#libs/Device.cache.js';
+// import { warmCache as warmIntentsCache } from '#libs/Intent.cache.js';
 
 // Admin Routes
 import adminHotelRoutes from '#routes/admin/Hotel.controller.js';
@@ -119,23 +119,23 @@ app.listen(PORT, () => console.log(`Server running on port: http://localhost:${P
 // warmIntentsCache();
 
 // swagger setup
-const swaggerOptions = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'Room Mitra API',
-      version: '1.0.0',
-      description: 'API documentation for Room Mitra (Android + UI)',
-    },
-    servers: [
-      { url: `Android`, description: 'Android APIs' },
-      { url: `UI`, description: 'UI APIs' },
-    ],
-  },
-  apis: ['./routes/**/*.js'], // Path to your route files
-};
-const swaggerSpec = swaggerJsdoc(swaggerOptions);
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// const swaggerOptions = {
+//   definition: {
+//     openapi: '3.0.0',
+//     info: {
+//       title: 'Room Mitra API',
+//       version: '1.0.0',
+//       description: 'API documentation for Room Mitra (Android + UI)',
+//     },
+//     servers: [
+//       { url: `Android`, description: 'Android APIs' },
+//       { url: `UI`, description: 'UI APIs' },
+//     ],
+//   },
+//   apis: ['./routes/**/*.js'], // Path to your route files
+// };
+// const swaggerSpec = swaggerJsdoc(swaggerOptions);
+// app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // --- Health check endpoint ---
 app.get('/health', (req, res) => {
