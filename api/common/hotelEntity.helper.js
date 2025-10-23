@@ -96,6 +96,7 @@ export function buildHotelEntityItem(input, options) {
 
       return clean({
         ...base,
+        bookingId,
 
         // Room GSI (for bookings per room)
         roomType_pk: `ROOM#${i.roomId}`,
@@ -113,6 +114,7 @@ export function buildHotelEntityItem(input, options) {
         checkOutTime: i.checkOutTime,
 
         guest: i.guest,
+        status: i.status,
 
         createdAt: i.createdAt,
       });

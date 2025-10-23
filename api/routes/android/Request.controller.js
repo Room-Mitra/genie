@@ -1,6 +1,8 @@
 import { toIsoString } from '#common/timestamp.helper.js';
 import express from 'express';
 import { ulid } from 'ulid';
+import * as requestService from '#services/Request.service.js';
+import * as bookingService from '#services/Booking.service.js';
 
 const router = express.Router();
 
@@ -20,80 +22,22 @@ router.post('/', async (req, res) => {
 });
 
 router.get('/', async (req, res) => {
-  const now = new Date();
-  const twentyMinsLater = new Date().setMinutes(new Date().getMinutes + 20);
-  const threeDaysLater = new Date().setDate(new Date().getDate() + 3);
+  try {
+    const deviceData = req.deviceData;
+    const bookingId = deviceData.bookingId || req.body.bookingId;
+    const hotelId = deviceData.hotelId;
 
-  const bookingId = ulid();
+    const requests = await requestService.listRequests({ bookingId });
+    const booking = await bookingService.getBookingById({ hotelId, bookingId });
 
-  res.status(200).json({
-    booking: {
-      bookingId: bookingId,
-      checkinTime: toIsoString(now),
-      checkoutTime: toIsoString(threeDaysLater),
-      guest: {
-        firstName: 'Adithya',
-        lastName: 'Prabhu',
-      },
-    },
-    requests: [
-      {
-        requestId: ulid(),
-        status: 'new',
-        createdAt: toIsoString(now),
-        estimatedTimeOfFulfillment: toIsoString(twentyMinsLater),
-        department: 'Housekeeping',
-        requestType: 'Towels',
-        bookingId: bookingId,
-        conversationId: ulid(),
-      },
-      {
-        requestId: ulid(),
-        status: 'acknowledgeded',
-        createdAt: toIsoString(now),
-        estimatedTimeOfFulfillment: toIsoString(twentyMinsLater),
-        department: 'Room Service',
-        requestType: 'Breakfast',
-        bookingId: bookingId,
-        conversationId: ulid(),
-        order: {
-          orderId: ulid(),
-          estimatedTimeOfFulfillment: toIsoString(twentyMinsLater),
-          items: [
-            {
-              name: 'Dosa',
-              unitPrice: '15',
-              quantity: 3,
-              total: '45.00',
-              image: {
-                url: 'https://roommitra.com/room-mitra-logo.png',
-              },
-            },
-            {
-              name: 'Dosa',
-              unitPrice: '15',
-              quantity: 3,
-              total: '45.00',
-              image: {
-                url: 'https://roommitra.com/room-mitra-logo.png',
-              },
-            },
-          ],
-          instruction: 'coffee without sugar',
-          total: '200',
-        },
-      },
-      {
-        requestId: ulid(),
-        status: 'acknowledgeded',
-        createdAt: toIsoString(now),
-        estimatedTimeOfFulfillment: toIsoString(twentyMinsLater),
-        department: 'Housekeeping',
-        requestType: 'Toiletries',
-        bookingId: bookingId,
-      },
-    ],
-  });
+    return res.status(200).json({
+      booking: booking,
+      requests: requests.items,
+    });
+  } catch (err) {
+    console.error('Error querying requests', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 export default router;

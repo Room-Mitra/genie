@@ -84,3 +84,12 @@ export async function createBooking(payload) {
 
   return bookingItem;
 }
+
+export async function getBookingById({ hotelId, bookingId }) {
+  const booking = await bookingRepo.queryLatestBookingById({ hotelId, bookingId });
+  const { checkInTime, checkOutTime, roomId, createdAt, updatedAt, guest } = booking;
+
+  return booking
+    ? { bookingId, hotelId, checkInTime, checkOutTime, roomId, createdAt, updatedAt, guest }
+    : null;
+}

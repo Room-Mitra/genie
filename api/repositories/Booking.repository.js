@@ -54,3 +54,19 @@ export async function createBooking(booking) {
 
   return bookingItem;
 }
+
+export async function queryLatestBookingById({ hotelId, bookingId }) {
+  const pk = `HOTEL#${hotelId}`;
+  const sk = `BOOKING#${bookingId}`;
+
+  const params = {
+    TableName: ENTITY_TABLE_NAME,
+    KeyConditionExpression: 'pk = :pk and sk = :sk',
+    ExpressionAttributeValues: { ':pk': pk, ':sk': sk },
+    ScanIndexForward: false,
+    Limit: 1,
+  };
+
+  const data = await DDB.query(params).promise();
+  return data.Items && data.Items[0];
+}
