@@ -35,10 +35,13 @@ import landingPageRoutes from '#routes/public/leads.route.js';
 import roomRoutes from '#routes/public/Room.controller.js';
 
 //Android Routes
-import androidLoginRoutes from '#routes/public/AndroidLogin.controller.js';
-import androidRequestRoutes from '#routes/public/AndroidRequest.controller.js';
-import androidEventsTrackerRoutes from '#routes/public/AndroidEventTracker.controller.js';
-import androidHotelRoutes from '#routes/public/AndriodHotel.controller.js';
+import androidLoginRoutes from '#routes/public/android/Login.controller.js';
+import androidRequestRoutes from '#routes/public/android/Request.controller.js';
+import androidEventsTrackerRoutes from '#routes/public/android/EventTracker.controller.js';
+import androidHotelRoutes from '#routes/public/android/Hotel.controller.js';
+import androidRestaurantRoutes from '#routes/public/android/Restaurant.controller.js';
+import androidConversationRoutes from '#routes/public/android/Conversation.controller.js';
+
 // Middlewares
 import authenticator from '#middleware/Authenticator.middleware.js';
 import adminAuthenticator from '#middleware/AdminAuthenticator.middleware.js';
@@ -89,15 +92,17 @@ app.use('/mapping', authenticator, mappingRoutes);
 app.use('/faq', authenticator, faqRoutes);
 
 // Android Routes
+app.use('/android/login', androidLoginRoutes);
 app.use('/android/utterance', authenticator, utteranceRoutes);
-app.use('/android/request', authenticator, androidRequestRoutes);
+app.use('/android/requests', authenticator, androidRequestRoutes);
 app.use('/android/hotel', authenticator, androidHotelRoutes);
 app.use('/android/track-events', authenticator, androidEventsTrackerRoutes);
+app.use('/android/restaurant', authenticator, androidRestaurantRoutes);
+app.use('/android/conversations', authenticator, androidConversationRoutes);
 
 // routes which dont need auth
 app.use('/user', userRoutes);
 app.use('/login', loginRoutes);
-app.use('/android/login', androidLoginRoutes);
 app.use('/leads', landingPageRoutes);
 
 // -------------------------

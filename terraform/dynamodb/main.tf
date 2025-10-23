@@ -68,56 +68,73 @@ resource "aws_dynamodb_table" "intents" {
   }
 }
 
+
+locals {
+  table_keys = [
+    { name = "pk", type = "S" },
+    { name = "sk", type = "S" },
+  ]
+
+  gsis = [
+    # Hotel Type
+    { name = "GSI_HotelType", hash = "hotelType_pk", range = "hotelType_sk" },
+
+    # Room Type
+    { name = "GSI_RoomType", hash = "roomType_pk", range = "roomType_sk" },
+
+    # Request Status
+    { name = "GSI_RequestStatus", hash = "status_pk", range = "status_sk" },
+
+    # Assignee Workload
+    { name = "GSI_AssigneeType", hash = "assigneeType_pk", range = "assigneeType_sk" },
+
+    # Conversation Type
+    { name = "GSI_ConversationType", hash = "conversationType_pk", range = "conversationType_sk" },
+
+    # Booking Type
+    { name = "GSI_BookingType", hash = "bookingType_pk", range = "bookingType_sk" },
+  ]
+
+  # Build a unique set of attribute definitions actually used
+  gsi_keys = flatten([
+    for g in local.gsis : [
+      { name = g.hash, type = "S" },
+      { name = g.range, type = "S" },
+    ]
+  ])
+
+  all_keys = distinct(concat(local.table_keys, local.gsi_keys))
+}
+
 resource "aws_dynamodb_table" "entity" {
   name         = "ENTITY"
   billing_mode = "PAY_PER_REQUEST"
 
-  hash_key  = "pk" # e.g., HOTEL#<hotelId> or USER#<userId> or ROOM#<roomId>
-  range_key = "sk" # e.g., ENTITY#<entityId> or REQUEST#<requestId> or META#<something>
+  hash_key  = "pk"
+  range_key = "sk"
 
-  attribute {
-    name = "pk"
-    type = "S"
-  }
-  attribute {
-    name = "sk"
-    type = "S"
-  }
-  # GSI attributes
-  attribute {
-    name = "hotelId"
-    type = "S"
-  }
-  attribute {
-    name = "entityTypeTimestamp"
-    type = "S" # format: <ENTITYTYPE>#<ISO8601>
-  }
-  attribute {
-    name = "roomId"
-    type = "S"
+  # Emit only used attributes
+  dynamic "attribute" {
+    for_each = { for a in local.all_keys : a.name => a }
+    content {
+      name = attribute.value.name
+      type = attribute.value.type
+    }
   }
 
-  global_secondary_index {
-    name            = "gsi_hotelId_entityTypeTs"
-    hash_key        = "hotelId"
-    range_key       = "entityTypeTimestamp"
-    projection_type = "ALL"
+  # GSIs
+  dynamic "global_secondary_index" {
+    for_each = { for g in local.gsis : g.name => g }
+    content {
+      name            = global_secondary_index.value.name
+      hash_key        = global_secondary_index.value.hash
+      range_key       = global_secondary_index.value.range
+      projection_type = "ALL"
+    }
   }
 
-  global_secondary_index {
-    name            = "gsi_roomId_entityTypeTs"
-    hash_key        = "roomId"
-    range_key       = "entityTypeTimestamp"
-    projection_type = "ALL"
-  }
-
-  point_in_time_recovery {
-    enabled = true
-  }
-
-  server_side_encryption {
-    enabled = true
-  }
+  point_in_time_recovery { enabled = true }
+  server_side_encryption { enabled = true }
 
   stream_enabled   = true
   stream_view_type = "NEW_AND_OLD_IMAGES"

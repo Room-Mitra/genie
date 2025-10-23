@@ -33,27 +33,27 @@
       "AttributeType": "S"
     },
     {
-      "AttributeName": "assignee_pk",
+      "AttributeName": "assigneeType_pk",
       "AttributeType": "S"
     },
     {
-      "AttributeName": "assignee_sk",
+      "AttributeName": "assigneeType_sk",
       "AttributeType": "S"
     },
     {
-      "AttributeName": "booking_pk",
+      "AttributeName": "bookingType_pk",
       "AttributeType": "S"
     },
     {
-      "AttributeName": "booking_sk",
+      "AttributeName": "bookingType_sk",
       "AttributeType": "S"
     },
     {
-      "AttributeName": "conversation_pk",
+      "AttributeName": "conversationType_pk",
       "AttributeType": "S"
     },
     {
-      "AttributeName": "conversation_sk",
+      "AttributeName": "conversationType_sk",
       "AttributeType": "S"
     }
   ],
@@ -109,18 +109,18 @@
       }
     },
     {
-      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/GSI_AssigneeWorkload",
-      "IndexName": "GSI_AssigneeWorkload",
+      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/GSI_AssigneeType",
+      "IndexName": "GSI_AssigneeType",
       "IndexSizeBytes": 0,
       "IndexStatus": "ACTIVE",
       "ItemCount": 0,
       "KeySchema": [
         {
-          "AttributeName": "assignee_pk",
+          "AttributeName": "assigneeType_pk",
           "KeyType": "HASH"
         },
         {
-          "AttributeName": "assignee_sk",
+          "AttributeName": "assigneeType_sk",
           "KeyType": "RANGE"
         }
       ],
@@ -164,11 +164,11 @@
       "ItemCount": 0,
       "KeySchema": [
         {
-          "AttributeName": "booking_pk",
+          "AttributeName": "bookingType_pk",
           "KeyType": "HASH"
         },
         {
-          "AttributeName": "booking_sk",
+          "AttributeName": "bookingType_sk",
           "KeyType": "RANGE"
         }
       ],
@@ -181,18 +181,18 @@
       }
     },
     {
-      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/GSI_ConversationMessage",
-      "IndexName": "GSI_ConversationMessage",
+      "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ENTITY/index/GSI_ConversationType",
+      "IndexName": "GSI_ConversationType",
       "IndexSizeBytes": 0,
       "IndexStatus": "ACTIVE",
       "ItemCount": 0,
       "KeySchema": [
         {
-          "AttributeName": "conversation_pk",
+          "AttributeName": "conversationType_pk",
           "KeyType": "HASH"
         },
         {
-          "AttributeName": "conversation_sk",
+          "AttributeName": "conversationType_sk",
           "KeyType": "RANGE"
         }
       ],
