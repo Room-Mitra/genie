@@ -127,3 +127,24 @@ export async function queryBookings({ hotelId, status }) {
     throw new Error('Failed to query active bookings');
   }
 }
+
+export async function getActiveBookingForRoom({ roomId }) {
+  if (!roomId) {
+    throw new Error('roomId required to query active booking for room');
+  }
+
+  const params = {
+    TableName: ENTITY_TABLE_NAME,
+    IndexName: GSI_ROOMTYPE_NAME,
+    KeyConditionExpression: 'roomType_pk = :pk and begins_with(roomType_sk, :sk)',
+    FilterExpression: 'checkInTime < :now AND :now < checkOutTime',
+    ExpressionAttributeValues: {
+      ':pk': `ROOM#${roomId}`,
+      ':sk': 'BOOKING#',
+      ':now': toIsoString(),
+    },
+  };
+
+  const data = await DDB.query(params).promise();
+  return data.Items && data.Items[0];
+}

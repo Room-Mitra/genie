@@ -24,15 +24,15 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const deviceData = req.deviceData;
-    const bookingId = deviceData.bookingId || req.body.bookingId;
-    const hotelId = deviceData.hotelId;
+    const roomId = deviceData.roomId;
 
-    const requests = await requestService.listRequests({ bookingId });
-    const booking = await bookingService.getBookingById({ hotelId, bookingId });
+    let requests = {};
+    const booking = await bookingService.getActiveBookingForRoom({ roomId });
+    if (booking) requests = await requestService.listRequests({ bookingId: booking.bookingId });
 
     return res.status(200).json({
       booking: booking,
-      requests: requests.items,
+      requests: requests.items || [],
     });
   } catch (err) {
     console.error('Error querying requests', err);
