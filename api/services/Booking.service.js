@@ -4,6 +4,7 @@ import * as bookingRepo from '#repositories/Booking.repository.js';
 import * as userRepo from '#repositories/User.repository.js';
 import * as roomRepo from '#repositories/Room.repository.js';
 import { toIsoString } from '#common/timestamp.helper.js';
+import { bookingResponse } from '#presenters/booking.js';
 
 function parseAndValidateTimes(checkInTime, checkoutTime) {
   const start = new Date(checkInTime);
@@ -109,18 +110,14 @@ export async function listBookings({ hotelId, status }) {
   });
 
   return {
-    items: bookings?.map(
-      ({ bookingId, checkInTime, checkOutTime, roomId, createdAt, updatedAt, guest }) => ({
-        bookingId,
-        hotelId,
-        checkInTime,
-        checkOutTime,
-        room: getRoom(roomMap.get(roomId)),
-        createdAt,
-        updatedAt,
-        guest,
-      })
-    ),
+    items: bookings?.map((b) => ({
+      ...bookingResponse(b),
+      room: getRoom(roomMap.get(b.roomId)),
+    })),
     count: bookings?.length || 0,
   };
+}
+
+export async function getActiveBookingForRoom({ roomId }) {
+  return bookingResponse(await bookingRepo.getActiveBookingForRoom({ roomId }));
 }

@@ -11,6 +11,12 @@ const authenticator = (req, res, next) => {
   try {
     const deviceData = jwt.verify(token, SECRET_KEY);
 
+    const { hotelId, roomId, deviceId } = deviceData;
+    if (!hotelId || !roomId || !deviceId)
+      return res
+        .status(401)
+        .json({ message: 'Invalid token. Require hotelId, roomId and deviceId in token' });
+
     const bookingId = req.headers['x-booking-id'];
 
     req.deviceData = {

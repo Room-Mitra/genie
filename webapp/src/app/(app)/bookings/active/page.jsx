@@ -72,7 +72,7 @@ export default function Page() {
         data={data}
         tableRowClassNames={["text-base font-medium text-dark dark:text-white"]}
         noDataMessage="No active bookings"
-        isLoading={loading}
+        loading={loading}
       />
     </div>
   );

@@ -9,7 +9,8 @@
       "#config/*": ["./config/*"],
       "#Constants/*": ["./Constants/*"],
       "#libs/*": ["libs/*"],
-      "#common/*": ["common/*"]
+      "#common/*": ["common/*"],
+      "#presenters/*": ["presenters/*"]
     }
   }
 }

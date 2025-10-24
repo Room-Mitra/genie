@@ -1,42 +1,55 @@
-import { toIsoString } from '#common/timestamp.helper.js';
 import express from 'express';
-import { ulid } from 'ulid';
 import * as requestService from '#services/Request.service.js';
 import * as bookingService from '#services/Booking.service.js';
+import { requestResponse } from '#presenters/request.js';
 
 const router = express.Router();
 
 router.post('/', async (req, res) => {
-  const now = new Date();
-  const twentyMinsLater = new Date().setMinutes(new Date().getMinutes + 20);
+  try {
+    const { hotelId, roomId, deviceId } = req.deviceData;
 
-  const { department, requestType } = req.body;
+    const { department, requestType, bookingId } = req.body;
+    if (!department || !requestType || !bookingId) {
+      return res
+        .status(400)
+        .json({ error: 'Require department, requestType and bookingId to create a new request' });
+    }
 
-  res.status(200).json({
-    requestId: ulid(),
-    estimatedTimeOfFulfillment: toIsoString(twentyMinsLater),
-    createdAt: toIsoString(now),
-    department: department,
-    requestType: requestType,
-  });
+    const requestData = {
+      hotelId,
+      roomId,
+      deviceId,
+      bookingId,
+      department,
+      requestType,
+    };
+
+    const result = await requestService.createRequest(requestData);
+
+    return res.status(201).json(requestResponse(result));
+  } catch (err) {
+    console.error('Error creating request', err);
+    return res.status(500).json({ error: err?.message || 'Internal server error' });
+  }
 });
 
 router.get('/', async (req, res) => {
   try {
     const deviceData = req.deviceData;
-    const bookingId = deviceData.bookingId || req.body.bookingId;
-    const hotelId = deviceData.hotelId;
+    const roomId = deviceData.roomId;
 
-    const requests = await requestService.listRequests({ bookingId });
-    const booking = await bookingService.getBookingById({ hotelId, bookingId });
+    let requests = {};
+    const booking = await bookingService.getActiveBookingForRoom({ roomId });
+    if (booking) requests = await requestService.listRequests({ bookingId: booking.bookingId });
 
     return res.status(200).json({
       booking: booking,
-      requests: requests.items,
+      requests: requests.items.map(requestResponse) || [],
     });
   } catch (err) {
     console.error('Error querying requests', err);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: err?.message || 'Internal server error' });
   }
 });
 
