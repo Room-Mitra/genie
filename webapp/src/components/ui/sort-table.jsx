@@ -141,18 +141,14 @@ export default function SortTable({
         </tbody>
       </table>
       {loading && (
-        <>
-          <div className="mx-auto mt-5 w-fit p-4">
-            <Spinner />
-          </div>
-        </>
+        <div className="mx-auto mt-5 w-fit p-4">
+          <Spinner />
+        </div>
       )}
       {!loading && !sortedRows.length && (
-        <>
-          <div className="mx-auto mt-5 w-fit p-4">
-            {noDataMessage || "No rows"}
-          </div>
-        </>
+        <div className="mx-auto mt-5 w-fit p-4">
+          {noDataMessage || "No rows"}
+        </div>
       )}
     </div>
   );
