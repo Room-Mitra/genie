@@ -3,6 +3,11 @@ import * as hotelRepo from '#repositories/Hotel.repository.js';
 import * as userRepo from '#repositories/User.repository.js';
 import * as staffRepo from '#repositories/Staff.repository.js';
 
+import { staffResponse } from '#presenters/user.js';
+import { hashPassword } from './User.service.js';
+import { hasAnyRole } from '#common/auth.helper.js';
+import { HotelRole } from '#Constants/roles.js';
+
 const ALLOWED_UPDATE_FIELDS = ['name', 'address', 'contactEmail', 'contactPhone'];
 
 export async function getHotelById(hotelId) {
@@ -66,43 +71,55 @@ export async function addStaffToHotel(hotelId, userPayload) {
     throw err;
   }
 
-  // 2) Resolve userId (use provided or generate)
-  const userId = userPayload.userId || ulid();
+  const normalizedEmail = String(userPayload.email).trim().toLowerCase();
+
+  // 1) find the EMAIL_REGISTRY row to get userId
+  const emailReg = await userRepo.getEmailRegistryByEmail(normalizedEmail);
 
   // 3) Ensure user exists (create PROFILE row if missing)
-  let user = await userRepo.getUserProfileById(userId);
+  let user = await userRepo.getUserProfileById(emailReg?.userId);
   if (!user) {
-    if (!userPayload.email || !userPayload.password || !userPayload.name) {
-      const err = new Error('require email, password and name to create user');
+    if (
+      !userPayload.email ||
+      !userPayload.password ||
+      !userPayload.firstName ||
+      !userPayload.lastName
+    ) {
+      const err = new Error('require email, password and firstName, lastName to create user');
       err.status = 400;
       throw err;
     }
 
     const newUser = {
-      userId,
+      userId: ulid(),
       entityType: 'USER',
       firstName: userPayload.firstName || '',
       lastName: userPayload.lastName || '',
       email: userPayload.email || '',
       mobileNumber: userPayload.mobileNumber || '',
-      password: userPayload.password || 'Room$123', // default password
+      passwordHash: await hashPassword(userPayload.password || 'Room$123'), // default password
     };
 
     await userRepo.transactCreateUserWithEmailGuard({ user: newUser });
     user = newUser;
   }
 
-  // 4) Add STAFF row for (hotelId, userId)
-  await staffRepo.addStaff({
-    hotelId,
-    userId,
-    role: 'staff',
+  if (user?.hotelId || hasAnyRole(user, HotelRole.values())) {
+    const err = new Error('user already is a associated with a hotel');
+    err.status = 400;
+    throw err;
+  }
+
+  const updated = await staffRepo.addStaff({
+    hotelId: hotelId,
+    userId: user.userId,
+    role: userPayload.role,
+    department: userPayload.department,
+    reportingToUserId: userPayload.reportingToUserId,
   });
 
   return {
     message: 'Staff added to hotel',
-    hotelId,
-    userId,
-    role: 'staff',
+    user: staffResponse(updated),
   };
 }

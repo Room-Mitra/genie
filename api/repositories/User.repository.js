@@ -156,6 +156,8 @@ export async function getMobileRegistryByMobile(mobile) {
 }
 
 export async function getUserProfileById(userId) {
+  if (!userId) return null;
+
   const params = {
     TableName: ENTITY_TABLE_NAME,
     Key: {

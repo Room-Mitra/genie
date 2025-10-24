@@ -1,4 +1,8 @@
-import { BookOpenIcon, HandRaisedIcon } from "@heroicons/react/24/outline";
+import {
+  BookOpenIcon,
+  HandRaisedIcon,
+  UsersIcon,
+} from "@heroicons/react/24/outline";
 import * as Icons from "../icons";
 import { BedDoubleIcon } from "lucide-react";
 
@@ -63,6 +67,20 @@ export const NAV_DATA = [
           {
             title: "All",
             url: "/rooms/all",
+          },
+        ],
+      },
+      {
+        title: "Staff",
+        icon: UsersIcon,
+        items: [
+          {
+            title: "+ Add Staff",
+            url: "/staff/new",
+          },
+          {
+            title: "All",
+            url: "/staff/all",
           },
         ],
       },
