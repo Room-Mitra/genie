@@ -1,7 +1,7 @@
 "use client";
 
 import InputGroup from "@/components/FormElements/InputGroup";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { toast } from "react-toastify";
 
@@ -30,6 +30,10 @@ export default function AddRoomPage() {
     floor: "",
     description: "",
   });
+
+  const canSubmit = useMemo(() => {
+    return roomForm.number && roomForm.type && roomForm.floor && !savingRoom;
+  }, [roomForm.number, roomForm.type, roomForm.floor, savingRoom]);
 
   const handleSaveRoomSubmit = async (e) => {
     e.preventDefault();
@@ -135,16 +139,15 @@ export default function AddRoomPage() {
         />
 
         <div className="mt-2 flex items-center justify-end gap-3">
-
           <button
             type="submit"
             className={cn(
               "rounded-xl px-4 py-2 text-sm font-medium",
-              savingRoom
+              savingRoom || !canSubmit
                 ? "bg-gray-700 text-gray-400"
                 : "bg-indigo-600 text-white hover:bg-indigo-500",
             )}
-            disabled={savingRoom}
+            disabled={savingRoom || !canSubmit}
           >
             {savingRoom ? "Saving..." : "Save room"}
           </button>
