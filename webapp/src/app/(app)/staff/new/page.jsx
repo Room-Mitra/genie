@@ -55,8 +55,8 @@ export default function AddStaffPage() {
       firstName &&
       lastName &&
       mobileNumber &&
-      !role &&
-      !department &&
+      role &&
+      department &&
       !creating
     );
   }, [
@@ -86,18 +86,21 @@ export default function AddStaffPage() {
     setCreating(true);
     try {
       const data = {
-        roomId: reportingTo.roomId,
-        guest: {
-          firstName: firstName,
-          lastName: lastName,
-          mobileNumber: mobileNumber,
-        },
+        firstName,
+        lastName,
+        mobileNumber,
+        email,
+        password,
+        department,
+        role,
+        reportingToUserId: reportingTo.userId,
       };
 
       const staff = await addStaff(data);
+      console.log(staff);
 
-      toast.success(`Staff ${staff.userId.slice(0, 6)} created`);
       resetForm();
+      toast.success(`Staff ${staff?.userId?.slice(0, 6)} created`);
     } catch (err) {
       toast.error(err?.message || "Failed to create staff");
     } finally {
@@ -211,7 +214,6 @@ export default function AddStaffPage() {
               { label: "Front Office", value: "front_office" },
               { label: "Concierge", value: "concierge" },
               { label: "Facilities", value: "facilities" },
-              { label: "General Enquiry", value: "general_enquiry" },
             ]}
             defaultValue="room_service"
             handleChange={(e) => setDepartment(e.target.value)}

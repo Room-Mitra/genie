@@ -15,7 +15,7 @@ const authenticator = (req, res, next) => {
 
     if (
       !isAdminUser(req.userData) &&
-      (!req.userData.hotelId || !hasAnyRole(req.userData, HotelRole.values()))
+      (!req.userData.hotelId || !hasAnyRole(req.userData, Object.values(HotelRole)))
     ) {
       return res.status(401).json({ error: "User not associated with hotel, or isn't admin" });
     }

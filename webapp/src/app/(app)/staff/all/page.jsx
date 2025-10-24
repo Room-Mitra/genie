@@ -1,9 +1,9 @@
 "use client";
 
+import { Department } from "@/components/ui/department";
 import { ID } from "@/components/ui/id";
 import { Roles } from "@/components/ui/roles";
 import SortTable from "@/components/ui/sort-table";
-import { toTitleCaseFromSnake } from "@/lib/utils";
 import { useState, useEffect, useMemo } from "react";
 
 async function fetchStaff() {
@@ -24,20 +24,30 @@ export default function Page() {
     () => [
       { key: "userId", label: "USER ID" },
       { key: "name", label: "NAME" },
-      { key: "email", label: "EMAIL" },
-      { key: "mobileNumber", label: "MOBILE" },
+      { key: "roles", label: "ROLE" },
       { key: "department", label: "DEPARTMENT" },
-      { key: "roles", label: "ROLES" },
+      { key: "mobileNumber", label: "MOBILE" },
+      { key: "email", label: "EMAIL" },
       { key: "reportingTo", label: "REPORTS TO" },
     ],
     [],
   );
 
-  const getStaffName = (s) => (
-    <span>
-      {s?.firstName} {s?.lastName}
-    </span>
-  );
+  const getStaffName = (s) =>
+    s ? (
+      <span>
+        {s?.firstName} {s?.lastName}{" "}
+        {s?.department ? (
+          <span>
+            (<Department department={s.department} />)
+          </span>
+        ) : (
+          ``
+        )}
+      </span>
+    ) : (
+      <>-</>
+    );
 
   useEffect(() => {
     let cancelled = false;
@@ -55,8 +65,8 @@ export default function Page() {
                 </span>
               ),
               email: r.email,
-              mobileNumber: r.mobileNumber,
-              department: toTitleCaseFromSnake(r.department),
+              mobileNumber: r.mobileNumber || "-",
+              department: <Department department={r.department} />,
               roles: <Roles roles={r.roles} />,
               reportingTo: getStaffName(
                 staff?.items?.filter(

@@ -2,6 +2,7 @@ import { listStaffForHotel } from '#services/Staff.service.js';
 import * as hotelService from '#services/Hotel.service.js';
 
 import express from 'express';
+import { staffResponse } from '#presenters/user.js';
 const router = express.Router();
 
 router.get('/', async (req, res) => {
@@ -47,7 +48,7 @@ router.post('/', async (req, res) => {
     };
 
     const result = await hotelService.addStaffToHotel(hotelId, staffData);
-    return res.status(201).json(result);
+    return res.status(201).json(staffResponse(result));
   } catch (err) {
     console.error('addStaffToHotel error:', err);
     if (err.status) {

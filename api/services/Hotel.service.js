@@ -3,7 +3,6 @@ import * as hotelRepo from '#repositories/Hotel.repository.js';
 import * as userRepo from '#repositories/User.repository.js';
 import * as staffRepo from '#repositories/Staff.repository.js';
 
-import { staffResponse } from '#presenters/user.js';
 import { hashPassword } from './User.service.js';
 import { hasAnyRole } from '#common/auth.helper.js';
 import { HotelRole } from '#Constants/roles.js';
@@ -104,7 +103,7 @@ export async function addStaffToHotel(hotelId, userPayload) {
     user = newUser;
   }
 
-  if (user?.hotelId || hasAnyRole(user, HotelRole.values())) {
+  if (user?.hotelId || hasAnyRole(user, Object.values(HotelRole))) {
     const err = new Error('user already is a associated with a hotel');
     err.status = 400;
     throw err;
@@ -118,8 +117,5 @@ export async function addStaffToHotel(hotelId, userPayload) {
     reportingToUserId: userPayload.reportingToUserId,
   });
 
-  return {
-    message: 'Staff added to hotel',
-    user: staffResponse(updated),
-  };
+  return updated;
 }

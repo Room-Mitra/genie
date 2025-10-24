@@ -41,7 +41,7 @@ export async function login({ email, password }) {
   }
 
   // 4) authorization - only hotel staff or admins can login
-  if (!isAdminUser(user) && (!user.hotelId || !hasAnyRole(user, HotelRole.values()))) {
+  if (!isAdminUser(user) && (!user.hotelId || !hasAnyRole(user, Object.values(HotelRole)))) {
     const e = new Error("User not associated with hotel, or isn't admin");
     e.name = 'UnauthorizedError';
     throw e;
