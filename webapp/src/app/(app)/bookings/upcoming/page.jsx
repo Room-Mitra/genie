@@ -4,7 +4,6 @@ import { DateTime } from "@/components/ui/datetime";
 import { ID } from "@/components/ui/id";
 import { Room } from "@/components/ui/room";
 import SortTable from "@/components/ui/sort-table";
-import { formatDateTime } from "@/lib/format-message-time";
 import { useMemo, useState, useEffect } from "react";
 
 async function fetchUpcomingBookings() {
@@ -23,6 +22,7 @@ export default function Page() {
 
   const columns = useMemo(
     () => [
+      { key: "bookingId", label: "BOOKING ID" },
       { key: "checkInTime", label: "CHECK IN" },
       { key: "checkOutTime", label: "CHECK OUT" },
       { key: "room", label: "ROOM" },
@@ -41,6 +41,7 @@ export default function Page() {
         if (!cancelled)
           setData(
             bookings?.items?.map((b) => ({
+              bookingId: <ID ulid={b.bookingId} />,
               checkInTime: <DateTime dateTimeIso={b.checkInTime} />,
               checkOutTime: <DateTime dateTimeIso={b.checkOutTime} />,
               room: <Room room={b.room} />,
@@ -70,6 +71,8 @@ export default function Page() {
         columns={columns}
         data={data}
         tableRowClassNames={["text-base font-medium text-dark dark:text-white"]}
+        noDataMessage="No upcoming bookings"
+        loading={loading}
       />
     </div>
   );

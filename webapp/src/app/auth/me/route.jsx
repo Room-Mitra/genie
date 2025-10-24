@@ -13,5 +13,8 @@ export async function GET() {
     firstName: user.firstName,
     lastName: user.lastName,
     groups: user?.groups,
+    roles: user?.roles,
+    hotelId: user?.hotelId,
+    userId: user?.sub,
   });
 }
