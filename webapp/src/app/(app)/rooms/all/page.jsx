@@ -1,5 +1,6 @@
 "use client";
 
+import { DateTime } from "@/components/ui/datetime";
 import { ID } from "@/components/ui/id";
 import SortTable from "@/components/ui/sort-table";
 import { useState, useEffect, useMemo } from "react";
@@ -25,6 +26,7 @@ export default function Page() {
       { key: "floor", label: "FLOOR" },
       { key: "description", label: "DESCRIPTION" },
       { key: "roomId", label: "ROOM ID" },
+      { key: "createdAt", label: "CREATED AT" },
     ],
     [],
   );
@@ -53,6 +55,7 @@ export default function Page() {
               ),
               description: r.description,
               roomId: <ID ulid={r.roomId} />,
+              createdAt: <DateTime dateTimeIso={r.createdAt} />,
             })),
           );
       } catch (err) {

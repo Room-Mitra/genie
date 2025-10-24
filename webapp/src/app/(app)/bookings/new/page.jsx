@@ -286,7 +286,7 @@ export default function AddBookingPage() {
                 Floor: {room.floor}
               </div>
               <div className="text-md align-middle text-dark dark:text-gray-200">
-                {room.description && `Desc: ${room.description}`}
+                {room.description && `${room.description}`}
               </div>
             </div>
           )}

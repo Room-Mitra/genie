@@ -27,6 +27,7 @@ export default function Page() {
       { key: "checkOutTime", label: "CHECK OUT" },
       { key: "room", label: "ROOM" },
       { key: "guest", label: "GUEST ID" },
+      { key: "createdAt", label: "CREATED AT" },
     ],
     [],
   );
@@ -44,6 +45,7 @@ export default function Page() {
               checkOutTime: <DateTime dateTimeIso={b.checkOutTime} />,
               room: <Room room={b.room} />,
               guest: <ID ulid={b.guest.userId} />,
+              createdAt: <DateTime dateTimeIso={b.createdAt} />,
             })),
           );
       } catch (err) {

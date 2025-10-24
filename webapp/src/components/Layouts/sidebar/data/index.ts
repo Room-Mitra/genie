@@ -55,8 +55,16 @@ export const NAV_DATA = [
       {
         title: "Rooms",
         icon: BedDoubleIcon,
-        items: [],
-        url: "/rooms",
+        items: [
+          {
+            title: "+ Create New",
+            url: "/rooms/new",
+          },
+          {
+            title: "All",
+            url: "/rooms/all",
+          },
+        ],
       },
       {
         title: "Intents",

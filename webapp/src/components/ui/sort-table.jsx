@@ -3,6 +3,24 @@ import React from "react";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { ArrowUpDown } from "lucide-react"; // optional, for icons
+import { DateTime } from "./datetime";
+import { ID } from "./id";
+import { Room } from "./room";
+
+const isDateTime = (e) => React.isValidElement(e) && e.type === DateTime;
+const isID = (e) => React.isValidElement(e) && e.type == ID;
+const isRoom = (e) => React.isValidElement(e) && e.type == Room;
+const isDivOrSpan = (e) =>
+  (React.isValidElement(e) && e.type === "div") || e.type === "span";
+
+const getValue = (e) => {
+  if (isDateTime(e)) return e.props.dateTimeIso;
+  if (isID(e)) return e.props.ulid;
+  if (isRoom(e)) return e.props.number;
+  if (isDivOrSpan(e)) return e.props.children;
+
+  return e;
+};
 
 export default function SortTable({
   columns,
@@ -27,8 +45,8 @@ export default function SortTable({
     setSortedRows(
       [...rows].sort((a, b) => {
         if (!sortConfig.key) return 0;
-        const aValue = a[sortConfig.key];
-        const bValue = b[sortConfig.key];
+        const aValue = getValue(a[sortConfig.key]);
+        const bValue = getValue(b[sortConfig.key]);
         if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
         if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
         return 0;

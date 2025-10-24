@@ -86,5 +86,5 @@ export function formatDateTime(isoString: string): string {
   const formatted = date.toLocaleString("en-GB", options);
 
   // remove the comma for a cleaner look -> "23 Oct 2025 9:00 AM"
-  return formatted.replace(",", "");
+  return formatted;
 }
