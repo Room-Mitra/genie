@@ -1,7 +1,6 @@
 import { buildHotelEntityItem } from '#common/hotelEntity.helper.js';
 import DDB from '#config/DynamoDb.config.js';
 import { ENTITY_TABLE_NAME, GSI_HOTELTYPE_NAME } from '#Constants/DB.constants.js';
-import { decodeToken } from './repository.helper.js';
 
 export const createRoom = async (roomData) => {
   const roomItem = buildHotelEntityItem(roomData, { includeHotelTypeIndex: true });

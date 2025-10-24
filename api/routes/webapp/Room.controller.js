@@ -20,8 +20,10 @@ router.post('/', async (req, res) => {
     const { hotelId } = req.userData;
     const { roomNumber, roomType, floor, description } = req.body;
 
-    if (!roomNumber || !roomType || !floor) {
-      return res.status(400).json({ error: 'roomNumber, roomType and floor are required' });
+    if (!roomNumber || !roomType || !floor || !hotelId) {
+      return res
+        .status(400)
+        .json({ error: 'hotelId, roomNumber, roomType and floor are required' });
     }
 
     const roomData = {

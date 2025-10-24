@@ -48,6 +48,7 @@ export async function login({ email, password }) {
     iat: nowSec,
     hotelId: user?.hotelId,
     groups: user?.groups,
+    roles: user?.roles,
   };
 
   const token = jwt.sign(payload, SECRET_KEY, { expiresIn: `${TOKEN_EXPIRES_IN_HOURS}h` });
