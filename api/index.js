@@ -25,7 +25,7 @@ import deviceRoutes from '#routes/webapp/Device.controller.js';
 import guestRoutes from '#routes/webapp/Guest.controller.js';
 import utteranceRoutes from '#routes/webapp/Utterance.controller.js';
 import bookingRoutes from '#routes/webapp/Booking.controller.js';
-import staffRoutes from '#routes/admin/Staff.controller.js';
+import staffRoutes from '#routes/webapp/Staff.controller.js';
 import mappingRoutes from '#routes/webapp/StaffRoomDepartmentRequestMapping.controller.js';
 import faqRoutes from '#routes/webapp/FAQ.controller.js';
 import intentsRoutes from '#routes/webapp/Intent.controller.js';
@@ -54,6 +54,7 @@ import adminAuthenticator from '#middleware/AdminAuthenticator.middleware.js';
 
 // Admin Routes
 import adminHotelRoutes from '#routes/admin/Hotel.controller.js';
+import adminStaffRoutes from '#routes/admin/Staff.controller.js';
 
 const app = express();
 app.use(requestContext);
@@ -86,11 +87,13 @@ app.use(
 
 // UI routes
 app.use('/requests', authenticator, requestRoutes);
-app.use('/devices', authenticator, deviceRoutes);
-app.use('/intents', authenticator, intentsRoutes);
-app.use('/guests', authenticator, guestRoutes);
 app.use('/booking', authenticator, bookingRoutes);
+app.use('/devices', authenticator, deviceRoutes);
 app.use('/rooms', authenticator, roomRoutes);
+app.use('/staff', authenticator, staffRoutes);
+app.use('/intents', authenticator, intentsRoutes);
+
+app.use('/guests', authenticator, guestRoutes);
 app.use('/mapping', authenticator, mappingRoutes);
 app.use('/faq', authenticator, faqRoutes);
 
@@ -112,7 +115,7 @@ app.use('/leads', landingPageRoutes);
 // Admin Routes
 // -------------------------
 app.use('/admin/hotels', adminAuthenticator, adminHotelRoutes);
-app.use('/admin/staff', adminAuthenticator, staffRoutes);
+app.use('/admin/staff', adminAuthenticator, adminStaffRoutes);
 
 app.listen(PORT, () => console.log(`Server running on port: http://localhost:${PORT}`));
 

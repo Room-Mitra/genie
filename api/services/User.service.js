@@ -27,3 +27,7 @@ export async function signUp({ firstName, lastName, email, password }) {
   const { passwordHash: _, ...safeUser } = user;
   return safeUser;
 }
+
+export async function hashPassword(password) {
+  return await bcrypt.hash(password, SALT_ROUNDS);
+}

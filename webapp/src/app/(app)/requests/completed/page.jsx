@@ -43,7 +43,6 @@ export default function Page() {
       { key: "type", label: "TYPE" },
 
       { key: "viewConversation", label: "", sortable: false },
-      { key: "acknowledge", label: "", sortable: false },
     ],
     [],
   );

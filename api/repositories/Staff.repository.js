@@ -3,18 +3,8 @@ import { toIsoString } from '#common/timestamp.helper.js';
 import DDB from '#config/DynamoDb.config.js';
 import { decodeToken, encodeToken } from './repository.helper.js';
 
-/**
- * Staff membership row (idempotent):
- *   pk = STAFF#USER#<userId>
- *   sk = STAFF#<ts>
- *   entityType = "STAFF"
- *   entityTypeTimestamp = "STAFF#<ISO>"
- *   hotelId (for your gsi_hotelId_entityTypeTs)
- *   userId
- *   role
- */
 
-export async function addStaff({ userId, role = 'STAFF', hotelId }) {
+export async function addStaff({ hotelId, userId, role, department, reportingToUserId }) {
   if (!userId) throw new Error('userId is required');
   if (!hotelId) throw new Error('hotelId is required');
 
@@ -32,6 +22,8 @@ export async function addStaff({ userId, role = 'STAFF', hotelId }) {
       'hotelType_sk = :hotelTypeSk',
       'hotelId = :hotelId',
       'updatedAt = :nowIso',
+      'department = :department',
+      'reportingToUserId = :reportingToUserId',
     ].join(', '),
     ConditionExpression: 'attribute_not_exists(#roles) OR NOT contains(#roles, :roleVal)',
     ExpressionAttributeNames: {
@@ -45,6 +37,8 @@ export async function addStaff({ userId, role = 'STAFF', hotelId }) {
       ':newRole': [role],
       ':emptyList': [],
       ':roleVal': role,
+      ':department': department,
+      ':reportingToUserId': reportingToUserId,
     },
     ReturnValues: 'ALL_NEW',
   };
@@ -53,7 +47,11 @@ export async function addStaff({ userId, role = 'STAFF', hotelId }) {
   return Attributes;
 }
 
-export async function queryStaffByHotelId(hotelId, { limit = 25, nextToken } = {}) {
+export async function queryStaffByHotelId(hotelId) {
+  if (!hotelId) {
+    throw new Error('hotelId is required to query all staff for hotel');
+  }
+
   const params = {
     TableName: ENTITY_TABLE_NAME,
     IndexName: GSI_HOTELTYPE_NAME,
@@ -66,24 +64,23 @@ export async function queryStaffByHotelId(hotelId, { limit = 25, nextToken } = {
       ':h': `HOTEL#${hotelId}`,
       ':pref': 'USER#',
     },
-    Limit: Math.min(Number(limit) || 25, 100),
-    ExclusiveStartKey: decodeToken(nextToken),
+    ScanIndexForward: false,
   };
 
-  const out = await DDB.query(params).promise();
-  return {
-    items:
-      out.Items?.map((i) => {
-        return {
-          entityType: i.entityType,
-          roles: i.roles,
-          userId: i.userId,
-          createdAt: i.createdAt,
-          name: i.name,
-          email: i.email,
-        };
-      }) || [],
-    nextToken: encodeToken(out.LastEvaluatedKey),
-    count: out.Count || 0,
-  };
+  const items = [];
+  let lastEvaluatedKey;
+
+  try {
+    do {
+      const res = await DDB.query(params).promise();
+      if (res.Items?.length) items.push(...res.Items);
+      lastEvaluatedKey = res.LastEvaluatedKey;
+      params.ExclusiveStartKey = lastEvaluatedKey;
+    } while (lastEvaluatedKey);
+
+    return items;
+  } catch (err) {
+    console.error('Failed to list staff:', err);
+    throw new Error('Failed to list staff');
+  }
 }

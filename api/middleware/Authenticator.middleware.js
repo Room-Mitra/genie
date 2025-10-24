@@ -1,4 +1,5 @@
-import { hasRole, isAdminUser } from '#common/auth.helper.js';
+import { hasAnyRole, isAdminUser } from '#common/auth.helper.js';
+import { HotelRole } from '#Constants/roles.js';
 import jwt from 'jsonwebtoken';
 
 const SECRET_KEY = process.env.SECRET_KEY;
@@ -12,7 +13,10 @@ const authenticator = (req, res, next) => {
   try {
     req.userData = jwt.verify(token, SECRET_KEY);
 
-    if (!isAdminUser(req.userData) && (!req.userData.hotelId || !hasRole(req.userData, 'staff'))) {
+    if (
+      !isAdminUser(req.userData) &&
+      (!req.userData.hotelId || !hasAnyRole(req.userData, HotelRole.values()))
+    ) {
       return res.status(401).json({ error: "User not associated with hotel, or isn't admin" });
     }
 
