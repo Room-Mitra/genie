@@ -54,11 +54,10 @@ export function buildHotelEntityItem(input, options) {
       const pk = `CATALOG#HOTEL`;
       const sk = `HOTEL#${i.hotelId}`;
 
-      const extra = maybeHotelType(options, i.hotelId, 'HOTEL', i.hotelId);
       return clean({
         pk,
         sk,
-        ...extra,
+        ...maybeHotelType(options, i.hotelId, 'HOTEL', i.hotelId),
         entityType: 'HOTEL',
         hotelId: i.hotelId,
         name: i.name,
@@ -72,12 +71,10 @@ export function buildHotelEntityItem(input, options) {
     case 'ROOM': {
       const sk = `ROOM#${i.roomId}`;
       const base = baseKeys(i.hotelId, sk);
-      const extra = {
-        ...maybeHotelType(options, i.hotelId, 'ROOM', i.roomId),
-      };
       return clean({
         ...base,
-        ...extra,
+        ...maybeHotelType(options, i.hotelId, 'ROOM', i.roomId),
+
         entityType: 'ROOM',
         hotelId: i.hotelId,
         roomId: i.roomId,
@@ -91,12 +88,15 @@ export function buildHotelEntityItem(input, options) {
 
     case 'BOOKING': {
       const bookingId = i.bookingId ?? ulid();
+      const timeId = bookingId;
       const sk = `BOOKING#${bookingId}`;
       const base = baseKeys(i.hotelId, sk);
 
       return clean({
         ...base,
         bookingId,
+
+        ...maybeHotelType(options, i.hotelId, 'BOOKING', timeId),
 
         // Room GSI (for bookings per room)
         roomType_pk: `ROOM#${i.roomId}`,
@@ -131,15 +131,19 @@ export function buildHotelEntityItem(input, options) {
         roomType_pk: `ROOM#${i.roomId}`,
         roomType_sk: `REQUEST#${timeId}`,
 
+        // booking timeline gsi (for requests per booking)
+        bookingType_pk: `BOOKING#${i.bookingId}`,
+        bookingType_sk: `REQUEST#${timeId}`,
+
         // Requests by status board
         status_pk: `REQSTATUS#${i.status}#HOTEL#${i.hotelId}`,
-        status_sk: `${i.priority ?? 'P3'}#${timeId}`,
+        status_sk: `REQUEST#${reqId}`,
 
         // Requests by assignee (if assigned)
         ...(i.assignedToUserId
           ? {
-              assignee_pk: `ASSIGNEE#${i.assignedToUserId}`,
-              assignee_sk: `${i.status}#HOTEL#${i.hotelId}#${timeId}`,
+              assigneeType_pk: `ASSIGNEE#${i.assignedToUserId}`,
+              assigneeType_sk: `${i.status}#HOTEL#${i.hotelId}#${timeId}`,
             }
           : {}),
 
@@ -149,10 +153,10 @@ export function buildHotelEntityItem(input, options) {
         hotelId: i.hotelId,
         roomId: i.roomId,
         requestId: reqId,
-        summary: i.summary,
-        category: i.category,
+        department: i.department,
+        requestType: i.requestType,
+        estimatedTimeOfFulfillment: i.estimatedTimeOfFulfillment,
         status: i.status,
-        priority: i.priority ?? 'P3',
         assignedToUserId: i.assignedToUserId,
         conversationId: i.conversationId,
         createdAt: i.createdAt,
@@ -162,7 +166,7 @@ export function buildHotelEntityItem(input, options) {
     case 'CONVERSATION': {
       const convId = i.conversationId ?? ulid();
       const timeId = convId;
-      const sk = `CONV#${convId}`;
+      const sk = `CONVERSATION#${convId}`;
       const base = baseKeys(i.hotelId, sk);
       return clean({
         ...base,
@@ -170,20 +174,11 @@ export function buildHotelEntityItem(input, options) {
         ...(i.roomId
           ? {
               roomType_pk: `ROOM#${i.roomId}`,
-              roomType_sk: `CONV#${timeId}`,
+              roomType_sk: `CONVERSATION#${timeId}`,
             }
           : {}),
-        // Conversation status board
-        convStatus_pk: `CONVSTATUS#${i.status}#HOTEL#${i.hotelId}`,
-        convStatus_sk: `${timeId}`,
-        // Assignment (optional)
-        ...(i.assignedToUserId
-          ? {
-              convAssignee_pk: `CONVASSIGNEE#${i.assignedToUserId}`,
-              convAssignee_sk: `${i.status}#HOTEL#${i.hotelId}#${timeId}`,
-            }
-          : {}),
-        ...maybeHotelType(options, i.hotelId, 'CONV', timeId),
+
+        ...maybeHotelType(options, i.hotelId, 'CONVERSATION', timeId),
 
         entityType: 'CONVERSATION',
         hotelId: i.hotelId,
@@ -237,10 +232,9 @@ export function buildHotelEntityItem(input, options) {
         ...base,
         ...maybeHotelType(options, i.hotelId, 'DEVICE', deviceId),
 
-        // Room timeline if bound
-
         roomType_pk: `ROOM#${i.roomId}`,
         roomType_sk: `DEVICE#${deviceId}`,
+
         entityType: 'DEVICE',
         hotelId: i.hotelId,
         deviceId,

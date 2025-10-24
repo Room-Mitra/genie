@@ -60,7 +60,7 @@ export async function createBooking(booking) {
   await DDB.put({
     TableName: ENTITY_TABLE_NAME,
     Item: bookingItem,
-    ConditionExpression: 'attribute_not_exists(pk)', // idempotency
+    ConditionExpression: 'attribute_not_exists(pk) and attribute_not_exists(sk)',
   }).promise();
 
   return bookingItem;
