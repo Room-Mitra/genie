@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import * as UserRepo from '#repositories/User.repository.js';
+import { hasRole, isAdminUser } from '#common/auth.helper.js';
 
 // 240h = 10 days
 const TOKEN_EXPIRES_IN_HOURS = 240;
@@ -38,7 +39,14 @@ export async function login({ email, password }) {
     throw e;
   }
 
-  // 4) sign JWT
+  // 4) authorization - only hotel staff or admins can login
+  if (!isAdminUser(user) && (!user.hotelId || !hasRole(user, 'staff'))) {
+    const e = new Error("User not associated with hotel, or isn't admin");
+    e.name = 'UnauthorizedError';
+    throw e;
+  }
+
+  // 5) sign JWT
   const nowSec = Math.floor(Date.now() / 1000);
   const payload = {
     sub: user.userId,

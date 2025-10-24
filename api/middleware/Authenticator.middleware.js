@@ -1,14 +1,7 @@
+import { hasRole, isAdminUser } from '#common/auth.helper.js';
 import jwt from 'jsonwebtoken';
 
 const SECRET_KEY = process.env.SECRET_KEY;
-
-function isAdminUser(userData) {
-  return userData?.groups?.includes('super_admin') || userData?.groups?.includes('admin');
-}
-
-function hasRole(userData, role) {
-  return userData?.roles?.includes(role);
-}
 
 const authenticator = (req, res, next) => {
   const authHeader = req.headers.authorization;
