@@ -1,6 +1,7 @@
 import { buildHotelEntityItem } from '#common/hotelEntity.helper.js';
 import DDB from '#config/DynamoDb.config.js';
 import { ENTITY_TABLE_NAME, GSI_BOOKINGTYPE_NAME } from '#Constants/DB.constants.js';
+import { decodeToken, encodeToken } from './repository.helper.js';
 
 export async function queryRequestsForBooking({ bookingId }) {
   if (!bookingId) {
@@ -47,4 +48,43 @@ export async function createRequest(request) {
   }).promise();
 
   return requestItem;
+}
+
+export async function queryRequestsForHotel({ hotelId, statuses, limit = 25, nextToken }) {
+  const params = {
+    TableName: ENTITY_TABLE_NAME,
+    KeyConditionExpression: 'pk = :pk and begins_with(sk, :sk)',
+    ExpressionAttributeValues: {
+      ':pk': `HOTEL#${hotelId}`,
+      ':sk': 'REQUEST#',
+    },
+    Limit: Math.min(Number(limit) || 25, 100),
+    ScanIndexForward: false,
+    ExclusiveStartKey: decodeToken(nextToken),
+  };
+
+  if (statuses?.length) {
+    const filterExpression = `#status IN (${statuses.map((_, i) => `:s${i}`).join(', ')})`;
+
+    const expressionAttributeValues = statuses.reduce((acc, status, i) => {
+      acc[`:s${i}`] = status;
+      return acc;
+    }, {});
+
+    params.FilterExpression = filterExpression;
+    params.ExpressionAttributeValues = {
+      ...params.ExpressionAttributeValues,
+      ...expressionAttributeValues,
+    };
+    params.ExpressionAttributeNames = {
+      '#status': 'status',
+    };
+  }
+
+  const data = await DDB.query(params).promise();
+  return {
+    items: data.Items || [],
+    nextToken: encodeToken(data.LastEvaluatedKey),
+    count: data.Count || 0,
+  };
 }

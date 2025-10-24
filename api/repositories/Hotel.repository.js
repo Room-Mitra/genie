@@ -34,7 +34,6 @@ export async function putHotel(hotel) {
   }
 }
 
-/** Scan all hotels with FilterExpression on entityType = HOTEL */
 export async function queryAllHotels({ limit = 25, nextToken }) {
   const params = {
     TableName: ENTITY_TABLE_NAME,

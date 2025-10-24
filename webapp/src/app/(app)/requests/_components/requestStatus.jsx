@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn, toTitleCaseFromSnake } from "@/lib/utils";
 
 export default function RequestStatus({ status }) {
   const color = {
@@ -12,11 +12,11 @@ export default function RequestStatus({ status }) {
     <>
       <div
         className={cn(
-          "rounded-full bg-orange-500 px-3 py-2 font-medium text-white w-fit",
+          "w-fit rounded-full bg-orange-500 px-3 py-2 font-medium text-white",
           color[status],
         )}
       >
-        {status}
+        {toTitleCaseFromSnake(status)}
       </div>
     </>
   );

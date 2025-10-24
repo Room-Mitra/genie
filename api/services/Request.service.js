@@ -1,8 +1,10 @@
 import { toIsoString } from '#common/timestamp.helper.js';
+import { requestResponse } from '#presenters/request.js';
 import * as requestRepo from '#repositories/Request.repository.js';
+import * as roomRepo from '#repositories/Room.repository.js';
 import { ulid } from 'ulid';
 
-export async function listRequests({ bookingId }) {
+export async function listRequestsByBooking({ bookingId }) {
   const requests = await requestRepo.queryRequestsForBooking({ bookingId });
   return {
     items: requests,
@@ -64,4 +66,34 @@ export async function createRequest(requestData) {
   };
 
   return await requestRepo.createRequest(request);
+}
+
+export async function listRequests({ hotelId, statuses, limit, nextToken }) {
+  if (!hotelId) throw new Error('need hotelId to list requests');
+  console.log(statuses);
+
+  statuses?.forEach((s) => {
+    if (!['unacknowledged', 'in_progress', 'delayed', 'completed'].includes(s))
+      throw new Error('invalid status to list requests');
+  });
+
+  const requests = await requestRepo.queryRequestsForHotel({ hotelId, statuses, limit, nextToken });
+
+  const rooms = await roomRepo.queryAllRooms({ hotelId });
+  const roomMap = new Map(rooms.map((room) => [room.roomId, room]));
+
+  const getRoom = (room) => ({
+    type: room.type,
+    floor: room.floor,
+    number: room.number,
+    roomId: room.roomId,
+  });
+
+  return {
+    ...requests,
+    items: requests.items.map((r) => ({
+      ...requestResponse(r),
+      room: getRoom(roomMap.get(r.roomId)),
+    })),
+  };
 }

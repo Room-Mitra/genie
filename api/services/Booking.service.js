@@ -1,4 +1,3 @@
-// routes/booking/Booking.service.js
 import { ulid } from 'ulid';
 import * as bookingRepo from '#repositories/Booking.repository.js';
 import * as userRepo from '#repositories/User.repository.js';
