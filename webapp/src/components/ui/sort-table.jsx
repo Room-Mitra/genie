@@ -6,6 +6,7 @@ import { ArrowUpDown } from "lucide-react"; // optional, for icons
 import { DateTime } from "./datetime";
 import { ID } from "./id";
 import { Room } from "./room";
+import { Spinner } from "@material-tailwind/react";
 
 const isDateTime = (e) => React.isValidElement(e) && e.type === DateTime;
 const isID = (e) => React.isValidElement(e) && e.type == ID;
@@ -31,6 +32,8 @@ export default function SortTable({
   tableCellClassNames = [],
   tableRowClassNames = [],
   tableBodyClassNames = [],
+  noDataMessage = "No rows",
+  loading = false,
 }) {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
@@ -137,6 +140,16 @@ export default function SortTable({
           ))}
         </tbody>
       </table>
+      {loading && (
+        <div className="mx-auto mt-5 w-fit p-4">
+          <Spinner />
+        </div>
+      )}
+      {!loading && !sortedRows.length && (
+        <div className="mx-auto mt-5 w-fit p-4">
+          {noDataMessage || "No rows"}
+        </div>
+      )}
     </div>
   );
 }

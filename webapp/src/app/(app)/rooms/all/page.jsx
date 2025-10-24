@@ -21,11 +21,11 @@ export default function Page() {
 
   const columns = useMemo(
     () => [
+      { key: "roomId", label: "ROOM ID" },
       { key: "number", label: "ROOM NUMBER" },
       { key: "type", label: "TYPE" },
       { key: "floor", label: "FLOOR" },
       { key: "description", label: "DESCRIPTION" },
-      { key: "roomId", label: "ROOM ID" },
       { key: "createdAt", label: "CREATED AT" },
     ],
     [],
@@ -40,6 +40,7 @@ export default function Page() {
         if (!cancelled)
           setData(
             rooms?.items?.map((r) => ({
+              roomId: <ID ulid={r.roomId} />,
               number: (
                 <span className="inline-flex items-center justify-center rounded-md bg-indigo-600 p-2 text-xs text-white dark:bg-indigo-600/20 dark:text-indigo-300">
                   #{r.number}
@@ -54,7 +55,6 @@ export default function Page() {
                 </div>
               ),
               description: r.description,
-              roomId: <ID ulid={r.roomId} />,
               createdAt: <DateTime dateTimeIso={r.createdAt} />,
             })),
           );
@@ -79,9 +79,9 @@ export default function Page() {
       <SortTable
         columns={columns}
         data={data}
-        loading={loading}
-        noDataMessage="No rooms available"
         tableRowClassNames={["text-base font-medium text-dark dark:text-white"]}
+        noDataMessage="No rooms available"
+        loading={loading}
       />
     </div>
   );
