@@ -17,7 +17,7 @@ const isDivOrSpan = (e) =>
 const getValue = (e) => {
   if (isDateTime(e)) return e.props.dateTimeIso;
   if (isID(e)) return e.props.ulid;
-  if (isRoom(e)) return e.props.number;
+  if (isRoom(e)) return e.props.room?.number;
   if (isDivOrSpan(e)) return e.props.children;
 
   return e;

@@ -41,7 +41,8 @@ router.get('/', async (req, res) => {
 
     let requests = {};
     const booking = await bookingService.getActiveBookingForRoom({ roomId });
-    if (booking) requests = await requestService.listRequests({ bookingId: booking.bookingId });
+    if (booking)
+      requests = await requestService.listRequestsByBooking({ bookingId: booking.bookingId });
 
     return res.status(200).json({
       booking: booking,

@@ -12,7 +12,11 @@ async function fetchActiveBookings() {
     credentials: "include",
   });
 
-  if (!res.ok) throw new Error("Failed to fetch active bookings");
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Failed to fetch active booking");
+  }
+
   return await res.json();
 }
 

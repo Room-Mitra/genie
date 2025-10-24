@@ -33,6 +33,7 @@ import loginRoutes from '#routes/webapp/Login.controller.js';
 import userRoutes from '#routes/webapp/User.controller.js';
 import landingPageRoutes from '#routes/webapp/leads.route.js';
 import roomRoutes from '#routes/webapp/Room.controller.js';
+import requestRoutes from '#routes/webapp/Request.controller.js';
 
 //Android Routes
 import androidLoginRoutes from '#routes/android/Login.controller.js';
@@ -84,6 +85,7 @@ app.use(
 );
 
 // UI routes
+app.use('/requests', authenticator, requestRoutes);
 app.use('/devices', authenticator, deviceRoutes);
 app.use('/intents', authenticator, intentsRoutes);
 app.use('/guests', authenticator, guestRoutes);
