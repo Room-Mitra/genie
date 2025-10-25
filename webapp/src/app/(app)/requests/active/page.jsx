@@ -90,7 +90,13 @@ export default function Page() {
                   }}
                 />
               ),
-              assignedStaff: <Staff user={r.assignedStaff} />,
+              assignedStaff: (
+                <Staff
+                  user={r.assignedStaff}
+                  showRoles={true}
+                  showDepartment={true}
+                />
+              ),
             })),
           );
       } catch (err) {

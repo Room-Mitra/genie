@@ -13,6 +13,7 @@ import { useState } from "react";
 import { LogOutIcon, SettingsIcon, UserIcon } from "./icons";
 import { toast } from "react-toastify";
 import { useUser } from "@/context/UserContext";
+import Staff from "@/components/ui/staff";
 
 async function logout() {
   try {
@@ -38,26 +39,11 @@ export function UserInfo() {
       <DropdownTrigger className="rounded align-middle outline-none ring-primary ring-offset-2 focus-visible:ring-1 dark:ring-offset-gray-dark">
         <span className="sr-only">My Account</span>
 
-        <figure className="flex items-center gap-3">
-          {user?.image ? (
-            <Image
-              src={user?.image?.url}
-              className="size-12"
-              alt={`Avatar of ${user?.firstName} ${user?.lastName}`}
-              role="presentation"
-              width={200}
-              height={200}
-            />
-          ) : (
-            <div className="rounded-full border-2 border-solid border-gray-500 p-1">
-              <UserIcon width={30} height={30} />
-            </div>
-          )}
-          <figcaption className="flex items-center gap-1 font-medium text-dark dark:text-dark-6 max-[1024px]:sr-only">
-            <span>
-              {user?.firstName} {user?.lastName}
-            </span>
-
+        <div className="flex items-center gap-3">
+          <div>
+            <Staff user={user} width="w-50" />
+          </div>
+          <div className="flex items-center gap-1 font-medium text-dark dark:text-dark-6 max-[1024px]:sr-only">
             <ChevronUpIcon
               aria-hidden
               className={cn(
@@ -66,8 +52,8 @@ export function UserInfo() {
               )}
               strokeWidth={1.5}
             />
-          </figcaption>
-        </figure>
+          </div>
+        </div>
       </DropdownTrigger>
 
       <DropdownContent
@@ -76,30 +62,7 @@ export function UserInfo() {
       >
         <h2 className="sr-only">User information</h2>
 
-        <figure className="flex items-center gap-2.5 px-5 py-3.5">
-          {user?.image ? (
-            <Image
-              src={user?.image?.url}
-              className="size-12"
-              alt={`Avatar of ${user?.firstName} ${user?.lastName}`}
-              role="presentation"
-              width={200}
-              height={200}
-            />
-          ) : (
-            <div className="rounded-full border-2 border-solid border-gray-500 p-1">
-              <UserIcon width={30} height={30} />
-            </div>
-          )}
-
-          <figcaption className="space-y-1 text-base font-medium">
-            <div className="mb-2 leading-none text-dark dark:text-white">
-              {user?.firstName} {user?.lastName}
-            </div>
-
-            <div className="leading-none text-gray-6">{user?.email}</div>
-          </figcaption>
-        </figure>
+        <Staff user={user} showEmail={true} />
 
         <hr className="border-[#E8E8E8] dark:border-dark-3" />
 

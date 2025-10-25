@@ -34,22 +34,6 @@ export default function Page() {
     [],
   );
 
-  const getStaffName = (s) =>
-    s ? (
-      <span>
-        {s?.firstName} {s?.lastName}{" "}
-        {s?.department ? (
-          <span>
-            (<Department department={s.department} />)
-          </span>
-        ) : (
-          ``
-        )}
-      </span>
-    ) : (
-      <>-</>
-    );
-
   const getFullName = (firstName, lastName) =>
     [firstName, lastName].filter(Boolean).join(" ");
 
@@ -75,29 +59,7 @@ export default function Page() {
           setData(
             staff?.items?.map((r) => ({
               userId: <ID ulid={r.userId} />,
-              name: (
-                <div className="flex items-center gap-3 rounded-lg p-3">
-                  {/* Avatar */}
-                  <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-gray-200 font-semibold text-gray-600">
-                    {r.imageUrl ? (
-                      <img
-                        src={r.imageUrl}
-                        alt={getFullName(r.firstName, r.lastName)}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <span>{getInitials(r.firstName, r.lastName)}</span>
-                    )}
-                  </div>
-
-                  {/* Details */}
-                  <div>
-                    <div className="text-base font-semibold text-gray-900 dark:text-gray-100">
-                      {getFullName(r.firstName, r.lastName) || "Unnamed User"}
-                    </div>
-                  </div>
-                </div>
-              ),
+              name: <Staff user={r} onlyName={true} />,
               email: r.email,
               mobileNumber: r.mobileNumber || "-",
               department: <Department department={r.department} />,
@@ -109,6 +71,8 @@ export default function Page() {
                       (s) => s.userId === r?.reportingToUserId,
                     )?.[0]
                   }
+                  showDepartment={true}
+                  showRoles={true}
                 />
               ),
             })),
