@@ -4,6 +4,7 @@ import { Department } from "@/components/ui/department";
 import { ID } from "@/components/ui/id";
 import { Roles } from "@/components/ui/roles";
 import SortTable from "@/components/ui/sort-table";
+import Staff from "@/components/ui/staff";
 import { useState, useEffect, useMemo } from "react";
 
 async function fetchStaff() {
@@ -49,6 +50,21 @@ export default function Page() {
       <>-</>
     );
 
+  const getFullName = (firstName, lastName) =>
+    [firstName, lastName].filter(Boolean).join(" ");
+
+  const getInitials = (firstName, lastName) => {
+    const fn = getFullName(firstName, lastName);
+    return fn
+      ? fn
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase()
+      : "?";
+  };
+
   useEffect(() => {
     let cancelled = false;
 
@@ -60,18 +76,40 @@ export default function Page() {
             staff?.items?.map((r) => ({
               userId: <ID ulid={r.userId} />,
               name: (
-                <span>
-                  {r.firstName} {r.lastName}
-                </span>
+                <div className="flex items-center gap-3 rounded-lg p-3">
+                  {/* Avatar */}
+                  <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-gray-200 font-semibold text-gray-600">
+                    {r.imageUrl ? (
+                      <img
+                        src={r.imageUrl}
+                        alt={getFullName(r.firstName, r.lastName)}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span>{getInitials(r.firstName, r.lastName)}</span>
+                    )}
+                  </div>
+
+                  {/* Details */}
+                  <div>
+                    <div className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                      {getFullName(r.firstName, r.lastName) || "Unnamed User"}
+                    </div>
+                  </div>
+                </div>
               ),
               email: r.email,
               mobileNumber: r.mobileNumber || "-",
               department: <Department department={r.department} />,
               roles: <Roles roles={r.roles} />,
-              reportingTo: getStaffName(
-                staff?.items?.filter(
-                  (s) => s.userId === r?.reportingToUserId,
-                )?.[0],
+              reportingTo: (
+                <Staff
+                  user={
+                    staff?.items?.filter(
+                      (s) => s.userId === r?.reportingToUserId,
+                    )?.[0]
+                  }
+                />
               ),
             })),
           );

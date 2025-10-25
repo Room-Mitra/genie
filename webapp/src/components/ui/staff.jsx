@@ -23,7 +23,7 @@ export default function Staff({ user }) {
 
   const combined = [...departmentLabels, ...roleLabels].join(", ");
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-gray-100 bg-white p-3 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+    <div className="flex w-[100%] mx-auto items-center gap-3 rounded-lg bg-white p-3">
       {/* Avatar */}
       <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-gray-200 font-semibold text-gray-600">
         {imageUrl ? (

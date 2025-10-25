@@ -5,7 +5,6 @@ import SortTable from "@/components/ui/sort-table";
 import RequestStatus from "../_components/requestStatus";
 import { useEffect, useMemo, useState } from "react";
 import { ID } from "@/components/ui/id";
-import { DateTime } from "@/components/ui/datetime";
 import { Room } from "@/components/ui/room";
 import { ActionButton } from "../_components/actionButton";
 import Staff from "@/components/ui/staff";
@@ -67,14 +66,11 @@ export default function Page() {
                 />
               ),
               requestId: <ID ulid={r.requestId} />,
-              requestedAt: <DateTime dateTimeIso={r.createdAt} />,
               status: <RequestStatus status={r.status} />,
               room: <Room room={r.room || {}} />,
               department: (
                 <Department department={r.department} reqType={r.requestType} />
               ),
-              type: r.requestType,
-              deadline: <DateTime dateTimeIso={r.estimatedTimeOfFulfillment} />,
               viewConversation: r.conversationId ? (
                 <ConversationModal roomId={r.roomId} />
               ) : (

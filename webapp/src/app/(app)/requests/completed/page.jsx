@@ -5,11 +5,12 @@ import SortTable from "@/components/ui/sort-table";
 import RequestStatus from "../_components/requestStatus";
 import { useEffect, useMemo, useState } from "react";
 import { ID } from "@/components/ui/id";
-import { DateTime } from "@/components/ui/datetime";
 import { Room } from "@/components/ui/room";
-import { toTitleCaseFromSnake } from "@/lib/utils.ts";
+import { Dates } from "@/components/ui/dates";
+import { Department } from "@/components/ui/department";
+import Staff from "@/components/ui/staff";
 
-async function fetchActiveRequests() {
+async function fetchCompletedRequests() {
   const statuses = ["completed"];
   const query = new URLSearchParams();
   statuses.forEach((s) => query.append("statuses", s));
@@ -21,7 +22,7 @@ async function fetchActiveRequests() {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || "Failed to fetch active requests");
+    throw new Error(err.error || "Failed to fetch completed requests");
   }
 
   return await res.json();
@@ -52,23 +53,28 @@ export default function Page() {
 
     (async () => {
       try {
-        const requests = await fetchActiveRequests();
+        const requests = await fetchCompletedRequests();
         if (!cancelled)
           setData(
             requests?.items?.map((r) => ({
+              dates: (
+                <Dates
+                  requestedAt={r.createdAt}
+                  estimatedTimeOfFulfillment={r.estimatedTimeOfFulfillment}
+                />
+              ),
               requestId: <ID ulid={r.requestId} />,
-              requestedAt: <DateTime dateTimeIso={r.createdAt} />,
               status: <RequestStatus status={r.status} />,
               room: <Room room={r.room || {}} />,
-              department: toTitleCaseFromSnake(r.department),
-              type: r.requestType,
-              deadline: <DateTime dateTimeIso={r.estimatedTimeOfFulfillment} />,
+              department: (
+                <Department department={r.department} reqType={r.requestType} />
+              ),
               viewConversation: r.conversationId ? (
                 <ConversationModal roomId={r.roomId} />
               ) : (
                 <></>
               ),
-              acknowledge: "",
+              assignedStaff: <Staff user={r.assignedStaff} />,
             })),
           );
       } catch (err) {
