@@ -1,6 +1,7 @@
 import { buildHotelEntityItem } from '#common/hotelEntity.helper.js';
 import DDB from '#config/DynamoDb.config.js';
 import { ENTITY_TABLE_NAME, GSI_BOOKINGTYPE_NAME } from '#Constants/DB.constants.js';
+import { ulid } from 'ulid';
 import { decodeToken, encodeToken } from './repository.helper.js';
 
 export async function queryRequestsForBooking({ bookingId }) {
@@ -102,4 +103,81 @@ export async function getRequestById(requestId, hotelId) {
 
   const { Item } = await DDB.get(params).promise();
   return Item || null;
+}
+
+export async function updateRequestStatusWithLog({
+  request,
+  toStatus,
+  assignedStaffUserId,
+  updatedByUserId,
+  note,
+}) {
+  if (!request || !toStatus || !updatedByUserId) {
+    throw new Error('request, toStatus, updatedByUserId are required');
+  }
+
+  const fromStatus = request.status ?? 'UNKNOWN';
+
+  // 2) Build atomic update + log write
+  const nowIso = new Date().toISOString();
+  const transitionId = ulid();
+  const logSk = `REQUEST_TRANSITION#${transitionId}`;
+
+  const updateNames = {
+    '#status': 'status',
+    '#updatedAt': 'updatedAt',
+    '#assignedStaffUserId': 'assignedStaffUserId',
+  };
+
+  const updateValues = {
+    ':toStatus': toStatus,
+    ':updatedAt': nowIso,
+    ':assignedStaffUserId': assignedStaffUserId,
+  };
+
+  const transitionItem = {
+    pk: request.sk,
+    sk: logSk,
+    entityType: 'REQUEST_TRANSITION',
+    requestId: request.requestId,
+    transitionId,
+    fromStatus,
+    toStatus,
+    note, // optional
+    updatedByUserId,
+    createdAt: nowIso,
+  };
+
+  await DDB.transactWrite({
+    TransactItems: [
+      {
+        Update: {
+          TableName: ENTITY_TABLE_NAME,
+          Key: { pk: request.pk, sk: request.sk },
+          UpdateExpression:
+            'SET #status = :toStatus, #updatedAt = :updatedAt, #assignedStaffUserId = :assignedStaffUserId',
+          ExpressionAttributeNames: updateNames,
+          ExpressionAttributeValues: updateValues,
+          // ensure the main item exists
+          ConditionExpression: 'attribute_exists(pk) AND attribute_exists(sk)',
+        },
+      },
+      {
+        Put: {
+          TableName: ENTITY_TABLE_NAME,
+          Item: transitionItem,
+          // idempotency for this transition record
+          ConditionExpression: 'attribute_not_exists(pk) AND attribute_not_exists(sk)',
+        },
+      },
+    ],
+  }).promise();
+
+  return {
+    requestId: request.requestId,
+    fromStatus,
+    toStatus,
+    updatedAt: nowIso,
+    transitionId,
+  };
 }

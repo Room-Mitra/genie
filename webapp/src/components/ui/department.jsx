@@ -1,11 +1,15 @@
-export function Department({ department }) {
-  const labels = {
-    house_keeping: "House Keeping",
-    room_service: "Room Service",
-    front_office: "Front Office",
-    concierge: "Concierge",
-    facilities: "Facilities",
-  };
+export const DepartmentLabels = {
+  house_keeping: "House Keeping",
+  room_service: "Room Service",
+  front_office: "Front Office",
+  concierge: "Concierge",
+  facilities: "Facilities",
+};
 
-  return department ? <span>{labels[department]}</span> : <span>-</span>;
+export function Department({ department }) {
+  return department ? (
+    <span>{DepartmentLabels[department]}</span>
+  ) : (
+    <span>-</span>
+  );
 }

@@ -9,6 +9,7 @@ import { DateTime } from "@/components/ui/datetime";
 import { Room } from "@/components/ui/room";
 import { toTitleCaseFromSnake } from "@/lib/utils.ts";
 import { ActionButton } from "../_components/actionButton";
+import Staff from "@/components/ui/staff";
 
 async function fetchActiveRequests() {
   const statuses = ["unacknowledged", "in_progress", "delayed"];
@@ -43,8 +44,9 @@ export default function Page() {
       { key: "department", label: "DEPARTMENT" },
       { key: "type", label: "TYPE" },
 
-      { key: "viewConversation", label: "", sortable: false },
+      { key: "assignedStaff", label: "ASSIGNEE" },
       { key: "acknowledge", label: "", sortable: false },
+      { key: "viewConversation", label: "", sortable: false },
     ],
     [],
   );
@@ -76,8 +78,15 @@ export default function Page() {
                   onStart={() => {
                     console.log("start");
                   }}
+                  onComplete={() => {
+                    console.log("onComplete");
+                  }}
+                  onDelay={() => {
+                    console.log("on delay");
+                  }}
                 />
               ),
+              assignedStaff: <Staff user={r.assignedStaff} />,
             })),
           );
       } catch (err) {

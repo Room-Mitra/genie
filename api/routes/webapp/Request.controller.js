@@ -25,7 +25,7 @@ router.get('/', async (req, res) => {
 
 router.post('/state-transition', async (req, res) => {
   try {
-    const { hotelId } = req.userData;
+    const { hotelId, sub: userId } = req.userData;
 
     const { requestId, fromState, toState } = req.body;
 
@@ -43,6 +43,7 @@ router.post('/state-transition', async (req, res) => {
           hotelId,
           assignedStaffUserId,
           note,
+          updatedByUserId: userId,
         });
         return res.status(200).json(result);
       }
@@ -58,7 +59,7 @@ router.post('/state-transition', async (req, res) => {
     }
   } catch (err) {
     console.error('error transitioning request state', err);
-    res.status(500).json({ error: 'Failed to transition request state' });
+    res.status(500).json({ error: err?.message || 'Failed to transition request state' });
   }
 });
 

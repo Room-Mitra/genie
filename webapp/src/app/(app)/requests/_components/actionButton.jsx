@@ -1,19 +1,7 @@
 import React, { useMemo, useRef, useState, useEffect } from "react";
 
-// type RequestStatus = "UNACKNOWLEDGED" | "IN_PROGRESS" | "DELAYED" | "COMPLETED";
-
-// type ActionButtonProps = {
-//   status: RequestStatus;
-//   // Callbacks (wire these to open modals or run mutations)
-//   onStart?: () => void;      // Unacknowledged → In Progress
-//   onDelay?: () => void;      // In Progress → Delayed
-//   onResume?: () => void;     // Delayed → In Progress
-//   onComplete?: () => void;   // Any → Completed
-//   className?: string;
-// };
-
 export function ActionButton({
-  status,
+  status, // "unacknowledged" | "in_progress" | "delayed" | "completed"
   onStart,
   onDelay,
   onResume,
@@ -21,8 +9,9 @@ export function ActionButton({
   className = "",
 }) {
   const [open, setOpen] = useState(false);
-  const menuRef = (useRef < HTMLDivElement) | (null > null);
+  const menuRef = useRef(null);
 
+  // Close on outside click
   useEffect(() => {
     const onDocClick = (e) => {
       if (!menuRef.current) return;
@@ -32,23 +21,26 @@ export function ActionButton({
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
+  // Close on Escape
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
   const actions = useMemo(() => {
     if (status === "unacknowledged") {
       return [{ label: "Start", intent: "primary", onClick: onStart }];
     }
     if (status === "in_progress") {
-      return [
-        { label: "Complete", intent: "success", onClick: onComplete },
-        { label: "Delay", intent: "warning", onClick: onDelay },
-      ];
+      return [{ label: "Complete", intent: "success", onClick: onComplete }];
     }
     if (status === "delayed") {
-      return [
-        { label: "Resume", intent: "primary", onClick: onResume },
-        { label: "Complete", intent: "success", onClick: onComplete },
-      ];
+      return [{ label: "Complete", intent: "success", onClick: onComplete }];
     }
-    return []; // COMPLETED
+    return []; // completed
   }, [status, onStart, onDelay, onResume, onComplete]);
 
   if (status === "completed") {
@@ -59,6 +51,8 @@ export function ActionButton({
     );
   }
 
+  if (actions.length === 0) return null;
+
   // Single action: render one button
   if (actions.length === 1) {
     const a = actions[0];
@@ -68,7 +62,7 @@ export function ActionButton({
         className={[
           "inline-flex items-center rounded-md px-3 py-1.5 text-sm font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2",
           a.intent === "primary" &&
-            "bg-pink-600 text-white hover:bg-pink-700 focus:ring-indigo-500",
+            "bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500",
           a.intent === "success" &&
             "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500",
           a.intent === "warning" &&
@@ -100,6 +94,7 @@ export function ActionButton({
       >
         {primary.label}
       </button>
+
       <button
         onClick={() => setOpen((s) => !s)}
         aria-haspopup="menu"
