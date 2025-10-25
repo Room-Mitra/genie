@@ -39,14 +39,26 @@ import com.example.roommitra.service.ApiService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.json.JSONObject
-
+import com.example.roommitra.service.PollingManager
 @Composable
 fun NoActiveBookingScreen(navController: NavHostController) {
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
 
-    val context = LocalContext.current
+    // Get repository and collect its state
+    val bookingRepo = PollingManager.getBookingRepository()
+    val bookingData by bookingRepo.bookingData.collectAsState()
+    // React to state changes
+    LaunchedEffect(bookingData) {
+        if (bookingData != null) {
+            navController.navigate("home") {
+                popUpTo("no_active_booking") { inclusive = true }
+            }
+        }
+    }
+
     // playful background gradient — premium but upbeat
     val bg = Brush.verticalGradient(listOf(Color(0xFF0F1724), Color(0xFF0F2434)))
 

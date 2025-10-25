@@ -46,6 +46,7 @@ import com.example.roommitra.view.MusicPlayerController
 import com.example.roommitra.view.MusicPlayerManager
 import com.example.roommitra.view.NoActiveBookingScreen
 import com.example.roommitra.view.SnackbarManager
+import com.example.roommitra.service.PollingManager
 
 
 class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
@@ -54,10 +55,12 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
 
     override fun onStart() {
         super.onStart()
+        PollingManager.start(this)
     }
 
     override fun onStop() {
         super.onStop()
+        PollingManager.stop()
     }
 
     /** Reset auto-dim on any user interaction */
