@@ -47,7 +47,6 @@ fun NoActiveBookingScreen(navController: NavHostController) {
     var message by remember { mutableStateOf<String?>(null) }
 
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
     // playful background gradient — premium but upbeat
     val bg = Brush.verticalGradient(listOf(Color(0xFF0F1724), Color(0xFF0F2434)))
 
@@ -89,7 +88,6 @@ fun NoActiveBookingScreen(navController: NavHostController) {
                         scope.launch {
                             isLoading = true
                             // trigger your API here
-                            coroutineScope.launch {
                                 val apiService = ApiService(context)
 
                                 // Final request body
@@ -109,7 +107,6 @@ fun NoActiveBookingScreen(navController: NavHostController) {
                                             "Something went wrong. Please try again later. Sorry :("
                                     }
                                 }
-                            }
                             isLoading = false
 
                         }
