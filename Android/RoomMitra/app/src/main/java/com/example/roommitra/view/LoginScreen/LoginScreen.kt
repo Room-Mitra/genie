@@ -1,5 +1,6 @@
 package com.example.roommitra.view
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -26,9 +27,6 @@ fun LoginScreen(
 ) {
     var hotelId by remember { mutableStateOf("") }
     var roomId by remember { mutableStateOf("") }
-//    var password by remember { mutableStateOf("") }
-
-//    var passwordVisible by remember { mutableStateOf(false) }
 
 
     var isLoading by remember { mutableStateOf(false) }
@@ -57,16 +55,21 @@ fun LoginScreen(
             isLoading = false
             loginMessage = when (result) {
                 is ApiResult.Success -> {
-                    "Login successful: ${result.data}"
+                    Log.d("LoginScreen", "Login successful: ${result.data}")
                     val token = result.data?.optString("token")
+                    val device = result.data?.optJSONObject("device")
+                    val hotelId = device?.optString("hotelId")
+                    val roomId = device?.optString("roomId")
                     if (!token.isNullOrBlank()) {
-                        sessionManager.saveAuthToken(token)
+                        sessionManager.saveSessionData(token, hotelId, roomId)
                         "Login successful ✅ Click on the back button to start using the app!"
                     } else {
                         "Login successful, but no token returned"
                     }
                 }
+
                 is ApiResult.Error -> {
+                    Log.d("LoginScreen", "Login failed: ${result.code}: ${result.message}")
                     "Error ${result.code}: ${result.message}"
                 }
             }

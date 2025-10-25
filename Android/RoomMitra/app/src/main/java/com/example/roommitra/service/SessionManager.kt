@@ -7,17 +7,27 @@ class SessionManager(context: Context) {
 
     companion object {
         private const val KEY_AUTH_TOKEN = "auth_token"
+        private const val KEY_HOTEL_ID = "hotel_id"
+        private const val KEY_ROOM_ID = "room_id"
     }
 
-    fun saveAuthToken(token: String) {
-        prefs.edit().putString(KEY_AUTH_TOKEN, token).apply()
+    fun saveSessionData(token: String, hotelId: String?, roomId: String?) {
+        prefs.edit()
+            .putString(KEY_AUTH_TOKEN, token)
+            .putString(KEY_HOTEL_ID, hotelId)
+            .putString(KEY_ROOM_ID, roomId)
+            .apply()
     }
 
-    fun getAuthToken(): String? {
-        return prefs.getString(KEY_AUTH_TOKEN, null)
-    }
+    fun getAuthToken(): String? = prefs.getString(KEY_AUTH_TOKEN, null)
+    fun getHotelId(): String? = prefs.getString(KEY_HOTEL_ID, null)
+    fun getRoomId(): String? = prefs.getString(KEY_ROOM_ID, null)
 
-    fun clearAuthToken() {
-        prefs.edit().remove(KEY_AUTH_TOKEN).apply()
+    fun clearSession() {
+        prefs.edit()
+            .remove(KEY_AUTH_TOKEN)
+            .remove(KEY_HOTEL_ID)
+            .remove(KEY_ROOM_ID)
+            .apply()
     }
 }

@@ -79,9 +79,10 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
             MaterialTheme {
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     AutoDimWrapper(window) {
-                        NavHost(navController = navController, startDestination = "home") {
+                        NavHost(navController = navController, startDestination = "no-active-booking") {
+//                            NavHost(navController = navController, startDestination = "home") {
                             composable("home") {
-                                HomeScreen(  navController = navController, musicController )
+                                HomeScreen(navController = navController, musicController)
                             }
                             composable("menu") {
                                 RestaurantMenuScreen(onBackClick = { navController.popBackStack() })

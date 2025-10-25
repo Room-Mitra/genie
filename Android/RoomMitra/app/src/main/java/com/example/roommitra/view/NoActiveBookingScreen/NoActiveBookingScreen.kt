@@ -94,7 +94,7 @@ fun NoActiveBookingScreen(navController: NavHostController) {
 
                                 // Final request body
                                 val requestBody = JSONObject().apply {
-                                    put("department", "FrontDesk")
+                                    put("department", "front_office")
                                     put("requestType", "Check In Guest")
                                     put("bookingId", null)
                                 }
