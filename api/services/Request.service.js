@@ -137,3 +137,22 @@ export async function startRequest({
     note,
   });
 }
+
+export async function completeRequest({
+  requestId,
+  hotelId,
+  note,
+  updatedByUserId,
+}) {
+  if (!requestId || !hotelId) throw new Error('requestId and hotelId needed to start request');
+
+  const request = await requestRepo.getRequestById(requestId, hotelId);
+  if (!request) throw new Error(`request doesn't exist for id:  ${requestId}`);
+
+  return requestRepo.updateRequestStatusWithLog({
+    request,
+    toStatus: RequestStatus.COMPLETED,
+    updatedByUserId,
+    note,
+  });
+}

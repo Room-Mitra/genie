@@ -11,6 +11,7 @@ interface PropsType {
   className?: string;
   icon?: React.ReactNode;
   defaultValue?: string;
+  handleChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => VideoColorSpace;
 }
 
 export function TextAreaGroup({
@@ -22,6 +23,7 @@ export function TextAreaGroup({
   className,
   icon,
   defaultValue,
+  handleChange,
 }: PropsType) {
   const id = useId();
 
@@ -41,12 +43,13 @@ export function TextAreaGroup({
           placeholder={placeholder}
           defaultValue={defaultValue}
           className={cn(
-            "w-full rounded-lg border-[1.5px] border-dark-5  bg-transparent px-5.5 py-3 text-dark outline-none transition focus:border-primary disabled:cursor-default disabled:bg-gray-2 data-[active=true]:border-primary dark:border-dark-3 dark:bg-dark-2 dark:text-white dark:focus:border-primary dark:disabled:bg-dark dark:data-[active=true]:border-primary",
+            "w-full rounded-lg border-[1.5px] border-dark-5 bg-transparent px-5.5 py-3 text-dark outline-none transition focus:border-primary disabled:cursor-default disabled:bg-gray-2 data-[active=true]:border-primary dark:border-dark-3 dark:bg-dark-2 dark:text-white dark:focus:border-primary dark:disabled:bg-dark dark:data-[active=true]:border-primary",
             icon && "py-5 pl-13 pr-5",
           )}
           required={required}
           disabled={disabled}
           data-active={active}
+          onChange={handleChange}
         />
 
         {icon}

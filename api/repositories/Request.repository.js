@@ -126,14 +126,20 @@ export async function updateRequestStatusWithLog({
   const updateNames = {
     '#status': 'status',
     '#updatedAt': 'updatedAt',
-    '#assignedStaffUserId': 'assignedStaffUserId',
   };
 
   const updateValues = {
     ':toStatus': toStatus,
     ':updatedAt': nowIso,
-    ':assignedStaffUserId': assignedStaffUserId,
   };
+
+  const updateExpressionFields = ['#status = :toStatus', '#updatedAt = :updatedAt'];
+
+  if (assignedStaffUserId) {
+    updateNames['#assignedStaffUserId'] = 'assignedStaffUserId';
+    updateValues[':assignedStaffUserId'] = assignedStaffUserId;
+    updateExpressionFields.push('#assignedStaffUserId = :assignedStaffUserId');
+  }
 
   const transitionItem = {
     pk: request.sk,
@@ -154,8 +160,7 @@ export async function updateRequestStatusWithLog({
         Update: {
           TableName: ENTITY_TABLE_NAME,
           Key: { pk: request.pk, sk: request.sk },
-          UpdateExpression:
-            'SET #status = :toStatus, #updatedAt = :updatedAt, #assignedStaffUserId = :assignedStaffUserId',
+          UpdateExpression: `SET ${updateExpressionFields.join(', ')}`,
           ExpressionAttributeNames: updateNames,
           ExpressionAttributeValues: updateValues,
           // ensure the main item exists
