@@ -20,12 +20,10 @@ sealed class ApiResult {
 }
 class ApiService(private val context: Context) {
     companion object {
-//        private const val BASE_URL = "https://silver-moose-juggle.loca.lt/android"
+//        private const val BASE_URL = "https://funny-heads-hope.loca.lt/android"
         private const val BASE_URL = "https://api.roommitra.com/android"
     }
     // Get device ID dynamically
-    private val deviceId: String
-        get() = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
@@ -37,6 +35,9 @@ class ApiService(private val context: Context) {
     private val defaultHeaders: Map<String, String>
         get() {
             val token = SessionManager(context).getAuthToken()
+            val hotelId = SessionManager(context).getHotelId()
+            val roomId = SessionManager(context).getRoomId()
+            val deviceId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
 
             val utcTimestamp = Instant.now().toEpochMilli().toString()
             return mapOf(
@@ -45,7 +46,11 @@ class ApiService(private val context: Context) {
                 "x-timestamp" to utcTimestamp
 
             ) + if (!token.isNullOrBlank()) {
-                mapOf("authorization" to "Bearer $token")
+                mapOf(
+                    "authorization" to "Bearer $token",
+                    "x-hotel-id" to hotelId.toString(),
+                    "x-room-id" to roomId.toString()
+                    )
             } else emptyMap()
         }
 

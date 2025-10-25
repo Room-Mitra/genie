@@ -40,6 +40,7 @@ import com.example.roommitra.ConversationMessage
 import com.example.roommitra.agent.AgenticHandlerRegistry
 import com.example.roommitra.service.ApiResult
 import com.example.roommitra.service.ApiService
+import com.example.roommitra.service.PollingManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -438,6 +439,17 @@ fun MicPane(modifier: Modifier = Modifier, navController: NavHostController,musi
 
     val sessionReset: () -> Unit = { sessionId = UUID.randomUUID().toString() }
 
+    var firstName by remember { mutableStateOf("Guest") }
+    val bookingRepo = PollingManager.getBookingRepository()
+    val bookingData by bookingRepo.bookingData.collectAsState()
+    LaunchedEffect(bookingData) {
+        Log.d("MicPane", "Booking data changed: $bookingData")
+        val booking = bookingData?.optJSONObject("booking")
+        val guest = booking?.optJSONObject("guest")
+        firstName = guest?.optString("firstName", "Guest") ?: "Guest"
+
+    }
+
     fun sendUtteranceToServer(userQuery: String) {
         coroutineScope.launch {
                 try {
@@ -546,7 +558,7 @@ fun MicPane(modifier: Modifier = Modifier, navController: NavHostController,musi
                     ListenState.Listening -> "Listening..."
                     ListenState.Thinking -> "Thinking..."
                     ListenState.Speaking -> "Speaking..."
-                    ListenState.Muted -> "Muted"
+                    ListenState.Muted -> ""
                 },
                 style = MaterialTheme.typography.titleMedium.copy(
                     color = Color.White,
@@ -598,22 +610,35 @@ fun MicPane(modifier: Modifier = Modifier, navController: NavHostController,musi
                 )
             }
 
+            if (conversation.isEmpty()){
+                Spacer(Modifier.height(35.dp))
+
+                Text(
+                    text = "Hello there,   $firstName 👋",
+                    color = Color.White,
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)
+
+                )
+            }
+
             Spacer(Modifier.height(24.dp))
             if (conversation.isNotEmpty()) ConversationList(
                 conversation = conversation,
                 listState = listState
             )
+            if (conversation.isEmpty()) {
+                Spacer(Modifier.weight(1f))
+                Text(
+                    text = "💡 Tip: Tap the mic icon and say a command",
+                    color = Color.White.copy(alpha = 0.8f),
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+                SuggestionSlideshow()
+                Spacer(Modifier.height(32.dp))
+            }
 
-            Spacer(Modifier.weight(1f))
-            Text(
-                text = "💡 Tip: Tap the mic icon and say a command",
-                color = Color.White.copy(alpha = 0.8f),
-                fontSize = 14.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-            SuggestionSlideshow()
-            Spacer(Modifier.height(32.dp))
         }
     }
 

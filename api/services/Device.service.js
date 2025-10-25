@@ -20,8 +20,8 @@ if (!SECRET_KEY) {
   throw new Error('SECRET_KEY env var is required');
 }
 
-// 1 year
-const TOKEN_EXPIRES_IN_HOURS = 365 * 24;
+// 10 years
+const TOKEN_EXPIRES_IN_HOURS = 10 * 365 * 24;
 const TOKEN_EXPIRES_IN_SECONDS = TOKEN_EXPIRES_IN_HOURS * 3600;
 
 export const loginDevice = async ({ deviceId, hotelId, roomId }) => {
