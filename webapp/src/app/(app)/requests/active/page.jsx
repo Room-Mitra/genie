@@ -10,6 +10,16 @@ import { ActionButton } from "../_components/actionButton";
 import Staff from "@/components/ui/staff";
 import { Dates } from "@/components/ui/dates";
 import { Department } from "@/components/ui/department";
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogTitle,
+  DialogPanel,
+} from "@headlessui/react";
+
+import { cn, toTitleCaseFromSnake } from "@/lib/utils";
+import { Autocomplete } from "@/components/Autocomplete";
+import { TextAreaGroup } from "@/components/FormElements/InputGroup/text-area";
 
 async function fetchActiveRequests() {
   const statuses = ["unacknowledged", "in_progress", "delayed"];
@@ -29,20 +39,57 @@ async function fetchActiveRequests() {
   return await res.json();
 }
 
+async function fetchStaff() {
+  const res = await fetch("/api/staff", {
+    method: "GET",
+    credentials: "include",
+  });
+
+  if (!res.ok) throw new Error("Failed to fetch staff");
+  return await res.json();
+}
+
+async function stateTransition({
+  requestId,
+  toState,
+  assignedStaffUserId,
+  note,
+}) {
+  const res = await fetch(`/api/requests/state-transition`, {
+    method: "POST",
+    credentials: "include",
+    body: JSON.stringify({
+      requestId,
+      toState,
+      assignedStaffUserId,
+      note,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => {});
+    throw new Error(err.error || "failed to transition state");
+  }
+
+  return await res.json();
+}
+
 export default function Page() {
   const [data, setData] = useState([]);
+  const [staff, setStaff] = useState([]);
+
+  const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [transitioningState, setTransitioningState] = useState(false);
+  const [assignedStaffUser, setAssignedStaffUser] = useState(null);
 
   const columns = useMemo(
     () => [
       { key: "requestId", label: "REQUEST ID" },
       { key: "status", label: "STATUS" },
-
       { key: "dates", label: "DATES" },
-
       { key: "room", label: "ROOM" },
       { key: "department", label: "DEPARTMENT" },
-
       { key: "assignedStaff", label: "ASSIGNEE" },
       { key: "acknowledge", label: "", sortable: false },
       { key: "viewConversation", label: "", sortable: false },
@@ -50,7 +97,32 @@ export default function Page() {
     [],
   );
 
+  const searchStaff = async (q) => {
+    await new Promise((r) => setTimeout(r, 250));
+    const s = String(q || "").toLowerCase();
+    return staff
+      .filter(
+        (r) =>
+          r.firstName.toLowerCase().includes(s) ||
+          r.lastName.toLowerCase().includes(s) ||
+          r.email.toLowerCase().includes(s) ||
+          r.mobileNumber?.toLowerCase().includes(s),
+      )
+      .slice(0, 8);
+  };
+
+  const refreshStaff = async () => {
+    try {
+      const staff = await fetchStaff();
+      setStaff(staff?.items);
+    } catch (err) {
+      console.error("Error fetching staff:", err);
+    }
+  };
+
   useEffect(() => {
+    refreshStaff();
+
     let cancelled = false;
 
     (async () => {
@@ -84,6 +156,7 @@ export default function Page() {
                   }}
                   onComplete={() => {
                     console.log("onComplete");
+                    setShowModal(true);
                   }}
                   onDelay={() => {
                     console.log("on delay");
@@ -111,6 +184,11 @@ export default function Page() {
     };
   }, []);
 
+  async function handleStateTransition(e) {
+    e.preventDefault();
+    setTransitioningState(true);
+  }
+
   return (
     <div className="rounded-[10px] bg-white p-6 dark:bg-gray-dark">
       <h2 className="mb-4 text-body-2xlg font-bold text-dark dark:text-white">
@@ -124,6 +202,111 @@ export default function Page() {
         loading={loading}
         noDataMessage="No active requests 🎉"
       />
+
+      {/* Note and user assignment modal */}
+      <div>
+        <Dialog
+          open={showModal}
+          onClose={() => setShowModal(false)}
+          className="relative z-40"
+        >
+          <DialogBackdrop
+            transition
+            className="data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in fixed inset-0 bg-gray-900/50 transition-opacity"
+          />
+
+          <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+              <DialogPanel
+                transition
+                className="data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in data-closed:sm:translate-y-0 data-closed:sm:scale-95 relative transform overflow-hidden rounded-lg bg-gray-800 text-left shadow-xl outline -outline-offset-1 outline-white/10 transition-all sm:my-8 sm:w-full sm:max-w-lg"
+              >
+                <div className="min-h-115 bg-white dark:bg-gray-800 sm:p-6 sm:pb-4">
+                  <DialogTitle
+                    as="h3"
+                    className="text-base font-semibold text-dark dark:text-white"
+                  >
+                    Change request status
+                  </DialogTitle>
+
+                  <div className="mt-4">
+                    <form
+                      onSubmit={handleStateTransition}
+                      className="grid gap-4"
+                    >
+                      <Autocomplete
+                        required
+                        label="Assign to"
+                        placeholder="Search staff by name, email or mobile"
+                        value={assignedStaffUser}
+                        onSelect={(st) => setAssignedStaffUser(st)}
+                        fetcher={searchStaff}
+                        getDisplayValue={(st) => {
+                          const name = `${st.firstName} ${st.lastName}`.trim();
+
+                          const contact = [st.mobileNumber, st.email]
+                            .filter(Boolean)
+                            .join(" | ");
+
+                          const roles = [st.department, ...(st.roles || [])]
+                            .filter(Boolean)
+                            .map(toTitleCaseFromSnake)
+                            .join(", ");
+
+                          return [name, contact, roles]
+                            .filter(Boolean)
+                            .join(" || ");
+                        }}
+                        renderItem={(st) => (
+                          <Staff
+                            user={st}
+                            showEmail={true}
+                            showDepartment={true}
+                            showRoles={true}
+                            width="w-[100%]"
+                          />
+                        )}
+                        noResultsContent={
+                          <div className="flex items-center justify-between">
+                            <span>Staff not found</span>
+                          </div>
+                        }
+                      />
+
+                      <TextAreaGroup
+                        label="Notes"
+                        placeholder="Notes about the task"
+                      />
+
+                      <div className="mt-2 flex items-center justify-end gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setShowModal(false)}
+                          className="rounded-xl border border-gray-700 px-4 py-2 text-sm text-dark hover:bg-gray-300 dark:text-white dark:hover:bg-gray-700"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className={cn(
+                            "rounded-xl px-4 py-2 text-sm font-medium",
+                            transitioningState
+                              ? "bg-gray-700 text-gray-400"
+                              : "bg-indigo-600 text-white hover:bg-indigo-500",
+                          )}
+                          disabled={transitioningState}
+                        >
+                          {transitioningState ? "Saving..." : "Save"}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </DialogPanel>
+            </div>
+          </div>
+        </Dialog>
+      </div>
     </div>
   );
 }

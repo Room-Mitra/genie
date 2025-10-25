@@ -27,9 +27,9 @@ router.post('/state-transition', async (req, res) => {
   try {
     const { hotelId, sub: userId } = req.userData;
 
-    const { requestId, fromState, toState } = req.body;
+    const { requestId, toState } = req.body;
 
-    if (!requestId || !fromState || !toState) {
+    if (!requestId || !toState) {
       return res
         .status(400)
         .json({ error: 'require requestId, fromState and toState for state transition' });
