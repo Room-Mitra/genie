@@ -8,6 +8,7 @@ import { ID } from "@/components/ui/id";
 import { DateTime } from "@/components/ui/datetime";
 import { Room } from "@/components/ui/room";
 import { toTitleCaseFromSnake } from "@/lib/utils.ts";
+import { ActionButton } from "../_components/actionButton";
 
 async function fetchActiveRequests() {
   const statuses = ["unacknowledged", "in_progress", "delayed"];
@@ -69,7 +70,14 @@ export default function Page() {
               ) : (
                 <></>
               ),
-              acknowledge: "",
+              acknowledge: (
+                <ActionButton
+                  status={r.status}
+                  onStart={() => {
+                    console.log("start");
+                  }}
+                />
+              ),
             })),
           );
       } catch (err) {

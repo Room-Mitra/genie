@@ -88,3 +88,18 @@ export async function queryRequestsForHotel({ hotelId, statuses, limit = 25, nex
     count: data.Count || 0,
   };
 }
+
+export async function getRequestById(requestId, hotelId) {
+  if (!requestId || !hotelId) return null;
+
+  const params = {
+    TableName: ENTITY_TABLE_NAME,
+    Key: {
+      pk: `HOTEL#${hotelId}`,
+      sk: `REQUEST#${requestId}`,
+    },
+  };
+
+  const { Item } = await DDB.get(params).promise();
+  return Item || null;
+}
