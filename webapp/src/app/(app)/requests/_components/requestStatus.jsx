@@ -2,10 +2,10 @@ import { cn, toTitleCaseFromSnake } from "@/lib/utils";
 
 export default function RequestStatus({ status }) {
   const color = {
-    Unacknowledged: "bg-orange-500",
-    Delayed: "bg-red",
-    "In progress": "bg-yellow-500",
-    Completed: "bg-green-500",
+    unacknowledged: "bg-orange-500",
+    delayed: "bg-red",
+    in_progress: "bg-yellow-500",
+    completed: "bg-green-500",
   };
 
   return (

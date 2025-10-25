@@ -4,6 +4,7 @@ import { Department } from "@/components/ui/department";
 import { ID } from "@/components/ui/id";
 import { Roles } from "@/components/ui/roles";
 import SortTable from "@/components/ui/sort-table";
+import Staff from "@/components/ui/staff";
 import { useState, useEffect, useMemo } from "react";
 
 async function fetchStaff() {
@@ -33,21 +34,20 @@ export default function Page() {
     [],
   );
 
-  const getStaffName = (s) =>
-    s ? (
-      <span>
-        {s?.firstName} {s?.lastName}{" "}
-        {s?.department ? (
-          <span>
-            (<Department department={s.department} />)
-          </span>
-        ) : (
-          ``
-        )}
-      </span>
-    ) : (
-      <>-</>
-    );
+  const getFullName = (firstName, lastName) =>
+    [firstName, lastName].filter(Boolean).join(" ");
+
+  const getInitials = (firstName, lastName) => {
+    const fn = getFullName(firstName, lastName);
+    return fn
+      ? fn
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase()
+      : "?";
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -59,19 +59,21 @@ export default function Page() {
           setData(
             staff?.items?.map((r) => ({
               userId: <ID ulid={r.userId} />,
-              name: (
-                <span>
-                  {r.firstName} {r.lastName}
-                </span>
-              ),
+              name: <Staff user={r} onlyName={true} />,
               email: r.email,
               mobileNumber: r.mobileNumber || "-",
               department: <Department department={r.department} />,
               roles: <Roles roles={r.roles} />,
-              reportingTo: getStaffName(
-                staff?.items?.filter(
-                  (s) => s.userId === r?.reportingToUserId,
-                )?.[0],
+              reportingTo: (
+                <Staff
+                  user={
+                    staff?.items?.filter(
+                      (s) => s.userId === r?.reportingToUserId,
+                    )?.[0]
+                  }
+                  showDepartment={true}
+                  showRoles={true}
+                />
               ),
             })),
           );

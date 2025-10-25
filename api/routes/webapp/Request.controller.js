@@ -23,4 +23,49 @@ router.get('/', async (req, res) => {
   }
 });
 
+router.post('/state-transition', async (req, res) => {
+  try {
+    const { hotelId, sub: userId } = req.userData;
+
+    const { requestId, toStatus } = req.body;
+
+    if (!requestId || !toStatus) {
+      return res
+        .status(400)
+        .json({ error: 'require requestId, fromState and toState for state transition' });
+    }
+
+    switch (toStatus) {
+      case 'in_progress': {
+        const { assignedStaffUserId, note } = req.body;
+        const result = await requestService.startRequest({
+          requestId,
+          hotelId,
+          assignedStaffUserId,
+          note,
+          updatedByUserId: userId,
+        });
+        return res.status(200).json(result);
+      }
+
+      case 'completed': {
+        const { note } = req.body;
+        const result = await requestService.completeRequest({
+          requestId,
+          hotelId,
+          note,
+          updatedByUserId: userId,
+        });
+        return res.status(200).json(result);
+      }
+
+      default:
+        return res.status(400).json({ error: 'Unknown toState' });
+    }
+  } catch (err) {
+    console.error('error transitioning request state', err);
+    res.status(500).json({ error: err?.message || 'Failed to transition request state' });
+  }
+});
+
 export default router;

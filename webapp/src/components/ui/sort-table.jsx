@@ -9,12 +9,16 @@ import { Room } from "./room";
 import { Spinner } from "@material-tailwind/react";
 import { Roles } from "./roles";
 import { Department } from "./department";
+import { Dates } from "./dates";
+import Staff from "./staff";
 
 const isDateTime = (e) => React.isValidElement(e) && e.type === DateTime;
 const isID = (e) => React.isValidElement(e) && e.type === ID;
 const isRoom = (e) => React.isValidElement(e) && e.type === Room;
 const isRoles = (e) => React.isValidElement(e) && e.type === Roles;
 const isDepartment = (e) => React.isValidElement(e) && e.type === Department;
+const isDates = (e) => React.isValidElement(e) && e.type === Dates;
+const isStaff = (e) => React.isValidElement(e) && e.type === Staff;
 const isDivOrSpan = (e) =>
   (React.isValidElement(e) && e.type === "div") || e.type === "span";
 
@@ -24,6 +28,8 @@ const getValue = (e) => {
   if (isRoom(e)) return e.props.room?.number;
   if (isRoles(e)) return e.props.roles?.join(",");
   if (isDepartment(e)) return e.props.department;
+  if (isDates(e)) return e.props.estimatedTimeOfFulfillment;
+  if (isStaff(e)) return `${e.props.user.firstName} ${e.props.user.lastName}`;
   if (isDivOrSpan(e)) return e.props.children;
 
   return e;
@@ -94,7 +100,7 @@ export default function SortTable({
                   ...tableHeadClassNames,
                 )}
               >
-                <div className="flex items-center gap-1">
+                <div className="mx-auto flex w-fit items-center gap-1">
                   {col.label}
                   {col?.sortable !== false && (
                     <ArrowUpDown
@@ -133,13 +139,7 @@ export default function SortTable({
                     ...tableCellClassNames,
                   )}
                 >
-                  {typeof row[col.key] === "function" ? (
-                    <form action={row[col.key]}>
-                      <button>{col.label}</button>
-                    </form>
-                  ) : (
-                    row[col.key]
-                  )}
+                  <div className="mx-auto flex w-fit gap-1">{row[col.key]}</div>
                 </td>
               ))}
             </tr>

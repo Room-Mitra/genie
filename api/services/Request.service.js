@@ -1,7 +1,9 @@
 import { toIsoString } from '#common/timestamp.helper.js';
+import { RequestStatus } from '#Constants/statuses.js';
 import { requestResponse } from '#presenters/request.js';
 import * as requestRepo from '#repositories/Request.repository.js';
 import * as roomRepo from '#repositories/Room.repository.js';
+import * as staffRepo from '#repositories/Staff.repository.js';
 import { ulid } from 'ulid';
 
 export async function listRequestsByBooking({ bookingId }) {
@@ -82,6 +84,9 @@ export async function listRequests({ hotelId, statuses, limit, nextToken }) {
   const rooms = await roomRepo.queryAllRooms({ hotelId });
   const roomMap = new Map(rooms.map((room) => [room.roomId, room]));
 
+  const staff = await staffRepo.queryStaffByHotelId(hotelId);
+  const staffMap = new Map(staff.map((st) => [st.userId, st]));
+
   const getRoom = (room) => ({
     type: room.type,
     floor: room.floor,
@@ -89,11 +94,65 @@ export async function listRequests({ hotelId, statuses, limit, nextToken }) {
     roomId: room.roomId,
   });
 
+  const getStaff = (st) =>
+    st
+      ? {
+          firstName: st.firstName,
+          lastName: st.lastName,
+          department: st.department,
+          roles: st.roles,
+        }
+      : null;
+
   return {
     ...requests,
     items: requests.items.map((r) => ({
       ...requestResponse(r),
       room: getRoom(roomMap.get(r.roomId)),
+      assignedStaff: getStaff(staffMap.get(r.assignedStaffUserId)),
     })),
   };
+}
+
+export async function startRequest({
+  requestId,
+  hotelId,
+  assignedStaffUserId,
+  note,
+  updatedByUserId,
+}) {
+  if (!requestId || !hotelId) throw new Error('requestId and hotelId needed to start request');
+
+  const request = await requestRepo.getRequestById(requestId, hotelId);
+  if (!request) throw new Error(`request doesn't exist for id:  ${requestId}`);
+
+  if (!request.assignedStaffUserId && !assignedStaffUserId)
+    throw new Error("require assignedStaffUserId for request that hasn't been auto assigned staff");
+
+  return requestRepo.updateRequestStatusWithLog({
+    request,
+    toStatus: RequestStatus.IN_PROGRESS,
+    assignedStaffUserId,
+    updatedByUserId,
+    note,
+  });
+}
+
+export async function completeRequest({
+  requestId,
+  hotelId,
+  note,
+  updatedByUserId,
+}) {
+  if (!requestId || !hotelId) throw new Error('requestId and hotelId needed to start request');
+
+  const request = await requestRepo.getRequestById(requestId, hotelId);
+  if (!request) throw new Error(`request doesn't exist for id:  ${requestId}`);
+
+  return requestRepo.updateRequestStatusWithLog({
+    request,
+    toStatus: RequestStatus.COMPLETED,
+    updatedByUserId,
+    note,
+  });
 }
