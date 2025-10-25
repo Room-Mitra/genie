@@ -101,8 +101,11 @@ export async function listRequests({ hotelId, statuses, limit, nextToken }) {
 export async function startRequest({ requestId, hotelId, assignedStaffUserId, note }) {
   if (!requestId || !hotelId) throw new Error('requestId and hotelId needed to start request');
 
-  const request = await requestRepo.getRequestById(requestId, hotelId)
-  if (!request) throw new Error(`request doesn't exist for id:  ${requestId}`)
+  const request = await requestRepo.getRequestById(requestId, hotelId);
+  if (!request) throw new Error(`request doesn't exist for id:  ${requestId}`);
 
+  if (!request.assignedStaffUserId && !assignedStaffUserId)
+    throw new Error("require assignedStaffUserId for request that hasn't been auto assigned staff");
 
+  
 }
