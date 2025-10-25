@@ -9,12 +9,14 @@ import { Room } from "./room";
 import { Spinner } from "@material-tailwind/react";
 import { Roles } from "./roles";
 import { Department } from "./department";
+import { Dates } from "./dates";
 
 const isDateTime = (e) => React.isValidElement(e) && e.type === DateTime;
 const isID = (e) => React.isValidElement(e) && e.type === ID;
 const isRoom = (e) => React.isValidElement(e) && e.type === Room;
 const isRoles = (e) => React.isValidElement(e) && e.type === Roles;
 const isDepartment = (e) => React.isValidElement(e) && e.type === Department;
+const isDates = (e) => React.isValidElement(e) && e.type === Dates;
 const isDivOrSpan = (e) =>
   (React.isValidElement(e) && e.type === "div") || e.type === "span";
 
@@ -24,6 +26,7 @@ const getValue = (e) => {
   if (isRoom(e)) return e.props.room?.number;
   if (isRoles(e)) return e.props.roles?.join(",");
   if (isDepartment(e)) return e.props.department;
+  if (isDates(e)) return e.props.estimatedTimeOfFulfillment;
   if (isDivOrSpan(e)) return e.props.children;
 
   return e;

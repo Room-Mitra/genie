@@ -6,9 +6,12 @@ export const DepartmentLabels = {
   facilities: "Facilities",
 };
 
-export function Department({ department }) {
+export function Department({ department, reqType }) {
   return department ? (
-    <span>{DepartmentLabels[department]}</span>
+    <div className="flex flex-col">
+      <span>{DepartmentLabels[department]}</span>
+      {reqType ? <span>↳ {reqType}</span> : <></>}
+    </div>
   ) : (
     <span>-</span>
   );

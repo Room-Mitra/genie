@@ -62,7 +62,7 @@ export function ActionButton({
         className={[
           "inline-flex items-center rounded-md px-3 py-1.5 text-sm font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2",
           a.intent === "primary" &&
-            "bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500",
+            "bg-pink-600 text-white hover:bg-pink-700 focus:ring-pink-500",
           a.intent === "success" &&
             "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500",
           a.intent === "warning" &&

@@ -7,9 +7,10 @@ import { useEffect, useMemo, useState } from "react";
 import { ID } from "@/components/ui/id";
 import { DateTime } from "@/components/ui/datetime";
 import { Room } from "@/components/ui/room";
-import { toTitleCaseFromSnake } from "@/lib/utils.ts";
 import { ActionButton } from "../_components/actionButton";
 import Staff from "@/components/ui/staff";
+import { Dates } from "@/components/ui/dates";
+import { Department } from "@/components/ui/department";
 
 async function fetchActiveRequests() {
   const statuses = ["unacknowledged", "in_progress", "delayed"];
@@ -37,12 +38,11 @@ export default function Page() {
     () => [
       { key: "requestId", label: "REQUEST ID" },
       { key: "status", label: "STATUS" },
-      { key: "requestedAt", label: "REQUESTED AT" },
 
-      { key: "deadline", label: "DEADLINE" },
+      { key: "dates", label: "DATES" },
+
       { key: "room", label: "ROOM" },
       { key: "department", label: "DEPARTMENT" },
-      { key: "type", label: "TYPE" },
 
       { key: "assignedStaff", label: "ASSIGNEE" },
       { key: "acknowledge", label: "", sortable: false },
@@ -60,11 +60,19 @@ export default function Page() {
         if (!cancelled)
           setData(
             requests?.items?.map((r) => ({
+              dates: (
+                <Dates
+                  requestedAt={r.createdAt}
+                  estimatedTimeOfFulfillment={r.estimatedTimeOfFulfillment}
+                />
+              ),
               requestId: <ID ulid={r.requestId} />,
               requestedAt: <DateTime dateTimeIso={r.createdAt} />,
               status: <RequestStatus status={r.status} />,
               room: <Room room={r.room || {}} />,
-              department: toTitleCaseFromSnake(r.department),
+              department: (
+                <Department department={r.department} reqType={r.requestType} />
+              ),
               type: r.requestType,
               deadline: <DateTime dateTimeIso={r.estimatedTimeOfFulfillment} />,
               viewConversation: r.conversationId ? (
