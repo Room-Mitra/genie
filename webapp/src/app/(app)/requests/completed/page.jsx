@@ -41,8 +41,6 @@ export default function Page() {
       { key: "room", label: "ROOM" },
       { key: "department", label: "DEPARTMENT" },
       { key: "assignedStaff", label: "ASSIGNEE" },
-
-      { key: "viewConversation", label: "", sortable: false },
     ],
     [],
   );

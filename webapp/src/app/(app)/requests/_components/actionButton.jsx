@@ -57,21 +57,29 @@ export function ActionButton({
   if (actions.length === 1) {
     const a = actions[0];
     return (
-      <button
-        onClick={a.onClick}
-        className={[
-          "inline-flex items-center rounded-md px-3 py-1.5 text-sm font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2",
-          a.intent === "primary" &&
-            "bg-pink-600 text-white hover:bg-pink-700 focus:ring-pink-500",
-          a.intent === "success" &&
-            "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500",
-          a.intent === "warning" &&
-            "bg-amber-600 text-white hover:bg-amber-700 focus:ring-amber-500",
-          className,
-        ].join(" ")}
-      >
-        {a.label}
-      </button>
+      <div className="flex w-22">
+        <button
+          onClick={a.onClick}
+          className={[
+            "inline-flex items-center rounded-md px-3 py-1.5 text-sm font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2",
+            a.intent === "primary" &&
+              "bg-pink-600 text-white hover:bg-pink-400 focus:ring-pink-500",
+            a.intent === "success" &&
+              "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500",
+            a.intent === "warning" &&
+              "bg-amber-600 text-white hover:bg-amber-700 focus:ring-amber-500",
+            className,
+          ].join(" ")}
+        >
+          {a.label}
+        </button>
+        {(a.intent === "primary" || status === "delayed") && (
+          <span className="relative -ml-2 -mt-1 flex size-3">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-pink-400 opacity-75"></span>
+            <span className="relative inline-flex size-3 rounded-full bg-pink-400"></span>
+          </span>
+        )}
+      </div>
     );
   }
 

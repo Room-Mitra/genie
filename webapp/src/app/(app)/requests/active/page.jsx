@@ -108,7 +108,6 @@ export default function Page() {
       { key: "department", label: "DEPARTMENT" },
       { key: "assignedStaff", label: "ASSIGNEE" },
       { key: "acknowledge", label: "", sortable: false },
-      { key: "viewConversation", label: "", sortable: false },
     ],
     [],
   );
