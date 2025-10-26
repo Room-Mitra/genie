@@ -10,7 +10,8 @@ router.post('/', async (req, res) => {
     const { hotelId, roomId, deviceId } = req.deviceData;
 
     const { department, requestType, bookingId } = req.body;
-    if (!department || !requestType || !bookingId) { // bookingId cant be sent for CTA button in NoActiveBookingScreen
+    if (!department || !requestType || !bookingId) {
+      // bookingId cant be sent for CTA button in NoActiveBookingScreen
       return res
         .status(400)
         .json({ error: 'Require department, requestType and bookingId to create a new request' });
@@ -46,7 +47,7 @@ router.get('/', async (req, res) => {
 
     return res.status(200).json({
       booking: booking,
-      requests: requests.items.map(requestResponse) || [],
+      requests: requests?.items?.map(requestResponse) || [],
     });
   } catch (err) {
     console.error('Error querying requests', err);
