@@ -275,9 +275,9 @@ export default function AddBookingPage() {
           renderItem={(room) => (
             <div className="grid grid-cols-2 sm:grid-cols-3">
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center justify-center rounded-md bg-indigo-600 p-2 text-xs text-white dark:bg-indigo-600/20 dark:text-indigo-300">
-                  #{room.number}
-                </span>
+                <div className="inline-block rounded-full bg-cyan-600 px-3 py-2">
+                  <span className="text-md text-white">#{room.number}</span>
+                </div>
                 <span className="text-dark dark:text-gray-200">
                   {room.type}
                 </span>

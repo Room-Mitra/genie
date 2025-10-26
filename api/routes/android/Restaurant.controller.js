@@ -4,6 +4,9 @@ import { ulid } from 'ulid';
 
 const router = express.Router();
 
+const lorem =
+  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi sed velit ante. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Proin scelerisque hendrerit lorem ut ultrices. Phasellus aliquet mauris sodales, convallis diam eget, convallis urna. Aenean massa risus, eleifend quis iaculis in, convallis vitae erat. Nunc et nisi eu nisi lacinia posuere. Mauris efficitur urna ante, at ultrices erat dignissim at. Nam a dignissim augue. Cras scelerisque ex dignissim posuere consectetur.';
+
 // === Paste your original object here ===
 const restaurantMenu = {
   restaurantMenu: {
@@ -211,7 +214,6 @@ const restaurantMenu = {
 // === Converter ===
 const BASE_IMAGE_URL = 'http://example.com/images';
 
-
 function slugify(str) {
   return String(str)
     .toLowerCase()
@@ -236,9 +238,11 @@ function convertMenu(input) {
   }
 
   const sections = [];
+  const { min, max } = { min: 30, max: 100 };
   for (const [sectionName, items] of Object.entries(input.restaurantMenu)) {
     const convertedItems = (items || []).map(([itemName, price]) => ({
       name: itemName,
+      description: lorem.slice(0, Math.floor(Math.random() * (max - min + 1)) + min),
       unitPrice: formatPrice(price),
       image: { url: `${BASE_IMAGE_URL}/${slugify(itemName)}.jpg` },
       itemId: ulid(),

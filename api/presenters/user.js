@@ -1,4 +1,4 @@
-export function staffResponse(user) {
+export function userResponse(user) {
   if (!user) return null;
   const {
     roles,

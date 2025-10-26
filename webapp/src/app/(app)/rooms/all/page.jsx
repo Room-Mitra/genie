@@ -42,7 +42,7 @@ export default function Page() {
             rooms?.items?.map((r) => ({
               roomId: <ID ulid={r.roomId} />,
               number: (
-                <span className="inline-flex items-center justify-center rounded-md bg-indigo-600 p-2 text-xs text-white dark:bg-indigo-600/20 dark:text-indigo-300">
+                <span className="text-md inline-block rounded-full bg-cyan-600 px-3 py-2 text-white">
                   #{r.number}
                 </span>
               ),
