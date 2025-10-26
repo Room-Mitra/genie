@@ -6,7 +6,7 @@
       "#routes/*": ["./routes/*"],
       "#middleware/*": ["./middleware/*"],
       "#repositories/*": ["./repositories/*"],
-      "#config/*": ["./config/*"],
+      "#clients/*": ["./clients/*"],
       "#Constants/*": ["./Constants/*"],
       "#libs/*": ["libs/*"],
       "#common/*": ["common/*"],

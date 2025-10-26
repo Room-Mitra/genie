@@ -1,6 +1,6 @@
 import { ENTITY_TABLE_NAME } from '#Constants/DB.constants.js';
 import { buildHotelEntityItem } from '#common/hotelEntity.helper.js';
-import DDB from '#config/DynamoDb.config.js';
+import DDB from '#clients/DynamoDb.client.js';
 import { decodeToken, encodeToken } from './repository.helper.js';
 
 /**
@@ -117,4 +117,15 @@ export async function queryLatestHotelByPrefix(hotelIdPrefix) {
 
   const data = await DDB.query(params).promise();
   return data.Items && data.Items[0];
+}
+
+export async function putAmenity(amenity) {
+  const amenityItem = buildHotelEntityItem(amenity);
+  const params = {
+    TableName: ENTITY_TABLE_NAME,
+    Item: amenityItem,
+  };
+
+  await DDB.put(params).promise();
+  return params.Item;
 }

@@ -6,8 +6,12 @@ import * as staffRepo from '#repositories/Staff.repository.js';
 import { hashPassword } from './User.service.js';
 import { hasAnyRole } from '#common/auth.helper.js';
 import { HotelRole } from '#Constants/roles.js';
+import S3 from '#clients/S3.js';
+import { amenityResponse } from '#presenters/amenity.js';
 
 const ALLOWED_UPDATE_FIELDS = ['name', 'address', 'contactEmail', 'contactPhone'];
+const AMENITIES_S3_BUCKET = 'roommitra-assets-bucket';
+const PUBLIC_BASE_URL = 'https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com';
 
 export async function getHotelById(hotelId) {
   const item = await hotelRepo.queryLatestHotelById(hotelId);
@@ -118,4 +122,38 @@ export async function addStaffToHotel(hotelId, userPayload) {
   });
 
   return updated;
+}
+
+export async function addAmenity({ hotelId, title, description, image }) {
+  if (!hotelId || !title || !description || !image) {
+    throw new Error('requier hotelId, title, description and image to create amenity');
+  }
+
+  const originalName = image.originalname;
+  const ext = originalName && originalName.includes('.') ? originalName.split('.').pop() : 'bin';
+  const key = [hotelId, 'amenities', `${ulid()}.${ext}`].join('/');
+
+  const out = await S3.upload({
+    Bucket: AMENITIES_S3_BUCKET,
+    Key: key,
+    Body: image.buffer,
+    ContentType: image.mimetype,
+  }).promise();
+
+  const imageUrl = PUBLIC_BASE_URL ? `${PUBLIC_BASE_URL}/${encodeURI(key)}` : out.Location;
+
+  const amenityId = ulid();
+  const amenity = {
+    amenityId,
+    hotelId,
+    title,
+    description,
+    image: {
+      url: imageUrl,
+    },
+    entityType: 'AMENITY',
+  };
+
+  const res = await hotelRepo.putAmenity(amenity);
+  return amenityResponse(res);
 }

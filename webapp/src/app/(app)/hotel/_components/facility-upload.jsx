@@ -5,6 +5,7 @@ import Image from "next/image";
 import { UploadIcon } from "@/assets/icons";
 import InputGroup from "@/components/FormElements/InputGroup";
 import { TextAreaGroup } from "@/components/FormElements/InputGroup/text-area";
+import { toast } from "react-toastify";
 
 export function FacilityUploadForm({ onCancel }) {
   const [file, setFile] = useState(null);
@@ -60,7 +61,7 @@ export function FacilityUploadForm({ onCancel }) {
     fd.append("image", file);
 
     try {
-      const res = await fetch("/api/facilities/upload", {
+      const res = await fetch("/api/hotel/amenities", {
         method: "POST",
         body: fd,
       });
@@ -69,15 +70,18 @@ export function FacilityUploadForm({ onCancel }) {
         throw new Error(txt || "Upload failed");
       }
       const data = await res.json();
-      // data.imageUrl will be a stubbed URL from the API route
-      alert(`Uploaded! Title: ${data.title}\nImage URL: ${data.imageUrl}`);
+
+      console.log(data);
+
       // reset
       setFile(null);
       setTitle("");
       setDescription("");
+      toast.success("Amenity added!");
+      onCancel();
     } catch (err) {
       console.error(err);
-      alert(err?.message || "Something went wrong");
+      toast.error(err?.message || "Something went wrong");
     }
   }
 
@@ -173,7 +177,6 @@ export function FacilityUploadForm({ onCancel }) {
               placeholder="Fitness Center"
               required
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
               handleChange={(e) => setTitle(e.target.value)} // support either prop name
             />
 
@@ -182,9 +185,8 @@ export function FacilityUploadForm({ onCancel }) {
               label="Description"
               placeholder="Avail world class gym facilities on site"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
               handleChange={(e) => setDescription(e.target.value)}
-              rows={5}
+              required
             />
           </div>
         </div>

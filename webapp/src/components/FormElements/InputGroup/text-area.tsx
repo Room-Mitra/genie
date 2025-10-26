@@ -12,6 +12,7 @@ interface PropsType {
   icon?: React.ReactNode;
   defaultValue?: string;
   handleChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => VideoColorSpace;
+  value?: string;
 }
 
 export function TextAreaGroup({
@@ -24,6 +25,7 @@ export function TextAreaGroup({
   icon,
   defaultValue,
   handleChange,
+  value,
 }: PropsType) {
   const id = useId();
 
@@ -50,6 +52,7 @@ export function TextAreaGroup({
           disabled={disabled}
           data-active={active}
           onChange={handleChange}
+          value={value}
         />
 
         {icon}

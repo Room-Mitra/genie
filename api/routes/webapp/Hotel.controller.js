@@ -1,4 +1,5 @@
 import express from 'express';
+import multer from 'multer';
 import * as hotelService from '#services/Hotel.service.js';
 import { hotelResponse } from '#presenters/hotel.js';
 
@@ -32,10 +33,36 @@ router.put('/', async (req, res) => {
   }
 });
 
+// Multer memory storage so we can stream to S3
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
+});
 
-router.post('/amenities', upl)
+router.post('/amenities', upload.single('image'), async (req, res) => {
+  try {
+    const { hotelId } = req.userData;
+    const { title = '', description = '' } = req.body || {};
+    const image = req.file;
+    if (!title || !description || !image)
+      return res.status(400).json({ error: 'Require title, description and image for amenity' });
 
+    if (!image.mimetype?.startsWith('image/')) {
+      return res.status(400).json({ error: 'Only images are allowed' });
+    }
+
+    const amenity = await hotelService.addAmenity({
+      hotelId,
+      title,
+      description,
+      image,
+    });
+
+    return res.status(201).json(amenity);
+  } catch (err) {
+    console.error('Upload failed:', err);
+    res.status(500).json({ error: 'Upload failed' });
+  }
+});
 
 export default router;
-
-
