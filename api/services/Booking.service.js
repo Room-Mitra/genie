@@ -4,6 +4,7 @@ import * as userRepo from '#repositories/User.repository.js';
 import * as roomRepo from '#repositories/Room.repository.js';
 import { toIsoString } from '#common/timestamp.helper.js';
 import { bookingResponse } from '#presenters/booking.js';
+import { userResponse } from '#presenters/user.js';
 
 function parseAndValidateTimes(checkInTime, checkoutTime) {
   const start = new Date(checkInTime);
@@ -130,5 +131,12 @@ export async function listBookings({ hotelId, status }) {
 }
 
 export async function getActiveBookingForRoom({ roomId }) {
-  return bookingResponse(await bookingRepo.getActiveBookingForRoom({ roomId }));
+  const booking = await bookingRepo.getActiveBookingForRoom({ roomId });
+
+  if (booking) {
+    const guest = await userRepo.getUserProfileById(booking.guest.userId);
+    booking.guest = userResponse(guest);
+  }
+
+  return bookingResponse(booking);
 }
