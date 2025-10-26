@@ -3,7 +3,7 @@ import DDB from '#config/DynamoDb.config.js';
 import { ENTITY_TABLE_NAME, GSI_HOTELTYPE_NAME } from '#Constants/DB.constants.js';
 
 export const createRoom = async (roomData) => {
-  const roomItem = buildHotelEntityItem(roomData, { includeHotelTypeIndex: true });
+  const roomItem = buildHotelEntityItem(roomData);
   const params = {
     TableName: ENTITY_TABLE_NAME,
     Item: roomItem,
