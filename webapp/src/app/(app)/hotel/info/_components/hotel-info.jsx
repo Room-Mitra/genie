@@ -84,12 +84,14 @@ export function HotelInfoForm() {
     }
 
     try {
-      const savedHotel = await saveHotelInfo({
+      const res = await saveHotelInfo({
         name: hotelName,
         contactPhone,
         contactEmail,
         address,
       });
+
+      setHotel(res);
 
       toast.success("Saved hotel info");
     } catch (error) {
