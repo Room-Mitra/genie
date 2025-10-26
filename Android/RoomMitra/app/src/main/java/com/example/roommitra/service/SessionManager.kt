@@ -9,6 +9,7 @@ class SessionManager(context: Context) {
         private const val KEY_AUTH_TOKEN = "auth_token"
         private const val KEY_HOTEL_ID = "hotel_id"
         private const val KEY_ROOM_ID = "room_id"
+        private const val KEY_BOOKING_ID = "booking_id"
     }
 
     fun saveSessionData(token: String, hotelId: String?, roomId: String?) {
@@ -28,6 +29,20 @@ class SessionManager(context: Context) {
             .remove(KEY_AUTH_TOKEN)
             .remove(KEY_HOTEL_ID)
             .remove(KEY_ROOM_ID)
+            .apply()
+    }
+
+    fun getBookingId(): String? = prefs.getString(KEY_BOOKING_ID, null)
+
+    fun saveBookingId(bookingId: String) {
+        prefs.edit()
+            .putString(KEY_BOOKING_ID, bookingId)
+            .apply()
+    }
+
+    fun clearBookingId() {
+        prefs.edit()
+            .remove(KEY_BOOKING_ID)
             .apply()
     }
 }

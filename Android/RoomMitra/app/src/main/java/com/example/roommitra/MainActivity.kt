@@ -1,6 +1,7 @@
 package com.example.roommitra
 
 import AutoDimWrapper
+import HomePageRedirection
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -82,39 +83,44 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
             MaterialTheme {
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     AutoDimWrapper(window) {
-                        NavHost(navController = navController, startDestination = "no-active-booking") {
+                        HomePageRedirection(navController) {
+                            NavHost(
+                                navController = navController,
+                                startDestination = "no-active-booking"
+                            ) {
 //                            NavHost(navController = navController, startDestination = "home") {
-                            composable("home") {
-                                HomeScreen(navController = navController, musicController)
+                                composable("home") {
+                                    HomeScreen(navController = navController, musicController)
+                                }
+                                composable("menu") {
+                                    RestaurantMenuScreen(onBackClick = { navController.popBackStack() })
+                                }
+                                composable("entertainment") {
+                                    EntertainmentScreen(onBackClick = { navController.popBackStack() })
+                                }
+                                composable("amenities") {
+                                    AmenitiesScreen(onBackClick = { navController.popBackStack() })
+                                }
+                                composable("housekeeping") {
+                                    HouseKeepingScreen(onBackClick = { navController.popBackStack() })
+                                }
+                                composable("concierge") {
+                                    ConciergeScreen(onBackClick = { navController.popBackStack() })
+                                }
+                                composable("login") {
+                                    LoginScreen(onBackClick = { navController.popBackStack() })
+                                }
+                                composable("no-active-booking") {
+                                    NoActiveBookingScreen(navController = navController)
+                                }
                             }
-                            composable("menu") {
-                                RestaurantMenuScreen(onBackClick = { navController.popBackStack() })
-                            }
-                            composable("entertainment") {
-                                EntertainmentScreen(onBackClick = { navController.popBackStack() })
-                            }
-                            composable("amenities") {
-                                AmenitiesScreen(onBackClick = { navController.popBackStack() })
-                            }
-                            composable("housekeeping") {
-                                HouseKeepingScreen(onBackClick = { navController.popBackStack() })
-                            }
-                            composable("concierge") {
-                                ConciergeScreen(onBackClick = { navController.popBackStack() })
-                            }
-                            composable("login") {
-                                LoginScreen(onBackClick = { navController.popBackStack() })
-                            }
-                            composable("no-active-booking") {
-                                NoActiveBookingScreen(navController = navController)
-                            }
+                            GlobalSnackbarHost(snackbarFlow = SnackbarManager.messages)
+
+
+                            // MiniPlayer overlay — always rendered at root level so it survives navigation
+                            // Place it last so it draws above NavHost
+                            MiniPlayer(controller = musicController)
                         }
-                        GlobalSnackbarHost(snackbarFlow = SnackbarManager.messages)
-
-
-                        // MiniPlayer overlay — always rendered at root level so it survives navigation
-                        // Place it last so it draws above NavHost
-                        MiniPlayer(controller = musicController)
                     }
                 }
             }
@@ -123,12 +129,7 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
 
     private fun hideSystemUI() {
         window.decorView.systemUiVisibility =
-            (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_FULLSCREEN
-                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    or View.SYSTEM_UI_FLAG_LAYOUT_STABLE)
+            (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE)
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
