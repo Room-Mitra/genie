@@ -101,6 +101,10 @@ export async function listBookings({ hotelId, status }) {
   const rooms = await roomRepo.queryAllRooms({ hotelId });
   const roomMap = new Map(rooms.map((room) => [room.roomId, room]));
 
+  const guestUserIds = bookings.map((b) => b.guest.userId);
+  const guestUsers = await userRepo.getUsersByIds(guestUserIds);
+  const guestUsersMap = new Map(guestUsers.map((user) => [user.userId, user]));
+
   const getRoom = (room) => ({
     type: room.type,
     floor: room.floor,
@@ -108,10 +112,18 @@ export async function listBookings({ hotelId, status }) {
     roomId: room.roomId,
   });
 
+  const getUser = (user) => ({
+    firstName: user.firstName,
+    lastName: user.lastName,
+    userId: user.userId,
+    mobileNumber: user.mobileNumber,
+  });
+
   return {
     items: bookings?.map((b) => ({
       ...bookingResponse(b),
       room: getRoom(roomMap.get(b.roomId)),
+      guest: getUser(guestUsersMap.get(b.guest.userId)),
     })),
     count: bookings?.length || 0,
   };

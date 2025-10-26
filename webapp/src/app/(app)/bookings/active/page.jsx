@@ -4,6 +4,7 @@ import { DateTime } from "@/components/ui/datetime";
 import { ID } from "@/components/ui/id";
 import { Room } from "@/components/ui/room";
 import SortTable from "@/components/ui/sort-table";
+import User from "@/components/ui/user";
 import { useMemo, useState, useEffect } from "react";
 
 async function fetchActiveBookings() {
@@ -30,7 +31,7 @@ export default function Page() {
       { key: "checkInTime", label: "CHECK IN" },
       { key: "checkOutTime", label: "CHECK OUT" },
       { key: "room", label: "ROOM" },
-      { key: "guest", label: "GUEST ID" },
+      { key: "guest", label: "GUEST" },
       { key: "createdAt", label: "CREATED AT" },
     ],
     [],
@@ -49,7 +50,9 @@ export default function Page() {
               checkInTime: <DateTime dateTimeIso={b.checkInTime} />,
               checkOutTime: <DateTime dateTimeIso={b.checkOutTime} />,
               room: <Room room={b.room} />,
-              guest: <ID ulid={b.guest.userId} />,
+              guest: (
+                <User user={b.guest} showMobileNumber={true} width="w-50" />
+              ),
               createdAt: <DateTime dateTimeIso={b.createdAt} />,
             })),
           );

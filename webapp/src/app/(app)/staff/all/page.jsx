@@ -4,7 +4,7 @@ import { Department } from "@/components/ui/department";
 import { ID } from "@/components/ui/id";
 import { Roles } from "@/components/ui/roles";
 import SortTable from "@/components/ui/sort-table";
-import Staff from "@/components/ui/staff";
+import User from "@/components/ui/user";
 import { useState, useEffect, useMemo } from "react";
 
 async function fetchStaff() {
@@ -59,13 +59,13 @@ export default function Page() {
           setData(
             staff?.items?.map((r) => ({
               userId: <ID ulid={r.userId} />,
-              name: <Staff user={r} onlyName={true} />,
+              name: <User user={r} onlyName={true} />,
               email: r.email,
               mobileNumber: r.mobileNumber || "-",
               department: <Department department={r.department} />,
               roles: <Roles roles={r.roles} />,
-              reportingTo: (
-                <Staff
+              reportingTo: r.reportingToUserId ? (
+                <User
                   user={
                     staff?.items?.filter(
                       (s) => s.userId === r?.reportingToUserId,
@@ -74,6 +74,8 @@ export default function Page() {
                   showDepartment={true}
                   showRoles={true}
                 />
+              ) : (
+                "-"
               ),
             })),
           );

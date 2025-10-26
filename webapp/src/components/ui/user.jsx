@@ -22,11 +22,12 @@ function getTextColor(bgColor) {
   return l > 0.55 ? "#1F2937" : "#FFFFFF"; // dark or white text
 }
 
-export default function Staff({
+export default function User({
   user,
   showRoles = false,
   showDepartment = false,
   showEmail = false,
+  showMobileNumber = false,
   width = "w-60",
 }) {
   if (!user) return null;
@@ -88,6 +89,11 @@ export default function Staff({
         {showEmail && (
           <div className="text-sm text-gray-600 dark:text-gray-400">
             {user?.email}
+          </div>
+        )}
+        {showMobileNumber && (
+          <div className="text-sm text-gray-600 dark:text-gray-400">
+            {user?.mobileNumber}
           </div>
         )}
       </div>

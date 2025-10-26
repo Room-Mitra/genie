@@ -13,7 +13,7 @@ import { useState } from "react";
 import { LogOutIcon, SettingsIcon, UserIcon } from "./icons";
 import { toast } from "react-toastify";
 import { useUser } from "@/context/UserContext";
-import Staff from "@/components/ui/staff";
+import User from "@/components/ui/user";
 
 async function logout() {
   try {
@@ -41,7 +41,7 @@ export function UserInfo() {
 
         <div className="flex items-center gap-3">
           <div>
-            <Staff user={user} width="w-50" />
+            <User user={user} width="w-50" />
           </div>
           <div className="flex items-center gap-1 font-medium text-dark dark:text-dark-6 max-[1024px]:sr-only">
             <ChevronUpIcon
@@ -62,7 +62,7 @@ export function UserInfo() {
       >
         <h2 className="sr-only">User information</h2>
 
-        <Staff user={user} showEmail={true} />
+        <User user={user} showEmail={true} />
 
         <hr className="border-[#E8E8E8] dark:border-dark-3" />
 

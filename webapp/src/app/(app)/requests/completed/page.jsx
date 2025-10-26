@@ -6,7 +6,7 @@ import RequestStatus from "../_components/requestStatus";
 import { useEffect, useMemo, useState } from "react";
 import { ID } from "@/components/ui/id";
 import { Room } from "@/components/ui/room";
-import Staff from "@/components/ui/staff";
+import User from "@/components/ui/user";
 import { Dates } from "@/components/ui/dates";
 import { Department } from "@/components/ui/department";
 
@@ -72,7 +72,7 @@ export default function Page() {
           ),
 
           assignedStaff: (
-            <Staff
+            <User
               user={r.assignedStaff}
               showRoles={true}
               showDepartment={true}
