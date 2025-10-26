@@ -1,8 +1,7 @@
 import { ENTITY_TABLE_NAME, GSI_HOTELTYPE_NAME } from '#Constants/DB.constants.js';
 import { toIsoString } from '#common/timestamp.helper.js';
-import DDB from '#config/DynamoDb.config.js';
+import DDB from '#clients/DynamoDb.client.js';
 import { decodeToken, encodeToken } from './repository.helper.js';
-
 
 export async function addStaff({ hotelId, userId, role, department, reportingToUserId }) {
   if (!userId) throw new Error('userId is required');

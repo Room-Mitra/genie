@@ -1,3 +1,7 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
+import AWS from 'aws-sdk';
 import { getReqId, requestContext } from './middleware/requestContext.js';
 
 // Patch console methods to include request ID if available
@@ -8,9 +12,6 @@ for (const k of ['log', 'info', 'warn', 'error']) {
     return id ? orig(`[${id}]`, ...args) : orig(...args);
   };
 }
-
-import dotenv from 'dotenv';
-dotenv.config();
 
 import cors from 'cors';
 import express from 'express';
@@ -152,3 +153,4 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+

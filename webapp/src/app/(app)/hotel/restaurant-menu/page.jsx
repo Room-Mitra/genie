@@ -1,5 +1,4 @@
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
-import { HotelInfoForm } from "./_components/hotel-info";
 
 export const metadata = {
   title: "Hotel Info",
@@ -8,8 +7,7 @@ export const metadata = {
 export default function Page() {
   return (
     <div className="mx-auto max-w-3xl">
-      <Breadcrumb pageName="Info" parent="Hotel" />
-      <HotelInfoForm />
+      <Breadcrumb pageName="Restaurant Menu" parent="Hotel" />
     </div>
   );
 }

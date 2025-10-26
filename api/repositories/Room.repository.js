@@ -1,5 +1,5 @@
 import { buildHotelEntityItem } from '#common/hotelEntity.helper.js';
-import DDB from '#config/DynamoDb.config.js';
+import DDB from '#clients/DynamoDb.client.js';
 import { ENTITY_TABLE_NAME, GSI_HOTELTYPE_NAME } from '#Constants/DB.constants.js';
 
 export const createRoom = async (roomData) => {
@@ -21,17 +21,14 @@ export async function queryAllRooms({ hotelId }) {
 
   const params = {
     TableName: ENTITY_TABLE_NAME,
-    IndexName: GSI_HOTELTYPE_NAME,
-    // hotelType_pk = HOTEL#<hotelId>
-    // hotelType_sk begins with ROOM#
-    KeyConditionExpression: '#gpk = :gpk AND begins_with(#gsk, :gsk)',
+    KeyConditionExpression: '#pk = :pk AND begins_with(#sk, :sk)',
     ExpressionAttributeNames: {
-      '#gpk': 'hotelType_pk',
-      '#gsk': 'hotelType_sk',
+      '#pk': 'pk',
+      '#sk': 'sk',
     },
     ExpressionAttributeValues: {
-      ':gpk': `HOTEL#${hotelId}`,
-      ':gsk': 'ROOM#',
+      ':pk': `HOTEL#${hotelId}`,
+      ':sk': 'ROOM#',
     },
     ScanIndexForward: false,
   };

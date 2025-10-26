@@ -1,6 +1,6 @@
 import { ENTITY_TABLE_NAME } from '#Constants/DB.constants.js';
 import { buildHotelEntityItem } from '#common/hotelEntity.helper.js';
-import DDB from '#config/DynamoDb.config.js';
+import DDB from '#clients/DynamoDb.client.js';
 import { decodeToken, encodeToken } from './repository.helper.js';
 
 /**
@@ -117,4 +117,71 @@ export async function queryLatestHotelByPrefix(hotelIdPrefix) {
 
   const data = await DDB.query(params).promise();
   return data.Items && data.Items[0];
+}
+
+export async function putAmenity(amenity) {
+  const amenityItem = buildHotelEntityItem(amenity);
+  const params = {
+    TableName: ENTITY_TABLE_NAME,
+    Item: amenityItem,
+  };
+
+  await DDB.put(params).promise();
+  return params.Item;
+}
+
+export async function queryAllAmenities({ hotelId }) {
+  if (!hotelId) {
+    throw new Error('hotelId is required to query all amenities for hotel');
+  }
+
+  const params = {
+    TableName: ENTITY_TABLE_NAME,
+    KeyConditionExpression: '#pk = :pk AND begins_with(#sk, :sk)',
+    ExpressionAttributeNames: {
+      '#pk': 'pk',
+      '#sk': 'sk',
+    },
+    ExpressionAttributeValues: {
+      ':pk': `HOTEL#${hotelId}`,
+      ':sk': 'HOTEL#META#AMENITY#',
+    },
+    ScanIndexForward: false,
+  };
+
+  const items = [];
+  let lastEvaluatedKey;
+
+  try {
+    do {
+      const res = await DDB.query(params).promise();
+      if (res.Items?.length) items.push(...res.Items);
+      lastEvaluatedKey = res.LastEvaluatedKey;
+      params.ExclusiveStartKey = lastEvaluatedKey;
+    } while (lastEvaluatedKey);
+
+    return items;
+  } catch (err) {
+    console.error('Failed to list amenities:', err);
+    throw new Error('Failed to list amenities');
+  }
+}
+
+export async function deleteAmenity({ hotelId, amenityId }) {
+  if (!hotelId || !amenityId) return null;
+
+  const params = {
+    TableName: ENTITY_TABLE_NAME,
+    Key: {
+      pk: `HOTEL#${hotelId}`,
+      sk: `HOTEL#META#AMENITY#${amenityId}`,
+    },
+  };
+
+  try {
+    await DDB.delete(params).promise();
+  } catch (err) {
+    console.error('Failed to delete amenity', err);
+    throw new Error('Failed to delete amenity');
+  }
 }

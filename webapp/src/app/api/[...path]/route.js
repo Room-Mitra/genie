@@ -1,4 +1,6 @@
-// src/app/api/bff/[...path]/route.ts
+export const runtime = "nodejs"; // important: streaming bodies need Node runtime
+export const dynamic = "force-dynamic"; // avoid caching of request bodies
+
 import { NextResponse } from "next/server";
 import { getTokenFromCookie } from "@/lib/auth";
 
@@ -27,23 +29,34 @@ async function proxy(req, params) {
   const { path } = await params;
   const target = `${API_BASE_URL}/${path.join("/")}${url.search}`;
 
+  // Start with original headers
+  const headers = new Headers(req.headers);
+
+  // Remove hop-by-hop / computed headers so Node can re-calculate
+  headers.delete("host");
+  headers.delete("connection");
+  headers.delete("content-length");
+  headers.delete("transfer-encoding");
+
+  if (token) headers.set("authorization", `Bearer ${token}`);
+
+  const method = req.method.toUpperCase();
+  const hasBody = !(method === "GET" || method === "HEAD");
+
   const init = {
-    method: req.method,
-    headers: {
-      // forward JSON headers plus Authorization
-      "Content-Type": req.headers.get("content-type") ?? "application/json",
-      "User-Agent": req.headers.get("user-agent") ?? "NextBFF",
-      Authorization: token ? `Bearer ${token}` : undefined,
-    },
-    body: ["GET", "HEAD"].includes(req.method) ? undefined : await req.text(),
+    method,
+    headers,
+    body: hasBody ? req.body : undefined, // pass the original stream untouched
+    // Required when streaming request bodies with node-fetch in Next route handlers
+    duplex: hasBody ? "half" : undefined,
   };
 
   const resp = await fetch(target, init);
-  const data = await resp.arrayBuffer();
-  return new NextResponse(data, {
+
+  // Stream the response back as-is, including headers
+  const outHeaders = new Headers(resp.headers);
+  return new NextResponse(resp.body, {
     status: resp.status,
-    headers: {
-      "content-type": resp.headers.get("content-type") ?? "application/json",
-    },
+    headers: outHeaders,
   });
 }

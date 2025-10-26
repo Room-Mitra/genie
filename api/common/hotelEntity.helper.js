@@ -247,6 +247,23 @@ export function buildHotelEntityItem(input, options) {
       });
     }
 
+    case 'AMENITY': {
+      const amenityId = i.amenityId ?? ulid();
+      const sk = `HOTEL#META#AMENITY#${amenityId}`;
+      const base = baseKeys(i.hotelId, sk);
+      return clean({
+        ...base,
+
+        entityType: 'AMENITY',
+        hotelId: i.hotelId,
+        amenityId,
+        title: i.title,
+        description: i.description,
+        image: i.image,
+        createdAt: i.createdAt,
+      });
+    }
+
     default:
       throw new Error(`Unsupported entityType: ${i?.entityType}`);
   }

@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { HotelIcon, MapPin, PhoneIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "react-toastify";
+import { Spinner } from "@material-tailwind/react";
 
 async function getHotelInfo() {
   const res = await fetch("/api/hotel", {
@@ -36,6 +37,7 @@ async function saveHotelInfo({ name, contactPhone, contactEmail, address }) {
 
 export function HotelInfoForm() {
   const [hotel, setHotel] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [hotelName, setHotelName] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [contactEmail, setContactEmail] = useState("");
@@ -44,6 +46,7 @@ export function HotelInfoForm() {
 
   useEffect(() => {
     (async () => {
+      setLoading(true);
       try {
         const res = await getHotelInfo();
         setHotel(res);
@@ -53,6 +56,8 @@ export function HotelInfoForm() {
         setAddress(res.address);
       } catch (err) {
         toast.error(err?.message || "Error fetching hotel info");
+      } finally {
+        setLoading(false);
       }
     })();
   }, []);
@@ -103,74 +108,80 @@ export function HotelInfoForm() {
 
   return (
     <div className="rounded-[10px] bg-white p-6 dark:bg-gray-dark">
-      <form onSubmit={handleSaveHotel} className="grid grid-cols-1 gap-5">
-        <InputGroup
-          type="text"
-          name="name"
-          label="Hotel Name"
-          placeholder="The Best Exotic Marigold Hotel"
-          required
-          icon={<HotelIcon />}
-          iconPosition="left"
-          handleChange={(e) => setHotelName(e.target.value)}
-          value={hotelName}
-        />
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {loading ? (
+        <div className="mx-auto my-5 w-fit">
+          <Spinner />
+        </div>
+      ) : (
+        <form onSubmit={handleSaveHotel} className="grid grid-cols-1 gap-5">
           <InputGroup
-            type="tel"
-            name="mobile"
-            label="Contact Phone"
-            placeholder="9910203040"
-            value={contactPhone}
-            handleChange={(e) =>
-              setContactPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
-            }
-            icon={<PhoneIcon />}
-            iconPosition="left"
+            type="text"
+            name="name"
+            label="Hotel Name"
+            placeholder="The Best Exotic Marigold Hotel"
             required
+            icon={<HotelIcon />}
+            iconPosition="left"
+            handleChange={(e) => setHotelName(e.target.value)}
+            value={hotelName}
           />
 
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <InputGroup
+              type="tel"
+              name="mobile"
+              label="Contact Phone"
+              placeholder="9910203040"
+              value={contactPhone}
+              handleChange={(e) =>
+                setContactPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
+              }
+              icon={<PhoneIcon />}
+              iconPosition="left"
+              required
+            />
+
+            <InputGroup
+              type="email"
+              name="email"
+              label="Contact Email"
+              placeholder="kiran.kumar@hotel.com"
+              icon={<EmailIcon />}
+              iconPosition="left"
+              required
+              handleChange={(e) => setContactEmail(e.target.value)}
+              value={contactEmail}
+            />
+          </div>
+
           <InputGroup
-            type="email"
-            name="email"
-            label="Contact Email"
-            placeholder="kiran.kumar@hotel.com"
-            icon={<EmailIcon />}
-            iconPosition="left"
             required
-            handleChange={(e) => setContactEmail(e.target.value)}
-            value={contactEmail}
+            type="text"
+            name="address"
+            label="Address"
+            placeholder="145, 18th Main, Jayanagar, Bangalore, KA 560011"
+            icon={<MapPin />}
+            iconPosition="left"
+            handleChange={(e) => setAddress(e.target.value)}
+            value={address}
           />
-        </div>
 
-        <InputGroup
-          required
-          type="text"
-          name="address"
-          label="Address"
-          placeholder="145, 18th Main, Jayanagar, Bangalore, KA 560011"
-          icon={<MapPin />}
-          iconPosition="left"
-          handleChange={(e) => setAddress(e.target.value)}
-          value={address}
-        />
-
-        <div className="mt-2 flex items-center justify-end gap-3">
-          <button
-            type="submit"
-            className={cn(
-              "rounded-xl px-4 py-2 text-sm font-medium",
-              !canSubmit
-                ? "bg-gray-700 text-gray-400"
-                : "bg-indigo-600 text-white hover:bg-indigo-500",
-            )}
-            disabled={!canSubmit}
-          >
-            {savingHotel ? "Saving..." : "Save hotel"}
-          </button>
-        </div>
-      </form>
+          <div className="mt-2 flex items-center justify-end gap-3">
+            <button
+              type="submit"
+              className={cn(
+                "rounded-xl px-4 py-2 text-sm font-medium",
+                !canSubmit
+                  ? "bg-gray-700 text-gray-400"
+                  : "bg-indigo-600 text-white hover:bg-indigo-500",
+              )}
+              disabled={!canSubmit}
+            >
+              {savingHotel ? "Saving..." : "Save hotel"}
+            </button>
+          </div>
+        </form>
+      )}
     </div>
   );
 }
