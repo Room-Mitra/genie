@@ -25,23 +25,30 @@ fun HomePageRedirection(
     val bookingData by bookingRepo.bookingData.collectAsState()
     // React to state changes
     LaunchedEffect(bookingData) {
+        val currentRoute = navController.currentBackStackEntry?.destination?.route
         val booking = bookingData?.optJSONObject("booking")
         if (booking == null) {
             sessionManager.clearBookingId()
-            navController.navigate("no-active-booking") {
-                popUpTo("home") { inclusive = true }
+            if (currentRoute != "no-active-booking") {
+                navController.navigate("no-active-booking") {
+                    popUpTo("home") { inclusive = true }
+                }
             }
         } else {
             val bookingId = booking.optString("bookingId", null)
             if (bookingId != null) {
                 sessionManager.saveBookingId(bookingId);
-                navController.navigate("home") {
-                    popUpTo("no-active-booking") { inclusive = true }
+                if (currentRoute == "no-active-booking") {
+                    navController.navigate("home") {
+                        popUpTo("no-active-booking") { inclusive = true }
+                    }
                 }
             } else {
                 sessionManager.clearBookingId()
-                navController.navigate("no_active_booking") {
-                    popUpTo("home") { inclusive = true }
+                if (currentRoute != "no-active-booking") {
+                    navController.navigate("no-active-booking") {
+                        popUpTo("home") { inclusive = true }
+                    }
                 }
             }
         }
