@@ -4,7 +4,7 @@ import {
   UsersIcon,
 } from "@heroicons/react/24/outline";
 import * as Icons from "../icons";
-import { BedDoubleIcon } from "lucide-react";
+import { BedDoubleIcon, HotelIcon } from "lucide-react";
 
 export const NAV_DATA = [
   {
@@ -81,6 +81,16 @@ export const NAV_DATA = [
           {
             title: "All",
             url: "/staff/all",
+          },
+        ],
+      },
+      {
+        title: "Hotel",
+        icon: HotelIcon,
+        items: [
+          {
+            title: "Info",
+            url: "/hotel/info",
           },
         ],
       },
