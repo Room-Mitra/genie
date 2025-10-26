@@ -11,9 +11,10 @@ router.post('/', async (req, res) => {
 
     const { department, requestType, bookingId } = req.body;
     if (!department || !requestType) {
+      // bookingId cant be sent for CTA button in NoActiveBookingScreen
       return res
         .status(400)
-        .json({ error: 'Require department and requestType required to create a new request' });
+        .json({ error: 'Require department and requestType to create a new request' });
     }
 
     const requestData = {
