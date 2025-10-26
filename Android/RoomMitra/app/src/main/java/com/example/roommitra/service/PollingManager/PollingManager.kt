@@ -60,7 +60,10 @@ class BookingRepository(private val apiService: ApiService) {
     suspend fun fetchBooking() {
         when (val result = apiService.get("requests")) {
             is ApiResult.Success -> _bookingData.value = result.data
-            is ApiResult.Error -> Log.d("PollingManager","Booking error: ${result.message}")
+            is ApiResult.Error -> {
+                Log.d("PollingManager", "Booking error: ${result.message}")
+                _bookingData.value = null;
+            }
         }
     }
 

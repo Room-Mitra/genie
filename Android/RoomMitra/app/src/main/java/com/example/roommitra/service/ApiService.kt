@@ -23,7 +23,6 @@ class ApiService(private val context: Context) {
 //        private const val BASE_URL = "https://funny-heads-hope.loca.lt/android"
         private const val BASE_URL = "https://api.roommitra.com/android"
     }
-    // Get device ID dynamically
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
@@ -37,7 +36,7 @@ class ApiService(private val context: Context) {
             val token = SessionManager(context).getAuthToken()
             val hotelId = SessionManager(context).getHotelId()
             val roomId = SessionManager(context).getRoomId()
-            val deviceId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+            val deviceId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID) // Get device ID dynamically
 
             val utcTimestamp = Instant.now().toEpochMilli().toString()
             return mapOf(
