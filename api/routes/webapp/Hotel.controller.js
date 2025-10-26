@@ -32,4 +32,10 @@ router.put('/', async (req, res) => {
   }
 });
 
+
+router.post('/amenities', upl)
+
+
 export default router;
+
+
