@@ -36,6 +36,7 @@ export function TextAreaGroup({
         className="mb-3 block text-body-sm font-medium text-dark dark:text-white"
       >
         {label}
+        {required && <span className="ml-1 select-none text-red">*</span>}
       </label>
 
       <div className="relative mt-3 [&_svg]:pointer-events-none [&_svg]:absolute [&_svg]:left-5.5 [&_svg]:top-5.5">

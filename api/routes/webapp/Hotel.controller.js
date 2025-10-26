@@ -39,6 +39,18 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
 });
 
+router.get('/amenities', async (req, res) => {
+  try {
+    const { hotelId } = req.userData;
+
+    const amenities = await hotelService.listAmenities({ hotelId });
+    return res.status(200).json(amenities);
+  } catch (err) {
+    console.error('Error listing amenities', err);
+    return res.status(500).json({ error: 'internal server error' });
+  }
+});
+
 router.post('/amenities', upload.single('image'), async (req, res) => {
   try {
     const { hotelId } = req.userData;
@@ -62,6 +74,22 @@ router.post('/amenities', upload.single('image'), async (req, res) => {
   } catch (err) {
     console.error('Upload failed:', err);
     res.status(500).json({ error: 'Upload failed' });
+  }
+});
+
+router.delete('/amenities/:amenityId', async (req, res) => {
+  try {
+    const { hotelId } = req.userData;
+    const { amenityId } = req.params;
+    
+    if (!amenityId) return res.status(400).json({ error: 'amenity id needed to delete' });
+
+    await hotelService.deleteAmenity({ hotelId, amenityId });
+
+    return res.status(200).json({ message: 'deleted amenity' });
+  } catch (err) {
+    console.error('failed to delete amentiy', err);
+    res.status(500).json({ error: err?.message || 'internal server error ' });
   }
 });
 

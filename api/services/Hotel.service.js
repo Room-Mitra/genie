@@ -157,3 +157,15 @@ export async function addAmenity({ hotelId, title, description, image }) {
   const res = await hotelRepo.putAmenity(amenity);
   return amenityResponse(res);
 }
+
+export async function listAmenities({ hotelId }) {
+  const amenities = await hotelRepo.queryAllAmenities({ hotelId });
+  return {
+    items: amenities.map(amenityResponse),
+    count: amenities.length,
+  };
+}
+
+export async function deleteAmenity({ hotelId, amenityId }) {
+  return hotelRepo.deleteAmenity({ hotelId, amenityId });
+}
