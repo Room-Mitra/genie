@@ -9,6 +9,7 @@ import { Room } from "@/components/ui/room";
 import User from "@/components/ui/user";
 import { Dates } from "@/components/ui/dates";
 import { Department } from "@/components/ui/department";
+import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 
 async function fetchCompletedRequests() {
   const statuses = ["completed"];
@@ -90,18 +91,20 @@ export default function Page() {
   }, []);
 
   return (
-    <div className="rounded-[10px] bg-white p-6 dark:bg-gray-dark">
-      <h2 className="mb-4 text-body-2xlg font-bold text-dark dark:text-white">
-        Completed Requests
-      </h2>
+    <div>
+      <Breadcrumb pageName="Completed Requests" parent="Requests" />
 
-      <SortTable
-        columns={columns}
-        data={data}
-        tableRowClassNames={["text-base font-medium text-dark dark:text-white"]}
-        loading={loading}
-        noDataMessage="No completed requests 🎉"
-      />
+      <div className="rounded-[10px] bg-white p-6 dark:bg-gray-dark">
+        <SortTable
+          columns={columns}
+          data={data}
+          tableRowClassNames={[
+            "text-base font-medium text-dark dark:text-white",
+          ]}
+          loading={loading}
+          noDataMessage="No completed requests 🎉"
+        />
+      </div>
     </div>
   );
 }
