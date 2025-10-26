@@ -1,6 +1,6 @@
 import { fetchFAQ } from '#services/FAQ.service.js';
 
-export const getHotelPromopts = async (hotelId) => {
+export const getHotelPrompts = async (hotelId) => {
   const restaurantMenu = {
     restaurantMenu: {
       Soups: [
@@ -204,7 +204,7 @@ export const getHotelPromopts = async (hotelId) => {
     },
   };
 
-  const resortAminities = {
+  const resortAmenities = {
     amenities: [
       ['Nature Walk', '6:30 am', 'Trails through plantation or guided flora walk'],
       ['Farming', '10 am', 'Farm activities with locals'],
@@ -485,7 +485,7 @@ export const getHotelPromopts = async (hotelId) => {
 
 restaurant Menu is given below as a JSON
         Restaurant Menu = ${JSON.stringify(restaurantMenu)}
-        Resort Amenities = ${JSON.stringify(resortAminities)}
+        Resort Amenities = ${JSON.stringify(resortAmenities)}
         FAQ Data = ${faq ? JSON.stringify(faq.faqData) : []}`;
 
   return [{ role: 'system', content: systemMsg }];

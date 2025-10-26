@@ -22,7 +22,7 @@ router.post('/', async (req, res) => {
       message,
     };
 
-    const result = await conversationService.handleConverastion(conversationData);
+    const result = await conversationService.handleConversation(conversationData);
 
     return res.status(201).json(conversationResponse(result));
   } catch (err) {
