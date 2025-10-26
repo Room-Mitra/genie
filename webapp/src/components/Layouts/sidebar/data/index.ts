@@ -13,12 +13,8 @@ export const NAV_DATA = [
       {
         title: "Dashboard",
         icon: Icons.HomeIcon,
-        items: [
-          {
-            title: "Overview",
-            url: "/",
-          },
-        ],
+        url: "/",
+        items: [],
       },
       {
         title: "Requests",
@@ -92,6 +88,18 @@ export const NAV_DATA = [
             title: "Info",
             url: "/hotel/info",
           },
+          {
+            title: "Amenities",
+            url: "/hotel/amenities",
+          },
+          {
+            title: "Concierge",
+            url: "/hotel/concierge",
+          },
+          {
+            title: "Restaurant Menu",
+            url: "/hotel/restaurant-menu",
+          },
         ],
       },
       {
@@ -100,12 +108,7 @@ export const NAV_DATA = [
         url: "/intents",
         items: [],
       },
-      {
-        title: "Profile",
-        url: "/profile",
-        icon: Icons.User,
-        items: [],
-      },
+
       //     {
       //       title: "Forms",
       //       icon: Icons.Alphabet,
