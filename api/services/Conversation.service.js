@@ -70,6 +70,8 @@ export async function handleConversation({
   // Prompt + previous messages + new user message
   const chatGPTMessages = [hotelPrompt, ...messagesInConversation, newUserMessage];
 
+  console.log(chatGPTMessages);
+
   const gptResponse = callChatGptApi(chatGPTMessages);
   if (gptResponse.statusCode !== 200) {
     const gptText = JSON.parse(gptResponse.getBody('utf8'));
