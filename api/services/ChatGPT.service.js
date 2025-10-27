@@ -160,8 +160,10 @@ export function getHotelPrompt({ hotel, amenities, concierge, restaurantMenu, pr
     * Handle multiple intents gracefully: combine Room Service items into one object if it's a single meal; 
       split by department otherwise.
     * Avoid verbose explanations. Keep "speech" concise and friendly so it sounds natural when spoken by TTS.
-    * Always, when a guest requests a dish that is not present in the menu, politely inform the guest that the 
+    * When a guest requests a dish that is not present in the menu, politely inform the guest that the 
       dish is not available and suggest a similar dish from the menu as a recommendation in your response.
+    * Send only one of the following values for the department enum - house_keeping, room_service, front_office,
+      concierge, facilities, general_enquiry
     `,
 
     `
@@ -206,7 +208,7 @@ export function getHotelPrompt({ hotel, amenities, concierge, restaurantMenu, pr
       "agents": [],
       "requestDetails": [
         {
-          "department": "Room Service",
+          "department": "room_service",
           "requestType": "Masala Dosa and Filter Coffee",
           "additionalDetails": "Filter coffee without sugar",
           "hasUserConfirmedOrder": false
@@ -224,13 +226,13 @@ export function getHotelPrompt({ hotel, amenities, concierge, restaurantMenu, pr
       "agents": [],
       "requestDetails": [
         {
-          "department": "House Keeping",
+          "department": "house_keeping",
           "requestType": "Towel request",
           "additionalDetails": "Bathroom towels",
           "hasUserConfirmedOrder": true
         },
         {
-          "department": "Room Service",
+          "department": "room_service",
           "requestType": "Filter coffee",
           "additionalDetails": "",
           "hasUserConfirmedOrder": false
