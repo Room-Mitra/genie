@@ -92,7 +92,7 @@ export function getHotelPrompt({ hotel, amenities, concierge, restaurantMenu, pr
       - Ask the user to confirm the order in the "speech" text (e.g., "You asked for X and Y. Shall I place 
         the order?").
       - Set "isUserResponseNeeded": true when awaiting confirmation.
-    5. For all non-Room-Service departments (housekeeping, facilities, concierge bookings, front office), set 
+    5. For all non-Room-Service departments (house_keeping, facilities, concierge, front_office), set 
        "hasUserConfirmedOrder": true assuming the guest is requesting staff action immediately.
     6. If your "speech" ends with a question, set "isUserResponseNeeded": true. Otherwise set it to false. 
     7. For music requests (including specific song, artist, or playlist), do not end speech with a question 
