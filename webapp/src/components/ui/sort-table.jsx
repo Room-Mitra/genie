@@ -11,6 +11,7 @@ import { Roles } from "./roles";
 import { Department } from "./department";
 import { Dates } from "./dates";
 import User from "./user";
+import RequestStatus from "@/app/(app)/requests/_components/requestStatus";
 
 const isDateTime = (e) => React.isValidElement(e) && e.type === DateTime;
 const isID = (e) => React.isValidElement(e) && e.type === ID;
@@ -19,6 +20,8 @@ const isRoles = (e) => React.isValidElement(e) && e.type === Roles;
 const isDepartment = (e) => React.isValidElement(e) && e.type === Department;
 const isDates = (e) => React.isValidElement(e) && e.type === Dates;
 const isStaff = (e) => React.isValidElement(e) && e.type === User;
+const isRequestStatus = (e) =>
+  React.isValidElement(e) && e.type === RequestStatus;
 const isDivOrSpan = (e) =>
   (React.isValidElement(e) && e.type === "div") || e.type === "span";
 
@@ -29,7 +32,9 @@ const getValue = (e) => {
   if (isRoles(e)) return e.props.roles?.join(",");
   if (isDepartment(e)) return e.props.department;
   if (isDates(e)) return e.props.estimatedTimeOfFulfillment;
-  if (isStaff(e)) return `${e.props.user.firstName} ${e.props.user.lastName}`;
+  if (isStaff(e))
+    return `${e.props?.user?.firstName} ${e.props?.user?.lastName}`.toUpperCase();
+  if (isRequestStatus(e)) return `${e.props.status}`;
   if (isDivOrSpan(e)) return e.props.children;
 
   return e;
