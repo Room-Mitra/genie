@@ -56,33 +56,25 @@ resource "aws_iam_policy" "s3_upload_policy" {
   description = "Allow EC2 to put objects to S3 under a specific prefix"
 
   policy = jsonencode({
-    Version = "2012-10-17"
+    Version = "2012-10-17",
     Statement = [
-      # Allow listing bucket for the given prefix (SDKs often call this)
       {
-        Sid      = "ListBucketForPrefix"
-        Effect   = "Allow"
-        Action   = ["s3:ListBucket"]
-        Resource = aws_s3_bucket.assets.arn
-
+        Sid      = "ListBucket",
+        Effect   = "Allow",
+        Action   = ["s3:ListBucket"],
+        Resource = "${aws_s3_bucket.assets.arn}"
       },
-
-      # Allow writes to the specific prefix
       {
-        Sid    = "WriteObjectsUnderPrefix"
-        Effect = "Allow"
+        Sid    = "WriteObjects",
+        Effect = "Allow",
         Action = [
           "s3:PutObject",
           "s3:AbortMultipartUpload",
           "s3:PutObjectTagging"
-        ]
-        Resource = "${aws_s3_bucket.assets.arn}"
-        Condition = {
-          Bool = {
-            "aws:SecureTransport" = true
-          }
-        }
-      },
+        ],
+        Resource  = "${aws_s3_bucket.assets.arn}/*",
+        Condition = { Bool = { "aws:SecureTransport" : true } }
+      }
     ]
   })
 }

@@ -90,7 +90,7 @@ export function FacilityUploadForm({ onCancel }) {
       <form onSubmit={onSubmit}>
         <div className="mb-5.5 flex flex-col gap-5 sm:flex-row">
           {/* Upload / Preview panel */}
-          <div className="mt-1 w-full sm:w-[33%]">
+          <div className="mt-10 w-full sm:w-[33%]">
             <input
               ref={inputRef}
               type="file"
