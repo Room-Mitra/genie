@@ -1,5 +1,5 @@
 import { GUEST_TABLE_NAME as MAPPING_TABLE_NAME } from '#Constants/DB.constants.js';
-import DDB from '#config/DynamoDb.config.js';
+import DDB from '#clients/DynamoDb.client.js';
 
 const ID_TYPE = 'MAPPING_STAFF_DEPARTMENT_ROOM:';
 

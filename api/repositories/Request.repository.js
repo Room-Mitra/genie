@@ -1,5 +1,5 @@
 import { buildHotelEntityItem } from '#common/hotelEntity.helper.js';
-import DDB from '#config/DynamoDb.config.js';
+import DDB from '#clients/DynamoDb.client.js';
 import { ENTITY_TABLE_NAME, GSI_BOOKINGTYPE_NAME } from '#Constants/DB.constants.js';
 import { ulid } from 'ulid';
 import { decodeToken, encodeToken } from './repository.helper.js';

@@ -1,6 +1,6 @@
 import { DEVICES_TABLE_NAME, ENTITY_TABLE_NAME } from '#Constants/DB.constants.js';
 import { buildHotelEntityItem } from '#common/hotelEntity.helper.js';
-import DDB from '#config/DynamoDb.config.js';
+import DDB from '#clients/DynamoDb.client.js';
 
 export const registerNewDevice = async (device) => {
   const deviceItem = buildHotelEntityItem(device);

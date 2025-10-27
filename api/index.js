@@ -1,3 +1,7 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
+import AWS from 'aws-sdk';
 import { getReqId, requestContext } from './middleware/requestContext.js';
 
 // Patch console methods to include request ID if available
@@ -8,9 +12,6 @@ for (const k of ['log', 'info', 'warn', 'error']) {
     return id ? orig(`[${id}]`, ...args) : orig(...args);
   };
 }
-
-import dotenv from 'dotenv';
-dotenv.config();
 
 import cors from 'cors';
 import express from 'express';
@@ -34,6 +35,7 @@ import userRoutes from '#routes/webapp/User.controller.js';
 import landingPageRoutes from '#routes/webapp/leads.route.js';
 import roomRoutes from '#routes/webapp/Room.controller.js';
 import requestRoutes from '#routes/webapp/Request.controller.js';
+import hotelRoutes from '#routes/webapp/Hotel.controller.js';
 
 //Android Routes
 import androidLoginRoutes from '#routes/android/Login.controller.js';
@@ -91,6 +93,7 @@ app.use('/booking', authenticator, bookingRoutes);
 app.use('/devices', authenticator, deviceRoutes);
 app.use('/rooms', authenticator, roomRoutes);
 app.use('/staff', authenticator, staffRoutes);
+app.use('/hotel', authenticator, hotelRoutes);
 app.use('/intents', authenticator, intentsRoutes);
 
 app.use('/guests', authenticator, guestRoutes);
@@ -150,3 +153,4 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+

@@ -21,6 +21,7 @@ import { cn, toTitleCaseFromSnake } from "@/lib/utils";
 import { Autocomplete } from "@/components/Autocomplete";
 import { TextAreaGroup } from "@/components/FormElements/InputGroup/text-area";
 import { toast } from "react-toastify";
+import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 
 async function fetchActiveRequests() {
   const statuses = ["unacknowledged", "in_progress", "delayed"];
@@ -234,128 +235,129 @@ export default function Page() {
   }
 
   return (
-    <div className="rounded-[10px] bg-white p-6 dark:bg-gray-dark">
-      <h2 className="mb-4 text-body-2xlg font-bold text-dark dark:text-white">
-        Active Requests
-      </h2>
+    <div>
+      <Breadcrumb pageName="Active Requests" parent="Requests" />
+      <div className="rounded-[10px] bg-white p-6 dark:bg-gray-dark">
+        <SortTable
+          columns={columns}
+          data={data}
+          tableRowClassNames={[
+            "text-base font-medium text-dark dark:text-white",
+          ]}
+          loading={loading}
+          noDataMessage="No active requests 🎉"
+        />
 
-      <SortTable
-        columns={columns}
-        data={data}
-        tableRowClassNames={["text-base font-medium text-dark dark:text-white"]}
-        loading={loading}
-        noDataMessage="No active requests 🎉"
-      />
+        {/* Note and user assignment modal */}
+        <div>
+          <Dialog
+            open={showModal}
+            onClose={() => resetForm()}
+            className="relative z-40"
+          >
+            <DialogBackdrop
+              transition
+              className="data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in fixed inset-0 bg-gray-900/50 transition-opacity"
+            />
 
-      {/* Note and user assignment modal */}
-      <div>
-        <Dialog
-          open={showModal}
-          onClose={() => resetForm()}
-          className="relative z-40"
-        >
-          <DialogBackdrop
-            transition
-            className="data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in fixed inset-0 bg-gray-900/50 transition-opacity"
-          />
-
-          <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
-            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-              <DialogPanel
-                transition
-                className="data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in data-closed:sm:translate-y-0 data-closed:sm:scale-95 relative transform overflow-hidden rounded-lg bg-gray-800 text-left shadow-xl outline -outline-offset-1 outline-white/10 transition-all sm:my-8 sm:w-full sm:max-w-lg"
-              >
-                <div className="bg-gray-200 text-dark dark:bg-gray-900 sm:p-5">
-                  <DialogTitle
-                    as="h3"
-                    className="text-base font-semibold text-dark dark:text-white"
-                  >
-                    <div className="mx-auto flex w-fit flex-row items-center gap-3">
-                      <span>Change Request </span>
-                      <ID ulid={request?.requestId} /> <span>to </span>
-                      <RequestStatus status={toStatus} />
-                    </div>
-                  </DialogTitle>
-                </div>
-
-                <div className="bg-white dark:bg-gray-800 sm:p-6 sm:pb-4">
-                  <div className="mt-4">
-                    <form
-                      onSubmit={handleStateTransition}
-                      className="grid gap-4"
+            <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+              <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <DialogPanel
+                  transition
+                  className="data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in data-closed:sm:translate-y-0 data-closed:sm:scale-95 relative transform overflow-hidden rounded-lg bg-gray-800 text-left shadow-xl outline -outline-offset-1 outline-white/10 transition-all sm:my-8 sm:w-full sm:max-w-lg"
+                >
+                  <div className="bg-gray-200 text-dark dark:bg-gray-900 sm:p-5">
+                    <DialogTitle
+                      as="h3"
+                      className="text-base font-semibold text-dark dark:text-white"
                     >
-                      {requireAssignedStaffUser && (
-                        <Autocomplete
-                          required
-                          label="Assign to"
-                          placeholder="Search staff by name, email or mobile"
-                          value={assignedStaffUser}
-                          onSelect={(st) => setAssignedStaffUser(st)}
-                          fetcher={searchStaff}
-                          getDisplayValue={(st) => {
-                            const name =
-                              `${st.firstName} ${st.lastName}`.trim();
-
-                            const roles = [st.department, ...(st.roles || [])]
-                              .filter(Boolean)
-                              .map(toTitleCaseFromSnake)
-                              .join(", ");
-
-                            return [name, roles].filter(Boolean).join(" || ");
-                          }}
-                          renderItem={(st) => (
-                            <User
-                              user={st}
-                              showEmail={true}
-                              showDepartment={true}
-                              showRoles={true}
-                              width="w-[100%]"
-                            />
-                          )}
-                          noResultsContent={
-                            <div className="flex items-center justify-between">
-                              <span>Staff not found</span>
-                            </div>
-                          }
-                        />
-                      )}
-
-                      <TextAreaGroup
-                        label="Note"
-                        placeholder="Note about the task"
-                        handleChange={(e) => setNote(e.target.value)}
-                      />
-
-                      <div className="mt-2 flex items-center justify-end gap-3">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            resetForm();
-                          }}
-                          className="rounded-xl border border-gray-700 px-4 py-2 text-sm text-dark hover:bg-gray-300 dark:text-white dark:hover:bg-gray-700"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="submit"
-                          disabled={!canChangeStatus}
-                          className={cn(
-                            "rounded-xl px-4 py-2 text-sm font-medium",
-                            !canChangeStatus
-                              ? "bg-gray-700 text-gray-400"
-                              : "bg-indigo-600 text-white hover:bg-indigo-500",
-                          )}
-                        >
-                          {isChangingStatus ? "Saving..." : "Save"}
-                        </button>
+                      <div className="mx-auto flex w-fit flex-row items-center gap-3">
+                        <span>Change Request </span>
+                        <ID ulid={request?.requestId} /> <span>to </span>
+                        <RequestStatus status={toStatus} />
                       </div>
-                    </form>
+                    </DialogTitle>
                   </div>
-                </div>
-              </DialogPanel>
+
+                  <div className="bg-white dark:bg-gray-800 sm:p-6 sm:pb-4">
+                    <div className="mt-4">
+                      <form
+                        onSubmit={handleStateTransition}
+                        className="grid gap-4"
+                      >
+                        {requireAssignedStaffUser && (
+                          <Autocomplete
+                            required
+                            label="Assign to"
+                            placeholder="Search staff by name, email or mobile"
+                            value={assignedStaffUser}
+                            onSelect={(st) => setAssignedStaffUser(st)}
+                            fetcher={searchStaff}
+                            getDisplayValue={(st) => {
+                              const name =
+                                `${st.firstName} ${st.lastName}`.trim();
+
+                              const roles = [st.department, ...(st.roles || [])]
+                                .filter(Boolean)
+                                .map(toTitleCaseFromSnake)
+                                .join(", ");
+
+                              return [name, roles].filter(Boolean).join(" || ");
+                            }}
+                            renderItem={(st) => (
+                              <User
+                                user={st}
+                                showEmail={true}
+                                showDepartment={true}
+                                showRoles={true}
+                                width="w-[100%]"
+                              />
+                            )}
+                            noResultsContent={
+                              <div className="flex items-center justify-between">
+                                <span>Staff not found</span>
+                              </div>
+                            }
+                          />
+                        )}
+
+                        <TextAreaGroup
+                          label="Note"
+                          placeholder="Note about the task"
+                          handleChange={(e) => setNote(e.target.value)}
+                        />
+
+                        <div className="mt-2 flex items-center justify-end gap-3">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              resetForm();
+                            }}
+                            className="rounded-xl border border-gray-700 px-4 py-2 text-sm text-dark hover:bg-gray-300 dark:text-white dark:hover:bg-gray-700"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={!canChangeStatus}
+                            className={cn(
+                              "rounded-xl px-4 py-2 text-sm font-medium",
+                              !canChangeStatus
+                                ? "bg-gray-700 text-gray-400"
+                                : "bg-indigo-600 text-white hover:bg-indigo-500",
+                            )}
+                          >
+                            {isChangingStatus ? "Saving..." : "Save"}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </DialogPanel>
+              </div>
             </div>
-          </div>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
     </div>
   );

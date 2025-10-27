@@ -1,5 +1,6 @@
 "use client";
 
+import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { DateTime } from "@/components/ui/datetime";
 import { ID } from "@/components/ui/id";
 import SortTable from "@/components/ui/sort-table";
@@ -71,18 +72,19 @@ export default function Page() {
   }, []);
 
   return (
-    <div className="bg-white p-6 dark:bg-gray-dark">
-      <h2 className="mb-4 text-body-2xlg font-bold text-dark dark:text-white">
-        Rooms
-      </h2>
-
-      <SortTable
-        columns={columns}
-        data={data}
-        tableRowClassNames={["text-base font-medium text-dark dark:text-white"]}
-        noDataMessage="No rooms available"
-        loading={loading}
-      />
+    <div>
+      <Breadcrumb pageName="All Rooms" parent="Rooms" />
+      <div className="rounded-[10px] bg-white p-6 dark:bg-gray-dark">
+        <SortTable
+          columns={columns}
+          data={data}
+          tableRowClassNames={[
+            "text-base font-medium text-dark dark:text-white",
+          ]}
+          noDataMessage="No rooms available"
+          loading={loading}
+        />
+      </div>
     </div>
   );
 }
