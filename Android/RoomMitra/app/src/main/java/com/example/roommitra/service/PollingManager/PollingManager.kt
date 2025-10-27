@@ -87,10 +87,15 @@ class RestaurantMenuRepository(private val apiService: ApiService) {
     suspend fun fetchMenu() {
         Log.d("PollingManager", "Calling /restaurant/menu")
         when (val result = apiService.get("restaurant/menu")) {
-            is ApiResult.Success -> _menuData.value = result.data
+            is ApiResult.Success -> {
+                Log.d("PollingManager", "Menu fetch success: ${result.data}")
+                withContext(Dispatchers.Main) {
+                    _menuData.value = result.data
+                }
+            }
             is ApiResult.Error -> {
                 Log.d("PollingManager", "Restaurant Menu error: ${result.message}")
-                _menuData.value = null;
+//                _menuData.value = null
             }
         }
     }
