@@ -118,7 +118,7 @@ export default function Page() {
                     style={{ aspectRatio: "4 / 1" }}
                   >
                     <Image
-                      src={a.image.url}
+                      src={a?.headerImage?.url}
                       alt="Selected facility"
                       fill
                       className="object-cover"

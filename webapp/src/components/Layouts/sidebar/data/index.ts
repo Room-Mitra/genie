@@ -1,10 +1,6 @@
-import {
-  BookOpenIcon,
-  HandRaisedIcon,
-  UsersIcon,
-} from "@heroicons/react/24/outline";
+import { BookOpenIcon, UsersIcon } from "@heroicons/react/24/outline";
 import * as Icons from "../icons";
-import { BedDoubleIcon, HotelIcon } from "lucide-react";
+import { BedDoubleIcon, HotelIcon, LineChartIcon } from "lucide-react";
 
 export const NAV_DATA = [
   {
@@ -12,7 +8,7 @@ export const NAV_DATA = [
     items: [
       {
         title: "Dashboard",
-        icon: Icons.HomeIcon,
+        icon: LineChartIcon,
         url: "/",
         items: [],
       },
@@ -101,12 +97,6 @@ export const NAV_DATA = [
             url: "/hotel/restaurant-menu",
           },
         ],
-      },
-      {
-        title: "Intents",
-        icon: HandRaisedIcon,
-        url: "/intents",
-        items: [],
       },
 
       //     {

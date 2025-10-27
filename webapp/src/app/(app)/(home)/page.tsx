@@ -22,10 +22,6 @@ export default async function Home({ searchParams }: PropsType) {
 
   return (
     <>
-      <Suspense fallback={<OverviewCardsSkeleton />}>
-        <OverviewCardsGroup />
-      </Suspense>
-
       <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:mt-9 2xl:gap-7.5">
         <PaymentsOverview
           className="col-span-12 xl:col-span-7"
@@ -38,21 +34,33 @@ export default async function Home({ searchParams }: PropsType) {
           timeFrame={extractTimeFrame("weeks_profit")?.split(":")[1]}
           className="col-span-12 xl:col-span-5"
         />
+      </div>
+      <div className="mt-4 md:mt-6 2xl:mt-9">
+        <Suspense fallback={<OverviewCardsSkeleton />}>
+          <OverviewCardsGroup />
+        </Suspense>
+      </div>
 
+      <div className="mt-4 md:mt-6 2xl:mt-9">
         <UsedDevices
           className="col-span-12 xl:col-span-5"
           key={extractTimeFrame("used_devices")}
           timeFrame={extractTimeFrame("used_devices")?.split(":")[1]}
         />
+      </div>
 
+      <div className="mt-4 md:mt-6 2xl:mt-9">
         <RegionLabels />
+      </div>
 
+      <div className="mt-4 md:mt-6 2xl:mt-9">
         <div className="col-span-12 grid xl:col-span-8">
           <Suspense fallback={<TopChannelsSkeleton />}>
             <TopChannels />
           </Suspense>
         </div>
-
+      </div>
+      <div className="mt-4 md:mt-6 2xl:mt-9">
         <Suspense fallback={null}>
           <ChatsCard />
         </Suspense>
