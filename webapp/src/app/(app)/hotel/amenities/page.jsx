@@ -89,6 +89,8 @@ export default function Page() {
       {showAddFacility && (
         <FacilityUploadForm
           onCancel={() => setShowAddFacility((prev) => !prev)}
+          entityType="AMENITY"
+          refresh={() => refreshAmenities()}
         />
       )}
 

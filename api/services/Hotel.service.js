@@ -7,10 +7,10 @@ import { hashPassword } from './User.service.js';
 import { hasAnyRole } from '#common/auth.helper.js';
 import { HotelRole } from '#Constants/roles.js';
 import S3 from '#clients/S3.js';
-import { amenityResponse } from '#presenters/amenity.js';
+import { amenityResponse as amenityOrConciergeResponse } from '#presenters/amenity.js';
 
 const ALLOWED_UPDATE_FIELDS = ['name', 'address', 'contactEmail', 'contactPhone'];
-const AMENITIES_S3_BUCKET = 'roommitra-assets-bucket';
+const ASSETS_S3_BUCKET = 'roommitra-assets-bucket';
 const PUBLIC_BASE_URL = 'https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com';
 
 export async function getHotelById(hotelId) {
@@ -124,17 +124,19 @@ export async function addStaffToHotel(hotelId, userPayload) {
   return updated;
 }
 
-export async function addAmenity({ hotelId, title, description, image }) {
-  if (!hotelId || !title || !description || !image) {
-    throw new Error('requier hotelId, title, description and image to create amenity');
+export async function addAmenityOrConcierge({ hotelId, title, description, image, entityType }) {
+  if (!hotelId || !title || !description || !image || !entityType) {
+    throw new Error(
+      'require hotelId, title, description, image and type to create amenity or concierge service'
+    );
   }
 
   const originalName = image.originalname;
   const ext = originalName && originalName.includes('.') ? originalName.split('.').pop() : 'bin';
-  const key = [hotelId, 'amenities', `${ulid()}.${ext}`].join('/');
+  const key = [hotelId, entityType, `${ulid()}.${ext}`].join('/');
 
   const out = await S3.upload({
-    Bucket: AMENITIES_S3_BUCKET,
+    Bucket: ASSETS_S3_BUCKET,
     Key: key,
     Body: image.buffer,
     ContentType: image.mimetype,
@@ -142,30 +144,54 @@ export async function addAmenity({ hotelId, title, description, image }) {
 
   const imageUrl = PUBLIC_BASE_URL ? `${PUBLIC_BASE_URL}/${encodeURI(key)}` : out.Location;
 
-  const amenityId = ulid();
-  const amenity = {
-    amenityId,
+  const idFields = {
+    AMENITY: 'amenityId',
+    CONCIERGE: 'serviceId',
+  };
+
+  const timeId = ulid();
+  const entity = {
     hotelId,
     title,
     description,
     image: {
       url: imageUrl,
     },
-    entityType: 'AMENITY',
+    entityType,
   };
 
-  const res = await hotelRepo.putAmenity(amenity);
-  return amenityResponse(res);
+  entity[idFields[entityType]] = timeId;
+
+  const res = await hotelRepo.putAmenityOrConcierge(entity);
+  return amenityOrConciergeResponse(res);
 }
 
 export async function listAmenities({ hotelId }) {
-  const amenities = await hotelRepo.queryAllAmenities({ hotelId });
+  const amenities = await hotelRepo.queryAllAmenitiesOrConcierge({
+    hotelId,
+    entityType: 'AMENITY',
+  });
   return {
-    items: amenities.map(amenityResponse),
+    items: amenities.map(amenityOrConciergeResponse),
     count: amenities.length,
   };
 }
 
 export async function deleteAmenity({ hotelId, amenityId }) {
-  return hotelRepo.deleteAmenity({ hotelId, amenityId });
+  return hotelRepo.deleteAmenityOrConcierge({ hotelId, id: amenityId, entityType: 'AMENITY' });
+}
+
+export async function listConciergeServices({ hotelId }) {
+  const concierge = await hotelRepo.queryAllAmenitiesOrConcierge({
+    hotelId,
+    entityType: 'CONCIERGE',
+  });
+  return {
+    items: concierge.map(amenityOrConciergeResponse),
+    count: concierge.length,
+  };
+}
+
+export async function deleteConciergeService({ hotelId, serviceId }) {
+  return hotelRepo.deleteAmenityOrConcierge({ hotelId, id: serviceId, entityType: 'CONCIERGE' });
 }

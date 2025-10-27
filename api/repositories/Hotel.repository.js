@@ -119,7 +119,7 @@ export async function queryLatestHotelByPrefix(hotelIdPrefix) {
   return data.Items && data.Items[0];
 }
 
-export async function putAmenity(amenity) {
+export async function putAmenityOrConcierge(amenity) {
   const amenityItem = buildHotelEntityItem(amenity);
   const params = {
     TableName: ENTITY_TABLE_NAME,
@@ -130,7 +130,7 @@ export async function putAmenity(amenity) {
   return params.Item;
 }
 
-export async function queryAllAmenities({ hotelId }) {
+export async function queryAllAmenitiesOrConcierge({ hotelId, entityType }) {
   if (!hotelId) {
     throw new Error('hotelId is required to query all amenities for hotel');
   }
@@ -144,7 +144,7 @@ export async function queryAllAmenities({ hotelId }) {
     },
     ExpressionAttributeValues: {
       ':pk': `HOTEL#${hotelId}`,
-      ':sk': 'HOTEL#META#AMENITY#',
+      ':sk': `HOTEL#META#${entityType}#`,
     },
     ScanIndexForward: false,
   };
@@ -162,26 +162,26 @@ export async function queryAllAmenities({ hotelId }) {
 
     return items;
   } catch (err) {
-    console.error('Failed to list amenities:', err);
-    throw new Error('Failed to list amenities');
+    console.error('Failed to list amenities / concierge services:', err);
+    throw new Error('Failed to list amenities / concierge services');
   }
 }
 
-export async function deleteAmenity({ hotelId, amenityId }) {
-  if (!hotelId || !amenityId) return null;
+export async function deleteAmenityOrConcierge({ hotelId, id, entityType }) {
+  if (!hotelId || !id || !entityType) return null;
 
   const params = {
     TableName: ENTITY_TABLE_NAME,
     Key: {
       pk: `HOTEL#${hotelId}`,
-      sk: `HOTEL#META#AMENITY#${amenityId}`,
+      sk: `HOTEL#META#${entityType}#${id}`,
     },
   };
 
   try {
     await DDB.delete(params).promise();
   } catch (err) {
-    console.error('Failed to delete amenity', err);
-    throw new Error('Failed to delete amenity');
+    console.error('Failed to delete amenity / concierge service', err);
+    throw new Error('Failed to delete amenity / concierge service');
   }
 }

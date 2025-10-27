@@ -1,19 +1,26 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { UploadIcon } from "@/assets/icons";
 import InputGroup from "@/components/FormElements/InputGroup";
 import { TextAreaGroup } from "@/components/FormElements/InputGroup/text-area";
 import { toast } from "react-toastify";
+import { cn, toTitleCaseFromSnake } from "@/lib/utils";
+import { Spinner } from "@material-tailwind/react";
 
-export function FacilityUploadForm({ onCancel }) {
+export function FacilityUploadForm({ onCancel, entityType, refresh }) {
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const inputRef = useRef(null);
+
+  const canSubmit = useMemo(() => {
+    return file && title && description && !uploading;
+  }, [file, title, description, uploading]);
 
   // Create/revoke preview URL
   useEffect(() => {
@@ -61,7 +68,11 @@ export function FacilityUploadForm({ onCancel }) {
     fd.append("image", file);
 
     try {
-      const res = await fetch("/api/hotel/amenities", {
+      const endpoint = {
+        AMENITY: "amenities",
+        CONCIERGE: "concierge",
+      };
+      const res = await fetch(`/api/hotel/${endpoint[entityType]}`, {
         method: "POST",
         body: fd,
       });
@@ -77,10 +88,11 @@ export function FacilityUploadForm({ onCancel }) {
       setFile(null);
       setTitle("");
       setDescription("");
-      toast.success("Amenity added!");
-      onCancel();
+      toast.success(`${toTitleCaseFromSnake(entityType)} added!`);
+
+      if (onCancel) onCancel();
+      if (refresh) refresh();
     } catch (err) {
-      console.error(err);
       toast.error(err?.message || "Something went wrong");
     }
   }
@@ -199,11 +211,18 @@ export function FacilityUploadForm({ onCancel }) {
           >
             Cancel
           </button>
+
           <button
-            className="flex items-center justify-center rounded-lg bg-primary px-6 py-[7px] font-medium text-gray-2 hover:bg-opacity-90"
             type="submit"
+            disabled={!canSubmit}
+            className={cn(
+              "rounded-xl px-4 py-2 text-sm font-medium",
+              canSubmit
+                ? "bg-indigo-600 text-white hover:bg-indigo-500"
+                : "cursor-not-allowed bg-gray-700 text-gray-400",
+            )}
           >
-            Save
+            {uploading ? "Saving..." : "Save"}
           </button>
         </div>
       </form>
