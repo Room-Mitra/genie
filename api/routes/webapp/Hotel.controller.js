@@ -67,7 +67,7 @@ router.post('/amenities', upload.single('image'), async (req, res) => {
       hotelId,
       title,
       description,
-      image,
+      headerImage: image,
       entityType: 'AMENITY',
     });
 
@@ -124,7 +124,7 @@ router.post('/concierge', upload.single('image'), async (req, res) => {
       hotelId,
       title,
       description,
-      image,
+      headerImage: image,
       entityType: 'CONCIERGE',
     });
 

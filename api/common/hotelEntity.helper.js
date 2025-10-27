@@ -234,7 +234,7 @@ export function buildHotelEntityItem(input) {
         hotelId: i.hotelId,
         title: i.title,
         description: i.description,
-        image: i.image,
+        headerImage: i.headerImage,
         createdAt: i.createdAt,
       });
     }
@@ -253,7 +253,7 @@ export function buildHotelEntityItem(input) {
         hotelId: i.hotelId,
         title: i.title,
         description: i.description,
-        image: i.image,
+        headerImage: i.headerImage,
         createdAt: i.createdAt,
       });
     }
