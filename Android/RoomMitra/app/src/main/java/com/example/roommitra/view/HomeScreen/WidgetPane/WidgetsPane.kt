@@ -96,13 +96,8 @@ fun WidgetsPane(
         Spacer(Modifier.height(20.dp))
         Spacer(Modifier.height(12.dp))
 
-        OrderStatusCard(
-            orders = listOf(
-                Order("Dinner", "Cooking", "15m", Icons.Default.Restaurant),
-                Order("Laundry", "On the way", "5m", Icons.Default.LocalShipping),
-                Order("Taxi", "Arriving", "2m", Icons.Default.DirectionsCar)
-            )
-        )
+        OrderStatusCard()
+
 
         Spacer(Modifier.height(12.dp))
 
