@@ -1,14 +1,13 @@
 import express from 'express';
 import * as conversationService from '#services/Conversation.service.js';
-import { conversationResponse } from '#presenters/conversation.js';
 
 const router = express.Router();
 
 router.post('/', async (req, res) => {
   try {
-    const { hotelId, roomId, deviceId } = req.deviceData;
+    const { hotelId, roomId, deviceId, bookingId } = req.deviceData;
 
-    const { conversationId, message, bookingId } = req.body;
+    const { conversationId, message } = req.body;
     if (!message || !bookingId) {
       return res.status(400).json({ error: 'Require bookingId and message for conversations' });
     }
@@ -19,12 +18,12 @@ router.post('/', async (req, res) => {
       deviceId,
       bookingId,
       conversationId,
-      message,
+      userContent: message,
     };
 
     const result = await conversationService.handleConversation(conversationData);
 
-    return res.status(201).json(conversationResponse(result));
+    return res.status(201).json(result);
   } catch (err) {
     console.error('Error adding to conversation', err);
     return res.status(500).json({ error: err?.message || 'Internal server error' });

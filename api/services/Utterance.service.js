@@ -1,4 +1,4 @@
-import { getHotelPrompts } from '#repositories/Utterance.repository.js';
+import { getHotelPrompt } from '#services/ChatGPT.service.js';
 import SessionManager from '#libs/SessionManager.js';
 import { callChatGptApi, parseGptResponse } from '#libs/ChatGpt.js';
 import { registerIntent } from '#services/Intent.service.js';
@@ -63,7 +63,7 @@ export const registerRequests = (session, deviceId, requestDetails) => {
 };
 
 const buildPrompt = async (hotelId, history) => {
-  return [...(await getHotelPrompts(hotelId)), ...history];
+  return [...(await getHotelPrompt(hotelId)), ...history];
 };
 
 /** this function returns true if the user utterance was related to an admisnitrative task, else returns false.

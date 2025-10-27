@@ -6,7 +6,8 @@ import { ClipboardIcon, CheckIcon } from "@heroicons/react/24/outline";
 export function ID({ ulid }) {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = async () => {
+  const handleCopy = async (e) => {
+    e.preventDefault();
     try {
       await navigator.clipboard.writeText(ulid);
       setCopied(true);
@@ -23,6 +24,7 @@ export function ID({ ulid }) {
       </span>
 
       <button
+        type="button"
         onClick={handleCopy}
         className="group relative p-1 text-gray-400 transition-colors hover:text-gray-600"
         aria-label="Copy ULID"

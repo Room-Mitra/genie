@@ -141,6 +141,7 @@ export function buildHotelEntityItem(input) {
         assignedToUserId: i.assignedToUserId,
         conversationId: i.conversationId,
         createdAt: i.createdAt,
+        description: i.description,
       });
     }
 
@@ -174,7 +175,7 @@ export function buildHotelEntityItem(input) {
 
     case 'MESSAGE': {
       const messageId = i.messageId ?? ulid();
-      const pk = `CONVERSATIONL#${i.conversationId}`;
+      const pk = `CONVERSATION#${i.conversationId}`;
       const sk = `MESSAGE#${messageId}`;
       return clean({
         pk,
@@ -187,6 +188,10 @@ export function buildHotelEntityItem(input) {
         roomId: i.roomId,
         senderType: i.senderType,
         content: i.content,
+        isUserResponseNeeded: i.isUserResponseNeeded,
+        agents: i.agents,
+        role: i.role,
+        requestDetails: i.requestDetails,
         requestId: i.requestId,
         createdAt: i.createdAt,
       });
@@ -218,14 +223,15 @@ export function buildHotelEntityItem(input) {
 
     case 'AMENITY': {
       const amenityId = i.amenityId ?? ulid();
+      const pk = `HOTEL#${i.hotelId}`;
       const sk = `HOTEL#META#AMENITY#${amenityId}`;
-      const base = baseKeys(i.hotelId, sk);
       return clean({
-        ...base,
+        pk,
+        sk,
+        amenityId,
 
         entityType: 'AMENITY',
         hotelId: i.hotelId,
-        amenityId,
         title: i.title,
         description: i.description,
         image: i.image,
@@ -235,17 +241,36 @@ export function buildHotelEntityItem(input) {
 
     case 'CONCIERGE': {
       const serviceId = i.serviceId ?? ulid();
+      const pk = `HOTEL#${i.hotelid}`;
       const sk = `HOTEL#META#CONCIERGE#${serviceId}`;
-      const base = baseKeys(i.hotelId, sk);
+
       return clean({
-        ...base,
+        pk,
+        sk,
+        serviceId,
 
         entityType: 'CONCIERGE',
         hotelId: i.hotelId,
-        serviceId: serviceId,
         title: i.title,
         description: i.description,
         image: i.image,
+        createdAt: i.createdAt,
+      });
+    }
+
+    case 'MENU': {
+      const menuId = i.menuId ?? ulid();
+      const pk = `HOTEL#${i.hotelId}`;
+      const sk = `HOTEL#META#MENU#${menuId}`;
+
+      return clean({
+        pk,
+        sk,
+        menuId,
+
+        entityType: 'MENU',
+        hotelId: i.hotelId,
+        contents: i.contents,
         createdAt: i.createdAt,
       });
     }

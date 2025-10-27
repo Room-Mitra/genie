@@ -1,5 +1,5 @@
 import { ENTITY_TABLE_NAME } from '#Constants/DB.constants.js';
-import DDB from '#config/DynamoDb.config.js';
+import DDB from '#clients/DynamoDb.client.js';
 
 export async function getMessages({ conversationId }) {
   const params = {
