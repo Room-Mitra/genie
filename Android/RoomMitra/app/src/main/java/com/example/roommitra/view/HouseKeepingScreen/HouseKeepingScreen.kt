@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.roommitra.service.ApiResult
 import com.example.roommitra.service.ApiService
+import com.example.roommitra.service.SessionManager
 import com.example.roommitra.view.components.ConfirmationDialog
 import com.example.roommitra.view.data.HousekeepingSections
 import kotlinx.coroutines.launch
@@ -125,19 +126,14 @@ fun HouseKeepingScreen(onBackClick: () -> Unit) {
                 coroutineScope.launch {
                     val apiService = ApiService(context)
 
-                    // amenity data
-                    val housekeepingData = JSONObject().apply {
-                        put("requestType", selectedRequest)
-                    }
-
-                    // Final request body
                     val requestBody = JSONObject().apply {
-                        put("department", "HouseKeeping")
-                        put("totalAmount", 0)
-                        put("data", housekeepingData)
+                        put("department", "house_keeping")
+                        put("requestType", selectedRequest)
+                        put("bookingId", SessionManager(context).getBookingId())
+
                     }
 
-                    when (val result = apiService.post("request", requestBody)) {
+                    when (val result = apiService.post("requests", requestBody)) {
                         is ApiResult.Success -> {
                             Log.d("HouseKeeping", "API Success for house keeping request - '${selectedRequest}'")
                             SnackbarManager.showMessage("House keeping request raised for '${selectedRequest}'", SnackbarType.SUCCESS)
