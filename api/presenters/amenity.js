@@ -9,7 +9,7 @@ export function amenityOrConciergeResponse(ac) {
   };
 
   if (ac.amenityId) ret['amenityId'] = ac.amenityId;
-  if (ac.serviceid) ret['serviceId'] = ac.serviceId;
+  if (ac.serviceId) ret['serviceId'] = ac.serviceId;
 
   return ret;
 }
