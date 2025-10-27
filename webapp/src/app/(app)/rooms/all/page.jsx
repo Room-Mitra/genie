@@ -55,7 +55,9 @@ export default function Page() {
                   {r.floor}
                 </div>
               ),
-              description: r.description,
+              description: (
+                <div className="inline-flex max-w-[350px]">{r.description}</div>
+              ),
               createdAt: <DateTime dateTimeIso={r.createdAt} />,
             })),
           );

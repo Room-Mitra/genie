@@ -115,6 +115,10 @@ export default function AddBookingPage() {
     creating,
   ]);
 
+  const canSubmitRoom = useMemo(() => {
+    return roomForm.number && roomForm.type && roomForm.floor && !savingRoom;
+  }, [roomForm, savingRoom]);
+
   function resetForm() {
     setCheckInDate("");
     setCheckInTime("13:00");
@@ -213,7 +217,7 @@ export default function AddBookingPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <Breadcrumb pageName="Add booking" parent="Booking" />
+      <Breadcrumb pageName="New Booking" parent="Booking" />
       <div className="rounded-[10px] bg-white p-6 dark:bg-gray-dark">
         <form onSubmit={handleCreateBooking} className="grid grid-cols-1 gap-5">
           {/* Dates */}
@@ -269,7 +273,7 @@ export default function AddBookingPage() {
               `#${room.number} · ${room.type} · ${room.floor}F`
             }
             renderItem={(room) => (
-              <div className="grid h-12 w-full grid-cols-[200px_100px_360px] items-center gap-3 sm:grid-cols-[220px_110px_420px]">
+              <div className="grid h-12 w-full grid-cols-[200px_100px_320px] items-center gap-3 sm:grid-cols-[220px_110px_320px]">
                 {/* Col 1: #room + type */}
                 <div className="flex min-w-0 items-center gap-2">
                   <div className="inline-block rounded-full bg-cyan-600 px-3 py-2">
@@ -394,7 +398,14 @@ export default function AddBookingPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="mt-2 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={resetForm}
+              className="rounded-xl border border-gray-700 px-4 py-2 text-sm text-dark hover:bg-gray-300 dark:text-gray-300"
+            >
+              Reset
+            </button>
             <button
               type="submit"
               disabled={!canSubmit}
@@ -405,14 +416,7 @@ export default function AddBookingPage() {
                   : "cursor-not-allowed bg-gray-700 text-gray-400",
               )}
             >
-              {creating ? "Creating..." : "Create booking"}
-            </button>
-            <button
-              type="button"
-              onClick={resetForm}
-              className="rounded-xl border border-gray-700 px-4 py-2 text-sm text-dark hover:bg-gray-300 dark:text-gray-300"
-            >
-              Reset
+              {creating ? "Saving..." : "Save booking"}
             </button>
           </div>
         </form>
@@ -523,7 +527,7 @@ export default function AddBookingPage() {
                             type="submit"
                             className={cn(
                               "rounded-xl px-4 py-2 text-sm font-medium",
-                              savingRoom
+                              !canSubmitRoom
                                 ? "bg-gray-700 text-gray-400"
                                 : "bg-indigo-600 text-white hover:bg-indigo-500",
                             )}

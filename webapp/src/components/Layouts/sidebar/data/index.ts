@@ -31,10 +31,6 @@ export const NAV_DATA = [
         icon: BookOpenIcon,
         items: [
           {
-            title: "+ Create New",
-            url: "/bookings/new",
-          },
-          {
             title: "Active",
             url: "/bookings/active",
           },
@@ -46,6 +42,10 @@ export const NAV_DATA = [
             title: "Past",
             url: "/bookings/past",
           },
+          {
+            title: "+ New Booking",
+            url: "/bookings/new",
+          },
         ],
       },
       {
@@ -53,12 +53,12 @@ export const NAV_DATA = [
         icon: BedDoubleIcon,
         items: [
           {
-            title: "+ Create New",
-            url: "/rooms/new",
-          },
-          {
             title: "All",
             url: "/rooms/all",
+          },
+          {
+            title: "+ New Room",
+            url: "/rooms/new",
           },
         ],
       },
@@ -67,12 +67,12 @@ export const NAV_DATA = [
         icon: UsersIcon,
         items: [
           {
-            title: "+ Add Staff",
-            url: "/staff/new",
-          },
-          {
             title: "All",
             url: "/staff/all",
+          },
+          {
+            title: "+ New Staff",
+            url: "/staff/new",
           },
         ],
       },

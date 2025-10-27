@@ -138,7 +138,7 @@ export default function AddStaffPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <Breadcrumb pageName="Add staff" parent="Staff" />
+      <Breadcrumb pageName="New Staff" parent="Staff" />
       <div className="rounded-[10px] bg-white p-6 dark:bg-gray-dark">
         <form onSubmit={handleAddStaff} className="grid grid-cols-1 gap-5">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -334,7 +334,14 @@ export default function AddStaffPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="mt-2 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={resetForm}
+              className="rounded-xl border border-gray-700 px-4 py-2 text-sm text-dark hover:bg-gray-300 dark:text-gray-300"
+            >
+              Reset
+            </button>
             <button
               type="submit"
               disabled={!canSubmit}
@@ -345,14 +352,7 @@ export default function AddStaffPage() {
                   : "cursor-not-allowed bg-gray-700 text-gray-400",
               )}
             >
-              {creating ? "Creating..." : "Create staff"}
-            </button>
-            <button
-              type="button"
-              onClick={resetForm}
-              className="rounded-xl border border-gray-700 px-4 py-2 text-sm text-dark hover:bg-gray-300 dark:text-gray-300"
-            >
-              Reset
+              {creating ? "Saving..." : "Save staff"}
             </button>
           </div>
         </form>
