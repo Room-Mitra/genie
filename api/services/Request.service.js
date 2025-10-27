@@ -6,14 +6,6 @@ import * as roomRepo from '#repositories/Room.repository.js';
 import * as staffRepo from '#repositories/Staff.repository.js';
 import { ulid } from 'ulid';
 
-export async function listRequestsByBooking({ bookingId }) {
-  const requests = await requestRepo.queryRequestsForBooking({ bookingId });
-  return {
-    items: requests,
-    count: requests.length,
-  };
-}
-
 const minsToFulfillByDepartment = {
   house_keeping: () => {
     const { min, max } = { min: 25, max: 35 };
@@ -41,6 +33,14 @@ const minsToFulfillByDepartment = {
   },
 };
 
+export async function listRequestsByBooking({ bookingId }) {
+  const requests = await requestRepo.queryRequestsForBooking({ bookingId });
+  return {
+    items: requests,
+    count: requests.length,
+  };
+}
+
 export async function createRequest(requestData) {
   const { hotelId, roomId, bookingId, deviceId, department, requestType } = requestData;
 
@@ -64,7 +64,7 @@ export async function createRequest(requestData) {
     roomId,
     deviceId,
     bookingId,
-    status: 'unacknowledged',
+    status: RequestStatus.UNACKNOWLEDGED,
   };
 
   return await requestRepo.createRequest(request);
@@ -138,12 +138,7 @@ export async function startRequest({
   });
 }
 
-export async function completeRequest({
-  requestId,
-  hotelId,
-  note,
-  updatedByUserId,
-}) {
+export async function completeRequest({ requestId, hotelId, note, updatedByUserId }) {
   if (!requestId || !hotelId) throw new Error('requestId and hotelId needed to start request');
 
   const request = await requestRepo.getRequestById(requestId, hotelId);

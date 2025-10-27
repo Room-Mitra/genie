@@ -6,7 +6,7 @@ import * as staffRepo from '#repositories/Staff.repository.js';
 import { hashPassword } from './User.service.js';
 import { hasAnyRole } from '#common/auth.helper.js';
 import { HotelRole } from '#Constants/roles.js';
-import S3 from '#clients/S3.js';
+import S3 from '#clients/S3.client.js';
 import { amenityResponse as amenityOrConciergeResponse } from '#presenters/amenity.js';
 
 const ALLOWED_UPDATE_FIELDS = ['name', 'address', 'contactEmail', 'contactPhone'];
@@ -167,7 +167,7 @@ export async function addAmenityOrConcierge({ hotelId, title, description, image
 }
 
 export async function listAmenities({ hotelId }) {
-  const amenities = await hotelRepo.queryAllAmenitiesOrConcierge({
+  const amenities = await hotelRepo.queryHotelMeta({
     hotelId,
     entityType: 'AMENITY',
   });
@@ -178,11 +178,11 @@ export async function listAmenities({ hotelId }) {
 }
 
 export async function deleteAmenity({ hotelId, amenityId }) {
-  return hotelRepo.deleteAmenityOrConcierge({ hotelId, id: amenityId, entityType: 'AMENITY' });
+  return hotelRepo.deleteHotelMeta({ hotelId, id: amenityId, entityType: 'AMENITY' });
 }
 
 export async function listConciergeServices({ hotelId }) {
-  const concierge = await hotelRepo.queryAllAmenitiesOrConcierge({
+  const concierge = await hotelRepo.queryHotelMeta({
     hotelId,
     entityType: 'CONCIERGE',
   });
@@ -193,5 +193,5 @@ export async function listConciergeServices({ hotelId }) {
 }
 
 export async function deleteConciergeService({ hotelId, serviceId }) {
-  return hotelRepo.deleteAmenityOrConcierge({ hotelId, id: serviceId, entityType: 'CONCIERGE' });
+  return hotelRepo.deleteHotelMeta({ hotelId, id: serviceId, entityType: 'CONCIERGE' });
 }

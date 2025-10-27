@@ -25,41 +25,23 @@ function clean(obj) {
 }
 
 /**
- * Build the base table keys
- */
-function baseKeys(hotelId, sk) {
-  return { pk: `HOTEL#${hotelId}`, sk };
-}
-
-/**
- * Optionally add hotelType_* if you kept that GSI
- */
-function maybeHotelType(opts, hotelId, typeTag, timeId) {
-  if (!opts?.includeHotelTypeIndex) return {};
-  return {
-    hotelType_pk: `HOTEL#${hotelId}`,
-    hotelType_sk: `${typeTag}#${timeId}`,
-  };
-}
-
-/**
  * The main builder
  * Returns a plain JS object ready to send via DynamoDBDocumentClient
  */
-export function buildHotelEntityItem(input, options) {
+export function buildHotelEntityItem(input) {
   const i = withTimestamps(input || {});
 
   switch (i.entityType) {
     case 'HOTEL': {
+      const hotelId = i.hotelId ?? ulid();
       const pk = `CATALOG#HOTEL`;
-      const sk = `HOTEL#${i.hotelId}`;
+      const sk = `HOTEL#${hotelId}`;
 
       return clean({
         pk,
         sk,
-        ...maybeHotelType(options, i.hotelId, 'HOTEL', i.hotelId),
+        hotelId,
         entityType: 'HOTEL',
-        hotelId: i.hotelId,
         name: i.name,
         address: i.address,
         contactEmail: i.contactEmail,
@@ -69,15 +51,16 @@ export function buildHotelEntityItem(input, options) {
     }
 
     case 'ROOM': {
-      const sk = `ROOM#${i.roomId}`;
-      const base = baseKeys(i.hotelId, sk);
-      return clean({
-        ...base,
-        ...maybeHotelType(options, i.hotelId, 'ROOM', i.roomId),
+      const roomId = i.roomId ?? ulid();
+      const pk = `HOTEL#${i.hotelId}`;
+      const sk = `ROOM#${roomId}`;
 
+      return clean({
+        pk,
+        sk,
+        roomId,
         entityType: 'ROOM',
         hotelId: i.hotelId,
-        roomId: i.roomId,
         number: i.number,
         type: i.type,
         floor: i.floor,
@@ -88,15 +71,13 @@ export function buildHotelEntityItem(input, options) {
 
     case 'BOOKING': {
       const bookingId = i.bookingId ?? ulid();
-      const timeId = bookingId;
+      const pk = `HOTEL#${i.hotelId}`;
       const sk = `BOOKING#${bookingId}`;
-      const base = baseKeys(i.hotelId, sk);
 
       return clean({
-        ...base,
+        pk,
+        sk,
         bookingId,
-
-        ...maybeHotelType(options, i.hotelId, 'BOOKING', timeId),
 
         // Room GSI (for bookings per room)
         roomType_pk: `ROOM#${i.roomId}`,
@@ -121,38 +102,38 @@ export function buildHotelEntityItem(input, options) {
     }
 
     case 'REQUEST': {
-      const reqId = i.requestId ?? ulid();
-      const timeId = reqId; // ULID is time ordered
-      const sk = `REQUEST#${reqId}`;
-      const base = baseKeys(i.hotelId, sk);
+      const requestId = i.requestId ?? ulid();
+      const pk = `HOTEL#${i.hotelId}`;
+      const sk = `REQUEST#${requestId}`;
+
       return clean({
-        ...base,
+        pk,
+        sk,
+        requestId,
+
         // Room timeline GSI (for requests per room)
         roomType_pk: `ROOM#${i.roomId}`,
-        roomType_sk: `REQUEST#${timeId}`,
+        roomType_sk: `REQUEST#${requestId}`,
 
         // booking timeline gsi (for requests per booking)
         bookingType_pk: `BOOKING#${i.bookingId}`,
-        bookingType_sk: `REQUEST#${timeId}`,
+        bookingType_sk: `REQUEST#${requestId}`,
 
         // Requests by status board
         status_pk: `REQSTATUS#${i.status}#HOTEL#${i.hotelId}`,
-        status_sk: `REQUEST#${reqId}`,
+        status_sk: `REQUEST#${requestId}`,
 
         // Requests by assignee (if assigned)
         ...(i.assignedToUserId
           ? {
               assigneeType_pk: `ASSIGNEE#${i.assignedToUserId}`,
-              assigneeType_sk: `${i.status}#HOTEL#${i.hotelId}#${timeId}`,
+              assigneeType_sk: `${i.status}#HOTEL#${i.hotelId}#${requestId}`,
             }
           : {}),
-
-        ...maybeHotelType(options, i.hotelId, 'REQUEST', timeId),
 
         entityType: 'REQUEST',
         hotelId: i.hotelId,
         roomId: i.roomId,
-        requestId: reqId,
         department: i.department,
         requestType: i.requestType,
         estimatedTimeOfFulfillment: i.estimatedTimeOfFulfillment,
@@ -160,65 +141,57 @@ export function buildHotelEntityItem(input, options) {
         assignedToUserId: i.assignedToUserId,
         conversationId: i.conversationId,
         createdAt: i.createdAt,
+        description: i.description,
       });
     }
 
     case 'CONVERSATION': {
-      const convId = i.conversationId ?? ulid();
-      const timeId = convId;
-      const sk = `CONVERSATION#${convId}`;
-      const base = baseKeys(i.hotelId, sk);
-      return clean({
-        ...base,
-        // Room timeline
-        ...(i.roomId
-          ? {
-              roomType_pk: `ROOM#${i.roomId}`,
-              roomType_sk: `CONVERSATION#${timeId}`,
-            }
-          : {}),
+      const conversationId = i.conversationId ?? ulid();
+      const pk = `HOTEL#${i.hotelId}`;
+      const sk = `CONVERSATION#${conversationId}`;
 
-        ...maybeHotelType(options, i.hotelId, 'CONVERSATION', timeId),
+      return clean({
+        pk,
+        sk,
+        conversationId,
+
+        // Room timeline
+        roomType_pk: `ROOM#${i.roomId}`,
+        roomType_sk: `CONVERSATION#${conversationId}`,
+
+        // booking timeline gsi (for requests per booking)
+        bookingType_pk: `BOOKING#${i.bookingId}`,
+        bookingType_sk: `CONVERSATION#${conversationId}`,
 
         entityType: 'CONVERSATION',
         hotelId: i.hotelId,
-        conversationId: convId,
+
         roomId: i.roomId,
         status: i.status,
         channel: i.channel,
-        topic: i.topic,
-        requestId: i.requestId,
-        assignedToUserId: i.assignedToUserId,
         createdAt: i.createdAt,
       });
     }
 
     case 'MESSAGE': {
-      const msgId = i.messageId ?? ulid();
-      const timeId = msgId;
-      const sk = `MSG#${i.conversationId}#${msgId}`;
-      const base = baseKeys(i.hotelId, sk);
+      const messageId = i.messageId ?? ulid();
+      const pk = `CONVERSATION#${i.conversationId}`;
+      const sk = `MESSAGE#${messageId}`;
       return clean({
-        ...base,
-        // Conversation -> messages thread fetch
-        conversation_pk: `CONV#${i.conversationId}`,
-        conversation_sk: `MSG#${timeId}`,
-        // Room timeline (optional if message tied to a room)
-        ...(i.roomId
-          ? {
-              roomType_pk: `ROOM#${i.roomId}`,
-              roomType_sk: `MSG#${timeId}`,
-            }
-          : {}),
-        ...maybeHotelType(options, i.hotelId, 'MSG', timeId),
+        pk,
+        sk,
+        messageId,
 
         entityType: 'MESSAGE',
         hotelId: i.hotelId,
         conversationId: i.conversationId,
-        messageId: msgId,
         roomId: i.roomId,
         senderType: i.senderType,
         content: i.content,
+        isUserResponseNeeded: i.isUserResponseNeeded,
+        agents: i.agents,
+        role: i.role,
+        requestDetails: i.requestDetails,
         requestId: i.requestId,
         createdAt: i.createdAt,
       });
@@ -226,18 +199,19 @@ export function buildHotelEntityItem(input, options) {
 
     case 'DEVICE': {
       const deviceId = i.deviceId ?? ulid();
+      const pk = `HOTEL#${i.hotelId}`;
       const sk = `DEVICE#${deviceId}`;
-      const base = baseKeys(i.hotelId, sk);
+
       return clean({
-        ...base,
-        ...maybeHotelType(options, i.hotelId, 'DEVICE', deviceId),
+        pk,
+        sk,
+        deviceId,
 
         roomType_pk: `ROOM#${i.roomId}`,
         roomType_sk: `DEVICE#${deviceId}`,
 
         entityType: 'DEVICE',
         hotelId: i.hotelId,
-        deviceId,
         roomId: i.roomId,
         serial: i.serial,
         model: i.model,
@@ -249,14 +223,15 @@ export function buildHotelEntityItem(input, options) {
 
     case 'AMENITY': {
       const amenityId = i.amenityId ?? ulid();
+      const pk = `HOTEL#${i.hotelId}`;
       const sk = `HOTEL#META#AMENITY#${amenityId}`;
-      const base = baseKeys(i.hotelId, sk);
       return clean({
-        ...base,
+        pk,
+        sk,
+        amenityId,
 
         entityType: 'AMENITY',
         hotelId: i.hotelId,
-        amenityId,
         title: i.title,
         description: i.description,
         image: i.image,
@@ -266,17 +241,36 @@ export function buildHotelEntityItem(input, options) {
 
     case 'CONCIERGE': {
       const serviceId = i.serviceId ?? ulid();
+      const pk = `HOTEL#${i.hotelid}`;
       const sk = `HOTEL#META#CONCIERGE#${serviceId}`;
-      const base = baseKeys(i.hotelId, sk);
+
       return clean({
-        ...base,
+        pk,
+        sk,
+        serviceId,
 
         entityType: 'CONCIERGE',
         hotelId: i.hotelId,
-        serviceId: serviceId,
         title: i.title,
         description: i.description,
         image: i.image,
+        createdAt: i.createdAt,
+      });
+    }
+
+    case 'MENU': {
+      const menuId = i.menuId ?? ulid();
+      const pk = `HOTEL#${i.hotelId}`;
+      const sk = `HOTEL#META#MENU#${menuId}`;
+
+      return clean({
+        pk,
+        sk,
+        menuId,
+
+        entityType: 'MENU',
+        hotelId: i.hotelId,
+        contents: i.contents,
         createdAt: i.createdAt,
       });
     }

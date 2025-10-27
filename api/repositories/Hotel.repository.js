@@ -130,9 +130,9 @@ export async function putAmenityOrConcierge(amenity) {
   return params.Item;
 }
 
-export async function queryAllAmenitiesOrConcierge({ hotelId, entityType }) {
+export async function queryHotelMeta({ hotelId, entityType }) {
   if (!hotelId) {
-    throw new Error('hotelId is required to query all amenities for hotel');
+    throw new Error('hotelId, entityType is required to query meta for hotel');
   }
 
   const params = {
@@ -144,7 +144,7 @@ export async function queryAllAmenitiesOrConcierge({ hotelId, entityType }) {
     },
     ExpressionAttributeValues: {
       ':pk': `HOTEL#${hotelId}`,
-      ':sk': `HOTEL#META#${entityType}#`,
+      ':sk': `HOTEL#META#${entityType ? entityType + '#' : ''}`,
     },
     ScanIndexForward: false,
   };
@@ -162,12 +162,12 @@ export async function queryAllAmenitiesOrConcierge({ hotelId, entityType }) {
 
     return items;
   } catch (err) {
-    console.error('Failed to list amenities / concierge services:', err);
-    throw new Error('Failed to list amenities / concierge services');
+    console.error('Failed to list meta for hotel:', err);
+    throw new Error('Failed to list meta for hotel');
   }
 }
 
-export async function deleteAmenityOrConcierge({ hotelId, id, entityType }) {
+export async function deleteHotelMeta({ hotelId, id, entityType }) {
   if (!hotelId || !id || !entityType) return null;
 
   const params = {
@@ -181,7 +181,7 @@ export async function deleteAmenityOrConcierge({ hotelId, id, entityType }) {
   try {
     await DDB.delete(params).promise();
   } catch (err) {
-    console.error('Failed to delete amenity / concierge service', err);
-    throw new Error('Failed to delete amenity / concierge service');
+    console.error('Failed to delete hotel meta', err);
+    throw new Error('Failed to delete hotel meta');
   }
 }

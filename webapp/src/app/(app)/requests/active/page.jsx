@@ -222,7 +222,7 @@ export default function Page() {
       const result = await stateTransition(data);
 
       toast.success(
-        `Request ${result.requestId.slice(0, 8)} changed status to ${result.toStatus}`,
+        `Request ${result.requestId.slice(0, 8)} changed status to ${toTitleCaseFromSnake(result.toStatus)}`,
       );
       resetForm();
       refreshRequests();
