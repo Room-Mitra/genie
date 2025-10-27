@@ -5,8 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
@@ -14,7 +12,6 @@ import android.speech.tts.TextToSpeech
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -434,10 +431,10 @@ fun MicPane(modifier: Modifier = Modifier, navController: NavHostController,musi
     val conversation = remember { mutableStateListOf<ConversationMessage>() }
     val autoListenTrigger = remember { mutableStateOf(0L) }
     val ttsManager = remember { TtsManager(ctx) }
-    var sessionId by remember { mutableStateOf(UUID.randomUUID().toString()) }
+    var sessionId by remember { mutableStateOf("null") }
     val agenticHandler = remember{ AgenticHandlerRegistry(ctx) }
 
-    val sessionReset: () -> Unit = { sessionId = UUID.randomUUID().toString() }
+    val sessionReset: () -> Unit = { sessionId = "null" }
 
     var firstName by remember { mutableStateOf("Guest") }
     val bookingRepo = PollingManager.getBookingRepository()
@@ -454,26 +451,30 @@ fun MicPane(modifier: Modifier = Modifier, navController: NavHostController,musi
         coroutineScope.launch {
                 try {
                     val payload = JSONObject().apply {
-                        put("userQuery", userQuery)
-                        put("sessionId", sessionId)
+                        put("message", userQuery)
+                        if (sessionId != "null") {
+                            put("conversationId", sessionId)
+                        }
                     }
                     Log.i(
                         "MicPane",
                         "Attempting to send User query : \"$userQuery\" sessionId=$sessionId"
                     )
                     val result = withContext(Dispatchers.IO) {
-                        apiService.post("utterance", payload)
+                        apiService.post("conversations", payload)
                     }
                     when ( result) {
                         is ApiResult.Success -> {
                             val json = result.data
-                            val speech = json?.optString("speech", "") ?: ""
-                            val isSessionOpen = json?.optBoolean("isSessionOpen", false) ?: false
+                            val message = json?.optString("message", "") ?: ""
+                            val conversationId = json?.optString("conversationId", "null") ?: "null"
+                            val isConversationOpen = json?.optBoolean("isConversationOpen", false) ?: false
                             val agentsArray = json?.optJSONArray("agents")
-                            Log.d("MicPane", "Server response: $speech")
-                            Log.d("MicPane", "Server response: $isSessionOpen")
+                            Log.d("MicPane", "Server response: $message")
+                            Log.d("MicPane", "Server response: $isConversationOpen")
                             Log.d("MicPane", "Server response: $agentsArray")
-
+                            // Update the sessionId with the value from the server
+                            sessionId = conversationId
                             if (agentsArray != null && agentsArray.length() > 0) {
                                 for (i in 0 until agentsArray.length()) {
                                     val agent = agentsArray.getJSONObject(i)
@@ -500,15 +501,15 @@ fun MicPane(modifier: Modifier = Modifier, navController: NavHostController,musi
                                 }
                             }
 
-                            if (speech.isNotEmpty()) {
+                            if (message.isNotEmpty()) {
                                 Log.d(
                                     "MicPane",
-                                    "Server success: speech=\"${speech.take(100)}\" isSessionOpen=$isSessionOpen"
+                                    "Server success: speech=\"${message.take(100)}\" isSessionOpen=$isConversationOpen"
                                 )
-                                conversation.add(ConversationMessage(speech, false))
-                                ttsManager.speak(speech)
+                                conversation.add(ConversationMessage(message, false))
+                                ttsManager.speak(message)
                             } else ttsManager.speak("No response from server.")
-                            if (isSessionOpen)
+                            if (isConversationOpen)
                                 autoListenTrigger.value = System.currentTimeMillis()
                         }
 
