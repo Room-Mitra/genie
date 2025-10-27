@@ -1,6 +1,9 @@
 package com.example.roommitra.view.WidgetPane
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -25,7 +28,9 @@ import androidx.compose.ui.unit.dp
 import com.example.roommitra.service.PollingManager
 import org.json.JSONArray
 import androidx.compose.material.icons.filled.*
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 data class Order(
     val title: String,
@@ -42,6 +47,7 @@ fun OrderStatusCard() {
     val orders = remember(requests.toString()) {
         mapRequestsToOrders(requests)
     }
+    var selectedOrder by remember { mutableStateOf<Order?>(null) }
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -96,21 +102,31 @@ fun OrderStatusCard() {
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         items(orders) { order ->
-                            OrderItemCard(order)
+                            OrderItemCard(order){
+                                selectedOrder = order
+                            }
                         }
                     }
                 }
+            }
+            // Show popup if an order is selected
+            selectedOrder?.let { order ->
+                OrderDetailDialog(order = order, onDismiss = { selectedOrder = null })
             }
         }
     }
 }
 
 @Composable
-fun OrderItemCard(order: Order) {
+fun OrderItemCard(order: Order, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .width(150.dp)
-            .height(110.dp),
+            .height(110.dp)
+            .clickable(
+                indication = LocalIndication.current, // Add this line
+                interactionSource = remember { MutableInteractionSource() }
+            )  { onClick() },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         shape = RoundedCornerShape(12.dp)
@@ -188,5 +204,51 @@ fun mapRequestsToOrders(requests: JSONArray): List<Order> {
 
     return orders
 }
+
+@Composable
+fun OrderDetailDialog(order: Order, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = { onDismiss() },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Close")
+            }
+        },
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = order.icon,
+                    contentDescription = order.title,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .padding(end = 8.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = order.title,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                )
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text("Status: ${order.status}", style = MaterialTheme.typography.bodyMedium)
+                Text("Estimated time: ${order.eta}", style = MaterialTheme.typography.bodyMedium)
+                Divider(modifier = Modifier.padding(vertical = 4.dp))
+                Text(
+                    "More details about this request will appear here.",
+                    style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
+                )
+            }
+        },
+        shape = RoundedCornerShape(16.dp),
+        containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = 6.dp
+    )
+}
+
 
 
