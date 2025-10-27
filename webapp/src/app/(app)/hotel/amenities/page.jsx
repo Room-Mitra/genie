@@ -68,7 +68,7 @@ export default function Page() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-5xl">
       <Breadcrumb pageName="Amenities" parent="Hotel" />
 
       <div className="mb-5 mt-2 flex items-center justify-end gap-3">
@@ -111,7 +111,10 @@ export default function Page() {
             <div className="flex flex-col gap-5 sm:flex-row">
               <div className="mt-1 w-full sm:w-[33%]">
                 <div className="relative overflow-hidden rounded-xl border border-stroke dark:border-dark-3">
-                  <div className="relative h-64 w-full">
+                  <div
+                    className="relative w-full"
+                    style={{ aspectRatio: "4 / 1" }}
+                  >
                     <Image
                       src={a.image.url}
                       alt="Selected facility"

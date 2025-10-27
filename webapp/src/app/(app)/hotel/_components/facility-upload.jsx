@@ -143,13 +143,16 @@ export function FacilityUploadForm({ onCancel, entityType, refresh }) {
                   and drop
                 </p>
 
-                <p className="mt-1 text-body-xs">
-                  PNG, JPG, GIF or WEBP (recommended up to 2000px)
+                <p className="mt-1 text-center text-body-xs">
+                  PNG, JPG, GIF or WEBP, recommended 2000px (w) x 500px (h)
                 </p>
               </label>
             ) : (
               <div className="relative overflow-hidden rounded-xl border border-stroke dark:border-dark-3">
-                <div className="relative h-64 w-full">
+                <div
+                  className="relative w-full"
+                  style={{ aspectRatio: "4 / 1" }}
+                >
                   <Image
                     src={previewUrl}
                     alt="Selected facility"
