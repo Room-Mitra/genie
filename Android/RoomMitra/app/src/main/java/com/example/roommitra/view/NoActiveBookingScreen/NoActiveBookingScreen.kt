@@ -108,7 +108,7 @@ fun NoActiveBookingScreen(navController: NavHostController) {
                     isSuccess -> {
                         AnimatedVisibility(visible = true, enter = fadeIn(), exit = fadeOut()) {
                             Text(
-                                text = "✅ Reception has been notified. We’re setting up your personal butler!",
+                                text = "✅ We’re setting up your personal butler!",
                                 color = Color(0xFFBFCFD6),
                                 fontSize = 15.sp,
                                 textAlign = TextAlign.Center,
@@ -231,7 +231,7 @@ fun HeroLottieCarouselWithText() {
     val items = listOf(
         Triple(
             "https://raw.githubusercontent.com/AdithyaPrabhu/roommitra/refs/heads/lottie/Customer%20service.json",
-            "Welcome to RoomMitra",
+            "Welcome to Room Mitra",
             "Your personal butler — ask me anything anytime"
         ),
         Triple(
