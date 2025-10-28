@@ -109,7 +109,7 @@ fun NoActiveBookingScreen(navController: NavHostController) {
                         AnimatedVisibility(visible = true, enter = fadeIn(), exit = fadeOut()) {
                             Text(
                                 text = "✅ Reception has been notified. We’re setting up your personal butler!",
-                                color = Color(0xFFBEE5BF),
+                                color = Color(0xFFBFCFD6),
                                 fontSize = 15.sp,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.padding(horizontal = 24.dp)
@@ -121,7 +121,7 @@ fun NoActiveBookingScreen(navController: NavHostController) {
                         AnimatedVisibility(visible = true, enter = fadeIn(), exit = fadeOut()) {
                             Text(
                                 text = "⚠️ Couldn’t reach the front desk. Please try again after some time.",
-                                color = Color(0xFFFFBABA),
+                                color = Color(0xFFBFCFD6),
                                 fontSize = 15.sp,
                                 textAlign = TextAlign.Center
                             )
@@ -153,34 +153,48 @@ fun ConnectToReceptionButton(
     isError: Boolean,
     onClick: () -> Unit
 ) {
-    val transition = rememberInfiniteTransition()
+    val transition = rememberInfiniteTransition(label = "glowTransition")
     val glow by transition.animateFloat(
         initialValue = 0.65f,
         targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(1000), RepeatMode.Reverse)
+        animationSpec = infiniteRepeatable(tween(1000), RepeatMode.Reverse),
+        label = "glowAnim"
     )
 
+    // 🌈 Button gradient colors based on state
+    val gradientColors = when {
+        isLoading -> listOf(Color(0xFFB0BEC5), Color(0xFF90A4AE)) // muted silver
+        isSuccess -> listOf(Color(0xFFA8E6CF), Color(0xFF56C596)) // green gradient
+        isError -> listOf(Color(0xFFFF8A80), Color(0xFFFF5252))   // red/pink gradient
+        else -> listOf(
+            Color(0xFFFFE28A).copy(alpha = glow),
+            Color(0xFFFFC107).copy(alpha = glow)
+        )
+    }
+
     val buttonText = when {
-//        isLoading -> "Connecting..."
+        isLoading -> "Connecting..."
         isSuccess -> "Reception Notified"
         isError -> "Try Again"
         else -> "Your In-Room Assistant Awaits — Let Front Desk Know"
     }
 
+    val textColor = when {
+        isLoading -> Color.Black
+        isSuccess -> Color(0xFF003300) // deep green
+        isError -> Color(0xFF330000)   // deep red
+        else -> Color.Black
+    }
+
+    val disabled = isSuccess || isLoading
+
     Box(
         modifier = Modifier
             .shadow(14.dp, RoundedCornerShape(40))
             .clip(RoundedCornerShape(40))
-            .background(
-                Brush.horizontalGradient(
-                    listOf(
-                        Color(0xFFFFE28A).copy(alpha = glow),
-                        Color(0xFFFFC107).copy(alpha = glow)
-                    )
-                )
-            )
+            .background(Brush.horizontalGradient(gradientColors))
             .clickable(
-                enabled = !isLoading && !isSuccess, // disable on success
+                enabled = !disabled,
                 onClick = onClick,
                 indication = LocalIndication.current,
                 interactionSource = remember { MutableInteractionSource() }
@@ -197,13 +211,15 @@ fun ConnectToReceptionButton(
 
             else -> Text(
                 text = buttonText,
-                color = Color.Black,
+                color = textColor,
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
             )
         }
     }
 }
+
 
 /* ----------------------------
    Hero Lottie Carousel with text per animation
