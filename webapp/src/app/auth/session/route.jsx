@@ -6,12 +6,11 @@ const SECRET_KEY = process.env.SECRET_KEY;
 export async function POST(req) {
   const { token } = await req.json();
 
-  console.log(SECRET_KEY);
 
   try {
     jwt.verify(token, SECRET_KEY);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 

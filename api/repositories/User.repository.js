@@ -217,9 +217,6 @@ async function batchGetWithRetry(initialParams, { maxRetries = 6 } = {}) {
     const unprocessed = res.UnprocessedKeys && res.UnprocessedKeys[ENTITY_TABLE_NAME];
 
     if (unprocessed && unprocessed.Keys && unprocessed.Keys.length) {
-      console.log(
-        `batchGetWithRetry has ${unprocessed.Keys.length} unprocessed keys. attempting again after sleep`
-      );
       attempts += 1;
       // backoff with jitter: 100ms * 2^attempts plus 0-100ms
       const delay = 100 * Math.pow(2, attempts) + Math.floor(Math.random() * 100);
