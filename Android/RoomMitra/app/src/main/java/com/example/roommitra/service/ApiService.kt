@@ -20,7 +20,7 @@ sealed class ApiResult {
 }
 class ApiService(private val context: Context) {
     companion object {
-//        private const val BASE_URL = "https://funny-heads-hope.loca.lt/android"
+//        private const val BASE_URL = "https://proud-camels-divide.loca.lt"+"/android"
         private const val BASE_URL = "https://api.roommitra.com/android"
     }
 
@@ -36,21 +36,31 @@ class ApiService(private val context: Context) {
             val token = SessionManager(context).getAuthToken()
             val hotelId = SessionManager(context).getHotelId()
             val roomId = SessionManager(context).getRoomId()
+            val bookingId = SessionManager(context).getBookingId()
             val deviceId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID) // Get device ID dynamically
 
             val utcTimestamp = Instant.now().toEpochMilli().toString()
-            return mapOf(
+            val headers = mutableMapOf(
                 "Content-Type" to "application/json",
                 "x-device-id" to deviceId,
                 "x-timestamp" to utcTimestamp
+            )
 
-            ) + if (!token.isNullOrBlank()) {
-                mapOf(
+            // Conditionally add token and related IDs
+            if (!token.isNullOrBlank()) {
+                headers += mapOf(
                     "authorization" to "Bearer $token",
                     "x-hotel-id" to hotelId.toString(),
                     "x-room-id" to roomId.toString()
-                    )
-            } else emptyMap()
+                )
+            }
+
+            // Conditionally add bookingId
+            if (bookingId != null) {
+                headers["x-booking-id"] = bookingId
+            }
+
+            return headers
         }
 
 
