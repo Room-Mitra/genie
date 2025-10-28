@@ -76,7 +76,7 @@ export default function Page() {
           className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
           onClick={() => setShowAddFacility(true)}
         >
-          + Add
+          + New Service
         </button>
       </div>
 

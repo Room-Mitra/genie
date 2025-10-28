@@ -50,9 +50,22 @@ export default function SortTable({
   tableRowClassNames = [],
   tableBodyClassNames = [],
   noDataMessage = "No rows",
+  onClickPrevPage = () => {},
+  onClickNextPage = () => {},
   loading = false,
+  hasMore = false,
+  isAtStart = true,
 }) {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+  const [prevDisabled, setPrevDisabled] = useState(isAtStart);
+  const [nextDisabled, setNextDisabled] = useState(!hasMore);
+
+  useEffect(() => {
+    console.log("hasMore", hasMore);
+    console.log("isAtStart", isAtStart);
+    setPrevDisabled(isAtStart);
+    setNextDisabled(!hasMore);
+  }, [hasMore, isAtStart]);
 
   const [rows, setRows] = useState(data);
   const [sortedRows, setSortedRows] = useState([]);
@@ -161,6 +174,36 @@ export default function SortTable({
           {noDataMessage || "No rows"}
         </div>
       )}
+      <div className="flex h-20 items-center justify-center border-t dark:border-dark-3">
+        <div className="mt-6 flex items-center justify-center gap-3">
+          <button
+            type="button"
+            onClick={onClickPrevPage}
+            className={cn(
+              "rounded-lg px-3 py-2 text-sm font-medium",
+              prevDisabled
+                ? "cursor-not-allowed bg-gray-700 text-gray-400"
+                : "bg-indigo-600 text-white hover:bg-indigo-500",
+            )}
+            disabled={prevDisabled}
+          >
+            Prev
+          </button>
+          <button
+            type="button"
+            onClick={onClickNextPage}
+            className={cn(
+              "rounded-lg px-3 py-2 text-sm font-medium",
+              nextDisabled
+                ? "cursor-not-allowed bg-gray-700 text-gray-400"
+                : "bg-indigo-600 text-white hover:bg-indigo-500",
+            )}
+            disabled={nextDisabled}
+          >
+            Next
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "react-toastify";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 async function addRoom({ roomNumber, roomType, floor, description }) {
   const res = await fetch(`/api/rooms`, {
@@ -25,6 +26,7 @@ async function addRoom({ roomNumber, roomType, floor, description }) {
 }
 
 export default function AddRoomPage() {
+  const router = useRouter();
   const [savingRoom, setSavingRoom] = useState(false);
   const [roomForm, setRoomForm] = useState({
     number: "",
@@ -58,6 +60,7 @@ export default function AddRoomPage() {
       setRoomForm({ number: "", type: "", floor: "", description: "" });
 
       toast.success("Room added");
+      router.push("/rooms/all");
     } catch (error) {
       toast.error(error.message || "Failed to save room");
     } finally {
