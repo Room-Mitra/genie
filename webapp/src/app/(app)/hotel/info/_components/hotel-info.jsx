@@ -7,6 +7,7 @@ import { HotelIcon, MapPin, PhoneIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "react-toastify";
 import { Spinner } from "@material-tailwind/react";
+import { ID } from "@/components/ui/id";
 
 async function getHotelInfo() {
   const res = await fetch("/api/hotel", {
@@ -114,6 +115,10 @@ export function HotelInfoForm() {
         </div>
       ) : (
         <form onSubmit={handleSaveHotel} className="grid grid-cols-1 gap-5">
+          <div className="flex justify-end">
+            <span className="mr-3 font-bold">HOTEL ID: </span>
+            <ID ulid={hotel?.hotelId} />
+          </div>
           <InputGroup
             type="text"
             name="name"

@@ -67,7 +67,7 @@ router.post('/amenities', upload.single('image'), async (req, res) => {
       hotelId,
       title,
       description,
-      image,
+      headerImage: image,
       entityType: 'AMENITY',
     });
 
@@ -124,7 +124,7 @@ router.post('/concierge', upload.single('image'), async (req, res) => {
       hotelId,
       title,
       description,
-      image,
+      headerImage: image,
       entityType: 'CONCIERGE',
     });
 
@@ -138,7 +138,7 @@ router.post('/concierge', upload.single('image'), async (req, res) => {
 router.delete('/concierge/:serviceId', async (req, res) => {
   try {
     const { hotelId } = req.userData;
-    const { amenityId: serviceId } = req.params;
+    const { serviceId } = req.params;
 
     if (!serviceId) return res.status(400).json({ error: 'concierge serviceId needed to delete' });
 

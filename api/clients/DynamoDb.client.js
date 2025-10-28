@@ -1,6 +1,6 @@
 import AWS from 'aws-sdk';
 
-/*  I don't know why this needs to be here. It's also in api/index.js 
+/*  I don't know why, but this needs to be here. It's also in api/index.js 
     but somehow the env vars don't get set there before some of the 
     service files try to access them.
 */

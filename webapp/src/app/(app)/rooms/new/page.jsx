@@ -66,7 +66,7 @@ export default function AddRoomPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <Breadcrumb pageName="Add Room" parent="Rooms" />
+      <Breadcrumb pageName="New Room" parent="Rooms" />
 
       <div className="rounded-[10px] bg-white p-6 dark:bg-gray-dark">
         <form onSubmit={handleSaveRoomSubmit} className="grid gap-4">
@@ -138,7 +138,7 @@ export default function AddRoomPage() {
               type="submit"
               className={cn(
                 "rounded-xl px-4 py-2 text-sm font-medium",
-                savingRoom || !canSubmit
+                !canSubmit
                   ? "bg-gray-700 text-gray-400"
                   : "bg-indigo-600 text-white hover:bg-indigo-500",
               )}

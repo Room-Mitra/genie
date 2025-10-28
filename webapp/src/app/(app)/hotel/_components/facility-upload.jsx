@@ -7,7 +7,6 @@ import InputGroup from "@/components/FormElements/InputGroup";
 import { TextAreaGroup } from "@/components/FormElements/InputGroup/text-area";
 import { toast } from "react-toastify";
 import { cn, toTitleCaseFromSnake } from "@/lib/utils";
-import { Spinner } from "@material-tailwind/react";
 
 export function FacilityUploadForm({ onCancel, entityType, refresh }) {
   const [file, setFile] = useState(null);
@@ -62,6 +61,7 @@ export function FacilityUploadForm({ onCancel, entityType, refresh }) {
       alert("Please select an image before saving.");
       return;
     }
+    setUploading(true);
     const fd = new FormData();
     fd.append("title", title);
     fd.append("description", description);
@@ -80,11 +80,7 @@ export function FacilityUploadForm({ onCancel, entityType, refresh }) {
         const txt = await res.text();
         throw new Error(txt || "Upload failed");
       }
-      const data = await res.json();
 
-      console.log(data);
-
-      // reset
       setFile(null);
       setTitle("");
       setDescription("");
@@ -94,6 +90,8 @@ export function FacilityUploadForm({ onCancel, entityType, refresh }) {
       if (refresh) refresh();
     } catch (err) {
       toast.error(err?.message || "Something went wrong");
+    } finally {
+      setUploading(false);
     }
   }
 

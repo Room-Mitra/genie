@@ -10,6 +10,8 @@ export function requestResponse(request) {
     estimatedTimeOfFulfillment,
     status,
     createdAt,
+    conversationId,
+    bookingId,
   } = request;
 
   return {
@@ -21,5 +23,7 @@ export function requestResponse(request) {
     estimatedTimeOfFulfillment,
     status,
     createdAt,
+    conversationId,
+    bookingId,
   };
 }

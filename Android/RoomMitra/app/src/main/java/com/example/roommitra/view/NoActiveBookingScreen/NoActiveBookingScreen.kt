@@ -1,55 +1,57 @@
 package com.example.roommitra.view
 
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.*
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
-//import androidx.compose.material3.LocalIndication
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
 import androidx.navigation.NavHostController
 import com.airbnb.lottie.compose.*
-import com.example.roommitra.R
+import com.example.roommitra.data.DepartmentType
 import com.example.roommitra.service.ApiResult
 import com.example.roommitra.service.ApiService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.json.JSONObject
-import com.example.roommitra.service.PollingManager
+
 @Composable
 fun NoActiveBookingScreen(navController: NavHostController) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(false) }
-    var message by remember { mutableStateOf<String?>(null) }
+    var isSuccess by remember { mutableStateOf(false) }
+    var isError by remember { mutableStateOf(false) }
 
-
-    // playful background gradient — premium but upbeat
     val bg = Brush.verticalGradient(listOf(Color(0xFF0F1724), Color(0xFF0F2434)))
+
+    // 🕒 Automatically reset success state after 1 hour
+    LaunchedEffect(isSuccess,isError,isLoading) {
+        if (isSuccess || isError || isLoading) {
+            delay( 60 * 60 * 1000L) // 1 hour in milliseconds
+            isSuccess = false
+            isLoading = false
+            isError = false
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -58,84 +60,166 @@ fun NoActiveBookingScreen(navController: NavHostController) {
             .verticalScroll(rememberScrollState())
             .padding(20.dp)
     ) {
-        // Decorative floating bubbles (fun, subtle)
         FloatingBubbles()
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // HEADER
             SecretLogoTrigger(navController)
+            Spacer(modifier = Modifier.height(30.dp))
+
             HeroLottieCarouselWithText()
-            Spacer(modifier = Modifier.height(16.dp))
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(50.dp))
 
-            // Cheeky line about price / delight
-            Text(
-                "Included with your stay — absolutely free. Consider it our little extra 😉",
-                color = Color(0xFFBFCFD6),
-                fontSize = 20.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // CTA footer
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 ConnectToReceptionButton(
                     isLoading = isLoading,
+                    isSuccess = isSuccess,
+                    isError = isError,
                     onClick = {
                         scope.launch {
                             isLoading = true
-                            // trigger your API here
-                                val apiService = ApiService(context)
+                            isError = false
+                            val apiService = ApiService(context)
+                            val requestBody = JSONObject().apply {
+                                put("department", DepartmentType.FRONT_OFFICE.key)
+                                put("requestType", "Check In Guest")
+                                put("bookingId", null)
+                            }
 
-                                // Final request body
-                                val requestBody = JSONObject().apply {
-                                    put("department", "front_office")
-                                    put("requestType", "Check In Guest")
-                                    put("bookingId", null)
+                            when (val result = apiService.post("requests", requestBody)) {
+                                is ApiResult.Success -> {
+                                    isSuccess = true
                                 }
 
-                                when (val result = apiService.post("requests", requestBody)) {
-                                    is ApiResult.Success -> {
-                                        message =
-                                            "Reception has been notified — one moment while we set up your butler!"
-                                    }
-                                    is ApiResult.Error -> {
-                                        message =
-                                            "Something went wrong. Please try again later. Sorry :("
-                                    }
+                                is ApiResult.Error -> {
+                                    isError = true
                                 }
+                            }
                             isLoading = false
-
                         }
                     }
                 )
-                Spacer(modifier = Modifier.height(20.dp))
 
-                if (message != null) {
-                    Text(
-                        message!!,
-                        color = Color(0xFFE8F1F4),
-                        fontSize = 14.sp,
-                        textAlign = TextAlign.Center
-                    )
-                } else {
-                    Text(
-                        "💡 Tap the button above to enable your in-room AI concierge",
-                        color = Color(0xFF9FB2BB),
-                        fontSize = 15.sp
-                    )
+                Spacer(modifier = Modifier.height(24.dp))
+
+                when {
+                    isSuccess -> {
+                        AnimatedVisibility(visible = true, enter = fadeIn(), exit = fadeOut()) {
+                            Text(
+                                text = "✅ We’re setting up your personal butler!",
+                                color = Color(0xFFBFCFD6),
+                                fontSize = 15.sp,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 24.dp)
+                            )
+                        }
+                    }
+
+                    isError -> {
+                        AnimatedVisibility(visible = true, enter = fadeIn(), exit = fadeOut()) {
+                            Text(
+                                text = "⚠️ Couldn’t reach the front desk. Please try again after some time.",
+                                color = Color(0xFFBFCFD6),
+                                fontSize = 15.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+
+                    else -> {
+                        Text(
+                            "Enjoy complimentary access to your personal room assistant, included with your stay.",
+                            color = Color(0xFFBFCFD6),
+                            fontSize = 16.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                    }
                 }
-
-
-                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
 }
+
+/* ----------------------------
+   CTA Button (handles success/loading/error)
+   ---------------------------- */
+@Composable
+fun ConnectToReceptionButton(
+    isLoading: Boolean,
+    isSuccess: Boolean,
+    isError: Boolean,
+    onClick: () -> Unit
+) {
+    val transition = rememberInfiniteTransition(label = "glowTransition")
+    val glow by transition.animateFloat(
+        initialValue = 0.65f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(1000), RepeatMode.Reverse),
+        label = "glowAnim"
+    )
+
+    // 🌈 Button gradient colors based on state
+    val gradientColors = when {
+        isLoading -> listOf(Color(0xFFB0BEC5), Color(0xFF90A4AE)) // muted silver
+        isSuccess -> listOf(Color(0xFFA8E6CF), Color(0xFF56C596)) // green gradient
+        isError -> listOf(Color(0xFFFF8A80), Color(0xFFFF5252))   // red/pink gradient
+        else -> listOf(
+            Color(0xFFFFE28A).copy(alpha = glow),
+            Color(0xFFFFC107).copy(alpha = glow)
+        )
+    }
+
+    val buttonText = when {
+        isLoading -> "Connecting..."
+        isSuccess -> "Reception Notified"
+        isError -> "Try Again"
+        else -> "Your In-Room Assistant Awaits — Let Front Desk Know"
+    }
+
+    val textColor = when {
+        isLoading -> Color.Black
+        isSuccess -> Color(0xFF003300) // deep green
+        isError -> Color(0xFF330000)   // deep red
+        else -> Color.Black
+    }
+
+    val disabled = isSuccess || isLoading
+
+    Box(
+        modifier = Modifier
+            .shadow(14.dp, RoundedCornerShape(40))
+            .clip(RoundedCornerShape(40))
+            .background(Brush.horizontalGradient(gradientColors))
+            .clickable(
+                enabled = !disabled,
+                onClick = onClick,
+                indication = LocalIndication.current,
+                interactionSource = remember { MutableInteractionSource() }
+            )
+            .padding(horizontal = 44.dp, vertical = 14.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        when {
+            isLoading -> CircularProgressIndicator(
+                color = Color.Black,
+                strokeWidth = 2.dp,
+                modifier = Modifier.size(22.dp)
+            )
+
+            else -> Text(
+                text = buttonText,
+                color = textColor,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
 
 /* ----------------------------
    Hero Lottie Carousel with text per animation
@@ -144,11 +228,10 @@ fun NoActiveBookingScreen(navController: NavHostController) {
    ---------------------------- */
 @Composable
 fun HeroLottieCarouselWithText() {
-    // carousel items: (url, headline, subtitle)
     val items = listOf(
         Triple(
             "https://raw.githubusercontent.com/AdithyaPrabhu/roommitra/refs/heads/lottie/Customer%20service.json",
-            "Welcome to RoomMitra",
+            "Welcome to Room Mitra",
             "Your personal butler — ask me anything anytime"
         ),
         Triple(
@@ -162,124 +245,115 @@ fun HeroLottieCarouselWithText() {
             "Play music & games — instant delight"
         ),
         Triple(
-            "https://raw.githubusercontent.com/AdithyaPrabhu/roommitra/refs/heads/main/Massage.json",
+            "https://raw.githubusercontent.com/AdithyaPrabhu/roommitra/refs/heads/lottie/Makeup%2C%20beauty.json",
             "Discover everything this hotel has to offer!",
             "Spa, salon, and more..."
+        ),
+        Triple(
+            "https://raw.githubusercontent.com/AdithyaPrabhu/roommitra/refs/heads/lottie/Unicum.json",
+            "Vacation Mode - ON!!",
+            "Relax, Refresh & Rejuvenate with RoomMitra"
         )
     )
 
     val pagerState = rememberPagerState(pageCount = { items.size })
-    val animAlpha = remember { Animatable(1f) }
 
-    // breathing effect
-    val transition = rememberInfiniteTransition()
-    val floatPulse by transition.animateFloat(
-        initialValue = 0.98f, targetValue = 1.02f,
-        animationSpec = infiniteRepeatable(tween(1000), RepeatMode.Reverse)
-    )
-
-    // auto-scroll every few seconds
+    // Auto-scroll loop (simple + reliable)
     LaunchedEffect(Unit) {
         while (true) {
             delay(6500)
-            animAlpha.animateTo(0f, tween(500))
-            val nextPage = (pagerState.currentPage + 1) % items.size
-            pagerState.animateScrollToPage(nextPage)
-            animAlpha.animateTo(1f, tween(500))
+            if (!pagerState.isScrollInProgress) {
+                val next = (pagerState.currentPage + 1) % items.size
+                pagerState.animateScrollToPage(next)
+            }
         }
     }
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(500.dp)
+            .height(480.dp)
             .clip(RoundedCornerShape(24.dp))
             .background(Color(0x11000000))
     ) {
         HorizontalPager(
             state = pagerState,
-//            beyondBoundsPageCount = 1,
-            modifier = Modifier
-                .fillMaxSize()
-                .alpha(animAlpha.value)
+            modifier = Modifier.fillMaxSize()
         ) { page ->
-            val (url, headline, subtitle) = items[page]
+            val (url, title, subtitle) = items[page]
+
+            // Lottie composition
             val composition by rememberLottieComposition(LottieCompositionSpec.Url(url))
             val progress by animateLottieCompositionAsState(
                 composition = composition,
-                iterations = LottieConstants.IterateForever,
-                isPlaying = true
+                iterations = LottieConstants.IterateForever
             )
 
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer {
-                        scaleX = floatPulse
-                        scaleY = floatPulse
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                // Lottie background
+            Box(modifier = Modifier.fillMaxSize()) {
+                // Background animation
                 LottieAnimation(
                     composition = composition,
                     progress = { progress },
                     modifier = Modifier.fillMaxSize()
                 )
 
-                // gradient overlay
+                // Gradient overlay
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(
                             Brush.verticalGradient(
-                                colors = listOf(Color.Transparent, Color(0xCC021224))
+                                listOf(Color.Transparent, Color(0xCC021224))
                             )
                         )
                 )
 
                 // Text content
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = 40.dp)
+                        .padding(bottom = 40.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = headline,
+                        text = title,
                         color = Color(0xFFF8FAFB),
                         fontSize = 26.sp,
                         fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 16.dp)
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = subtitle,
                         color = Color(0xFFD8E6EA),
-                        fontSize = 18.sp,
+                        fontSize = 17.sp,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        modifier = Modifier.padding(horizontal = 24.dp)
                     )
                 }
             }
         }
 
-        // pager dots (always visible)
+        // Page indicators
         Row(
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 16.dp)
+                .padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             repeat(items.size) { index ->
                 val isSelected = pagerState.currentPage == index
                 Box(
                     modifier = Modifier
-                        .padding(horizontal = 5.dp)
+                        .padding(horizontal = 4.dp)
                         .size(if (isSelected) 12.dp else 8.dp)
                         .clip(CircleShape)
-                        .background(if (isSelected) Color(0xFFFFD700) else Color(0xFF4A6B73))
+                        .background(
+                            if (isSelected) Color(0xFFFFD700)
+                            else Color(0xFF4A6B73)
+                        )
                 )
             }
         }
@@ -315,59 +389,6 @@ fun FloatingBubbles() {
                     .graphicsLayer { alpha = 0.08f + 0.2f * anim }
                     .clip(CircleShape)
                     .background(Color(0xFFB6E3E8))
-            )
-        }
-    }
-}
-
-/* ----------------------------
-   CTA Button (glowing gold) — clickable fixed correctly
-   ---------------------------- */
-@Composable
-fun ConnectToReceptionButton(
-    isLoading: Boolean,
-    onClick: () -> Unit
-) {
-    val transition = rememberInfiniteTransition()
-    val glow by transition.animateFloat(
-        initialValue = 0.65f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(1000), RepeatMode.Reverse)
-    )
-
-    Box(
-        modifier = Modifier
-            .shadow(14.dp, RoundedCornerShape(40))
-            .clip(RoundedCornerShape(40))
-            .background(
-                Brush.horizontalGradient(
-                    listOf(
-                        Color(0xFFFFE28A).copy(alpha = glow),
-                        Color(0xFFFFC107).copy(alpha = glow)
-                    )
-                )
-            )
-            .clickable(
-                enabled = !isLoading,
-                onClick = onClick,
-                indication = LocalIndication.current,
-                interactionSource = remember { MutableInteractionSource() }
-            )
-            .padding(horizontal = 44.dp, vertical = 14.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        if (isLoading) {
-            CircularProgressIndicator(
-                color = Color.Black,
-                strokeWidth = 2.dp,
-                modifier = Modifier.size(22.dp)
-            )
-        } else {
-            Text(
-                text = "Alert Front Desk To Connect My Room",
-                color = Color.Black,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
             )
         }
     }

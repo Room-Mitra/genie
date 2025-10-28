@@ -1,7 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import AWS from 'aws-sdk';
 import { getReqId, requestContext } from './middleware/requestContext.js';
 
 // Patch console methods to include request ID if available
@@ -22,14 +21,8 @@ import morgan from 'morgan';
 // import swaggerJsdoc from 'swagger-jsdoc';
 
 // routes
-import deviceRoutes from '#routes/webapp/Device.controller.js';
-import guestRoutes from '#routes/webapp/Guest.controller.js';
-import utteranceRoutes from '#routes/webapp/Utterance.controller.js';
 import bookingRoutes from '#routes/webapp/Booking.controller.js';
 import staffRoutes from '#routes/webapp/Staff.controller.js';
-import mappingRoutes from '#routes/webapp/StaffRoomDepartmentRequestMapping.controller.js';
-import faqRoutes from '#routes/webapp/FAQ.controller.js';
-import intentsRoutes from '#routes/webapp/Intent.controller.js';
 import loginRoutes from '#routes/webapp/Login.controller.js';
 import userRoutes from '#routes/webapp/User.controller.js';
 import landingPageRoutes from '#routes/webapp/leads.route.js';
@@ -90,19 +83,12 @@ app.use(
 // UI routes
 app.use('/requests', authenticator, requestRoutes);
 app.use('/booking', authenticator, bookingRoutes);
-app.use('/devices', authenticator, deviceRoutes);
 app.use('/rooms', authenticator, roomRoutes);
 app.use('/staff', authenticator, staffRoutes);
 app.use('/hotel', authenticator, hotelRoutes);
-app.use('/intents', authenticator, intentsRoutes);
-
-app.use('/guests', authenticator, guestRoutes);
-app.use('/mapping', authenticator, mappingRoutes);
-app.use('/faq', authenticator, faqRoutes);
 
 // Android Routes
 app.use('/android/login', androidLoginRoutes);
-app.use('/android/utterance', androidAuthenticator, utteranceRoutes);
 app.use('/android/requests', androidAuthenticator, androidRequestRoutes);
 app.use('/android/hotel', androidAuthenticator, androidHotelRoutes);
 app.use('/android/track-events', androidAuthenticator, androidEventsTrackerRoutes);
@@ -153,4 +139,3 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
-

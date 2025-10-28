@@ -1,11 +1,15 @@
-export function amenityResponse(amenity) {
-  if (!amenity) return null;
+export function amenityOrConciergeResponse(ac) {
+  if (!ac) return null;
 
-  const { amenityId, title, description, image } = amenity;
-  return {
-    amenityId,
+  const { title, description, headerImage } = ac;
+  const ret = {
     title,
     description,
-    image,
+    headerImage,
   };
+
+  if (ac.amenityId) ret['amenityId'] = ac.amenityId;
+  if (ac.serviceId) ret['serviceId'] = ac.serviceId;
+
+  return ret;
 }
