@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
 import androidx.navigation.NavHostController
 import com.airbnb.lottie.compose.*
+import com.example.roommitra.data.DepartmentType
 import com.example.roommitra.service.ApiResult
 import com.example.roommitra.service.ApiService
 import kotlinx.coroutines.delay
@@ -82,7 +83,7 @@ fun NoActiveBookingScreen(navController: NavHostController) {
                             isError = false
                             val apiService = ApiService(context)
                             val requestBody = JSONObject().apply {
-                                put("department", "front_office")
+                                put("department", DepartmentType.FRONT_OFFICE.key)
                                 put("requestType", "Check In Guest")
                                 put("bookingId", null)
                             }
@@ -160,7 +161,7 @@ fun ConnectToReceptionButton(
     )
 
     val buttonText = when {
-        isLoading -> "Connecting..."
+//        isLoading -> "Connecting..."
         isSuccess -> "Reception Notified"
         isError -> "Try Again"
         else -> "Your In-Room Assistant Awaits — Let Front Desk Know"
