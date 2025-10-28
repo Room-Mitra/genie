@@ -5,6 +5,7 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -40,6 +41,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import com.example.roommitra.service.PollingManager
+import kotlinx.coroutines.isActive
+
 @Composable
 fun NoActiveBookingScreen(navController: NavHostController) {
     val context = LocalContext.current
@@ -144,7 +147,6 @@ fun NoActiveBookingScreen(navController: NavHostController) {
    ---------------------------- */
 @Composable
 fun HeroLottieCarouselWithText() {
-    // carousel items: (url, headline, subtitle)
     val items = listOf(
         Triple(
             "https://raw.githubusercontent.com/AdithyaPrabhu/roommitra/refs/heads/lottie/Customer%20service.json",
@@ -162,124 +164,110 @@ fun HeroLottieCarouselWithText() {
             "Play music & games — instant delight"
         ),
         Triple(
-            "https://raw.githubusercontent.com/AdithyaPrabhu/roommitra/refs/heads/main/Massage.json",
+            "https://raw.githubusercontent.com/AdithyaPrabhu/roommitra/refs/heads/lottie/Physio%20Exercise%20plants%20-%20MND%20Scotland.json",
             "Discover everything this hotel has to offer!",
             "Spa, salon, and more..."
         )
     )
 
     val pagerState = rememberPagerState(pageCount = { items.size })
-    val animAlpha = remember { Animatable(1f) }
 
-    // breathing effect
-//    val transition = rememberInfiniteTransition()
-//    val floatPulse by transition.animateFloat(
-//        initialValue = 0.98f, targetValue = 1.02f,
-//        animationSpec = infiniteRepeatable(tween(1000), RepeatMode.Reverse)
-//    )
-
-    // auto-scroll every few seconds
+    // Auto-scroll loop (simple + reliable)
     LaunchedEffect(Unit) {
         while (true) {
             delay(6500)
-            animAlpha.animateTo(0f, tween(500))
-            val nextPage = (pagerState.currentPage + 1) % items.size
-            pagerState.animateScrollToPage(nextPage)
-            animAlpha.animateTo(1f, tween(500))
+            if (!pagerState.isScrollInProgress) {
+                val next = (pagerState.currentPage + 1) % items.size
+                pagerState.animateScrollToPage(next)
+            }
         }
     }
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(500.dp)
+            .height(480.dp)
             .clip(RoundedCornerShape(24.dp))
             .background(Color(0x11000000))
     ) {
         HorizontalPager(
             state = pagerState,
-//            beyondBoundsPageCount = 1,
-            modifier = Modifier
-                .fillMaxSize()
-                .alpha(animAlpha.value)
+            modifier = Modifier.fillMaxSize()
         ) { page ->
-            val (url, headline, subtitle) = items[page]
+            val (url, title, subtitle) = items[page]
+
+            // Lottie composition
             val composition by rememberLottieComposition(LottieCompositionSpec.Url(url))
             val progress by animateLottieCompositionAsState(
                 composition = composition,
-                iterations = LottieConstants.IterateForever,
-                isPlaying = true
+                iterations = LottieConstants.IterateForever
             )
 
-            Box(
-                modifier = Modifier
-                    .fillMaxSize(),
-//                    .graphicsLayer {
-//                        scaleX = floatPulse
-//                        scaleY = floatPulse
-//                    }
-                contentAlignment = Alignment.Center
-            ) {
-                // Lottie background
+            Box(modifier = Modifier.fillMaxSize()) {
+                // Background animation
                 LottieAnimation(
                     composition = composition,
                     progress = { progress },
                     modifier = Modifier.fillMaxSize()
                 )
 
-                // gradient overlay
+                // Gradient overlay
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(
                             Brush.verticalGradient(
-                                colors = listOf(Color.Transparent, Color(0xCC021224))
+                                listOf(Color.Transparent, Color(0xCC021224))
                             )
                         )
                 )
 
                 // Text content
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = 40.dp)
+                        .padding(bottom = 40.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = headline,
+                        text = title,
                         color = Color(0xFFF8FAFB),
                         fontSize = 26.sp,
                         fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 16.dp)
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = subtitle,
                         color = Color(0xFFD8E6EA),
-                        fontSize = 18.sp,
+                        fontSize = 17.sp,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        modifier = Modifier.padding(horizontal = 24.dp)
                     )
                 }
             }
         }
 
-        // pager dots (always visible)
+        // Page indicators
         Row(
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 16.dp)
+                .padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             repeat(items.size) { index ->
                 val isSelected = pagerState.currentPage == index
                 Box(
                     modifier = Modifier
-                        .padding(horizontal = 5.dp)
+                        .padding(horizontal = 4.dp)
                         .size(if (isSelected) 12.dp else 8.dp)
                         .clip(CircleShape)
-                        .background(if (isSelected) Color(0xFFFFD700) else Color(0xFF4A6B73))
+                        .background(
+                            if (isSelected) Color(0xFFFFD700)
+                            else Color(0xFF4A6B73)
+                        )
                 )
             }
         }
