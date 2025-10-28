@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -424,7 +425,11 @@ fun rememberMicController(
 // ===========================================================================
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MicPane(modifier: Modifier = Modifier, navController: NavHostController,musicController: MusicPlayerController) {
+fun MicPane(
+    modifier: Modifier = Modifier,
+    navController: NavHostController,
+    musicController: MusicPlayerController
+) {
     val ctx = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val apiService = remember { ApiService(ctx) }
@@ -432,7 +437,7 @@ fun MicPane(modifier: Modifier = Modifier, navController: NavHostController,musi
     val autoListenTrigger = remember { mutableStateOf(0L) }
     val ttsManager = remember { TtsManager(ctx) }
     var sessionId by remember { mutableStateOf("null") }
-    val agenticHandler = remember{ AgenticHandlerRegistry(ctx) }
+    val agenticHandler = remember { AgenticHandlerRegistry(ctx) }
 
     val sessionReset: () -> Unit = { sessionId = "null" }
 
@@ -449,78 +454,79 @@ fun MicPane(modifier: Modifier = Modifier, navController: NavHostController,musi
 
     fun sendUtteranceToServer(userQuery: String) {
         coroutineScope.launch {
-                try {
-                    val payload = JSONObject().apply {
-                        put("message", userQuery)
-                        if (sessionId != "null") {
-                            put("conversationId", sessionId)
-                        }
+            try {
+                val payload = JSONObject().apply {
+                    put("message", userQuery)
+                    if (sessionId != "null") {
+                        put("conversationId", sessionId)
                     }
-                    Log.i(
-                        "MicPane",
-                        "Attempting to send User query : \"$userQuery\" sessionId=$sessionId"
-                    )
-                    val result = withContext(Dispatchers.IO) {
-                        apiService.post("conversations", payload)
-                    }
-                    when ( result) {
-                        is ApiResult.Success -> {
-                            val json = result.data
-                            val message = json?.optString("message", "") ?: ""
-                            val conversationId = json?.optString("conversationId", "null") ?: "null"
-                            val isConversationOpen = json?.optBoolean("isConversationOpen", false) ?: false
-                            val agentsArray = json?.optJSONArray("agents")
-                            Log.d("MicPane", "Server response: $message")
-                            Log.d("MicPane", "Server response: $isConversationOpen")
-                            Log.d("MicPane", "Server response: $agentsArray")
-                            // Update the sessionId with the value from the server
-                            sessionId = conversationId
-                            if (agentsArray != null && agentsArray.length() > 0) {
-                                for (i in 0 until agentsArray.length()) {
-                                    val agent = agentsArray.getJSONObject(i)
-                                    val agentType = agent.optString("type", "")
+                }
+                Log.i(
+                    "MicPane",
+                    "Attempting to send User query : \"$userQuery\" sessionId=$sessionId"
+                )
+                val result = withContext(Dispatchers.IO) {
+                    apiService.post("conversations", payload)
+                }
+                when (result) {
+                    is ApiResult.Success -> {
+                        val json = result.data
+                        val message = json?.optString("message", "") ?: ""
+                        val conversationId = json?.optString("conversationId", "null") ?: "null"
+                        val isConversationOpen =
+                            json?.optBoolean("isConversationOpen", false) ?: false
+                        val agentsArray = json?.optJSONArray("agents")
+                        Log.d("MicPane", "Server response: $message")
+                        Log.d("MicPane", "Server response: $isConversationOpen")
+                        Log.d("MicPane", "Server response: $agentsArray")
+                        // Update the sessionId with the value from the server
+                        sessionId = conversationId
+                        if (agentsArray != null && agentsArray.length() > 0) {
+                            for (i in 0 until agentsArray.length()) {
+                                val agent = agentsArray.getJSONObject(i)
+                                val agentType = agent.optString("type", "")
 
-                                    val parameters = mutableListOf<String>()
-                                    agent.optJSONArray("parameters")?.let { params ->
-                                        for (j in 0 until params.length()) {
-                                            params.optString(j)?.takeIf { it.isNotEmpty() }
-                                                ?.let { parameters.add(it) }
-                                        }
-                                    }
-
-
-                                    if (agentType.isNotEmpty()) {
-//                                        musicController.playlist(parameters)
-                                        // Safe to call agent handler
-                                        agenticHandler.callAgent(
-                                            agentType,
-                                            parameters,
-                                            coroutineScope
-                                        )
+                                val parameters = mutableListOf<String>()
+                                agent.optJSONArray("parameters")?.let { params ->
+                                    for (j in 0 until params.length()) {
+                                        params.optString(j)?.takeIf { it.isNotEmpty() }
+                                            ?.let { parameters.add(it) }
                                     }
                                 }
+
+
+                                if (agentType.isNotEmpty()) {
+//                                        musicController.playlist(parameters)
+                                    // Safe to call agent handler
+                                    agenticHandler.callAgent(
+                                        agentType,
+                                        parameters,
+                                        coroutineScope
+                                    )
+                                }
                             }
-
-                            if (message.isNotEmpty()) {
-                                Log.d(
-                                    "MicPane",
-                                    "Server success: speech=\"${message.take(100)}\" isSessionOpen=$isConversationOpen"
-                                )
-                                conversation.add(ConversationMessage(message, false))
-                                ttsManager.speak(message)
-                            } else ttsManager.speak("No response from server.")
-                            if (isConversationOpen)
-                                autoListenTrigger.value = System.currentTimeMillis()
                         }
 
-                        is ApiResult.Error -> {
-                            ttsManager.speak("Something went wrong. Please try later")
-                            Log.e("MicPane", "Server error: ${result}")
-                        }
+                        if (message.isNotEmpty()) {
+                            Log.d(
+                                "MicPane",
+                                "Server success: speech=\"${message.take(100)}\" isSessionOpen=$isConversationOpen"
+                            )
+                            conversation.add(ConversationMessage(message, false))
+                            ttsManager.speak(message)
+                        } else ttsManager.speak("No response from server.")
+                        if (isConversationOpen)
+                            autoListenTrigger.value = System.currentTimeMillis()
                     }
-                } catch (e: Exception) {
-                    ttsManager.speak("Something went wrong. Please try later")
+
+                    is ApiResult.Error -> {
+                        ttsManager.speak("Something went wrong. Please try later")
+                        Log.e("MicPane", "Server error: ${result}")
+                    }
                 }
+            } catch (e: Exception) {
+                ttsManager.speak("Something went wrong. Please try later")
+            }
         }
     }
 
@@ -551,21 +557,15 @@ fun MicPane(modifier: Modifier = Modifier, navController: NavHostController,musi
             verticalArrangement = Arrangement.Center
         ) {
             SecretLogoTrigger(navController)
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(35.dp))
 
             Text(
-                text = when (listenState) {
-                    ListenState.Idle -> ""
-                    ListenState.Listening -> "Listening..."
-                    ListenState.Thinking -> "Thinking..."
-                    ListenState.Speaking -> "Speaking..."
-                    ListenState.Muted -> ""
-                },
-                style = MaterialTheme.typography.titleMedium.copy(
-                    color = Color.White,
-                    fontWeight = FontWeight.SemiBold
-                )
+                text = "Hello, $firstName 👋",
+                color = Color.White,
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)
+
             )
+
 
             Spacer(Modifier.height(20.dp))
 
@@ -588,39 +588,81 @@ fun MicPane(modifier: Modifier = Modifier, navController: NavHostController,musi
                     }
                 )
             }
+            Spacer(Modifier.height(8.dp))
+
+            Text(
+                text = when (listenState) {
+                    ListenState.Idle -> ""
+                    ListenState.Listening -> "Listening..."
+                    ListenState.Thinking -> "Thinking..."
+                    ListenState.Speaking -> "Speaking..."
+                    ListenState.Muted -> ""
+                },
+                style = MaterialTheme.typography.titleMedium.copy(
+                    color = Color.White,
+                    fontWeight = FontWeight.SemiBold
+                )
+            )
 
             Spacer(Modifier.height(12.dp))
 
             Button(
-                onClick = { if (isMuted) micController.unmute() else micController.mute() },
+                onClick = {
+                    when {
+                        listenState == ListenState.Speaking -> {
+                            // Cancel speech
+                            ttsManager.stopImmediately()
+                            micStateService.setState(ListenState.Idle)
+                        }
+
+                        isMuted -> micController.unmute()
+                        else -> micController.mute()
+                    }
+                },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isMuted) Color.Red else Color(0xFF141E30)
+                    containerColor = when {
+                        listenState == ListenState.Speaking -> Color(0xFFB71C1C) // Deep red for cancel
+                        isMuted -> Color.Red
+                        else -> Color(0xFF141E30)
+                    }
                 ),
                 shape = RoundedCornerShape(50),
                 modifier = Modifier.height(48.dp)
             ) {
-                Icon(
-                    imageVector = if (isMuted) Icons.Default.MicOff else Icons.Default.Mic,
-                    contentDescription = "Mute/Unmute",
-                    tint = Color.White
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = if (isMuted) "Unmute" else "Mute",
-                    color = Color.White
-                )
+                when {
+                    listenState == ListenState.Speaking -> {
+                        Icon(
+                            imageVector = Icons.Default.Stop,
+                            contentDescription = "Cancel Speech",
+                            tint = Color.White
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text("Cancel Speech", color = Color.White)
+                    }
+
+                    isMuted -> {
+                        Icon(
+                            imageVector = Icons.Default.MicOff,
+                            contentDescription = "Unmute",
+                            tint = Color.White
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text("Unmute", color = Color.White)
+                    }
+
+                    else -> {
+                        Icon(
+                            imageVector = Icons.Default.Mic,
+                            contentDescription = "Mute",
+                            tint = Color.White
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text("Mute", color = Color.White)
+                    }
+                }
             }
 
-            if (conversation.isEmpty()){
-                Spacer(Modifier.height(35.dp))
 
-                Text(
-                    text = "Hello there,   $firstName 👋",
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)
-
-                )
-            }
 
             Spacer(Modifier.height(24.dp))
             if (conversation.isNotEmpty()) ConversationList(
