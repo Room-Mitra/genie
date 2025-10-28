@@ -52,6 +52,10 @@ export function UserProvider({ children }) {
       return;
     }
 
+    if (user) {
+      return;
+    }
+
     // Protected route: fetch user
     (async () => {
       setLoading(true);

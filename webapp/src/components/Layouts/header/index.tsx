@@ -6,15 +6,23 @@ import { useSidebarContext } from "../sidebar/sidebar-context";
 import { MenuIcon } from "./icons";
 import { ThemeToggleSwitch } from "./theme-toggle";
 import { UserInfo } from "./user-info";
+import { Notification } from "./notification";
+import { useRequests } from "@/context/RequestsContext";
+import { useEffect } from "react";
 
 export function Header() {
   const { toggleSidebar, isMobile } = useSidebarContext();
+  const { activeRequests, loading, hasMore, isAtStart } = useRequests();
+
+  useEffect(() => {
+    console.log(activeRequests, loading, hasMore, isAtStart);
+  }, [activeRequests, hasMore, isAtStart, loading]);
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between border-b border-stroke bg-white px-4 py-5 shadow-1 dark:border-stroke-dark dark:bg-gray-dark md:px-5 2xl:px-10">
       <button
         onClick={toggleSidebar}
-        className="rounded-lg border px-1.5 py-1 dark:border-stroke-dark dark:bg-[#020D1A] hover:dark:bg-[#FFFFFF1A] lg:hidden"
+        className="rounded-lg border px-1.5 py-1 dark:border-stroke-dark dark:bg-[#020D1A] hover:dark:bg-[#FFFFFF1A]"
       >
         <MenuIcon />
         <span className="sr-only">Toggle Sidebar</span>
@@ -34,6 +42,8 @@ export function Header() {
 
       <div className="flex flex-1 items-center justify-end gap-2 min-[375px]:gap-4">
         <ThemeToggleSwitch />
+
+        <Notification />
 
         <div className="shrink-0">
           <UserInfo />

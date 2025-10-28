@@ -22,6 +22,7 @@ import { Autocomplete } from "@/components/Autocomplete";
 import { TextAreaGroup } from "@/components/FormElements/InputGroup/text-area";
 import { toast } from "react-toastify";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
+import { useRequests } from "@/context/RequestsContext";
 
 async function fetchActiveRequests({ limit, nextToken }) {
   const statuses = ["unacknowledged", "in_progress", "delayed"];
@@ -74,11 +75,9 @@ async function stateTransition(data) {
 
 export default function Page() {
   const [data, setData] = useState([]);
-  const [nextTokens, setNextTokens] = useState([]);
   const [staff, setStaff] = useState([]);
 
   const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [isChangingStatus, setIsChangingStatus] = useState(false);
   const [requireAssignedStaffUser, setRequireAssignedStaffUser] =
     useState(false);
@@ -87,6 +86,15 @@ export default function Page() {
   const [assignedStaffUser, setAssignedStaffUser] = useState(null);
   const [toStatus, setToStatus] = useState("");
   const [note, setNote] = useState("");
+
+  const {
+    activeRequests,
+    loading,
+    hasMore,
+    isAtStart,
+    nextPage,
+    previousPage,
+  } = useRequests();
 
   const canChangeStatus = useMemo(() => {
     return (
@@ -140,16 +148,11 @@ export default function Page() {
     }
   };
 
-  const refreshRequests = async () => {
+  const refreshRequests = () => {
+    console.log(activeRequests);
     try {
-      setLoading(true);
-      const requests = await fetchActiveRequests({
-        nextToken: nextTokens?.[nextTokens?.length - 1],
-      });
-      const newNextTokens = [...nextTokens, requests?.nextToken || "END"];
-      setNextTokens(newNextTokens);
       setData(
-        requests?.items?.map((r) => ({
+        activeRequests?.map((r) => ({
           dates: (
             <Dates
               requestedAt={r.createdAt}
@@ -196,15 +199,16 @@ export default function Page() {
       );
     } catch (err) {
       console.error("Error fetching bookings:", err);
-    } finally {
-      setLoading(false);
     }
   };
 
   useEffect(() => {
     refreshStaff();
-    refreshRequests();
   }, []);
+
+  useEffect(() => {
+    refreshRequests();
+  }, [activeRequests]);
 
   function resetForm() {
     setShowModal(false);
@@ -254,16 +258,10 @@ export default function Page() {
           ]}
           loading={loading}
           noDataMessage="No active requests 🎉"
-          onClickNextPage={refreshRequests}
-          onClickPrevPage={() => {
-            if (nextTokens.pop() === "END") nextTokens.pop();
-            refreshRequests();
-          }}
-          hasMore={
-            nextTokens?.length > 0 &&
-            nextTokens[nextTokens?.length - 1] !== "END"
-          }
-          isAtStart={(nextTokens?.length || 0) <= 1}
+          onClickNextPage={nextPage}
+          onClickPrevPage={previousPage}
+          hasMore={hasMore}
+          isAtStart={isAtStart}
           showPagination={true}
         />
 

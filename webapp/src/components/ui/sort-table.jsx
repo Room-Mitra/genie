@@ -70,7 +70,8 @@ export default function SortTable({
   const [sortedRows, setSortedRows] = useState([]);
 
   useEffect(() => {
-    setRows(data);
+    console.log(data);
+    if (data?.length) setRows(data);
   }, [data]);
 
   useEffect(() => {
