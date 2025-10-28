@@ -1,58 +1,56 @@
 package com.example.roommitra.view
 
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.*
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
-//import androidx.compose.material3.LocalIndication
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
 import androidx.navigation.NavHostController
 import com.airbnb.lottie.compose.*
-import com.example.roommitra.R
 import com.example.roommitra.service.ApiResult
 import com.example.roommitra.service.ApiService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.json.JSONObject
-import com.example.roommitra.service.PollingManager
-import kotlinx.coroutines.isActive
 
 @Composable
 fun NoActiveBookingScreen(navController: NavHostController) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(false) }
-    var message by remember { mutableStateOf<String?>(null) }
+    var isSuccess by remember { mutableStateOf(false) }
+    var isError by remember { mutableStateOf(false) }
 
-
-    // playful background gradient — premium but upbeat
     val bg = Brush.verticalGradient(listOf(Color(0xFF0F1724), Color(0xFF0F2434)))
+
+    // 🕒 Automatically reset success state after 1 hour
+    LaunchedEffect(isSuccess,isError,isLoading) {
+        if (isSuccess || isError || isLoading) {
+            delay( 60 * 60 * 1000L) // 1 hour in milliseconds
+            isSuccess = false
+            isLoading = false
+            isError = false
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -61,90 +59,97 @@ fun NoActiveBookingScreen(navController: NavHostController) {
             .verticalScroll(rememberScrollState())
             .padding(20.dp)
     ) {
-        // Decorative floating bubbles (fun, subtle)
         FloatingBubbles()
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // HEADER
             SecretLogoTrigger(navController)
+            Spacer(modifier = Modifier.height(30.dp))
+
             HeroLottieCarouselWithText()
             Spacer(modifier = Modifier.height(50.dp))
 
-            Text(
-                "Enjoy complimentary access to your personal room assistant, included with your stay.",
-                color = Color(0xFFBFCFD6),
-                fontSize = 20.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // CTA footer
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 ConnectToReceptionButton(
                     isLoading = isLoading,
+                    isSuccess = isSuccess,
+                    isError = isError,
                     onClick = {
                         scope.launch {
                             isLoading = true
-                            // trigger your API here
-                                val apiService = ApiService(context)
+                            isError = false
+                            val apiService = ApiService(context)
+                            val requestBody = JSONObject().apply {
+                                put("department", "front_office")
+                                put("requestType", "Check In Guest")
+                                put("bookingId", null)
+                            }
 
-                                // Final request body
-                                val requestBody = JSONObject().apply {
-                                    put("department", "front_office")
-                                    put("requestType", "Check In Guest")
-                                    put("bookingId", null)
+                            when (val result = apiService.post("requests", requestBody)) {
+                                is ApiResult.Success -> {
+                                    isSuccess = true
                                 }
 
-                                when (val result = apiService.post("requests", requestBody)) {
-                                    is ApiResult.Success -> {
-                                        message =
-                                            "Reception has been notified — one moment while we set up your butler!"
-                                    }
-                                    is ApiResult.Error -> {
-                                        message =
-                                            "Something went wrong. Please try again later. Sorry :("
-                                    }
+                                is ApiResult.Error -> {
+                                    isError = true
                                 }
+                            }
                             isLoading = false
-
                         }
                     }
                 )
-                Spacer(modifier = Modifier.height(20.dp))
 
-                if (message != null) {
-                    Text(
-                        message!!,
-                        color = Color(0xFFE8F1F4),
-                        fontSize = 14.sp,
-                        textAlign = TextAlign.Center
-                    )
+                Spacer(modifier = Modifier.height(24.dp))
+
+                when {
+                    isSuccess -> {
+                        AnimatedVisibility(visible = true, enter = fadeIn(), exit = fadeOut()) {
+                            Text(
+                                text = "✅ Reception has been notified. We’re setting up your personal butler!",
+                                color = Color(0xFFBEE5BF),
+                                fontSize = 15.sp,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 24.dp)
+                            )
+                        }
+                    }
+
+                    isError -> {
+                        AnimatedVisibility(visible = true, enter = fadeIn(), exit = fadeOut()) {
+                            Text(
+                                text = "⚠️ Couldn’t reach the front desk. Please try again after some time.",
+                                color = Color(0xFFFFBABA),
+                                fontSize = 15.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+
+                    else -> {
+                        Text(
+                            "Enjoy complimentary access to your personal room assistant, included with your stay.",
+                            color = Color(0xFFBFCFD6),
+                            fontSize = 16.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                    }
                 }
-//                else {
-//                    Text(
-//                        "💡 Tap the button above to enable your in-room AI concierge",
-//                        color = Color(0xFF9FB2BB),
-//                        fontSize = 15.sp
-//                    )
-//                }
-
-
-                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
 }
 
 /* ----------------------------
-   CTA Button (glowing gold) — clickable fixed correctly
+   CTA Button (handles success/loading/error)
    ---------------------------- */
 @Composable
 fun ConnectToReceptionButton(
     isLoading: Boolean,
+    isSuccess: Boolean,
+    isError: Boolean,
     onClick: () -> Unit
 ) {
     val transition = rememberInfiniteTransition()
@@ -153,6 +158,13 @@ fun ConnectToReceptionButton(
         targetValue = 1f,
         animationSpec = infiniteRepeatable(tween(1000), RepeatMode.Reverse)
     )
+
+    val buttonText = when {
+        isLoading -> "Connecting..."
+        isSuccess -> "Reception Notified"
+        isError -> "Try Again"
+        else -> "Your In-Room Assistant Awaits — Let Front Desk Know"
+    }
 
     Box(
         modifier = Modifier
@@ -167,7 +179,7 @@ fun ConnectToReceptionButton(
                 )
             )
             .clickable(
-                enabled = !isLoading,
+                enabled = !isLoading && !isSuccess, // disable on success
                 onClick = onClick,
                 indication = LocalIndication.current,
                 interactionSource = remember { MutableInteractionSource() }
@@ -175,15 +187,15 @@ fun ConnectToReceptionButton(
             .padding(horizontal = 44.dp, vertical = 14.dp),
         contentAlignment = Alignment.Center
     ) {
-        if (isLoading) {
-            CircularProgressIndicator(
+        when {
+            isLoading -> CircularProgressIndicator(
                 color = Color.Black,
                 strokeWidth = 2.dp,
                 modifier = Modifier.size(22.dp)
             )
-        } else {
-            Text(
-                text = "Alert Front Desk To Connect My Room",
+
+            else -> Text(
+                text = buttonText,
                 color = Color.Black,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
