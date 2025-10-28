@@ -80,6 +80,7 @@ fun DealsCardSlideshow() {
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(horizontal = 8.dp)
                 .height(450.dp)
         ) {
             Box {

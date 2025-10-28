@@ -1,5 +1,6 @@
 package com.example.roommitra.view.WidgetPane
 
+import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
@@ -51,7 +52,7 @@ fun OrderStatusCard() {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp),
+            .padding(horizontal = 8.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
@@ -167,7 +168,7 @@ fun mapRequestsToOrders(requests: JSONArray): List<Order> {
 
     for (i in 0 until requests.length()) {
         val req = requests.optJSONObject(i) ?: continue
-
+        Log.d("OrderStatusCard", "Request: $req")
         val requestType = req.optString("requestType", "Request")
         val status = req.optString("status", "Pending")
         val etaRaw = req.optString("estimatedTimeOfFulfillment", "")
