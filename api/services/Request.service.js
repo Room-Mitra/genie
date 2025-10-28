@@ -72,7 +72,6 @@ export async function createRequest(requestData) {
 
 export async function listRequests({ hotelId, statuses, limit, nextToken }) {
   if (!hotelId) throw new Error('need hotelId to list requests');
-  console.log(statuses);
 
   statuses?.forEach((s) => {
     if (!['unacknowledged', 'in_progress', 'delayed', 'completed'].includes(s))

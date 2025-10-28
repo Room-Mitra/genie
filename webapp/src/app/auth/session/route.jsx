@@ -9,7 +9,7 @@ export async function POST(req) {
   try {
     jwt.verify(token, SECRET_KEY);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 
