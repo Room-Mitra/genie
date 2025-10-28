@@ -147,7 +147,6 @@ export default function Page() {
         nextToken: nextTokens?.[nextTokens?.length - 1],
       });
       const newNextTokens = [...nextTokens, requests?.nextToken || "END"];
-      console.log(newNextTokens);
       setNextTokens(newNextTokens);
       setData(
         requests?.items?.map((r) => ({
@@ -265,6 +264,7 @@ export default function Page() {
             nextTokens[nextTokens?.length - 1] !== "END"
           }
           isAtStart={(nextTokens?.length || 0) <= 1}
+          showPagination={true}
         />
 
         {/* Note and user assignment modal */}
