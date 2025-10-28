@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -564,21 +565,7 @@ fun MicPane(
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)
 
             )
-            Spacer(Modifier.height(8.dp))
 
-            Text(
-                text = when (listenState) {
-                    ListenState.Idle -> ""
-                    ListenState.Listening -> "Listening..."
-                    ListenState.Thinking -> "Thinking..."
-                    ListenState.Speaking -> "Speaking..."
-                    ListenState.Muted -> ""
-                },
-                style = MaterialTheme.typography.titleMedium.copy(
-                    color = Color.White,
-                    fontWeight = FontWeight.SemiBold
-                )
-            )
 
             Spacer(Modifier.height(20.dp))
 
@@ -601,28 +588,80 @@ fun MicPane(
                     }
                 )
             }
+            Spacer(Modifier.height(8.dp))
+
+            Text(
+                text = when (listenState) {
+                    ListenState.Idle -> ""
+                    ListenState.Listening -> "Listening..."
+                    ListenState.Thinking -> "Thinking..."
+                    ListenState.Speaking -> "Speaking..."
+                    ListenState.Muted -> ""
+                },
+                style = MaterialTheme.typography.titleMedium.copy(
+                    color = Color.White,
+                    fontWeight = FontWeight.SemiBold
+                )
+            )
 
             Spacer(Modifier.height(12.dp))
 
             Button(
-                onClick = { if (isMuted) micController.unmute() else micController.mute() },
+                onClick = {
+                    when {
+                        listenState == ListenState.Speaking -> {
+                            // Cancel speech
+                            ttsManager.stopImmediately()
+                            micStateService.setState(ListenState.Idle)
+                        }
+
+                        isMuted -> micController.unmute()
+                        else -> micController.mute()
+                    }
+                },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isMuted) Color.Red else Color(0xFF141E30)
+                    containerColor = when {
+                        listenState == ListenState.Speaking -> Color(0xFFB71C1C) // Deep red for cancel
+                        isMuted -> Color.Red
+                        else -> Color(0xFF141E30)
+                    }
                 ),
                 shape = RoundedCornerShape(50),
                 modifier = Modifier.height(48.dp)
             ) {
-                Icon(
-                    imageVector = if (isMuted) Icons.Default.MicOff else Icons.Default.Mic,
-                    contentDescription = "Mute/Unmute",
-                    tint = Color.White
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = if (isMuted) "Unmute" else "Mute",
-                    color = Color.White
-                )
+                when {
+                    listenState == ListenState.Speaking -> {
+                        Icon(
+                            imageVector = Icons.Default.Stop,
+                            contentDescription = "Cancel Speech",
+                            tint = Color.White
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text("Cancel Speech", color = Color.White)
+                    }
+
+                    isMuted -> {
+                        Icon(
+                            imageVector = Icons.Default.MicOff,
+                            contentDescription = "Unmute",
+                            tint = Color.White
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text("Unmute", color = Color.White)
+                    }
+
+                    else -> {
+                        Icon(
+                            imageVector = Icons.Default.Mic,
+                            contentDescription = "Mute",
+                            tint = Color.White
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text("Mute", color = Color.White)
+                    }
+                }
             }
+
 
 
             Spacer(Modifier.height(24.dp))

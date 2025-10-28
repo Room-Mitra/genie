@@ -36,10 +36,17 @@ import kotlinx.coroutines.delay
 @Composable
 fun SuggestionSlideshow() {
     val suggestions = listOf(
-        "Get me a cup of masala chai",
-        "Inform housekeeping to clean my room",
-        "Where is the library",
-        "Suggest a good night club in this city"
+        "Get me a cup of chai",
+        "Ask housekeeping to clean my room",
+        "Play bollywood music",
+        "Tell me a joke",
+        "Get me a bottle of drinking water",
+        "How far is the airport?",
+        "Send the bellboy to help me with my luggage",
+        "I need extra pillows",
+        "Play devotional songs",
+        "Suggest vegan soups for lunch",
+        "Who is Batman's nemesis?"
     )
 
     var currentIndex by remember { mutableStateOf(0) }

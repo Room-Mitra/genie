@@ -252,7 +252,7 @@ fun HeroLottieCarouselWithText() {
         Triple(
             "https://raw.githubusercontent.com/AdithyaPrabhu/roommitra/refs/heads/lottie/Unicum.json",
             "Vacation Mode - ON!!",
-            "Relax, Refresh & Rejuvenate with RoomMitra"
+            "Relax, Refresh & Rejuvenate with Room Mitra"
         )
     )
 
