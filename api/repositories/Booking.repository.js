@@ -1,23 +1,7 @@
-import { ENTITY_TABLE_NAME, GSI_ROOMTYPE_NAME, GUEST_TABLE_NAME } from '#Constants/DB.constants.js';
+import { ENTITY_TABLE_NAME, GSI_ROOMTYPE_NAME } from '#Constants/DB.constants.js';
 import { buildHotelEntityItem } from '#common/hotelEntity.helper.js';
 import { toIsoString } from '#common/timestamp.helper.js';
 import DDB from '#clients/DynamoDb.client.js';
-
-const ID_TYPE = 'BOOKING:';
-
-const addIdType = (booking) => {
-  booking.id = `${ID_TYPE}${booking.id}`;
-  return booking;
-};
-
-export const addBooking = async (bookingData) => {
-  const params = {
-    TableName: GUEST_TABLE_NAME,
-    Item: { ...addIdType(bookingData) },
-  };
-  await DDB.put(params).promise(); // TODO :: Handle Error
-  return params.Item;
-};
 
 export async function existsOverlappingBooking({ roomId, checkInTime, checkOutTime }) {
   // Overlap condition:

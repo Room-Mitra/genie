@@ -1,5 +1,4 @@
 import DDB from '#clients/DynamoDb.client.js';
-import { GUEST_TABLE_NAME as USER_LOGIN_TABLE_NAME } from '#Constants/DB.constants.js';
 import { ENTITY_TABLE_NAME } from '#Constants/DB.constants.js';
 import { toIsoString } from '#common/timestamp.helper.js';
 
@@ -90,30 +89,6 @@ export async function transactCreateUserWithMobileGuard({ user }) {
 
   return DDB.transactWrite(params).promise();
 }
-
-export const getUser = async (userId) => {
-  const params = {
-    TableName: USER_LOGIN_TABLE_NAME,
-    ExpressionAttributeValues: {
-      ':id': `${userId}`,
-    },
-    KeyConditionExpression: 'id=:id',
-  };
-  try {
-    const userData = await DDB.query(params).promise();
-    if (userData && userData.Items && userData.Items.length) {
-      return { ...userData.Items[0] };
-    }
-  } catch (e) {
-    console.error(
-      'Error while accessing login details from DB',
-      e,
-      ' :: for input params ::',
-      params
-    );
-  }
-  return null;
-};
 
 export async function getEmailRegistryByEmail(email) {
   const pk = `USER#${email}`;
