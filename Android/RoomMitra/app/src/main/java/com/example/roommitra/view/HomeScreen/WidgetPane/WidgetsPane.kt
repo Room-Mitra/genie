@@ -2,9 +2,6 @@ package com.example.roommitra.view.WidgetPane
 
 import android.util.Log
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -23,9 +20,7 @@ fun WidgetsPane(
     navController: NavHostController
 ) {
     fun widgetClickHandler(widgetName: String) {
-        TrackingService.getInstance().trackEvent(
-            "widget_click",
-            mapOf("widgetName" to widgetName)
+        TrackingService.getInstance().trackEvent("widget_click", mapOf("widgetName" to widgetName)
         )
         Log.d("TrackingService", "Widget clicked: $widgetName")
         navController.navigate(widgetName)
@@ -38,10 +33,10 @@ fun WidgetsPane(
             WidgetCard("Amenities", Icons.Default.Pool) { widgetClickHandler("amenities") },
             WidgetCard( "Housekeeping", Icons.Default.CleaningServices) { widgetClickHandler("housekeeping") },
             WidgetCard("Concierge", Icons.Default.DirectionsCar) { widgetClickHandler("concierge") }
-            //            WidgetCard("Your Requests", Icons.Default.ListAlt) { },
+//            WidgetCard("Your Requests", Icons.Default.ListAlt) { },
 //            WidgetCard("Reception", Icons.Default.Call) { },
 //            WidgetCard("My Notifications", Icons.Default.Notifications) { },
-            //            WidgetCard("Emergency", "Call Ambulance, Fire Services etc") { },
+//            WidgetCard("Emergency", "Call Ambulance, Fire Services etc") { },
 //            WidgetCard("Deals", "Show offers in exchange for reviews") { },
 //            WidgetCard("DND", "Stop listening, dont play sounds, dim display to 0%") { },
 //            WidgetCard("News", "Read / listen / see news") { },
@@ -53,24 +48,25 @@ fun WidgetsPane(
     }
 
     Column(modifier = modifier.padding(10.dp)) {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(5),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.weight(1f, fill = false)
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
         ) {
-            items(cards) { card ->
+            cards.forEach { card ->
                 Card(
                     onClick = card.onClick,
                     shape = RoundedCornerShape(16.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1f)
+                        .weight(1f) //  makes all cards equal width
+                        .aspectRatio(1f) //  keeps them square
                 ) {
                     Column(
-                        Modifier
+                        modifier = Modifier
                             .padding(8.dp)
                             .fillMaxSize(),
                         verticalArrangement = Arrangement.Center,
