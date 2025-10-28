@@ -172,11 +172,11 @@ fun HeroLottieCarouselWithText() {
     val animAlpha = remember { Animatable(1f) }
 
     // breathing effect
-    val transition = rememberInfiniteTransition()
-    val floatPulse by transition.animateFloat(
-        initialValue = 0.98f, targetValue = 1.02f,
-        animationSpec = infiniteRepeatable(tween(1000), RepeatMode.Reverse)
-    )
+//    val transition = rememberInfiniteTransition()
+//    val floatPulse by transition.animateFloat(
+//        initialValue = 0.98f, targetValue = 1.02f,
+//        animationSpec = infiniteRepeatable(tween(1000), RepeatMode.Reverse)
+//    )
 
     // auto-scroll every few seconds
     LaunchedEffect(Unit) {
@@ -213,11 +213,11 @@ fun HeroLottieCarouselWithText() {
 
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer {
-                        scaleX = floatPulse
-                        scaleY = floatPulse
-                    },
+                    .fillMaxSize(),
+//                    .graphicsLayer {
+//                        scaleX = floatPulse
+//                        scaleY = floatPulse
+//                    }
                 contentAlignment = Alignment.Center
             ) {
                 // Lottie background
