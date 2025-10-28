@@ -31,7 +31,7 @@ async function fetchCompletedRequests() {
 
 export default function Page() {
   const [data, setData] = useState([]);
-
+  const [nextTokens, setNextTokens] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const columns = useMemo(
@@ -103,6 +103,17 @@ export default function Page() {
           ]}
           loading={loading}
           noDataMessage="No completed requests 🎉"
+          onClickNextPage={refreshRequests}
+          onClickPrevPage={() => {
+            if (nextTokens.pop() === "END") nextTokens.pop();
+            refreshRequests();
+          }}
+          hasMore={
+            nextTokens?.length > 0 &&
+            nextTokens[nextTokens?.length - 1] !== "END"
+          }
+          isAtStart={(nextTokens?.length || 0) <= 1}
+          showPagination={true}
         />
       </div>
     </div>

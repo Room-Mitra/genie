@@ -50,9 +50,21 @@ export default function SortTable({
   tableRowClassNames = [],
   tableBodyClassNames = [],
   noDataMessage = "No rows",
+  onClickPrevPage = () => {},
+  onClickNextPage = () => {},
   loading = false,
+  hasMore = false,
+  isAtStart = true,
+  showPagination = false,
 }) {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+  const [prevDisabled, setPrevDisabled] = useState(isAtStart);
+  const [nextDisabled, setNextDisabled] = useState(!hasMore);
+
+  useEffect(() => {
+    setPrevDisabled(isAtStart);
+    setNextDisabled(!hasMore);
+  }, [hasMore, isAtStart]);
 
   const [rows, setRows] = useState(data);
   const [sortedRows, setSortedRows] = useState([]);
@@ -125,31 +137,35 @@ export default function SortTable({
           </tr>
         </thead>
 
-        <tbody
-          className={cn("[&_tr:last-child]:border-0", ...tableBodyClassNames)}
-        >
-          {sortedRows.map((row, idx) => (
-            <tr
-              key={idx}
-              className={cn(
-                "border-b transition-colors hover:bg-neutral-100/50 data-[state=selected]:bg-neutral-100 dark:border-dark-3 dark:hover:bg-dark-2 dark:data-[state=selected]:bg-neutral-800",
-                ...tableRowClassNames,
-              )}
-            >
-              {columns.map((col) => (
-                <td
-                  key={col.key}
-                  className={cn(
-                    "p-4 align-middle [&:has([role=checkbox])]:pr-0",
-                    ...tableCellClassNames,
-                  )}
-                >
-                  <div className="mx-auto flex w-fit gap-1">{row[col.key]}</div>
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
+        {!loading && (
+          <tbody
+            className={cn("[&_tr:last-child]:border-0", ...tableBodyClassNames)}
+          >
+            {sortedRows.map((row, idx) => (
+              <tr
+                key={idx}
+                className={cn(
+                  "border-b transition-colors hover:bg-neutral-100/50 data-[state=selected]:bg-neutral-100 dark:border-dark-3 dark:hover:bg-dark-2 dark:data-[state=selected]:bg-neutral-800",
+                  ...tableRowClassNames,
+                )}
+              >
+                {columns.map((col) => (
+                  <td
+                    key={col.key}
+                    className={cn(
+                      "p-4 align-middle [&:has([role=checkbox])]:pr-0",
+                      ...tableCellClassNames,
+                    )}
+                  >
+                    <div className="mx-auto flex w-fit gap-1">
+                      {row[col.key]}
+                    </div>
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        )}
       </table>
       {loading && (
         <div className="mx-auto mt-5 w-fit p-4">
@@ -159,6 +175,38 @@ export default function SortTable({
       {!loading && !sortedRows.length && (
         <div className="mx-auto mt-5 w-fit p-4">
           {noDataMessage || "No rows"}
+        </div>
+      )}
+      {showPagination && (
+        <div className="flex h-20 items-center justify-center border-t dark:border-dark-3">
+          <div className="mt-6 flex items-center justify-center gap-3">
+            <button
+              type="button"
+              onClick={onClickPrevPage}
+              className={cn(
+                "rounded-lg px-3 py-2 text-sm font-medium",
+                prevDisabled
+                  ? "cursor-not-allowed bg-gray-700 text-gray-400"
+                  : "bg-indigo-600 text-white hover:bg-indigo-500",
+              )}
+              disabled={prevDisabled}
+            >
+              Prev
+            </button>
+            <button
+              type="button"
+              onClick={onClickNextPage}
+              className={cn(
+                "rounded-lg px-3 py-2 text-sm font-medium",
+                nextDisabled
+                  ? "cursor-not-allowed bg-gray-700 text-gray-400"
+                  : "bg-indigo-600 text-white hover:bg-indigo-500",
+              )}
+              disabled={nextDisabled}
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
     </div>

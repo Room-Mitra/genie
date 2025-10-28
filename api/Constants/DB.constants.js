@@ -13,4 +13,4 @@ export const GSI_ROOMTYPE_NAME = 'GSI_RoomType';
 export const GSI_ASSIGNEEWORKLOAD_NAME = 'GSI_AssigneeWorkload';
 export const GSI_REQUESTSTATUS_NAME = 'GSI_RequestStatus';
 export const GSI_BOOKINGTYPE_NAME = 'GSI_BookingType';
-export const GSI_CONVERSATIONMESSAGE_NAME = 'GSI_ConversationMessage';
+

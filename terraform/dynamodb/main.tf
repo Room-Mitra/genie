@@ -88,9 +88,6 @@ locals {
     # Assignee Workload
     { name = "GSI_AssigneeType", hash = "assigneeType_pk", range = "assigneeType_sk" },
 
-    # Conversation Type
-    { name = "GSI_ConversationType", hash = "conversationType_pk", range = "conversationType_sk" },
-
     # Booking Type
     { name = "GSI_BookingType", hash = "bookingType_pk", range = "bookingType_sk" },
   ]

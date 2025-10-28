@@ -23,10 +23,13 @@ import { TextAreaGroup } from "@/components/FormElements/InputGroup/text-area";
 import { toast } from "react-toastify";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 
-async function fetchActiveRequests() {
+async function fetchActiveRequests({ limit, nextToken }) {
   const statuses = ["unacknowledged", "in_progress", "delayed"];
   const query = new URLSearchParams();
   statuses.forEach((s) => query.append("statuses", s));
+
+  if (limit) query.append("limit", limit);
+  if (nextToken) query.append("nextToken", nextToken);
 
   const res = await fetch(`/api/requests?${query.toString()}`, {
     method: "GET",
@@ -71,6 +74,7 @@ async function stateTransition(data) {
 
 export default function Page() {
   const [data, setData] = useState([]);
+  const [nextTokens, setNextTokens] = useState([]);
   const [staff, setStaff] = useState([]);
 
   const [showModal, setShowModal] = useState(false);
@@ -139,7 +143,11 @@ export default function Page() {
   const refreshRequests = async () => {
     try {
       setLoading(true);
-      const requests = await fetchActiveRequests();
+      const requests = await fetchActiveRequests({
+        nextToken: nextTokens?.[nextTokens?.length - 1],
+      });
+      const newNextTokens = [...nextTokens, requests?.nextToken || "END"];
+      setNextTokens(newNextTokens);
       setData(
         requests?.items?.map((r) => ({
           dates: (
@@ -246,6 +254,17 @@ export default function Page() {
           ]}
           loading={loading}
           noDataMessage="No active requests 🎉"
+          onClickNextPage={refreshRequests}
+          onClickPrevPage={() => {
+            if (nextTokens.pop() === "END") nextTokens.pop();
+            refreshRequests();
+          }}
+          hasMore={
+            nextTokens?.length > 0 &&
+            nextTokens[nextTokens?.length - 1] !== "END"
+          }
+          isAtStart={(nextTokens?.length || 0) <= 1}
+          showPagination={true}
         />
 
         {/* Note and user assignment modal */}

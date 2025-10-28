@@ -6,7 +6,6 @@ const SECRET_KEY = process.env.SECRET_KEY;
 export async function POST(req) {
   const { token } = await req.json();
 
-
   try {
     jwt.verify(token, SECRET_KEY);
   } catch (error) {
