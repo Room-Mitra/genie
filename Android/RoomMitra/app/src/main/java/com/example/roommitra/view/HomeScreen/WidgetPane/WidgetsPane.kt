@@ -89,13 +89,12 @@ fun WidgetsPane(
             }
         }
 
-        Spacer(Modifier.height(20.dp))
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(22.dp))
 
         OrderStatusCard()
 
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(22.dp))
 
         DealsCardSlideshow()
     }
