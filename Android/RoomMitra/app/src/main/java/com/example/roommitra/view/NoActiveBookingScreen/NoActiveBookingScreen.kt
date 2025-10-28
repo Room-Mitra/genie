@@ -71,12 +71,10 @@ fun NoActiveBookingScreen(navController: NavHostController) {
             // HEADER
             SecretLogoTrigger(navController)
             HeroLottieCarouselWithText()
-            Spacer(modifier = Modifier.height(16.dp))
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(50.dp))
 
-            // Cheeky line about price / delight
             Text(
-                "Included with your stay — absolutely free. Consider it our little extra 😉",
+                "Enjoy complimentary access to your personal room assistant, included with your stay.",
                 color = Color(0xFFBFCFD6),
                 fontSize = 20.sp,
                 textAlign = TextAlign.Center,
@@ -125,17 +123,71 @@ fun NoActiveBookingScreen(navController: NavHostController) {
                         fontSize = 14.sp,
                         textAlign = TextAlign.Center
                     )
-                } else {
-                    Text(
-                        "💡 Tap the button above to enable your in-room AI concierge",
-                        color = Color(0xFF9FB2BB),
-                        fontSize = 15.sp
-                    )
                 }
+//                else {
+//                    Text(
+//                        "💡 Tap the button above to enable your in-room AI concierge",
+//                        color = Color(0xFF9FB2BB),
+//                        fontSize = 15.sp
+//                    )
+//                }
 
 
                 Spacer(modifier = Modifier.height(16.dp))
             }
+        }
+    }
+}
+
+/* ----------------------------
+   CTA Button (glowing gold) — clickable fixed correctly
+   ---------------------------- */
+@Composable
+fun ConnectToReceptionButton(
+    isLoading: Boolean,
+    onClick: () -> Unit
+) {
+    val transition = rememberInfiniteTransition()
+    val glow by transition.animateFloat(
+        initialValue = 0.65f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(1000), RepeatMode.Reverse)
+    )
+
+    Box(
+        modifier = Modifier
+            .shadow(14.dp, RoundedCornerShape(40))
+            .clip(RoundedCornerShape(40))
+            .background(
+                Brush.horizontalGradient(
+                    listOf(
+                        Color(0xFFFFE28A).copy(alpha = glow),
+                        Color(0xFFFFC107).copy(alpha = glow)
+                    )
+                )
+            )
+            .clickable(
+                enabled = !isLoading,
+                onClick = onClick,
+                indication = LocalIndication.current,
+                interactionSource = remember { MutableInteractionSource() }
+            )
+            .padding(horizontal = 44.dp, vertical = 14.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                color = Color.Black,
+                strokeWidth = 2.dp,
+                modifier = Modifier.size(22.dp)
+            )
+        } else {
+            Text(
+                text = "Alert Front Desk To Connect My Room",
+                color = Color.Black,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }
@@ -164,9 +216,14 @@ fun HeroLottieCarouselWithText() {
             "Play music & games — instant delight"
         ),
         Triple(
-            "https://raw.githubusercontent.com/AdithyaPrabhu/roommitra/refs/heads/lottie/Physio%20Exercise%20plants%20-%20MND%20Scotland.json",
+            "https://raw.githubusercontent.com/AdithyaPrabhu/roommitra/refs/heads/lottie/Makeup%2C%20beauty.json",
             "Discover everything this hotel has to offer!",
             "Spa, salon, and more..."
+        ),
+        Triple(
+            "https://raw.githubusercontent.com/AdithyaPrabhu/roommitra/refs/heads/lottie/Unicum.json",
+            "Vacation Mode - ON!!",
+            "Relax, Refresh & Rejuvenate with RoomMitra"
         )
     )
 
@@ -303,59 +360,6 @@ fun FloatingBubbles() {
                     .graphicsLayer { alpha = 0.08f + 0.2f * anim }
                     .clip(CircleShape)
                     .background(Color(0xFFB6E3E8))
-            )
-        }
-    }
-}
-
-/* ----------------------------
-   CTA Button (glowing gold) — clickable fixed correctly
-   ---------------------------- */
-@Composable
-fun ConnectToReceptionButton(
-    isLoading: Boolean,
-    onClick: () -> Unit
-) {
-    val transition = rememberInfiniteTransition()
-    val glow by transition.animateFloat(
-        initialValue = 0.65f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(1000), RepeatMode.Reverse)
-    )
-
-    Box(
-        modifier = Modifier
-            .shadow(14.dp, RoundedCornerShape(40))
-            .clip(RoundedCornerShape(40))
-            .background(
-                Brush.horizontalGradient(
-                    listOf(
-                        Color(0xFFFFE28A).copy(alpha = glow),
-                        Color(0xFFFFC107).copy(alpha = glow)
-                    )
-                )
-            )
-            .clickable(
-                enabled = !isLoading,
-                onClick = onClick,
-                indication = LocalIndication.current,
-                interactionSource = remember { MutableInteractionSource() }
-            )
-            .padding(horizontal = 44.dp, vertical = 14.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        if (isLoading) {
-            CircularProgressIndicator(
-                color = Color.Black,
-                strokeWidth = 2.dp,
-                modifier = Modifier.size(22.dp)
-            )
-        } else {
-            Text(
-                text = "Alert Front Desk To Connect My Room",
-                color = Color.Black,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
             )
         }
     }
