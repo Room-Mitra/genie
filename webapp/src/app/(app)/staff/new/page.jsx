@@ -8,6 +8,7 @@ import { cn, toTitleCaseFromSnake } from "@/lib/utils.ts";
 
 import { Select } from "@/components/FormElements/select";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
+import { useRouter } from "next/navigation";
 
 async function fetchStaff() {
   const res = await fetch("/api/staff", {
@@ -36,6 +37,7 @@ async function addStaff(staffData) {
 }
 
 export default function AddStaffPage() {
+  const router = useRouter();
   const [staff, setStaff] = useState([]);
 
   const [firstName, setFirstName] = useState("");
@@ -98,10 +100,10 @@ export default function AddStaffPage() {
       };
 
       const staff = await addStaff(data);
-      console.log(staff);
 
       resetForm();
       toast.success(`Staff ${staff?.userId?.slice(0, 6)} created`);
+      router.push("/staff/all");
     } catch (err) {
       toast.error(err?.message || "Failed to create staff");
     } finally {
@@ -239,16 +241,12 @@ export default function AddStaffPage() {
             getDisplayValue={(st) => {
               const name = `${st.firstName} ${st.lastName}`.trim();
 
-              const contact = [st.mobileNumber, st.email]
-                .filter(Boolean)
-                .join(" | ");
-
               const roles = [st.department, ...(st.roles || [])]
                 .filter(Boolean)
                 .map(toTitleCaseFromSnake)
                 .join(", ");
 
-              return [name, contact, roles].filter(Boolean).join(" || ");
+              return [name, roles].filter(Boolean).join(" || ");
             }}
             renderItem={(st) => (
               <div className="flex items-center gap-2">

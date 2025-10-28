@@ -4,6 +4,7 @@ import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { DateTime } from "@/components/ui/datetime";
 import { ID } from "@/components/ui/id";
 import SortTable from "@/components/ui/sort-table";
+import Link from "next/link";
 import { useState, useEffect, useMemo } from "react";
 
 async function fetchRooms() {
@@ -76,6 +77,14 @@ export default function Page() {
   return (
     <div>
       <Breadcrumb pageName="All Rooms" parent="Rooms" />
+      <div className="mb-5 mt-2 flex items-center justify-end gap-3">
+        <Link
+          className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+          href="/rooms/new"
+        >
+          + New Room
+        </Link>
+      </div>
       <div className="rounded-[10px] bg-white p-6 dark:bg-gray-dark">
         <SortTable
           columns={columns}

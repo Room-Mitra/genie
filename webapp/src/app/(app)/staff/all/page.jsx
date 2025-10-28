@@ -6,6 +6,7 @@ import { ID } from "@/components/ui/id";
 import { Roles } from "@/components/ui/roles";
 import SortTable from "@/components/ui/sort-table";
 import User from "@/components/ui/user";
+import Link from "next/link";
 import { useState, useEffect, useMemo } from "react";
 
 async function fetchStaff() {
@@ -95,6 +96,14 @@ export default function Page() {
   return (
     <div>
       <Breadcrumb pageName="All Staff" parent="Staff" />
+      <div className="mb-5 mt-2 flex items-center justify-end gap-3">
+        <Link
+          className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+          href="/staff/new"
+        >
+          + New Staff
+        </Link>
+      </div>
       <div className="rounded-[10px] bg-white p-6 dark:bg-gray-dark">
         <SortTable
           columns={columns}
@@ -102,7 +111,7 @@ export default function Page() {
           tableRowClassNames={[
             "text-base font-medium text-dark dark:text-white",
           ]}
-          noDataMessage="No staff available"
+          noDataMessage="No staff added"
           loading={loading}
         />
       </div>

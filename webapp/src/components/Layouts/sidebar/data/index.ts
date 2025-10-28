@@ -51,30 +51,14 @@ export const NAV_DATA = [
       {
         title: "Rooms",
         icon: BedDoubleIcon,
-        items: [
-          {
-            title: "All",
-            url: "/rooms/all",
-          },
-          {
-            title: "+ New Room",
-            url: "/rooms/new",
-          },
-        ],
+        items: [],
+        url: "/rooms/all",
       },
       {
         title: "Staff",
         icon: UsersIcon,
-        items: [
-          {
-            title: "All",
-            url: "/staff/all",
-          },
-          {
-            title: "+ New Staff",
-            url: "/staff/new",
-          },
-        ],
+        items: [],
+        url: "/staff/all",
       },
       {
         title: "Hotel",

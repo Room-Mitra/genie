@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { toast } from "react-toastify";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
+import Link from "next/link";
 
 async function addRoom({ roomNumber, roomType, floor, description }) {
   const res = await fetch(`/api/rooms`, {
@@ -134,6 +135,12 @@ export default function AddRoomPage() {
           />
 
           <div className="mt-2 flex items-center justify-end gap-3">
+            <Link
+              href="/rooms/all"
+              className="rounded-xl border border-gray-700 px-4 py-2 text-sm text-dark hover:bg-gray-300 dark:text-gray-300"
+            >
+              Cancel
+            </Link>
             <button
               type="submit"
               className={cn(
