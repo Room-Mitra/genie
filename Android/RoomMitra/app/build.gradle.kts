@@ -12,8 +12,10 @@ android {
         applicationId = "com.example.roommitra"
         minSdk = 26
         targetSdk = 36
-        versionCode = 19
-        versionName = "1.0.19"
+
+        versionCode = 24
+        versionName = "1.0.24"
+
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -82,6 +84,8 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation(libs.androidx.lifecycle.common.jvm)
     implementation(libs.androidx.animation.core)
+    implementation(libs.androidx.ui.text)
+
     implementation(libs.androidx.animation)
     implementation(libs.material3)
 

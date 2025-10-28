@@ -15,6 +15,7 @@ object PollingManager {
 
     private lateinit var bookingRepo: BookingRepository
     private lateinit var restaurantMenuRepo: RestaurantMenuRepository
+    private lateinit var hotelInfoRepo: HotelInfoRepository
 
     fun start(context: Context) {
         if (pollingScope != null) return
@@ -24,14 +25,15 @@ object PollingManager {
 
         bookingRepo = BookingRepository(apiService)
         restaurantMenuRepo = RestaurantMenuRepository(apiService)
+        hotelInfoRepo = HotelInfoRepository(apiService)
 
         // Define intervals for each repository
         pollingScope?.launch {
             launch { startPollingBooking(bookingRepo.getPollingInterval()) }
             launch { startPollingRestaurantMenu(restaurantMenuRepo.getPollingInterval()) }
+            launch { startPollingHotelInfo(hotelInfoRepo.getPollingInterval()) }
         }
     }
-
 
 
     fun stop() {
@@ -45,6 +47,7 @@ object PollingManager {
             delay(intervalMs)
         }
     }
+
     private suspend fun startPollingRestaurantMenu(intervalMs: Long) = coroutineScope {
         while (isActive) {
             restaurantMenuRepo.fetchMenu()
@@ -52,11 +55,18 @@ object PollingManager {
         }
     }
 
+    private suspend fun startPollingHotelInfo(intervalMs: Long) = coroutineScope {
+        while (isActive) {
+            hotelInfoRepo.fetchHotelInfo()
+            delay(intervalMs)
+        }
+    }
+
     // expose repositories to UI
     fun getBookingRepository() = bookingRepo
     fun getRestaurantMenuRepository() = restaurantMenuRepo
+    fun getHotelInfoRepository() = hotelInfoRepo
 }
-
 
 
 class BookingRepository(private val apiService: ApiService) {
@@ -66,7 +76,10 @@ class BookingRepository(private val apiService: ApiService) {
     suspend fun fetchBooking() {
         Log.d("PollingManager", "Calling /requests")
         when (val result = apiService.get("requests")) {
-            is ApiResult.Success -> _bookingData.value = result.data
+            is ApiResult.Success -> withContext(Dispatchers.Main) {
+                _bookingData.value = result.data
+            }
+
             is ApiResult.Error -> {
                 Log.d("PollingManager", "Booking error: ${result.message}")
                 _bookingData.value = null;
@@ -93,6 +106,7 @@ class RestaurantMenuRepository(private val apiService: ApiService) {
                     _menuData.value = result.data
                 }
             }
+
             is ApiResult.Error -> {
                 Log.d("PollingManager", "Restaurant Menu error: ${result.message}")
 //                _menuData.value = null
@@ -104,4 +118,26 @@ class RestaurantMenuRepository(private val apiService: ApiService) {
         return 60 * 60 * 1000L // 1 hr
     }
 }
+
+
+class HotelInfoRepository(private val apiService: ApiService) {
+    private val _hotelData = MutableStateFlow<JSONObject?>(null)
+    val hotelData = _hotelData.asStateFlow()
+
+    suspend fun fetchHotelInfo() {
+        Log.d("PollingManager", "Calling /hotel/config")
+        when (val result = apiService.get("hotel/config")) {
+            is ApiResult.Success -> withContext(Dispatchers.Main) { _hotelData.value = result.data }
+            is ApiResult.Error -> {
+                Log.d("PollingManager", "Booking error: ${result.message}")
+//                _hotelData.value = null;
+            }
+        }
+    }
+
+    fun getPollingInterval(): Long {
+        return 60 * 60 * 1000L // 1 hr
+    }
+}
+
 

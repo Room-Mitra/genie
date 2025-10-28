@@ -9,7 +9,4 @@ data class WidgetCard(
 )
 
 
-data class Deal(
-    val title: String,
-    val imageUrl: String
-)
+

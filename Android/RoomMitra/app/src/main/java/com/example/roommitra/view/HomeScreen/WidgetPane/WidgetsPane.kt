@@ -101,18 +101,6 @@ fun WidgetsPane(
 
         Spacer(Modifier.height(12.dp))
 
-        DealsCardSlideshow(
-            deals = listOf(
-                Deal("Kayak in the Banasura Sagar Lake", "https://picsum.photos/600/300?2"),
-                Deal(
-                    "Book your passes for the New Year Party @ Rs.3000/couple !",
-                    "https://static.vecteezy.com/system/resources/thumbnails/038/361/246/small_2x/ai-generated-concert-crowd-raising-hands-in-unison-under-bright-stage-lights-free-photo.jpg"
-                ),
-                Deal(
-                    "Get VIP Dussehra Passes!",
-                    "https://www.vtiger.com/blog/wp-content/uploads/2022/10/Dasara-Feature-image-3-1.png"
-                )
-            )
-        )
+        DealsCardSlideshow()
     }
 }
