@@ -236,6 +236,9 @@ fun AmenityDetail(
     val annotatedDesc = parseDescription(description)
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    var loading by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -274,30 +277,56 @@ fun AmenityDetail(
             actions.forEach { action ->
                 Button(
                     onClick = {
-                        scope.launch {
-                            val apiService = ApiService(context)
-                            val requestBody = JSONObject().apply {
-                                put("department", DepartmentType.GENERAL_ENQUIRY.key)
-                                put("requestType", "Enquiry: ${title}")
-                                put("bookingId", SessionManager(context).getBookingId())
-                            }
+                        if (loading) return@Button
 
-                            when (val result = apiService.post("requests", requestBody)) {
-                                is ApiResult.Success -> {
-                                    Log.d("AmenityBooking", "${title} booking requested")
-                                    SnackbarManager.showMessage("We will contact you soon with more info on ${title}", SnackbarType.SUCCESS)
-                                    PollingManager.getBookingRepository().fetchBooking()
+                        loading = true
+                        scope.launch {
+                            try {
+                                val apiService = ApiService(context)
+                                val requestBody = JSONObject().apply {
+                                    put("department", DepartmentType.GENERAL_ENQUIRY.key)
+                                    put("requestType", "Enquiry: ${title}")
+                                    put("bookingId", SessionManager(context).getBookingId())
                                 }
-                                is ApiResult.Error -> {
-                                    Log.d("AmenityBooking", "Failed to raise request book ${title} ")
-                                    SnackbarManager.showMessage("Something went wrong. Please try again later. Sorry :(", SnackbarType.ERROR)
+
+                                when (val result = apiService.post("requests", requestBody)) {
+                                    is ApiResult.Success -> {
+                                        Log.d("AmenityBooking", "${title} booking requested")
+                                        SnackbarManager.showMessage(
+                                            "We will contact you soon with more info on ${title}",
+                                            SnackbarType.SUCCESS
+                                        )
+                                    }
+
+                                    is ApiResult.Error -> {
+                                        Log.d(
+                                            "AmenityBooking",
+                                            "Failed to raise request book ${title} "
+                                        )
+                                        SnackbarManager.showMessage(
+                                            "Something went wrong. Please try again later. Sorry :(",
+                                            SnackbarType.ERROR
+                                        )
+                                    }
                                 }
+                            } finally {
+                                loading = false 
+                                PollingManager.getBookingRepository().fetchBooking()
                             }
                         }
                     },
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    enabled = !loading
                 ) {
-                    Text(action.label, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    if (loading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 3.dp
+                        )
+                    } else {
+                        Text(action.label, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    }
                 }
             }
         }

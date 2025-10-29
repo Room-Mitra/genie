@@ -36,7 +36,7 @@ router.get('/config', async (req, res) => {
           title: 'Airport Taxi',
           description: 'Private airport taxi to drop you off',
           headerImg: {
-            url: `${BASE_EXAMPLE_URL}/airport-taxi.jpg`,
+            url: `https://media.istockphoto.com/id/519870714/photo/taxi.jpg?s=612x612&w=0&k=20&c=mzlqm5eisvu-B7hCyOK3LAsR4ugFTsHtC2kMWUmbA0Y=`,
           },
           actions: [
             {

@@ -29,6 +29,7 @@ fun HomePageRedirection(
         val booking = bookingData?.optJSONObject("booking")
         if (booking == null) {
             sessionManager.clearBookingId()
+            sessionManager.clearGuestId()
             if (currentRoute != "no-active-booking") {
                 navController.navigate("no-active-booking") {
                     popUpTo("home") { inclusive = true }
@@ -37,6 +38,12 @@ fun HomePageRedirection(
         } else {
             val bookingId = booking.optString("bookingId", null)
             if (bookingId != null) {
+                val guest = booking.optJSONObject("guest")
+                val guestId = guest?.optString("userId", null);
+                if (guestId != null) {
+                    sessionManager.saveGuestId(guestId);
+                }
+
                 sessionManager.saveBookingId(bookingId);
                 if (currentRoute == "no-active-booking") {
                     navController.navigate("home") {
@@ -45,6 +52,7 @@ fun HomePageRedirection(
                 }
             } else {
                 sessionManager.clearBookingId()
+                sessionManager.clearGuestId()
                 if (currentRoute != "no-active-booking") {
                     navController.navigate("no-active-booking") {
                         popUpTo("home") { inclusive = true }
