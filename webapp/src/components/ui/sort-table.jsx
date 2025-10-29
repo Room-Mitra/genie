@@ -113,7 +113,7 @@ export default function SortTable({
   };
 
   return (
-    <div className="relative w-full overflow-auto">
+    <div className="relative w-full">
       <table
         className={cn("w-full caption-bottom text-sm", ...tableClassNames)}
       >

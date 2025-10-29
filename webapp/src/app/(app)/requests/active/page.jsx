@@ -23,6 +23,7 @@ import { TextAreaGroup } from "@/components/FormElements/InputGroup/text-area";
 import { toast } from "react-toastify";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { useRequests } from "@/context/RequestsContext";
+import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
 
 async function fetchStaff() {
   const res = await fetch("/api/staff", {
@@ -101,6 +102,7 @@ export default function Page() {
       { key: "department", label: "DEPARTMENT" },
       { key: "assignedStaff", label: "ASSIGNEE" },
       { key: "acknowledge", label: "", sortable: false },
+      { key: "conversation", label: "", sortable: false },
     ],
     [],
   );
@@ -173,6 +175,16 @@ export default function Page() {
               showRoles={true}
               showDepartment={true}
             />
+          ),
+          conversation: (
+            <div className="group relative inline-block">
+              <ChatBubbleLeftRightIcon className="size-6 cursor-pointer text-gray-600 hover:text-gray-400" />
+
+              {/* Tooltip */}
+              <span className="absolute bottom-full left-1/2 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow transition-opacity duration-200 group-hover:block group-hover:opacity-100">
+                View Conversation
+              </span>
+            </div>
           ),
         })),
       );

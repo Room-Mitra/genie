@@ -77,7 +77,7 @@ export async function handleConversation({
     throw new Error(`Failed GPT call: ${gptResponse.statusCode}, ${gptText}`);
   }
 
-  const { raw, parsed } = parseGptResponse(gptResponse);
+  const { parsed } = parseGptResponse(gptResponse);
 
   // All new messages that have to be saved
   const newMessages = [
