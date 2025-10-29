@@ -121,7 +121,10 @@ fun ConciergeScreen(onBackClick: () -> Unit) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp) // Adds space between text and button
                 ) {
-                    Text("Something seems to have gone wrong. Can you refresh the page please ?", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        "Something seems to have gone wrong. Can you refresh the page please ?",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
 
                     Button(
                         onClick = {
@@ -235,6 +238,9 @@ fun ConciergeDetail(
     val annotatedDesc = parseConciergeDescription(description)
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    var loading by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -273,30 +279,56 @@ fun ConciergeDetail(
             actions.forEach { action ->
                 Button(
                     onClick = {
-                        scope.launch {
-                            val apiService = ApiService(context)
-                            val requestBody = JSONObject().apply {
-                                put("department", DepartmentType.CONCIERGE.key)
-                                put("requestType", "Enquiry: ${title}")
-                                put("bookingId", SessionManager(context).getBookingId())
-                            }
+                        if (loading) return@Button
 
-                            when (val result = apiService.post("requests", requestBody)) {
-                                is ApiResult.Success -> {
-                                    Log.d("ConciergeBooking", "${title} booking requested")
-                                    SnackbarManager.showMessage("We will contact you soon with more info on ${title}", SnackbarType.SUCCESS)
-                                    PollingManager.getBookingRepository().fetchBooking()
+                        loading = true
+                        scope.launch {
+                            try {
+                                val apiService = ApiService(context)
+                                val requestBody = JSONObject().apply {
+                                    put("department", DepartmentType.CONCIERGE.key)
+                                    put("requestType", "Enquiry: ${title}")
+                                    put("bookingId", SessionManager(context).getBookingId())
                                 }
-                                is ApiResult.Error -> {
-                                    Log.d("ConciergeBooking", "Failed to raise request book ${title} ")
-                                    SnackbarManager.showMessage("Something went wrong. Please try again later. Sorry :(", SnackbarType.ERROR)
+
+                                when (val result = apiService.post("requests", requestBody)) {
+                                    is ApiResult.Success -> {
+                                        Log.d("ConciergeBooking", "${title} booking requested")
+                                        SnackbarManager.showMessage(
+                                            "We will contact you soon with more info on ${title}",
+                                            SnackbarType.SUCCESS
+                                        )
+                                        PollingManager.getBookingRepository().fetchBooking()
+                                    }
+
+                                    is ApiResult.Error -> {
+                                        Log.d(
+                                            "ConciergeBooking",
+                                            "Failed to raise request book ${title} "
+                                        )
+                                        SnackbarManager.showMessage(
+                                            "Something went wrong. Please try again later. Sorry :(",
+                                            SnackbarType.ERROR
+                                        )
+                                    }
                                 }
+                            } finally {
+                                loading = false 
+                                PollingManager.getBookingRepository().fetchBooking()
                             }
                         }
                     },
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    Text(action.label, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    if (loading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 3.dp
+                        )
+                    } else {
+                        Text(action.label, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    }
                 }
             }
         }
