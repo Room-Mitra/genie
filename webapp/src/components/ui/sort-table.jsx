@@ -70,21 +70,26 @@ export default function SortTable({
   const [sortedRows, setSortedRows] = useState([]);
 
   useEffect(() => {
-    console.log(data);
-    if (data?.length) setRows(data);
+    setRows(Array.isArray(data) ? data : []);
   }, [data]);
 
   useEffect(() => {
-    setSortedRows(
-      [...rows].sort((a, b) => {
-        if (!sortConfig.key) return 0;
-        const aValue = getValue(a[sortConfig.key]);
-        const bValue = getValue(b[sortConfig.key]);
-        if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
-        if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
-        return 0;
-      }),
-    );
+    if (!rows) {
+      setSortedRows([]);
+      return;
+    }
+    if (!sortConfig.key) {
+      setSortedRows(rows);
+      return;
+    }
+    const sorted = [...rows].sort((a, b) => {
+      const aValue = getValue(a[sortConfig.key]);
+      const bValue = getValue(b[sortConfig.key]);
+      if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+      return 0;
+    });
+    setSortedRows(sorted);
   }, [sortConfig, rows]);
 
   const handleSort = (key) => {
@@ -95,6 +100,16 @@ export default function SortTable({
       }
       return { key, direction: "asc" };
     });
+  };
+
+  const keyFromRow = (row, fallbackIdx) => {
+    // If you have an <ID ulid="..."/> cell, use it:
+    const idCell = row.id ?? row.ID ?? row.ulid ?? null;
+    if (isID(idCell)) return idCell.props.ulid;
+    // or extract from any column that carries your requestId
+    const maybe = Object.values(row).find((cell) => isID(cell));
+    if (maybe) return maybe.props.ulid;
+    return fallbackIdx;
   };
 
   return (
@@ -138,38 +153,34 @@ export default function SortTable({
           </tr>
         </thead>
 
-        {!loading && (
-          <tbody
-            className={cn("[&_tr:last-child]:border-0", ...tableBodyClassNames)}
-          >
-            {sortedRows.map((row, idx) => (
-              <tr
-                key={idx}
-                className={cn(
-                  "border-b transition-colors hover:bg-neutral-100/50 data-[state=selected]:bg-neutral-100 dark:border-dark-3 dark:hover:bg-dark-2 dark:data-[state=selected]:bg-neutral-800",
-                  ...tableRowClassNames,
-                )}
-              >
-                {columns.map((col) => (
-                  <td
-                    key={col.key}
-                    className={cn(
-                      "p-4 align-middle [&:has([role=checkbox])]:pr-0",
-                      ...tableCellClassNames,
-                    )}
-                  >
-                    <div className="mx-auto flex w-fit gap-1">
-                      {row[col.key]}
-                    </div>
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        )}
+        <tbody
+          className={cn("[&_tr:last-child]:border-0", ...tableBodyClassNames)}
+        >
+          {sortedRows.map((row, idx) => (
+            <tr
+              key={keyFromRow(row, idx)}
+              className={cn(
+                "border-b transition-colors ...",
+                ...tableRowClassNames,
+              )}
+            >
+              {columns.map((col) => (
+                <td
+                  key={col.key}
+                  className={cn(
+                    "p-4 align-middle [&:has([role=checkbox])]:pr-0",
+                    ...tableCellClassNames,
+                  )}
+                >
+                  <div className="mx-auto flex w-fit gap-1">{row[col.key]}</div>
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
       </table>
       {loading && (
-        <div className="mx-auto mt-5 w-fit p-4">
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-black/30">
           <Spinner />
         </div>
       )}

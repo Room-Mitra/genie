@@ -3,7 +3,7 @@
 import ConversationModal from "../_components/conversationModal";
 import SortTable from "@/components/ui/sort-table";
 import RequestStatus from "../_components/requestStatus";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ID } from "@/components/ui/id";
 import { Room } from "@/components/ui/room";
 import { ActionButton } from "../_components/actionButton";
@@ -23,27 +23,6 @@ import { TextAreaGroup } from "@/components/FormElements/InputGroup/text-area";
 import { toast } from "react-toastify";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { useRequests } from "@/context/RequestsContext";
-
-async function fetchActiveRequests({ limit, nextToken }) {
-  const statuses = ["unacknowledged", "in_progress", "delayed"];
-  const query = new URLSearchParams();
-  statuses.forEach((s) => query.append("statuses", s));
-
-  if (limit) query.append("limit", limit);
-  if (nextToken) query.append("nextToken", nextToken);
-
-  const res = await fetch(`/api/requests?${query.toString()}`, {
-    method: "GET",
-    credentials: "include",
-  });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || "Failed to fetch active requests");
-  }
-
-  return await res.json();
-}
 
 async function fetchStaff() {
   const res = await fetch("/api/staff", {
@@ -94,6 +73,7 @@ export default function Page() {
     isAtStart,
     nextPage,
     previousPage,
+    refreshRequests,
   } = useRequests();
 
   const canChangeStatus = useMemo(() => {
@@ -148,8 +128,7 @@ export default function Page() {
     }
   };
 
-  const refreshRequests = () => {
-    console.log(activeRequests);
+  const reinitializeData = useCallback(() => {
     try {
       setData(
         activeRequests?.map((r) => ({
@@ -200,15 +179,15 @@ export default function Page() {
     } catch (err) {
       console.error("Error fetching bookings:", err);
     }
-  };
+  }, [activeRequests]);
 
   useEffect(() => {
     refreshStaff();
   }, []);
 
   useEffect(() => {
-    refreshRequests();
-  }, [activeRequests]);
+    reinitializeData();
+  }, [activeRequests, reinitializeData]);
 
   function resetForm() {
     setShowModal(false);
@@ -237,7 +216,7 @@ export default function Page() {
         `Request ${result.requestId.slice(0, 8)} changed status to ${toTitleCaseFromSnake(result.toStatus)}`,
       );
       resetForm();
-      refreshRequests();
+      refreshRequests({});
     } catch (err) {
       toast.error(err?.message || "Failed to change status");
     } finally {

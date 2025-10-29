@@ -8,15 +8,23 @@ import { ThemeToggleSwitch } from "./theme-toggle";
 import { UserInfo } from "./user-info";
 import { Notification } from "./notification";
 import { useRequests } from "@/context/RequestsContext";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import SimpleChime from "@/components/Chime/chime";
 
 export function Header() {
   const { toggleSidebar, isMobile } = useSidebarContext();
-  const { activeRequests, loading, hasMore, isAtStart } = useRequests();
+  const { activeRequests } = useRequests();
 
+  const [reqsNeedAttention, setReqsNeedAttention] = useState(false);
   useEffect(() => {
-    console.log(activeRequests, loading, hasMore, isAtStart);
-  }, [activeRequests, hasMore, isAtStart, loading]);
+    if (
+      activeRequests?.filter(
+        (r) => r.status === "unacknowledged" || r.status === "delayed",
+      )?.length
+    ) {
+      setReqsNeedAttention(true);
+    }
+  }, [activeRequests]);
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between border-b border-stroke bg-white px-4 py-5 shadow-1 dark:border-stroke-dark dark:bg-gray-dark md:px-5 2xl:px-10">
@@ -43,7 +51,9 @@ export function Header() {
       <div className="flex flex-1 items-center justify-end gap-2 min-[375px]:gap-4">
         <ThemeToggleSwitch />
 
-        <Notification />
+        <Notification reqsNeedAttention={reqsNeedAttention} />
+
+        <SimpleChime playing={reqsNeedAttention} />
 
         <div className="shrink-0">
           <UserInfo />

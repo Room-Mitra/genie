@@ -23,6 +23,7 @@ type InputGroupProps = {
   defaultValue?: string;
   showPasswordToggle?: boolean;
   min?: string | number;
+  autoComplete?: "on";
   onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
 };
 
@@ -92,6 +93,7 @@ const InputGroup: React.FC<InputGroupProps> = ({
           data-active={active}
           onFocus={onFocus}
           min={min}
+          autoComplete={props.autoComplete}
         />
 
         {icon}
