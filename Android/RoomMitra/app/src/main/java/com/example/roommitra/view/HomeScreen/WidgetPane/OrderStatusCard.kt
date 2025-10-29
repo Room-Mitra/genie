@@ -34,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.example.roommitra.data.DepartmentType
 import com.example.roommitra.data.RequestStatus
+import org.json.JSONObject
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -44,8 +45,9 @@ data class Order(
     val title: String,
     val status: RequestStatus?,
     val eta: String,
-    val createdAt:String,
-    val icon: ImageVector
+    val createdAt: String,
+    val icon: ImageVector,
+    val fullRequest: JSONObject
 )
 
 @Composable
@@ -231,7 +233,8 @@ fun mapRequestsToOrders(requests: JSONArray): List<Order> {
                 status = statusEnum,
                 eta = etaRaw,
                 icon = icon,
-                createdAt = createdAt
+                createdAt = createdAt,
+                fullRequest = req
             )
         )
     }
@@ -245,53 +248,207 @@ fun OrderDetailDialog(order: Order, onDismiss: () -> Unit) {
         onDismissRequest = { onDismiss() },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Close")
+                Text("Close", fontWeight = FontWeight.SemiBold)
             }
         },
         title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Icon(
                     imageVector = order.icon,
                     contentDescription = order.title,
                     modifier = Modifier
-                        .size(24.dp)
+                        .size(28.dp)
                         .padding(end = 8.dp),
                     tint = MaterialTheme.colorScheme.primary
                 )
-                Text(
-                    text = order.title,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
-                )
+                Column {
+                    Text(
+                        text = order.title,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+//                    StatusPill(status = order.status)
+                }
             }
         },
         text = {
             Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Text("Status: ${order.status}", style = MaterialTheme.typography.bodyMedium)
-                Text("Estimated time: ${order.eta}", style = MaterialTheme.typography.bodyMedium)
-                Divider(modifier = Modifier.padding(vertical = 4.dp))
+                // Format times safely
+                val createdAtFormatted = formatIsoTime(order.createdAt)
+                val etaFormatted = formatIsoTime(order.eta)
+
+                DetailRow("Status", labelComposable = { StatusPill(order.status) })
+                DetailRow("Requested On", createdAtFormatted)
+                DetailRow("Estimated Fulfillment", etaFormatted)
+
+                Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+
+
+                order.fullRequest.let { req ->
+                    val department = req.optString("department", "")
+                    val instruction = req.optJSONObject("order")?.optString("instruction", "")
+                    val total = req.optJSONObject("order")?.optString("total", "")
+                    val items = req.optJSONObject("order")?.optJSONArray("items")
+
+                    if (department.isNotEmpty()){
+                        val formattedDepartment = department.split('_').joinToString(" ") { word ->
+                            word.replaceFirstChar { char ->
+                                if (char.isLowerCase()) char.titlecase() else char.toString()
+                            }
+                        }
+                        DetailRow("Department", formattedDepartment)
+                    }
+
+                    if (!instruction.isNullOrEmpty())
+                        DetailRow("Special Instructions", instruction)
+
+                    if (items != null && items.length() > 0) {
+                        Divider(modifier = Modifier.padding(vertical = 6.dp))
+                        Text(
+                            "Order Items",
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        for (i in 0 until items.length()) {
+                            val item = items.optJSONObject(i) ?: continue
+                            val name = item.optString("name", "")
+                            val qty = item.optInt("quantity", 1)
+                            val price = item.optString("total", "")
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    "$name x$qty",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                )
+                                Text(
+                                    "₹$price",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                )
+                            }
+                        }
+
+                        if (!total.isNullOrEmpty()) {
+                            Divider(modifier = Modifier.padding(vertical = 6.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    "Total",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                )
+                                Text(
+                                    "₹$total",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+                Divider(modifier = Modifier.padding(vertical = 8.dp))
                 Text(
-                    "More details about this request will appear here.",
-                    style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
+                    "Our team is working on your request. You’ll be notified once it’s fulfilled.",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        lineHeight = MaterialTheme.typography.bodySmall.lineHeight
+                    )
                 )
             }
         },
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         containerColor = MaterialTheme.colorScheme.surface,
-        tonalElevation = 6.dp
+        tonalElevation = 8.dp
     )
+}
+
+@Composable
+fun DetailRow(
+    label: String,
+    value: String? = null,
+    labelComposable: (@Composable (() -> Unit))? = null
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        )
+        labelComposable?.invoke() ?: Text(
+            text = value ?: "-",
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        )
+    }
+}
+
+fun formatIsoTime(isoString: String?): String {
+    return try {
+        if (isoString.isNullOrEmpty()) return "-"
+        val instant = Instant.parse(isoString)
+        val formatter = DateTimeFormatter.ofPattern("MMM d, yyyy • hh:mm a")
+            .withZone(ZoneId.systemDefault())
+        formatter.format(instant)
+    } catch (e: Exception) {
+        "-"
+    }
 }
 
 @Composable
 fun StatusPill(status: RequestStatus?) {
     val (bgColor, textColor, label) = when (status) {
         RequestStatus.UNACKNOWLEDGED -> Triple(Color(0xFFEEEFF2), Color.Gray, "Order Placed")
-        RequestStatus.IN_PROGRESS -> Triple(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), MaterialTheme.colorScheme.primary, "In Progress")
+        RequestStatus.IN_PROGRESS -> Triple(
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+            MaterialTheme.colorScheme.primary,
+            "In Progress"
+        )
+
         RequestStatus.DELAYED -> Triple(Color(0xFFFFE0B2), Color(0xFFD84315), "Delayed")
         RequestStatus.COMPLETED -> Triple(Color(0xFFD0F0C0), Color(0xFF2E7D32), "Completed")
-        null -> Triple(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), MaterialTheme.colorScheme.primary, "In Progress")
+        null -> Triple(
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+            MaterialTheme.colorScheme.primary,
+            "In Progress"
+        )
     }
 
     Surface(
