@@ -6,10 +6,13 @@ const router = express.Router();
 router.post('/', async (req, res) => {
   try {
     const { hotelId, roomId, deviceId, bookingId } = req.deviceData;
+    const guestUserId = req.headers['x-guest-user-id'];
 
     const { conversationId, message } = req.body;
-    if (!message || !bookingId) {
-      return res.status(400).json({ error: 'Require bookingId and message for conversations' });
+    if (!message || !bookingId || !guestUserId) {
+      return res
+        .status(400)
+        .json({ error: 'Require bookingId, guestUserId, message for conversations' });
     }
 
     const conversationData = {
@@ -17,6 +20,7 @@ router.post('/', async (req, res) => {
       roomId,
       deviceId,
       bookingId,
+      guestUserId,
       conversationId,
       userContent: message,
     };

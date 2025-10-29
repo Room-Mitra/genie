@@ -1,6 +1,5 @@
 "use client";
 
-import ConversationModal from "../_components/conversationModal";
 import SortTable from "@/components/ui/sort-table";
 import RequestStatus from "../_components/requestStatus";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -24,6 +23,7 @@ import { toast } from "react-toastify";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { useRequests } from "@/context/RequestsContext";
 import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
+import { ConversationModal } from "../_components/conversationModal";
 
 async function fetchStaff() {
   const res = await fetch("/api/staff", {
@@ -57,7 +57,10 @@ export default function Page() {
   const [data, setData] = useState([]);
   const [staff, setStaff] = useState([]);
 
-  const [showModal, setShowModal] = useState(false);
+  const [showStateTransitionModal, setShowStateTransitionModal] =
+    useState(false);
+  const [showConversationModal, setShowConversationModal] = useState(false);
+  const [conversation, setConversation] = useState(null);
   const [isChangingStatus, setIsChangingStatus] = useState(false);
   const [requireAssignedStaffUser, setRequireAssignedStaffUser] =
     useState(false);
@@ -146,23 +149,19 @@ export default function Page() {
           department: (
             <Department department={r.department} reqType={r.requestType} />
           ),
-          viewConversation: r.conversationId ? (
-            <ConversationModal roomId={r.roomId} />
-          ) : (
-            <></>
-          ),
+
           acknowledge: (
             <ActionButton
               status={r.status}
               onStart={() => {
-                setShowModal(true);
+                setShowStateTransitionModal(true);
                 setAssignedStaffUser(r.assignedStaff);
                 setRequireAssignedStaffUser(true);
                 setRequest(r);
                 setToStatus("in_progress");
               }}
               onComplete={() => {
-                setShowModal(true);
+                setShowStateTransitionModal(true);
                 setRequireAssignedStaffUser(false);
                 setRequest(r);
                 setToStatus("completed");
@@ -176,9 +175,15 @@ export default function Page() {
               showDepartment={true}
             />
           ),
-          conversation: (
+          conversation: r.conversation && (
             <div className="group relative inline-block">
-              <ChatBubbleLeftRightIcon className="size-6 cursor-pointer text-gray-600 hover:text-gray-400" />
+              <ChatBubbleLeftRightIcon
+                className="size-6 cursor-pointer text-gray-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
+                onClick={() => {
+                  setConversation(r.conversation);
+                  setShowConversationModal(true);
+                }}
+              />
 
               {/* Tooltip */}
               <span className="absolute bottom-full left-1/2 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow transition-opacity duration-200 group-hover:block group-hover:opacity-100">
@@ -202,7 +207,7 @@ export default function Page() {
   }, [activeRequests, reinitializeData]);
 
   function resetForm() {
-    setShowModal(false);
+    setShowStateTransitionModal(false);
     setAssignedStaffUser(null);
     setRequireAssignedStaffUser(false);
     setRequest(null);
@@ -259,7 +264,7 @@ export default function Page() {
         {/* Note and user assignment modal */}
         <div>
           <Dialog
-            open={showModal}
+            open={showStateTransitionModal}
             onClose={() => resetForm()}
             className="relative z-40"
           >
@@ -366,6 +371,16 @@ export default function Page() {
             </div>
           </Dialog>
         </div>
+
+        <ConversationModal
+          conversation={conversation}
+          showModal={showConversationModal}
+          onClose={() => {
+            setConversation(null);
+            setShowConversationModal(false);
+          }}
+        />
+
       </div>
     </div>
   );

@@ -24,6 +24,7 @@ export async function handleConversation({
   roomId,
   deviceId,
   bookingId,
+  guestUserId,
   conversationId,
   userContent,
 }) {
@@ -43,7 +44,9 @@ export async function handleConversation({
       conversationId,
       entityType: 'CONVERSATION',
       bookingId: bookingId,
+      guestUserId,
       deviceId: deviceId,
+      channel: 'android',
     };
   }
 

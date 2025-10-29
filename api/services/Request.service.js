@@ -1,6 +1,7 @@
 import { toIsoString } from '#common/timestamp.helper.js';
 import { RequestStatus } from '#Constants/statuses.js';
 import { requestResponse } from '#presenters/request.js';
+import { getMessagesByConversationIds } from '#repositories/Message.repository.js';
 import * as requestRepo from '#repositories/Request.repository.js';
 import * as roomRepo from '#repositories/Room.repository.js';
 import * as staffRepo from '#repositories/Staff.repository.js';
@@ -88,6 +89,9 @@ export async function listRequests({ hotelId, statuses, limit, nextToken }) {
   const staff = await staffRepo.queryStaffByHotelId(hotelId);
   const staffMap = new Map(staff.map((st) => [st.userId, st]));
 
+  const conversationIds = requests?.items?.map((r) => r.conversationId).filter(Boolean);
+  const conversationsMap = await getMessagesByConversationIds(conversationIds);
+
   const getRoom = (room) => ({
     type: room.type,
     floor: room.floor,
@@ -105,12 +109,25 @@ export async function listRequests({ hotelId, statuses, limit, nextToken }) {
         }
       : null;
 
+  const getConversation = (c) =>
+    c && c.length
+      ? {
+          messages: c.map(({ content, createdAt, messageId, role }) => ({
+            content,
+            createdAt,
+            role,
+            messageId,
+          })),
+        }
+      : null;
+
   return {
     ...requests,
     items: requests.items.map((r) => ({
       ...requestResponse(r),
       room: getRoom(roomMap.get(r.roomId)),
       assignedStaff: getStaff(staffMap.get(r.assignedStaffUserId)),
+      conversation: getConversation(conversationsMap.get(r.conversationId)),
     })),
   };
 }
