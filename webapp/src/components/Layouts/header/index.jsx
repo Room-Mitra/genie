@@ -23,6 +23,8 @@ export function Header() {
       )?.length
     ) {
       setReqsNeedAttention(true);
+    } else {
+      setReqsNeedAttention(false);
     }
   }, [activeRequests]);
 

@@ -66,14 +66,20 @@ export function Notification({ reqsNeedAttention }) {
               href={"/requests/active"}
               className="flex items-center gap-4 px-2 py-1.5 outline-none focus-visible:bg-gray-2 dark:focus-visible:bg-dark-3"
             >
-              <div>
-                <strong className="text-md block font-medium text-dark dark:text-white">
-                  There are guest requests that need attention!
-                </strong>
-                <span className="text-sm font-medium underline">
-                  View Unacknowledged or Delayed Requests
-                </span>
-              </div>
+              {reqsNeedAttention ? (
+                <div>
+                  <strong className="text-md block font-medium text-dark dark:text-white">
+                    There are guest requests that need attention!
+                  </strong>
+                  <span className="text-sm font-medium underline">
+                    View Unacknowledged or Delayed Requests
+                  </span>
+                </div>
+              ) : (
+                <div>
+                  <span>No notifications</span>
+                </div>
+              )}
             </Link>
           </li>
         </ul>
