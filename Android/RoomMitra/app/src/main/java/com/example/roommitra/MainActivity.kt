@@ -36,6 +36,7 @@ import com.example.roommitra.service.ApiService
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import android.provider.Settings
+import androidx.navigation.NavHostController
 import com.example.roommitra.service.ApiResult
 import com.example.roommitra.service.TrackingService
 import com.example.roommitra.view.ConciergeScreen
@@ -53,6 +54,12 @@ import com.example.roommitra.service.PollingManager
 class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
     private lateinit var musicController: MusicPlayerController
     private val apiService by lazy { ApiService(this) }
+
+    private fun redirectToHome(navController: NavHostController) {
+        if (!navController.popBackStack()) {
+            navController.navigate("home")
+        }
+    }
 
     override fun onStart() {
         super.onStart()
@@ -93,19 +100,29 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
                                     HomeScreen(navController = navController, musicController)
                                 }
                                 composable("menu") {
-                                    RestaurantMenuScreen(onBackClick = { navController.popBackStack() })
+                                    RestaurantMenuScreen(onBackClick = {
+                                        redirectToHome(navController)
+                                    })
                                 }
                                 composable("entertainment") {
-                                    EntertainmentScreen(onBackClick = { navController.popBackStack() })
+                                    EntertainmentScreen(onBackClick = {
+                                        redirectToHome(navController)
+                                    })
                                 }
                                 composable("amenities") {
-                                    AmenitiesScreen(onBackClick = { navController.popBackStack() })
+                                    AmenitiesScreen(onBackClick = {
+                                        redirectToHome(navController)
+                                    })
                                 }
                                 composable("housekeeping") {
-                                    HouseKeepingScreen(onBackClick = { navController.popBackStack() })
+                                    HouseKeepingScreen(onBackClick = {
+                                        redirectToHome(navController)
+                                    })
                                 }
                                 composable("concierge") {
-                                    ConciergeScreen(onBackClick = { navController.popBackStack() })
+                                    ConciergeScreen(onBackClick = {
+                                        redirectToHome(navController)
+                                    })
                                 }
                                 composable("login") {
                                     LoginScreen(onBackClick = { navController.popBackStack() })
