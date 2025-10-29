@@ -87,6 +87,7 @@ fun RestaurantMenuScreen(onBackClick: () -> Unit) {
                 is ApiResult.Success -> {
                     Log.d("RestaurantMenu", "API Success for Restaurant order - '${requestJson}'")
                     SnackbarManager.showMessage("Restaurant order placed successfully ", SnackbarType.SUCCESS)
+                    PollingManager.getBookingRepository().fetchBooking()
                 }
                 is ApiResult.Error -> {
                     Log.d("RestaurantMenu", "API Failed for Restaurant order - '${requestJson}'")
