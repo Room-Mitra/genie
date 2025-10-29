@@ -177,13 +177,19 @@ export default function SortTable({
               ))}
             </tr>
           ))}
+
+          {loading && (
+            <tr>
+              <td className="h-30">
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-black/30">
+                  <Spinner />
+                </div>
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
-      {loading && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-black/30">
-          <Spinner />
-        </div>
-      )}
+
       {!loading && !sortedRows.length && (
         <div className="mx-auto mt-5 w-fit p-4">
           {noDataMessage || "No rows"}

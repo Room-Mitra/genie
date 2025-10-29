@@ -9,7 +9,6 @@ import {
 } from "@headlessui/react";
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { Autocomplete } from "./_components/autocomplete";
 import { cn } from "@/lib/utils";
 import {
   combineToUTC,
@@ -17,6 +16,7 @@ import {
   formatTimeString,
 } from "@/lib/format-message-time";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
+import { Autocomplete } from "@/components/Autocomplete";
 
 async function addRoom({ roomNumber, roomType, floor, description }) {
   const res = await fetch(`/api/rooms`, {

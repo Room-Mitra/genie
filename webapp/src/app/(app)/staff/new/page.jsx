@@ -3,12 +3,12 @@
 import InputGroup from "@/components/FormElements/InputGroup";
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { Autocomplete } from "./_components/autocomplete";
 import { cn, toTitleCaseFromSnake } from "@/lib/utils.ts";
 
 import { Select } from "@/components/FormElements/select";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { useRouter } from "next/navigation";
+import { Autocomplete } from "@/components/Autocomplete";
 
 async function fetchStaff() {
   const res = await fetch("/api/staff", {
@@ -249,14 +249,14 @@ export default function AddStaffPage() {
               return [name, roles].filter(Boolean).join(" || ");
             }}
             renderItem={(st) => (
-              <div className="flex items-center gap-2">
+              <div className="flex min-h-15 items-center gap-2 border-b border-gray-300">
                 <span className="w-[30%] font-bold text-dark dark:text-gray-200">
                   {st.firstName} {st.lastName}
                 </span>
                 <span className="w-[40%] text-dark dark:text-gray-200">
                   {[st.mobileNumber, st.email].filter((t) => t).join(" | ")}
                 </span>
-                <span className="text-sm font-semibold text-dark dark:text-gray-200">
+                <span className="text-md w-[30%] font-semibold text-dark dark:text-gray-200">
                   {[st.department, ...(st.roles || [])]
                     .filter(Boolean)
                     .map(toTitleCaseFromSnake)
