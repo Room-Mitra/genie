@@ -8,6 +8,7 @@ const router = express.Router();
 router.post('/', async (req, res) => {
   try {
     const { hotelId, roomId, deviceId } = req.deviceData;
+    const guestUserId = req.headers['x-guest-user-id'];
 
     const { department, requestType, bookingId } = req.body;
     if (!department || !requestType) {
@@ -22,6 +23,7 @@ router.post('/', async (req, res) => {
       roomId,
       deviceId,
       bookingId,
+      guestUserId,
       department,
       requestType,
     };

@@ -165,6 +165,7 @@ export function buildHotelEntityItem(input) {
 
         entityType: 'CONVERSATION',
         hotelId: i.hotelId,
+        deviceId: i.deviceId,
 
         roomId: i.roomId,
         status: i.status,

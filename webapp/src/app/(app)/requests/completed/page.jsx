@@ -1,6 +1,5 @@
 "use client";
 
-import ConversationModal from "../_components/conversationModal";
 import SortTable from "@/components/ui/sort-table";
 import RequestStatus from "../_components/requestStatus";
 import { useEffect, useMemo, useState } from "react";
@@ -10,6 +9,8 @@ import User from "@/components/ui/user";
 import { Dates } from "@/components/ui/dates";
 import { Department } from "@/components/ui/department";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
+import { ConversationModal } from "../_components/conversationModal";
+import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
 
 async function fetchCompletedRequests() {
   const statuses = ["completed"];
@@ -31,6 +32,9 @@ async function fetchCompletedRequests() {
 
 export default function Page() {
   const [data, setData] = useState([]);
+  const [showConversationModal, setShowConversationModal] = useState(false);
+  const [conversation, setConversation] = useState(null);
+
   const [nextTokens, setNextTokens] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -42,6 +46,7 @@ export default function Page() {
       { key: "room", label: "ROOM" },
       { key: "department", label: "DEPARTMENT" },
       { key: "assignedStaff", label: "ASSIGNEE" },
+      { key: "conversation", label: "", sortable: false },
     ],
     [],
   );
@@ -76,6 +81,22 @@ export default function Page() {
               showRoles={true}
               showDepartment={true}
             />
+          ),
+          conversation: r.conversation && (
+            <div className="group relative inline-block">
+              <ChatBubbleLeftRightIcon
+                className="size-6 cursor-pointer text-gray-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
+                onClick={() => {
+                  setConversation(r.conversation);
+                  setShowConversationModal(true);
+                }}
+              />
+
+              {/* Tooltip */}
+              <span className="absolute bottom-full left-1/2 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow transition-opacity duration-200 group-hover:block group-hover:opacity-100">
+                View Conversation
+              </span>
+            </div>
           ),
         })),
       );
@@ -116,6 +137,15 @@ export default function Page() {
           showPagination={true}
         />
       </div>
+
+      <ConversationModal
+        conversation={conversation}
+        showModal={showConversationModal}
+        onClose={() => {
+          setConversation(null);
+          setShowConversationModal(false);
+        }}
+      />
     </div>
   );
 }
