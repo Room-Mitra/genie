@@ -1,4 +1,5 @@
 // ConversationThread.jsx
+import { Avatar } from "@/components/Avatar/avatar";
 import { formatMessageTime } from "@/lib/format-message-time";
 import { stringToColor } from "@/lib/text";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,11 @@ export default function ConversationThread({ messages = [], guest }) {
         .map((m) => ({ ...m })),
     [messages],
   );
+
+  const fullName = useMemo(
+    () => `${guest?.firstName || ""} ${guest?.lastName || ""}`.trim(),
+    [guest],
+  );
   return (
     <div className="w-full space-y-4">
       {items.map((msg) => {
@@ -41,7 +47,7 @@ export default function ConversationThread({ messages = [], guest }) {
               {/* Left avatar for guest, right avatar for assistant */}
               {isGuest && (
                 <Avatar
-                  name={`${guest.firstName} ${guest.lastName}`}
+                  name={fullName}
                   fallback={"G"}
                   url={guest?.profileImage?.url}
                   size={36}
@@ -66,9 +72,7 @@ export default function ConversationThread({ messages = [], guest }) {
                       isGuest && "text-gray-700",
                     )}
                   >
-                    {isGuest
-                      ? `${guest.firstName} ${guest.lastName}`.trim() || "Guest"
-                      : "Room Mitra"}
+                    {isGuest ? fullName || "Guest" : "Room Mitra"}
                   </div>
 
                   <div className="text-md leading-relaxed">{msg.content}</div>
@@ -100,47 +104,4 @@ export default function ConversationThread({ messages = [], guest }) {
   );
 }
 
-/* ---------- Helpers ---------- */
 
-function Avatar({ name, url, fallback, size = 32 }) {
-  if (url) {
-    return (
-      <img
-        src={url}
-        alt={name ? `${name} avatar` : "avatar"}
-        width={size}
-        height={size}
-        className="rounded-full object-cover ring-1 ring-gray-200"
-      />
-    );
-  }
-
-  const initials = name
-    ? name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
-    : fallback;
-
-  const bg = stringToColor(name || fallback || "User");
-  const text = pickTextColor(bg);
-
-  return (
-    <div
-      style={{ width: size, height: size, backgroundColor: bg, color: text }}
-      className="grid place-items-center rounded-full text-[12px] font-bold ring-1 ring-gray-200"
-      aria-hidden
-    >
-      {initials}
-    </div>
-  );
-}
-
-function pickTextColor(hsl) {
-  // Quick contrast check on lightness
-  const m = /hsl\(\s*[\d.]+\s+([\d.]+)%\s+([\d.]+)%\s*\)/i.exec(hsl);
-  const l = m ? Number(m[2]) : 70;
-  return l > 60 ? "#1f2937" : "white"; // gray-800 or white
-}

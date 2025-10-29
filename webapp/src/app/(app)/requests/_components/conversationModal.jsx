@@ -58,13 +58,7 @@ export function ConversationModal({ conversation, onClose, showModal }) {
                       <div className="px-5 py-3">
                         <ConversationThread
                           messages={conversation?.messages}
-                          guest={{
-                            firstName: "Chai",
-                            lastName: "Nadig",
-                            profileImage: {
-                              url: "/images/user/user-01.png",
-                            },
-                          }}
+                          guest={conversation?.guest}
                         />
                       </div>
                     </div>
