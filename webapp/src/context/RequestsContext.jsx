@@ -87,7 +87,7 @@ export function RequestsProvider({ children }) {
       setCursorIndex(0);
       setHasMore(false);
       // Important: call fetch with index 0 explicitly
-      fetchPageAt({ index: 0, limit });
+      fetchPageAt({ index: 0, limit: limit || LIMIT });
     },
     [fetchPageAt],
   );
