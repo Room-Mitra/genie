@@ -1,5 +1,3 @@
-import { Table, TableBody, TableRow, TableCell } from "@/components/ui/table";
-import { toTitleCaseFromSnake } from "@/lib/utils";
 import {
   Dialog,
   DialogBackdrop,
@@ -7,6 +5,8 @@ import {
   DialogPanel,
 } from "@headlessui/react";
 import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
+import ConversationThread from "./conversationThread";
+import { DateOnly } from "@/components/ui/datetime";
 
 export function ConversationModal({ conversation, onClose, showModal }) {
   return (
@@ -35,35 +35,37 @@ export function ConversationModal({ conversation, onClose, showModal }) {
                               className="size-6 text-yellow-300"
                             />
                           </div>
-                          <div className="mx-3 flex items-center align-middle">
-                            <DialogTitle
-                              as="h3"
-                              className="text-base font-semibold text-dark dark:text-white"
-                            >
-                              Conversation Log
-                            </DialogTitle>
+                          <div className="mx-3 flex w-full items-center align-middle">
+                            <div className="grid w-full grid-cols-2 justify-between gap-4">
+                              <DialogTitle
+                                as="h3"
+                                className="text-base font-semibold text-dark dark:text-white"
+                              >
+                                Conversation Log
+                              </DialogTitle>
+                              <div className="text-right">
+                                <DateOnly
+                                  dateTimeIso={
+                                    conversation?.messages?.[0]?.createdAt
+                                  }
+                                />
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
 
-                      <div className="px-5">
-                        <Table>
-                          <TableBody>
-                            {conversation?.messages?.length > 0 &&
-                              conversation?.messages?.map((log, i) => (
-                                <TableRow key={i}>
-                                  <TableCell className="text-lg font-medium">
-                                    {log.role === "user"
-                                      ? "Guest"
-                                      : toTitleCaseFromSnake(log.role)}
-                                  </TableCell>
-                                  <TableCell className="text-lg font-medium">
-                                    {log.content}
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                          </TableBody>
-                        </Table>
+                      <div className="px-5 py-3">
+                        <ConversationThread
+                          messages={conversation?.messages}
+                          guest={{
+                            firstName: "Chai",
+                            lastName: "Nadig",
+                            profileImage: {
+                              url: "/images/user/user-01.png",
+                            },
+                          }}
+                        />
                       </div>
                     </div>
                   </div>

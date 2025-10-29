@@ -22,7 +22,7 @@ function formatFullDate(date) {
   return `${datePart}, ${timePart}`;
 }
 
-function formatDateTimeSmart(isoString) {
+function formatDateTimeSmart(isoString, withTime = true) {
   const date = new Date(isoString);
   if (isNaN(+date)) return "";
 
@@ -34,24 +34,28 @@ function formatDateTimeSmart(isoString) {
   const diffDays = Math.floor((sodNow - sodDate) / msPerDay);
 
   if (diffDays === -1) {
-    return `Tomorrow, ${formatTime(date)}`;
+    return withTime ? `Tomorrow, ${formatTime(date)}` : "Tomorrow";
   }
 
   if (diffDays === 0) {
-    return `Today, ${formatTime(date)}`;
+    return withTime ? `Today, ${formatTime(date)}` : "Today";
   }
 
   if (diffDays === 1) {
-    return `Yesterday, ${formatTime(date)}`;
+    return withTime ? "Yesterday" : `Yesterday, ${formatTime(date)}`;
   }
 
   if (diffDays === 2) {
-    return `2 days ago, ${formatTime(date)}`;
+    return withTime ? "2 days ago" : `2 days ago, ${formatTime(date)}`;
   }
 
   return formatFullDate(date);
 }
 
 export function DateTime({ dateTimeIso }) {
-  return <span>{formatDateTimeSmart(dateTimeIso)}</span>;
+  return <span>{formatDateTimeSmart(dateTimeIso, true)}</span>;
+}
+
+export function DateOnly({ dateTimeIso }) {
+  return <span>{formatDateTimeSmart(dateTimeIso, false)}</span>;
 }
