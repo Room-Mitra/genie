@@ -637,12 +637,12 @@ fun MicPane(
                             tint = Color.White
                         )
                         Spacer(Modifier.width(8.dp))
-                        Text("Cancel Speech", color = Color.White)
+                        Text("Stop", color = Color.White)
                     }
 
                     isMuted -> {
                         Icon(
-                            imageVector = Icons.Default.MicOff,
+                            imageVector = Icons.Default.Mic,
                             contentDescription = "Unmute",
                             tint = Color.White
                         )
@@ -652,7 +652,7 @@ fun MicPane(
 
                     else -> {
                         Icon(
-                            imageVector = Icons.Default.Mic,
+                            imageVector = Icons.Default.MicOff,
                             contentDescription = "Mute",
                             tint = Color.White
                         )
