@@ -78,6 +78,7 @@ class BookingRepository(private val apiService: ApiService) {
         when (val result = apiService.get("requests")) {
             is ApiResult.Success -> withContext(Dispatchers.Main) {
                 _bookingData.value = result.data
+                Log.d("PollingManager", "Booking fetch success: ${result.data}")
             }
 
             is ApiResult.Error -> {

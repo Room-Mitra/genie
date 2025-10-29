@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.roommitra.service.ApiResult
 import com.example.roommitra.service.ApiService
+import com.example.roommitra.service.PollingManager
 import com.example.roommitra.service.SessionManager
 import com.example.roommitra.view.components.ConfirmationDialog
 import com.example.roommitra.view.data.HousekeepingSections
@@ -137,6 +138,7 @@ fun HouseKeepingScreen(onBackClick: () -> Unit) {
                         is ApiResult.Success -> {
                             Log.d("HouseKeeping", "API Success for house keeping request - '${selectedRequest}'")
                             SnackbarManager.showMessage("House keeping request raised for '${selectedRequest}'", SnackbarType.SUCCESS)
+                            PollingManager.getBookingRepository().fetchBooking()
                         }
                         is ApiResult.Error -> {
                             Log.d("HouseKeeping", "API Failed for house keeping request - '${selectedRequest}'")
