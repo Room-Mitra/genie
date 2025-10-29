@@ -3,7 +3,7 @@
 import ConversationModal from "../_components/conversationModal";
 import SortTable from "@/components/ui/sort-table";
 import RequestStatus from "../_components/requestStatus";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ID } from "@/components/ui/id";
 import { Room } from "@/components/ui/room";
 import { ActionButton } from "../_components/actionButton";
@@ -22,27 +22,7 @@ import { Autocomplete } from "@/components/Autocomplete";
 import { TextAreaGroup } from "@/components/FormElements/InputGroup/text-area";
 import { toast } from "react-toastify";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
-
-async function fetchActiveRequests({ limit, nextToken }) {
-  const statuses = ["unacknowledged", "in_progress", "delayed"];
-  const query = new URLSearchParams();
-  statuses.forEach((s) => query.append("statuses", s));
-
-  if (limit) query.append("limit", limit);
-  if (nextToken) query.append("nextToken", nextToken);
-
-  const res = await fetch(`/api/requests?${query.toString()}`, {
-    method: "GET",
-    credentials: "include",
-  });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || "Failed to fetch active requests");
-  }
-
-  return await res.json();
-}
+import { useRequests } from "@/context/RequestsContext";
 
 async function fetchStaff() {
   const res = await fetch("/api/staff", {
@@ -74,11 +54,9 @@ async function stateTransition(data) {
 
 export default function Page() {
   const [data, setData] = useState([]);
-  const [nextTokens, setNextTokens] = useState([]);
   const [staff, setStaff] = useState([]);
 
   const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [isChangingStatus, setIsChangingStatus] = useState(false);
   const [requireAssignedStaffUser, setRequireAssignedStaffUser] =
     useState(false);
@@ -87,6 +65,16 @@ export default function Page() {
   const [assignedStaffUser, setAssignedStaffUser] = useState(null);
   const [toStatus, setToStatus] = useState("");
   const [note, setNote] = useState("");
+
+  const {
+    activeRequests,
+    loading,
+    hasMore,
+    isAtStart,
+    nextPage,
+    previousPage,
+    refreshRequests,
+  } = useRequests();
 
   const canChangeStatus = useMemo(() => {
     return (
@@ -140,16 +128,10 @@ export default function Page() {
     }
   };
 
-  const refreshRequests = async () => {
+  const reinitializeData = useCallback(() => {
     try {
-      setLoading(true);
-      const requests = await fetchActiveRequests({
-        nextToken: nextTokens?.[nextTokens?.length - 1],
-      });
-      const newNextTokens = [...nextTokens, requests?.nextToken || "END"];
-      setNextTokens(newNextTokens);
       setData(
-        requests?.items?.map((r) => ({
+        activeRequests?.map((r) => ({
           dates: (
             <Dates
               requestedAt={r.createdAt}
@@ -196,15 +178,16 @@ export default function Page() {
       );
     } catch (err) {
       console.error("Error fetching bookings:", err);
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [activeRequests]);
 
   useEffect(() => {
     refreshStaff();
-    refreshRequests();
   }, []);
+
+  useEffect(() => {
+    reinitializeData();
+  }, [activeRequests, reinitializeData]);
 
   function resetForm() {
     setShowModal(false);
@@ -233,7 +216,7 @@ export default function Page() {
         `Request ${result.requestId.slice(0, 8)} changed status to ${toTitleCaseFromSnake(result.toStatus)}`,
       );
       resetForm();
-      refreshRequests();
+      refreshRequests({});
     } catch (err) {
       toast.error(err?.message || "Failed to change status");
     } finally {
@@ -254,16 +237,10 @@ export default function Page() {
           ]}
           loading={loading}
           noDataMessage="No active requests 🎉"
-          onClickNextPage={refreshRequests}
-          onClickPrevPage={() => {
-            if (nextTokens.pop() === "END") nextTokens.pop();
-            refreshRequests();
-          }}
-          hasMore={
-            nextTokens?.length > 0 &&
-            nextTokens[nextTokens?.length - 1] !== "END"
-          }
-          isAtStart={(nextTokens?.length || 0) <= 1}
+          onClickNextPage={nextPage}
+          onClickPrevPage={previousPage}
+          hasMore={hasMore}
+          isAtStart={isAtStart}
           showPagination={true}
         />
 

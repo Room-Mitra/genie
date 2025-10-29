@@ -100,6 +100,7 @@ export function Autocomplete({
           }}
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
+          autoComplete={"off"}
         />
 
         {rightAddon && (

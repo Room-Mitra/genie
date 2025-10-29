@@ -15,10 +15,8 @@ const UserContext = createContext(null);
 
 export function UserProvider({ children }) {
   const pathname = usePathname();
-  const skipFetch = isPublicPath(pathname);
-
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(!skipFetch); // if public, start as not loading
+  const [loading, setLoading] = useState(!isPublicPath(pathname)); // if public, start as not loading
 
   const refreshUser = useCallback(async () => {
     setLoading(true);
@@ -45,10 +43,14 @@ export function UserProvider({ children }) {
   useEffect(() => {
     let cancelled = false;
 
-    if (skipFetch) {
+    if (isPublicPath(pathname)) {
       // Public route: ensure state is sane
       setUser(null);
       setLoading(false);
+      return;
+    }
+
+    if (user) {
       return;
     }
 
@@ -80,7 +82,7 @@ export function UserProvider({ children }) {
     return () => {
       cancelled = true;
     };
-  }, [skipFetch, pathname]);
+  }, [user, pathname]);
 
   const value = useMemo(
     () => ({ user, loading, refreshUser }),
