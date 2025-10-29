@@ -32,13 +32,22 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.example.roommitra.data.DepartmentType
+import com.example.roommitra.data.RequestStatus
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
+import kotlin.text.format
 
 data class Order(
     val title: String,
-    val status: String,
+    val status: RequestStatus?,
     val eta: String,
+    val createdAt:String,
     val icon: ImageVector
 )
+
 @Composable
 fun OrderStatusCard() {
 
@@ -90,7 +99,7 @@ fun OrderStatusCard() {
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "You have not placed any orders yet",
+                            text = "You have not placed any requests yet",
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             ),
@@ -103,7 +112,7 @@ fun OrderStatusCard() {
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         items(orders) { order ->
-                            OrderItemCard(order){
+                            OrderItemCard(order) {
                                 selectedOrder = order
                             }
                         }
@@ -125,9 +134,9 @@ fun OrderItemCard(order: Order, onClick: () -> Unit) {
             .width(150.dp)
             .height(110.dp)
             .clickable(
-                indication = LocalIndication.current, // Add this line
+                indication = LocalIndication.current,
                 interactionSource = remember { MutableInteractionSource() }
-            )  { onClick() },
+            ) { onClick() },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         shape = RoundedCornerShape(12.dp)
@@ -148,16 +157,12 @@ fun OrderItemCard(order: Order, onClick: () -> Unit) {
             Text(
                 text = order.title,
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = "${order.status} • ${order.eta}",
-                style = MaterialTheme.typography.bodySmall.copy(
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                ),
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+            StatusPill(status = order.status)
+
         }
     }
 }
@@ -169,25 +174,52 @@ fun mapRequestsToOrders(requests: JSONArray): List<Order> {
     for (i in 0 until requests.length()) {
         val req = requests.optJSONObject(i) ?: continue
         Log.d("OrderStatusCard", "Request: $req")
-        val requestType = req.optString("requestType", "Request")
-        val status = req.optString("status", "Pending")
-        val etaRaw = req.optString("estimatedTimeOfFulfillment", "")
         val department = req.optString("department", "")
-        val orderObj = req.optJSONObject("order")
+        val requestType = req.optString("requestType", "Request")
+        val etaRaw = req.optString("estimatedTimeOfFulfillment", "")
+//        val status = req.optString("status", "Pending")
+        val statusKey = req.optString("status", "in_progress")
+        val statusEnum = RequestStatus.fromKey(statusKey)
 
-        // Convert ETA (ISO string) → readable text like “15m” (optional; placeholder for now)
-        val eta = if (etaRaw.isNotEmpty()) "15m" else "--"
+        val createdAt = req.optString("createdAt", "")
 
         // Choose icon intelligently
         val icon: ImageVector = when {
-            department.contains("Room Service", ignoreCase = true) -> Icons.Default.Restaurant
-            department.contains("Housekeeping", ignoreCase = true) -> Icons.Default.LocalLaundryService
-            department.contains("Laundry", ignoreCase = true) -> Icons.Default.LocalLaundryService
-            department.contains("Taxi", ignoreCase = true) -> Icons.Default.DirectionsCar
+            department.contains(
+                DepartmentType.ROOM_SERVICE.key,
+                ignoreCase = true
+            ) -> Icons.Default.Restaurant
+
+            department.contains(
+                DepartmentType.HOUSEKEEPING.key,
+                ignoreCase = true
+            ) -> Icons.Default.RoomService
+
+            department.contains(
+                DepartmentType.FRONT_OFFICE.key,
+                ignoreCase = true
+            ) -> Icons.Default.SupportAgent
+
+            department.contains(
+                DepartmentType.CONCIERGE.key,
+                ignoreCase = true
+            ) -> Icons.Default.DirectionsCar
+
+            department.contains(
+                DepartmentType.FACILITIES.key,
+                ignoreCase = true
+            ) -> Icons.Default.Build
+
+            department.contains(
+                DepartmentType.GENERAL_ENQUIRY.key,
+                ignoreCase = true
+            ) -> Icons.Default.ContactSupport
+
             else -> Icons.Default.Assignment
         }
 
         // If request has an order object, use the first item’s name as title
+        val orderObj = req.optJSONObject("order")
         val title = orderObj?.optJSONArray("items")
             ?.optJSONObject(0)
             ?.optString("name", requestType)
@@ -196,9 +228,10 @@ fun mapRequestsToOrders(requests: JSONArray): List<Order> {
         orders.add(
             Order(
                 title = title,
-                status = status.replaceFirstChar { it.uppercase() },
-                eta = eta,
-                icon = icon
+                status = statusEnum,
+                eta = etaRaw,
+                icon = icon,
+                createdAt = createdAt
             )
         )
     }
@@ -251,5 +284,30 @@ fun OrderDetailDialog(order: Order, onDismiss: () -> Unit) {
     )
 }
 
+@Composable
+fun StatusPill(status: RequestStatus?) {
+    val (bgColor, textColor, label) = when (status) {
+        RequestStatus.UNACKNOWLEDGED -> Triple(Color(0xFFEEEFF2), Color.Gray, "Order Placed")
+        RequestStatus.IN_PROGRESS -> Triple(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), MaterialTheme.colorScheme.primary, "In Progress")
+        RequestStatus.DELAYED -> Triple(Color(0xFFFFE0B2), Color(0xFFD84315), "Delayed")
+        RequestStatus.COMPLETED -> Triple(Color(0xFFD0F0C0), Color(0xFF2E7D32), "Completed")
+        null -> Triple(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), MaterialTheme.colorScheme.primary, "In Progress")
+    }
+
+    Surface(
+        color = bgColor,
+        shape = RoundedCornerShape(50),
+        tonalElevation = 0.dp
+    ) {
+        Text(
+            text = label,
+            color = textColor,
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+            modifier = Modifier
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+            maxLines = 1
+        )
+    }
+}
 
 
