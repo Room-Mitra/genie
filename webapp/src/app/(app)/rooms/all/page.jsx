@@ -3,6 +3,7 @@
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { DateTime } from "@/components/ui/datetime";
 import { ID } from "@/components/ui/id";
+import { Room } from "@/components/ui/room";
 import SortTable from "@/components/ui/sort-table";
 import Link from "next/link";
 import { useState, useEffect, useMemo } from "react";
@@ -24,9 +25,7 @@ export default function Page() {
   const columns = useMemo(
     () => [
       { key: "roomId", label: "ROOM ID" },
-      { key: "number", label: "ROOM NUMBER" },
-      { key: "type", label: "TYPE" },
-      { key: "floor", label: "FLOOR" },
+      { key: "room", label: "ROOM" },
       { key: "description", label: "DESCRIPTION" },
       { key: "createdAt", label: "CREATED AT" },
     ],
@@ -43,6 +42,7 @@ export default function Page() {
           setData(
             rooms?.items?.map((r) => ({
               roomId: <ID ulid={r.roomId} />,
+              room: <Room room={r} wide={true} />,
               number: (
                 <span className="text-md inline-block rounded-full bg-cyan-600 px-3 py-2 text-white">
                   #{r.number}

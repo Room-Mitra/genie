@@ -1,7 +1,6 @@
 // ConversationThread.jsx
 import { Avatar } from "@/components/Avatar/avatar";
 import { formatMessageTime } from "@/lib/format-message-time";
-import { stringToColor } from "@/lib/text";
 import { cn } from "@/lib/utils";
 import React, { useMemo } from "react";
 
@@ -32,7 +31,7 @@ export default function ConversationThread({ messages = [], guest }) {
     [guest],
   );
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-4 ">
       {items.map((msg) => {
         const isGuest = msg.role === "user";
 

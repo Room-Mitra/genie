@@ -43,7 +43,7 @@ export async function listRequestsByBooking({ bookingId }) {
 }
 
 export async function createRequest(requestData) {
-  const { hotelId, roomId, bookingId, deviceId, department, requestType, conversationId } =
+  const { hotelId, roomId, bookingId, deviceId, department, requestType, conversationId, guestUserId } =
     requestData;
 
   const minsToFulfillFn = minsToFulfillByDepartment?.[department];
@@ -67,6 +67,7 @@ export async function createRequest(requestData) {
     deviceId,
     bookingId,
     conversationId,
+    guestUserId,
     status: RequestStatus.UNACKNOWLEDGED,
   };
 

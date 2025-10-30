@@ -101,6 +101,7 @@ export async function handleConversation({
         requestType: rd.requestType,
         conversationId,
         description: rd.shortDescription,
+        guestUserId,
       });
     }
   });

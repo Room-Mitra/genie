@@ -17,6 +17,7 @@ import {
 } from "@/lib/format-message-time";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { Autocomplete } from "@/components/Autocomplete";
+import { Room } from "@/components/ui/room";
 
 async function addRoom({ roomNumber, roomType, floor, description }) {
   const res = await fetch(`/api/rooms`, {
@@ -273,23 +274,10 @@ export default function AddBookingPage() {
               `#${room.number} · ${room.type} · ${room.floor}F`
             }
             renderItem={(room) => (
-              <div className="grid h-12 w-full grid-cols-[200px_100px_320px] items-center gap-3 sm:grid-cols-[220px_110px_320px]">
-                {/* Col 1: #room + type */}
-                <div className="flex min-w-0 items-center gap-2">
-                  <div className="inline-block rounded-full bg-cyan-600 px-3 py-2">
-                    <span className="text-md text-white">#{room.number}</span>
-                  </div>
-                  <span className="block truncate text-dark dark:text-gray-200">
-                    {room.type}
-                  </span>
+              <div className="grid h-12 w-full grid-cols-2 items-center gap-3">
+                <div>
+                  <Room room={room} wide={true} />
                 </div>
-
-                {/* Col 2: Floor */}
-                <div className="text-md whitespace-nowrap text-dark dark:text-gray-200">
-                  Floor: {room.floor}
-                </div>
-
-                {/* Col 3: Description (fixed width, truncated) */}
                 <div className="text-md min-w-0 text-dark dark:text-gray-200">
                   <span className="block truncate">
                     {room.description && room.description}

@@ -26,13 +26,13 @@ const isDivOrSpan = (e) =>
   (React.isValidElement(e) && e.type === "div") || e.type === "span";
 
 const getValue = (e) => {
-  console.log(e.props);
   if (isDateTime(e)) return e.props.dateTimeIso;
   if (isID(e)) return e.props.ulid;
-  if (isRoom(e)) return e.props.room?.number;
+  if (isRoom(e))
+    return `${e.props.room?.floor}-${e.props.room?.number}-${e.props.room?.type}`;
   if (isRoles(e)) return e.props.roles?.join(",");
   if (isDepartment(e)) return e.props.department;
-  if (isDates(e)) return e.props.estimatedTimeOfFulfillment;
+  if (isDates(e)) return e.props.estimatedTimeOfFulfillment ;
   if (isStaff(e))
     return `${e.props?.user?.firstName} ${e.props?.user?.lastName}`.toUpperCase();
   if (isRequestStatus(e)) return `${e.props.status}`;

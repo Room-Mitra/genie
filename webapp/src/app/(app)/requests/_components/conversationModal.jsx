@@ -24,7 +24,7 @@ export function ConversationModal({ conversation, onClose, showModal }) {
               className="data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in data-closed:sm:translate-y-0 data-closed:sm:scale-95 relative transform overflow-hidden rounded-lg bg-gray-800 text-left shadow-xl outline -outline-offset-1 outline-white/10 transition-all sm:my-8 sm:w-full sm:max-w-lg"
             >
               <div>
-                <div className="bg-white dark:bg-gray-800">
+                <div className="max-h-180 overflow-auto bg-white dark:bg-gray-800">
                   <div className="sm:flex sm:items-start">
                     <div className="text-center sm:text-left">
                       <div className="bg-gray-200 text-dark dark:bg-gray-900 sm:p-5">

@@ -140,6 +140,7 @@ export function buildHotelEntityItem(input) {
         status: i.status,
         assignedToUserId: i.assignedToUserId,
         conversationId: i.conversationId,
+        guestUserId: i.guestUserId,
         createdAt: i.createdAt,
         description: i.description,
       });

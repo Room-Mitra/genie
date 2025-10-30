@@ -10,3 +10,10 @@ export function stringToColor(str) {
   const l = 70; // light bg
   return `hsl(${h} ${s}% ${l}%)`; // pastel-like color
 }
+
+export function pickTextColor(hsl) {
+  // Quick contrast check on lightness
+  const m = /hsl\(\s*[\d.]+\s+([\d.]+)%\s+([\d.]+)%\s*\)/i.exec(hsl);
+  const l = m ? Number(m[2]) : 70;
+  return l > 60 ? "#1f2937" : "white"; // gray-800 or white
+}
