@@ -100,12 +100,12 @@ export default function Page() {
     () => [
       { key: "requestId", label: "REQUEST ID" },
       { key: "status", label: "STATUS" },
-      { key: "dates", label: "DATES" },
       { key: "room", label: "ROOM" },
       { key: "department", label: "DEPARTMENT" },
-      { key: "assignedStaff", label: "ASSIGNEE" },
-      { key: "acknowledge", label: "", sortable: false },
       { key: "conversation", label: "", sortable: false },
+      { key: "assignedStaff", label: "ASSIGNEE" },
+      { key: "dates", label: "DATES" },
+      { key: "acknowledge", label: "", sortable: false },
     ],
     [],
   );
@@ -380,7 +380,6 @@ export default function Page() {
             setShowConversationModal(false);
           }}
         />
-
       </div>
     </div>
   );

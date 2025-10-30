@@ -26,6 +26,7 @@ const isDivOrSpan = (e) =>
   (React.isValidElement(e) && e.type === "div") || e.type === "span";
 
 const getValue = (e) => {
+  console.log(e.props);
   if (isDateTime(e)) return e.props.dateTimeIso;
   if (isID(e)) return e.props.ulid;
   if (isRoom(e)) return e.props.room?.number;

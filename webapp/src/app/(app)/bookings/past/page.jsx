@@ -1,6 +1,7 @@
 "use client";
 
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
+import { Dates } from "@/components/ui/dates";
 import { DateTime } from "@/components/ui/datetime";
 import { ID } from "@/components/ui/id";
 import { Room } from "@/components/ui/room";
@@ -25,10 +26,9 @@ export default function Page() {
   const columns = useMemo(
     () => [
       { key: "bookingId", label: "BOOKING ID" },
-      { key: "checkInTime", label: "CHECK IN" },
-      { key: "checkOutTime", label: "CHECK OUT" },
       { key: "room", label: "ROOM" },
       { key: "guest", label: "GUEST" },
+      { key: "dates", label: "DATES" },
       { key: "createdAt", label: "CREATED AT" },
     ],
     [],
@@ -44,6 +44,12 @@ export default function Page() {
           setData(
             bookings?.items?.map((b) => ({
               bookingId: <ID ulid={b.bookingId} />,
+              dates: (
+                <Dates
+                  checkInTime={b.checkInTime}
+                  checkOutTime={b.checkOutTime}
+                />
+              ),
               checkInTime: <DateTime dateTimeIso={b.checkInTime} />,
               checkOutTime: <DateTime dateTimeIso={b.checkOutTime} />,
               room: <Room room={b.room} />,

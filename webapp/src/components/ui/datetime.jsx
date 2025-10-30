@@ -42,20 +42,24 @@ function formatDateTimeSmart(isoString, withTime = true) {
   }
 
   if (diffDays === 1) {
-    return withTime ? "Yesterday" : `Yesterday, ${formatTime(date)}`;
+    return withTime ? `Yesterday, ${formatTime(date)}` : "Yesterday";
   }
 
   if (diffDays === 2) {
-    return withTime ? "2 days ago" : `2 days ago, ${formatTime(date)}`;
+    return withTime ? `2 days ago, ${formatTime(date)}` : "2 days ago";
   }
 
   return formatFullDate(date);
 }
 
 export function DateTime({ dateTimeIso }) {
-  return <span>{formatDateTimeSmart(dateTimeIso, true)}</span>;
+  return (
+    <span className="text-sm">{formatDateTimeSmart(dateTimeIso, true)}</span>
+  );
 }
 
 export function DateOnly({ dateTimeIso }) {
-  return <span>{formatDateTimeSmart(dateTimeIso, false)}</span>;
+  return (
+    <span className="text-sm">{formatDateTimeSmart(dateTimeIso, false)}</span>
+  );
 }

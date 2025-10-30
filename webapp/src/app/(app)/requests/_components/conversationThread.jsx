@@ -61,7 +61,7 @@ export default function ConversationThread({ messages = [], guest }) {
                     "whitespace-pre-wrap break-words",
                     isGuest
                       ? "border border-gray-200 bg-white text-gray-900"
-                      : "bg-cyan-600 text-white",
+                      : "bg-indigo-600 text-white",
                   ].join(" ")}
                 >
                   {/* Header with name (guest only) */}
