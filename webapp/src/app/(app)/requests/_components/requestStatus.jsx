@@ -10,7 +10,12 @@ export default function RequestStatus({ status }) {
 
   return (
     <>
-      <div className={cn("inline-block rounded-full px-3 py-2 w-30 text-center", color[status])}>
+      <div
+        className={cn(
+          "inline-block rounded-full px-3 py-2 text-center",
+          color[status],
+        )}
+      >
         <span className="text-md text-white">
           {toTitleCaseFromSnake(status)}
         </span>

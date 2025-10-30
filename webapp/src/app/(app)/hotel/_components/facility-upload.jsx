@@ -7,6 +7,7 @@ import InputGroup from "@/components/FormElements/InputGroup";
 import { TextAreaGroup } from "@/components/FormElements/InputGroup/text-area";
 import { toast } from "react-toastify";
 import { cn, toTitleCaseFromSnake } from "@/lib/utils";
+import { ImageUpload } from "@/components/Upload/upload";
 
 export function FacilityUploadForm({ onCancel, entityType, refresh }) {
   const [file, setFile] = useState(null);
@@ -31,29 +32,6 @@ export function FacilityUploadForm({ onCancel, entityType, refresh }) {
     setPreviewUrl(url);
     return () => URL.revokeObjectURL(url);
   }, [file]);
-
-  function onFilePick(e) {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    if (!f.type.startsWith("image/")) {
-      alert("Please select a valid image file.");
-      return;
-    }
-    setFile(f);
-  }
-
-  function onDrop(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-    const f = e.dataTransfer.files?.[0];
-    if (!f) return;
-    if (!f.type.startsWith("image/")) {
-      alert("Please drop a valid image file.");
-      return;
-    }
-    setFile(f);
-  }
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -100,7 +78,7 @@ export function FacilityUploadForm({ onCancel, entityType, refresh }) {
       <form onSubmit={onSubmit}>
         <div className="mb-5.5 flex flex-col gap-5 sm:flex-row">
           {/* Upload / Preview panel */}
-          <div className="mt-10 w-full sm:w-[33%]">
+          {/* <div className="mt-10 w-full sm:w-[33%]">
             <input
               ref={inputRef}
               type="file"
@@ -179,7 +157,9 @@ export function FacilityUploadForm({ onCancel, entityType, refresh }) {
                 </div>
               </div>
             )}
-          </div>
+          </div> */}
+
+          <ImageUpload setFile={setFile} />
 
           {/* Title / Description fields */}
           <div className="grid w-full gap-4 sm:ml-8 sm:w-[66%]">

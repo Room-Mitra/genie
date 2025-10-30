@@ -7,6 +7,7 @@ type PropsType = {
   name?: string;
   value?: string;
   minimal?: boolean;
+  id?: string;
 };
 
 export function RadioInput({
@@ -15,9 +16,8 @@ export function RadioInput({
   name,
   value,
   minimal,
+  id,
 }: PropsType) {
-  const id = useId();
-
   return (
     <div>
       <label
