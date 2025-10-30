@@ -522,6 +522,7 @@ fun MicPane(
                         } else ttsManager.speak("No response from server.")
                         if (isConversationOpen)
                             autoListenTrigger.value = System.currentTimeMillis()
+                        PollingManager.getBookingRepository().fetchBooking()
                     }
 
                     is ApiResult.Error -> {
