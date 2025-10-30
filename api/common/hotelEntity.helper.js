@@ -243,7 +243,7 @@ export function buildHotelEntityItem(input) {
 
     case 'CONCIERGE': {
       const serviceId = i.serviceId ?? ulid();
-      const pk = `HOTEL#${i.hotelid}`;
+      const pk = `HOTEL#${i.hotelId}`;
       const sk = `HOTEL#META#CONCIERGE#${serviceId}`;
 
       return clean({

@@ -138,7 +138,7 @@ export default function Page() {
                 <span className="text-body-md font-medium text-dark dark:text-white/80">
                   Description
                 </span>
-                <span className="text-xl font-bold text-dark dark:text-white">
+                <span className="text-lg text-dark dark:text-white">
                   {a.description}
                 </span>
               </div>
