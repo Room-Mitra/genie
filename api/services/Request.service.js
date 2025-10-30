@@ -43,8 +43,16 @@ export async function listRequestsByBooking({ bookingId }) {
 }
 
 export async function createRequest(requestData) {
-  const { hotelId, roomId, bookingId, deviceId, department, requestType, conversationId, guestUserId } =
-    requestData;
+  const {
+    hotelId,
+    roomId,
+    bookingId,
+    deviceId,
+    department,
+    requestType,
+    conversationId,
+    guestUserId,
+  } = requestData;
 
   const minsToFulfillFn = minsToFulfillByDepartment?.[department];
   if (!minsToFulfillFn) {
@@ -166,6 +174,7 @@ export async function completeRequest({ requestId, hotelId, note, updatedByUserI
   return requestRepo.updateRequestStatusWithLog({
     request,
     toStatus: RequestStatus.COMPLETED,
+    timeOfFulfillment: toIsoString(),
     updatedByUserId,
     note,
   });

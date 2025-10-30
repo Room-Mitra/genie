@@ -108,6 +108,7 @@ export async function getRequestById(requestId, hotelId) {
 export async function updateRequestStatusWithLog({
   request,
   toStatus,
+  timeOfFulfillment,
   assignedStaffUserId,
   updatedByUserId,
   note,
@@ -125,15 +126,21 @@ export async function updateRequestStatusWithLog({
 
   const updateNames = {
     '#status': 'status',
+    '#timeOfFulfillment': 'timeOfFulfillment',
     '#updatedAt': 'updatedAt',
   };
 
   const updateValues = {
     ':toStatus': toStatus,
+    ':timeOfFulfillment': timeOfFulfillment,
     ':updatedAt': nowIso,
   };
 
-  const updateExpressionFields = ['#status = :toStatus', '#updatedAt = :updatedAt'];
+  const updateExpressionFields = [
+    '#status = :toStatus',
+    '#timeOfFulfillment = :timeOfFulfillment',
+    '#updatedAt = :updatedAt',
+  ];
 
   if (assignedStaffUserId) {
     updateNames['#assignedStaffUserId'] = 'assignedStaffUserId';

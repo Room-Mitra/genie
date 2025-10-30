@@ -2,8 +2,6 @@ import {
   CalendarDaysIcon,
   ClockIcon,
   CheckCircleIcon,
-  ArrowDownTrayIcon,
-  ArrowUpTrayIcon,
   ArrowRightStartOnRectangleIcon,
   ArrowLeftEndOnRectangleIcon,
 } from "@heroicons/react/24/outline";

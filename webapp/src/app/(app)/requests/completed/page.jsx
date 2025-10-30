@@ -77,7 +77,7 @@ export default function Page() {
                   <Dates
                     requestedAt={r.createdAt}
                     estimatedTimeOfFulfillment={r.estimatedTimeOfFulfillment}
-                    timeOfFulfillment={new Date()}
+                    timeOfFulfillment={r.timeOfFulfillment}
                   />
                 ),
                 requestId: <ID ulid={r.requestId} />,

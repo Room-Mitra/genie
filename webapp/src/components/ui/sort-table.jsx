@@ -32,7 +32,12 @@ const getValue = (e) => {
     return `${e.props.room?.floor}-${e.props.room?.number}-${e.props.room?.type}`;
   if (isRoles(e)) return e.props.roles?.join(",");
   if (isDepartment(e)) return e.props.department;
-  if (isDates(e)) return e.props.estimatedTimeOfFulfillment ;
+  if (isDates(e))
+    return (
+      e.props.estimatedTimeOfFulfillment ||
+      e.props.timeOfFulfillment ||
+      e.props.createdAt
+    );
   if (isStaff(e))
     return `${e.props?.user?.firstName} ${e.props?.user?.lastName}`.toUpperCase();
   if (isRequestStatus(e)) return `${e.props.status}`;
