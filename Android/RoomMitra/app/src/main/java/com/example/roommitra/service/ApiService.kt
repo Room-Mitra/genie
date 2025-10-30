@@ -4,6 +4,7 @@ import android.content.Context
 import android.provider.Settings
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
@@ -20,14 +21,14 @@ sealed class ApiResult {
 }
 class ApiService(private val context: Context) {
     companion object {
-//        private const val BASE_URL = "https://true-teams-drop.loca.lt"+"/android"
+  //      private const val BASE_URL = "https://legal-chefs-run.loca.lt"+"/android"
         private const val BASE_URL = "https://api.roommitra.com/android"
     }
 
     private val client = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .writeTimeout(30, TimeUnit.SECONDS)
+        .connectTimeout(60, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
         .build()
 
     // Example: default headers
@@ -87,37 +88,64 @@ class ApiService(private val context: Context) {
         method: String,
         endpoint: String,
         body: JSONObject? = null,
-        headers: Map<String, String>
+        headers: Map<String, String>,
+        maxRetries: Int = 3,                 // configurable retries
+        retryDelayMillis: Long = 2000L       // 2 seconds initial delay
     ): ApiResult = withContext(Dispatchers.IO) {
-        try {
-            val requestBuilder = Request.Builder()
-                .url("$BASE_URL/$endpoint")
+        var attempt = 0
+        var currentDelay = retryDelayMillis
 
-            // Merge default + custom headers
-            (defaultHeaders + headers).forEach { (key, value) ->
-                requestBuilder.addHeader(key, value)
+        while (attempt < maxRetries) {
+            try {
+                val requestBuilder = Request.Builder()
+                    .url("$BASE_URL/$endpoint")
+
+                // Merge default + custom headers
+                (defaultHeaders + headers).forEach { (key, value) ->
+                    requestBuilder.addHeader(key, value)
+                }
+
+                if (body != null) {
+                    val requestBody = body.toString()
+                        .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+                    requestBuilder.method(method, requestBody)
+                } else {
+                    requestBuilder.method(method, null)
+                }
+
+                val response = client.newCall(requestBuilder.build()).execute()
+                val respBody = response.body?.string()
+
+                if (response.isSuccessful) {
+                    Log.i("ApiService", "API Success ${response.code}: $respBody")
+                    return@withContext ApiResult.Success(
+                        if (!respBody.isNullOrEmpty()) JSONObject(respBody) else null
+                    )
+                } else {
+                    Log.w("ApiService", "Error ${response.code}: $respBody")
+                    // Retry only for server errors (5xx)
+                    if (response.code in 500..599 && attempt < maxRetries - 1) {
+                        delay(currentDelay)
+                        currentDelay *= 2 // exponential backoff
+                        attempt++
+                        continue
+                    }
+                    return@withContext ApiResult.Error(response.code, respBody)
+                }
+
+            } catch (e: IOException) {
+                Log.e("ApiService", "Network error during $method $endpoint (attempt ${attempt + 1})", e)
+                if (attempt < maxRetries - 1) {
+                    delay(currentDelay)
+                    currentDelay *= 2 // exponential backoff
+                    attempt++
+                } else {
+                    return@withContext ApiResult.Error(-1, e.message)
+                }
             }
-
-            if (body != null) {
-                val requestBody = body.toString()
-                    .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
-                requestBuilder.method(method, requestBody)
-            } else {
-                requestBuilder.method(method, null)
-            }
-
-            val response = client.newCall(requestBuilder.build()).execute()
-            val respBody = response.body?.string()
-
-            return@withContext if (response.isSuccessful) {
-                ApiResult.Success(if (!respBody.isNullOrEmpty()) JSONObject(respBody) else null)
-            } else {
-                Log.w("ApiService", "Error ${response.code}: $respBody")
-                ApiResult.Error(response.code, respBody)
-            }
-        } catch (e: IOException) {
-            Log.e("ApiService", "Network error during $method $endpoint", e)
-            return@withContext ApiResult.Error(-1, e.message)
         }
+
+        return@withContext ApiResult.Error(-1, "Max retry attempts reached")
     }
+
 }

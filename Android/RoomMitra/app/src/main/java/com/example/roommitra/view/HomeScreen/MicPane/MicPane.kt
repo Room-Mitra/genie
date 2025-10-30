@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -40,9 +41,13 @@ import com.example.roommitra.service.ApiResult
 import com.example.roommitra.service.ApiService
 import com.example.roommitra.service.PollingManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.UUID
 
@@ -552,22 +557,66 @@ fun MicPane(
             .padding(16.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+//                .align(Alignment.Center),
+                .padding(bottom = 90.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+//            verticalArrangement = Arrangement.Center
         ) {
-            SecretLogoTrigger(navController)
-            Spacer(Modifier.height(35.dp))
 
-            Text(
-                text = "Hello, $firstName 👋",
-                color = Color.White,
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+//                    .height(IntrinsicSize.Min)
+                    .padding(top = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+//                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Left side: Clock + Date
+                Column(horizontalAlignment = Alignment.Start) {
+                    val time by produceState(initialValue = LocalTime.now()) {
+                        while (true) {
+                            value = LocalTime.now()
+                            delay(1000L)
+                        }
+                    }
+                    val currentDate = remember { LocalDate.now() }
 
-            )
+                    Text(
+                        text = time.format(DateTimeFormatter.ofPattern("hh:mm a")),
+                        color = Color.White.copy(alpha = 0.8f),
+                        fontSize = 20.sp,
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = currentDate.format(DateTimeFormatter.ofPattern("EEE, MMM dd")),
+                        color = Color.White.copy(alpha = 0.6f),
+                        fontSize = 12.sp,
+                        fontFamily = FontFamily.SansSerif
+                    )
+                }
 
+                // Center: Secret Logo (always centered)
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    SecretLogoTrigger(navController)
+                }
 
-            Spacer(Modifier.height(20.dp))
+                // Right side: Welcome Text
+                Text(
+                    text = "Hello, $firstName 👋",
+                    color = Color.White,
+                    fontSize = 15.sp,
+                    fontFamily = FontFamily.SansSerif,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+
+            Spacer(Modifier.height(150.dp))
 
             Box(modifier = Modifier.fillMaxHeight(0.4f), contentAlignment = Alignment.Center) {
                 val (hasRecordPerm, requestRecordPerm) = rememberRecordAudioPermission {
@@ -588,7 +637,7 @@ fun MicPane(
                     }
                 )
             }
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(50.dp))
 
             Text(
                 text = when (listenState) {
@@ -604,84 +653,102 @@ fun MicPane(
                 )
             )
 
-            Spacer(Modifier.height(12.dp))
-
-            Button(
-                onClick = {
-                    when {
-                        listenState == ListenState.Speaking -> {
-                            // Cancel speech
-                            ttsManager.stopImmediately()
-                            micStateService.setState(ListenState.Idle)
-                        }
-
-                        isMuted -> micController.unmute()
-                        else -> micController.mute()
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = when {
-                        listenState == ListenState.Speaking -> Color(0xFFB71C1C) // Deep red for cancel
-                        isMuted -> Color.Red
-                        else -> Color(0xFF141E30)
-                    }
-                ),
-                shape = RoundedCornerShape(50),
-                modifier = Modifier.height(48.dp)
+//            Spacer(Modifier.height(12.dp))
+//            Spacer(Modifier.height(35.dp))
+            Box(
+                modifier = Modifier
+                    .weight(1f) // occupies remaining space
+                    .fillMaxWidth(),
+//                contentAlignment = Alignment.BottomCenter
             ) {
-                when {
-                    listenState == ListenState.Speaking -> {
-                        Icon(
-                            imageVector = Icons.Default.Stop,
-                            contentDescription = "Cancel Speech",
-                            tint = Color.White
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text("Stop", color = Color.White)
-                    }
+                if (conversation.isNotEmpty()) {
 
-                    isMuted -> {
-                        Icon(
-                            imageVector = Icons.Default.Mic,
-                            contentDescription = "Unmute",
-                            tint = Color.White
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text("Unmute", color = Color.White)
-                    }
-
-                    else -> {
-                        Icon(
-                            imageVector = Icons.Default.MicOff,
-                            contentDescription = "Mute",
-                            tint = Color.White
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text("Mute", color = Color.White)
+                    ConversationList(
+                        conversation = conversation,
+                        listState = listState
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "💡 Tip: Tap the mic icon and say a command",
+                                color = Color.White.copy(alpha = 0.8f),
+                                fontSize = 14.sp,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+//                            Spacer(Modifier.height(25.dp))
+                            SuggestionSlideshow()
+                        }
                     }
                 }
+//            Spacer(Modifier.height(32.dp))
             }
+        }
 
+        Button(
+            onClick = {
+                when {
+                    listenState == ListenState.Speaking -> {
+                        // Cancel speech
+                        ttsManager.stopImmediately()
+                        micStateService.setState(ListenState.Idle)
+                    }
 
+                    isMuted -> micController.unmute()
+                    else -> micController.mute()
+                }
+            },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = when {
+                    listenState == ListenState.Speaking -> Color(0xFFB71C1C) // Deep red for cancel
+                    isMuted -> Color.Red
+                    else -> Color(0xFF141E30)
+                }
+            ),
+            shape = RoundedCornerShape(50),
+            modifier = Modifier
+                .height(80.dp)
+                .padding(16.dp)
+                .align(Alignment.BottomEnd)
+        ) {
+            when {
+                listenState == ListenState.Speaking -> {
+                    Icon(
+                        imageVector = Icons.Default.Stop,
+                        contentDescription = "Cancel Speech",
+                        tint = Color.White
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("Stop", color = Color.White)
+                }
 
-            Spacer(Modifier.height(24.dp))
-            if (conversation.isNotEmpty()) ConversationList(
-                conversation = conversation,
-                listState = listState
-            )
-            if (conversation.isEmpty()) {
-                Spacer(Modifier.weight(1f))
-                Text(
-                    text = "💡 Tip: Tap the mic icon and say a command",
-                    color = Color.White.copy(alpha = 0.8f),
-                    fontSize = 14.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-                SuggestionSlideshow()
-                Spacer(Modifier.height(32.dp))
+                isMuted -> {
+                    Icon(
+                        imageVector = Icons.Default.Mic,
+                        contentDescription = "Unmute",
+                        tint = Color.White
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("Unmute", color = Color.White)
+                }
+
+                else -> {
+                    Icon(
+                        imageVector = Icons.Default.MicOff,
+                        contentDescription = "Mute",
+                        tint = Color.White
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("Mute", color = Color.White)
+                }
             }
-
         }
     }
 
