@@ -94,6 +94,9 @@ server {
   listen [::]:80;
   server_name api.roommitra.com;
 
+  client_max_body_size 10m;
+  client_body_timeout 60s;
+
   location / {
     proxy_pass http://127.0.0.1:4000;
     proxy_set_header Host $host;
@@ -105,6 +108,9 @@ server {
   listen 80;
   listen [::]:80;
   server_name app.roommitra.com;
+
+  client_max_body_size 10m;
+  client_body_timeout 60s;
 
   location / {
     proxy_pass http://127.0.0.1:3001;
