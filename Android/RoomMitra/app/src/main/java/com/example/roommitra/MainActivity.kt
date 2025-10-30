@@ -68,7 +68,7 @@ class MainActivity : ComponentActivity(), TextToSpeech.OnInitListener {
 
     override fun onStop() {
         super.onStop()
-        PollingManager.stop()
+//        PollingManager.stop()
     }
 
     /** Reset auto-dim on any user interaction */
