@@ -20,7 +20,7 @@ sealed class ApiResult {
 }
 class ApiService(private val context: Context) {
     companion object {
-//        private const val BASE_URL = "https://proud-camels-divide.loca.lt"+"/android"
+//        private const val BASE_URL = "https://true-teams-drop.loca.lt"+"/android"
         private const val BASE_URL = "https://api.roommitra.com/android"
     }
 
@@ -37,6 +37,7 @@ class ApiService(private val context: Context) {
             val hotelId = SessionManager(context).getHotelId()
             val roomId = SessionManager(context).getRoomId()
             val bookingId = SessionManager(context).getBookingId()
+            val guestId = SessionManager(context).getGuestId()
             val deviceId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID) // Get device ID dynamically
 
             val utcTimestamp = Instant.now().toEpochMilli().toString()
@@ -55,9 +56,11 @@ class ApiService(private val context: Context) {
                 )
             }
 
-            // Conditionally add bookingId
             if (bookingId != null) {
                 headers["x-booking-id"] = bookingId
+            }
+            if (guestId != null) {
+                headers["x-guest-user-id"] = guestId
             }
 
             return headers
