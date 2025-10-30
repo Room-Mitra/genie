@@ -2,17 +2,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ID } from "../ui/id";
 import { Spinner } from "@material-tailwind/react";
-import {
-  Dialog,
-  DialogBackdrop,
-  DialogPanel,
-  DialogTitle,
-} from "@headlessui/react";
-import InputGroup from "../FormElements/InputGroup";
-import { TextAreaGroup } from "../FormElements/InputGroup/text-area";
-import { MultiSelectGroup } from "../FormElements/multiSelect";
-import CheckboxTwo from "../FormElements/Checkboxes/CheckboxTwo";
-import { RadioInput } from "../FormElements/radio";
+import { AddItemModal } from "./add-item";
 
 /* ------------------------------------------------------------------
    MOCK API (in-memory)
@@ -56,23 +46,6 @@ async function apiGetMenu(menuId) {
   return structuredClone(m);
 }
 
-const ALLERGEN_OPTIONS = [
-  { label: "Gluten", value: "gluten" },
-  { label: "Crustacean", value: "crustacean" },
-  { label: "Egg", value: "egg" },
-  { label: "Fish", value: "fish" },
-  { label: "Peanuts", value: "peanuts" },
-  { label: "Soya", value: "soya" },
-  { label: "Milk", value: "milk" },
-  { label: "Nuts", value: "nuts" },
-  { label: "Celery", value: "celery" },
-  { label: "Mustard", value: "mustard" },
-  { label: "Sesame", value: "sesame" },
-  { label: "Sulphite", value: "sulphite" },
-  { label: "Shellfish", value: "shellfish" },
-  { label: "Lupins", value: "lupins" },
-];
-
 async function apiUpdateMenu(menuId, updater) {
   const idx = _memdb.menus.findIndex((x) => x.id === menuId);
   if (idx === -1) throw new Error("Menu not found");
@@ -109,8 +82,6 @@ export default function MenuManager() {
   const [newMenuName, setNewMenuName] = useState("My Restaurant Menu");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  const [selected, setSelected] = useState(["room_service", "concierge"]);
 
   const [isAddItemOpen, setIsAddItemOpen] = useState(false);
   const [activeSectionId, setActiveSectionId] = useState(null);
@@ -252,45 +223,6 @@ export default function MenuManager() {
     setIsAddItemOpen(true);
   }
 
-  async function handleSaveNewItem() {
-    if (!activeSectionId) return;
-
-    let uploaded = { url: "" };
-    if (itemForm.imageFile) {
-      uploaded = await apiUploadImage(itemForm.imageFile);
-    }
-
-    const allergens = (itemForm.allergens || "")
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-
-    await updateMenu((m) => {
-      const sec = m.sections.find((x) => x.id === activeSectionId);
-      if (!sec) return m;
-      sec.items.push({
-        id: uid("itm_"),
-        name: itemForm.name || "Untitled",
-        description: itemForm.description || "",
-        unitPrice: itemForm.unitPrice || "0.00",
-        image: { url: uploaded.url || "" },
-        allergens,
-        calories: itemForm.calories ? Number(itemForm.calories) : undefined,
-        dietary: {
-          veg: !!itemForm.veg,
-          vegan: !!itemForm.vegan,
-          glutenFree: !!itemForm.glutenFree,
-        },
-        spicyLevel: Math.max(0, Math.min(3, Number(itemForm.spicyLevel) || 0)),
-        available: !!itemForm.available,
-      });
-      return m;
-    });
-
-    setIsAddItemOpen(false);
-    setActiveSectionId(null);
-  }
-
   async function editItem(sectionId, itemId) {
     const s = menu.sections.find((x) => x.id === sectionId);
     const it = s?.items.find((x) => x.id === itemId);
@@ -417,19 +349,19 @@ export default function MenuManager() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => moveSection(sIdx, "up")}
-                    className="rounded border border-gray-700 px-2 py-1 text-xs text-dark hover:bg-gray-800 dark:text-gray-200"
+                    className="rounded border border-gray-700 px-2 py-1 text-xs text-dark hover:bg-gray-300 dark:text-gray-200 dark:hover:bg-gray-800"
                   >
                     ▲ Move Up
                   </button>
                   <button
                     onClick={() => moveSection(sIdx, "down")}
-                    className="rounded border border-gray-700 px-2 py-1 text-xs text-dark hover:bg-gray-800 dark:text-gray-200"
+                    className="rounded border border-gray-700 px-2 py-1 text-xs text-dark hover:bg-gray-300 dark:text-gray-200 dark:hover:bg-gray-800"
                   >
                     ▼ Move Down
                   </button>
                   <button
                     onClick={() => renameSection(sec.id)}
-                    className="rounded border border-gray-700 px-2 py-1 text-xs text-dark hover:bg-gray-800 dark:text-gray-200"
+                    className="rounded border border-gray-700 px-2 py-1 text-xs text-dark hover:bg-gray-300 dark:text-gray-200 dark:hover:bg-gray-800"
                   >
                     Rename
                   </button>
@@ -532,13 +464,13 @@ export default function MenuManager() {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => moveItem(sec.id, iIdx, "up")}
-                              className="rounded border border-gray-700 px-2 py-1 text-xs text-dark hover:bg-gray-800 dark:text-gray-200"
+                              className="rounded border border-gray-700 px-2 py-1 text-xs text-dark hover:bg-gray-300 dark:text-gray-200 dark:hover:bg-gray-800"
                             >
                               ▲
                             </button>
                             <button
                               onClick={() => moveItem(sec.id, iIdx, "down")}
-                              className="rounded border border-gray-700 px-2 py-1 text-xs text-dark hover:bg-gray-800 dark:text-gray-200"
+                              className="rounded border border-gray-700 px-2 py-1 text-xs text-dark hover:bg-gray-300 dark:text-gray-200 dark:hover:bg-gray-800"
                             >
                               ▼
                             </button>
@@ -546,7 +478,7 @@ export default function MenuManager() {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => editItem(sec.id, it.id)}
-                              className="rounded border border-gray-700 px-3 py-1.5 text-xs text-dark hover:bg-gray-800 dark:text-gray-200"
+                              className="rounded border border-gray-700 px-3 py-1.5 text-xs text-dark hover:bg-gray-300 dark:text-gray-200 dark:hover:bg-gray-800"
                             >
                               Edit
                             </button>
@@ -569,210 +501,13 @@ export default function MenuManager() {
       )}
 
       {/* Add Item Modal */}
-
-      <Dialog
-        open={isAddItemOpen}
-        onClose={() => setIsAddItemOpen(false)}
-        className="relative z-50"
-      >
-        <DialogBackdrop className="fixed inset-0 bg-black/50" />
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4">
-            <DialogPanel className="w-full max-w-2xl rounded-xl bg-white p-6 shadow-xl ring-1 ring-gray-800 dark:bg-gray-950">
-              <DialogTitle className="text-lg font-semibold">
-                Add Item
-              </DialogTitle>
-
-              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <InputGroup
-                  required
-                  height="sm"
-                  type="text"
-                  name="name"
-                  label="Name"
-                  placeholder="Pumpkin soup"
-                  value={itemForm.name || ""}
-                  handleChange={(e) =>
-                    setItemForm((f) => ({ ...f, name: e.target.value }))
-                  }
-                />
-                <InputGroup
-                  required
-                  height="sm"
-                  type="text"
-                  name="unitPrice"
-                  label="Unit Price"
-                  placeholder="160.00"
-                  value={itemForm.unitPrice || ""}
-                  handleChange={(e) =>
-                    setItemForm((f) => ({ ...f, unitPrice: e.target.value }))
-                  }
-                />
-
-                <TextAreaGroup
-                  className="col-span-1 sm:col-span-2"
-                  name="description"
-                  label="Description"
-                  placeholder="Silky pumpkin soup with toasted seeds."
-                  value={itemForm.description}
-                  handleChange={(e) =>
-                    setItemForm((f) => ({
-                      ...f,
-                      description: e.target.value,
-                    }))
-                  }
-                />
-
-                <MultiSelectGroup
-                  label="Allergens"
-                  name="allergens"
-                  options={ALLERGEN_OPTIONS}
-                  value={itemForm.allergens}
-                  onChange={(selectedOptions) => {
-                    setItemForm((f) => ({
-                      ...f,
-                      allergens: selectedOptions.map((o) => o.value),
-                    }));
-                  }}
-                  placeholder="Dairy, Gluten"
-                  helperText="Choose one or more"
-                />
-
-                <InputGroup
-                  height="sm"
-                  type="text"
-                  name="calories"
-                  label="Calories"
-                  placeholder="220"
-                  value={itemForm.calories || ""}
-                  handleChange={(e) =>
-                    setItemForm((f) => ({ ...f, calories: e.target.value }))
-                  }
-                />
-
-                <div className="flex items-center gap-4">
-                  <CheckboxTwo
-                    id={"veg"}
-                    label={"Veg"}
-                    value={itemForm.veg}
-                    handleChange={(e) =>
-                      setItemForm((f) => ({ ...f, veg: e.target.checked }))
-                    }
-                  />
-
-                  <CheckboxTwo
-                    id={"vegan"}
-                    label={"Vegan"}
-                    value={itemForm.vegan}
-                    handleChange={(e) =>
-                      setItemForm((f) => ({ ...f, vegan: e.target.checked }))
-                    }
-                  />
-
-                  <CheckboxTwo
-                    id={"glutenFree"}
-                    label={"Gluten Free"}
-                    value={itemForm.glutenFree}
-                    handleChange={(e) =>
-                      setItemForm((f) => ({
-                        ...f,
-                        glutenFree: e.target.checked,
-                      }))
-                    }
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="spiceLevel"
-                    className="block pb-4 text-body-sm font-medium text-dark dark:text-white"
-                  >
-                    Spice Level
-                  </label>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <RadioInput
-                      id="spiceLevel"
-                      label="Mild"
-                      name="spiceLevel"
-                      value="mild"
-                    />
-
-                    <RadioInput
-                      id="spiceLevel"
-                      label="Medium"
-                      name="spiceLevel"
-                      value="medium"
-                    />
-
-                    <RadioInput
-                      id="spiceLevel"
-                      label="Spicy"
-                      name="spiceLevel"
-                      value="spicy"
-                    />
-
-                    <RadioInput
-                      id="spiceLevel"
-                      label="Extra Spicy"
-                      name="spiceLevel"
-                      value="extra_spicy"
-                    />
-                  </div>
-                </div>
-
-                <CheckboxTwo
-                  id={"available"}
-                  label={"Available"}
-                  value={itemForm.available}
-                  handleChange={(e) =>
-                    setItemForm((f) => ({ ...f, available: e.target.checked }))
-                  }
-                />
-
-                <label className="col-span-1 flex flex-col gap-1 sm:col-span-2">
-                  <span className="text-sm text-gray-300">Image</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) =>
-                      setItemForm((f) => ({
-                        ...f,
-                        imageFile: e.target.files?.[0] || null,
-                      }))
-                    }
-                    className="rounded border border-gray-700 bg-gray-900 p-2 text-sm text-white file:mr-2 file:rounded file:border-0 file:bg-gray-800 file:px-3 file:py-1.5 file:text-sm"
-                  />
-                  {itemForm.imageFile && (
-                    <div className="mt-2 aspect-square w-32 overflow-hidden rounded border border-gray-800">
-                      <img
-                        src={URL.createObjectURL(itemForm.imageFile)}
-                        alt="preview"
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                  )}
-                </label>
-              </div>
-
-              <div className="mt-6 flex justify-end gap-3">
-                <button
-                  onClick={() => setIsAddItemOpen(false)}
-                  className="rounded border border-gray-700 px-4 py-2 text-sm text-gray-200 hover:bg-gray-800"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSaveNewItem}
-                  className="rounded bg-cyan-600 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-500"
-                >
-                  Save
-                </button>
-              </div>
-            </DialogPanel>
-          </div>
-        </div>
-      </Dialog>
+      <AddItemModal
+        showModal={isAddItemOpen}
+        onClose={() => {
+          setIsAddItemOpen(false);
+        }}
+        item={itemForm}
+      />
     </div>
   );
 }

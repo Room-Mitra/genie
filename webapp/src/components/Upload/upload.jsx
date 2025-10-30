@@ -1,15 +1,24 @@
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { UploadIcon } from "@/assets/icons";
-import InputGroup from "@/components/FormElements/InputGroup";
-import { TextAreaGroup } from "@/components/FormElements/InputGroup/text-area";
-import { toast } from "react-toastify";
-import { cn, toTitleCaseFromSnake } from "@/lib/utils";
 
-export function ImageUpload({ setFile }) {
+export function ImageUpload({ onFileSelected, aspectRatio }) {
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef(null);
   const [previewUrl, setPreviewUrl] = useState("");
+  const [file, setFile] = useState(null);
+
+  // Create/revoke preview URL
+  useEffect(() => {
+    if (!file) {
+      setPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
 
   function onFilePick(e) {
     const f = e.target.files?.[0];
@@ -19,6 +28,7 @@ export function ImageUpload({ setFile }) {
       return;
     }
     setFile(f);
+    onFileSelected(f);
   }
 
   function onDrop(e) {
@@ -34,8 +44,13 @@ export function ImageUpload({ setFile }) {
     setFile(f);
   }
 
+  const aspectRatioRecommendation = {
+    "4 / 1": "2000px (w) x 500px (h)",
+    "1 / 1": "500px (w) x 500px (h)",
+  };
+
   return (
-    <div className="mt-10 w-full sm:w-[33%]">
+    <div>
       <input
         ref={inputRef}
         type="file"
@@ -75,12 +90,13 @@ export function ImageUpload({ setFile }) {
           </p>
 
           <p className="mt-1 text-center text-body-xs">
-            PNG, JPG, GIF or WEBP, recommended 2000px (w) x 500px (h)
+            PNG, JPG, GIF or WEBP, <br /> recommended{" "}
+            {aspectRatioRecommendation[aspectRatio]}
           </p>
         </label>
       ) : (
         <div className="relative overflow-hidden rounded-xl border border-stroke dark:border-dark-3">
-          <div className="relative w-full" style={{ aspectRatio: "4 / 1" }}>
+          <div className="relative w-full" style={{ aspectRatio }}>
             <Image
               src={previewUrl}
               alt="Selected facility"
@@ -101,7 +117,10 @@ export function ImageUpload({ setFile }) {
             </button>
             <button
               type="button"
-              onClick={() => setFile(null)}
+              onClick={() => {
+                setFile(null);
+                onFileSelected(null);
+              }}
               className="rounded-md px-3 py-1 text-sm font-medium text-dark hover:bg-gray-2 dark:text-white dark:hover:bg-dark-2"
             >
               Remove
