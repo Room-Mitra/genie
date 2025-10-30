@@ -31,7 +31,7 @@ export default function ConversationThread({ messages = [], guest }) {
     [guest],
   );
   return (
-    <div className="w-full space-y-4 ">
+    <div className="w-full space-y-4">
       {items.map((msg) => {
         const isGuest = msg.role === "user";
 
@@ -39,7 +39,7 @@ export default function ConversationThread({ messages = [], guest }) {
           <div key={msg.messageId} className="space-y-2">
             <div
               className={cn(
-                "flex items-start gap-3 py-2",
+                "flex items-start gap-3 py-1",
                 isGuest ? "justify-start" : "justify-end",
               )}
             >
@@ -53,22 +53,22 @@ export default function ConversationThread({ messages = [], guest }) {
                 />
               )}
 
-              <div className={["max-w-[78%] sm:max-w-[70%]"].join(" ")}>
+              <div className="max-w-[78%] sm:max-w-[70%]">
                 <div
-                  className={[
+                  className={cn(
                     "rounded-2xl px-3 py-2 shadow-sm",
                     "whitespace-pre-wrap break-words",
                     isGuest
-                      ? "border border-gray-200 bg-white text-gray-900"
-                      : "bg-indigo-600 text-white",
-                  ].join(" ")}
+                      ? "border border-gray-200 bg-white dark:bg-gray-300 text-gray-900 dark:text-dark"
+                      : "bg-indigo-600 dark:bg-indigo-800 text-white",
+                  )}
                 >
                   {/* Header with name (guest only) */}
 
                   <div
                     className={cn(
                       "mb-1 text-sm font-semibold",
-                      isGuest && "text-gray-700",
+                      isGuest && "text-gray-700 dark:text-dark",
                     )}
                   >
                     {isGuest ? fullName || "Guest" : "Room Mitra"}
@@ -78,10 +78,10 @@ export default function ConversationThread({ messages = [], guest }) {
                 </div>
 
                 <div
-                  className={[
+                  className={cn(
                     "mt-1 text-[11px] leading-none text-gray-500",
                     isGuest ? "text-left" : "text-right",
-                  ].join(" ")}
+                  )}
                 >
                   {formatMessageTime(msg.createdAt)}
                 </div>
@@ -102,5 +102,3 @@ export default function ConversationThread({ messages = [], guest }) {
     </div>
   );
 }
-
-
