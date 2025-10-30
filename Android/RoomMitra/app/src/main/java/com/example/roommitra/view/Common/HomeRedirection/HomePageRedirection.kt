@@ -1,3 +1,4 @@
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -27,6 +28,7 @@ fun HomePageRedirection(
     LaunchedEffect(bookingData) {
         val currentRoute = navController.currentBackStackEntry?.destination?.route
         val booking = bookingData?.optJSONObject("booking")
+        Log.d("HomePageRedirection", "Booking data changed: $bookingData")
         if (booking == null) {
             sessionManager.clearBookingId()
             sessionManager.clearGuestId()

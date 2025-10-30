@@ -61,16 +61,16 @@ fun SuggestionSlideshow() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(120.dp)
-            .background(
-                Color.White.copy(alpha = 0.08f),
-                RoundedCornerShape(20.dp)
-            )
-            .border(
-                1.dp,
-                Color.White.copy(alpha = 0.15f),
-                RoundedCornerShape(20.dp)
-            )
+            .height(60.dp)
+//            .background(
+//                Color.White.copy(alpha = 0.08f),
+//                RoundedCornerShape(20.dp)
+//            )
+//            .border(
+//                1.dp,
+//                Color.White.copy(alpha = 0.15f),
+//                RoundedCornerShape(20.dp)
+//            )
             .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {
