@@ -68,7 +68,7 @@ fun ConciergeScreen(onBackClick: () -> Unit) {
                     val item = conciergeArray.optJSONObject(i) ?: continue
                     val title = item.optString("title")
                     val description = item.optString("description")
-                    val imageUrl = item.optJSONObject("headerImg")?.optString("url")
+                    val imageUrl = item.optJSONObject("headerImage")?.optString("url")
                     val actionsArray = item.optJSONArray("actions")
 
                     val actions = mutableListOf<ConciergeAction>()
