@@ -8,7 +8,7 @@ export function Room({ room, wide }) {
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-1 rounded-full px-3 py-2",
+        "inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-sm font-medium",
         !wide && "max-w-[180px] sm:max-w-[200px]",
       )}
       style={{
@@ -16,18 +16,18 @@ export function Room({ room, wide }) {
         color: text,
       }}
     >
-      <span className="text-md">#{room.number}</span>
-      <span className="text-md">·</span>
+      <span>#{room.number}</span>
+      <span>·</span>
 
       {/* Only Type truncates */}
       <span
-        className="text-md min-w-0 flex-1 truncate"
+        className="min-w-0 flex-1 truncate"
         title={room.type} // shows full type on hover
       >
         {room.type}
       </span>
 
-      <span className="text-md">· {room.floor}F</span>
+      <span>· {room.floor}F</span>
     </div>
   );
 }

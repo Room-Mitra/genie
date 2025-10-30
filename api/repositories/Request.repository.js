@@ -126,21 +126,15 @@ export async function updateRequestStatusWithLog({
 
   const updateNames = {
     '#status': 'status',
-    '#timeOfFulfillment': 'timeOfFulfillment',
     '#updatedAt': 'updatedAt',
   };
 
   const updateValues = {
     ':toStatus': toStatus,
-    ':timeOfFulfillment': timeOfFulfillment,
     ':updatedAt': nowIso,
   };
 
-  const updateExpressionFields = [
-    '#status = :toStatus',
-    '#timeOfFulfillment = :timeOfFulfillment',
-    '#updatedAt = :updatedAt',
-  ];
+  const updateExpressionFields = ['#status = :toStatus', '#updatedAt = :updatedAt'];
 
   if (assignedStaffUserId) {
     updateNames['#assignedStaffUserId'] = 'assignedStaffUserId';
@@ -148,6 +142,12 @@ export async function updateRequestStatusWithLog({
     updateExpressionFields.push('#assignedStaffUserId = :assignedStaffUserId');
   }
 
+  // only add this when a value is provided (null is OK, undefined is not)
+  if (timeOfFulfillment !== undefined) {
+    updateNames['#timeOfFulfillment'] = 'timeOfFulfillment';
+    updateValues[':timeOfFulfillment'] = timeOfFulfillment; // can be a string or null
+    updateExpressionFields.push('#timeOfFulfillment = :timeOfFulfillment');
+  }
   const transitionItem = {
     pk: request.sk,
     sk: logSk,
