@@ -390,8 +390,13 @@ const tools = [
 ];
 
 const system = `
-  You are Room Mitra, a helpful in-room assistant. 
-  your role is to understand guest requests and respond politely.
+  You are Room Mitra, an intelligent hotel in-room guest assistant that interprets guest request.
+  When a guest message includes multiple intents, identify and handle each appropriately:
+  If any part of the message requires an action via a tool (e.g., house_keeping, facilities, room_service), 
+  call the matching tool with clear arguments.
+  For other parts that need guest confirmation (e.g., ordering food or drinks), respond naturally 
+  with a short confirmation question before placing the order.
+
   Call tools only when needed.
   
   Keep replies conversational and TTS-friendly (avoid brackets, acronyms, 
@@ -404,6 +409,18 @@ const system = `
   in the menu sections returned by tools.
   If only one section exists (e.g., Soups), say so and proceed with that.
 
+  If a guest asks for a dish not on the menu, politely inform the guest that 
+  the dish is not available and suggest a similar dish from the menu. If 
+  no similar dish exists on the menu, let the guest know and do nothing.
+
+  Before confirming any food or drink order, always check if the requested items 
+  exist in the provided menu data.
+  If an item is found on the menu, confirm it politely with the guest before 
+  placing the order.
+  If an item is NOT on the menu, inform the guest that it’s currently unavailable 
+  and suggest similar available items instead.
+  Never confirm or offer to place an order for items that are not listed in the menu.
+
   For Room Service orders, when the user requests food, ask the user to confirm the order 
   before making the tool call to create a hotel request for room service. 
   For example, "You asked for two Pumpkin Soups and a black coffee. Shall I place 
@@ -414,6 +431,8 @@ const system = `
   proceed with blank item notes if the guest hasn't specified anything. Only send
   cart or order mentioned by the guest. Do not include any order or cart instrutions 
   if the guest hasn't specified anything.
+
+  Always be polite, concise, and TTS-friendly.
 `;
 
 const callFunction = async ({
@@ -464,7 +483,7 @@ const callFunction = async ({
 
 export async function askChatGpt({
   userText,
-  stateCapsule,
+  messagesInConversation,
   hotelId,
   roomId,
   deviceId,
@@ -474,17 +493,17 @@ export async function askChatGpt({
 }) {
   const baseInput = [
     { role: 'system', content: system },
+
+    ...messagesInConversation,
+
     { role: 'user', content: userText },
-    { role: 'developer', content: JSON.stringify({ stateCapsule }) },
   ];
 
   const MAX_LOOPS = 6;
   let previousResponseId = null;
-  let replyText = '';
-  let updatedStateCapsule = { ...stateCapsule };
 
   async function step({ input, instructions }) {
-    const args = { model: 'gpt-5-nano', tools };
+    const args = { model: 'gpt-5-mini', tools };
     if (previousResponseId) args.previous_response_id = previousResponseId;
     if (!previousResponseId) args.input = baseInput;
     if (input) args.input = input;
@@ -495,50 +514,37 @@ export async function askChatGpt({
     return resp;
   }
 
-  function extractStateCapsule(resp) {
-    if (!resp?.output) return;
-    for (const o of resp.output) {
-      // Option 1: developer messages may include updated state JSON
-      if (o.type === 'message' && o.role === 'developer') {
-        try {
-          const parsed = JSON.parse(o.content?.[0]?.text || '{}');
-          if (parsed.stateCapsule) {
-            updatedStateCapsule = { ...updatedStateCapsule, ...parsed.stateCapsule };
-          }
-        } catch (e) {
-          console.error('error parsing developer message for state capsule', e);
-        }
-      }
+  const replyParts = [];
 
-      // Option 2: model might output an explicit state_update tool call
-      if (o.type === 'function_call' && o.name === 'state_update') {
-        try {
-          const args = JSON.parse(o.arguments || '{}');
-          if (args.stateCapsule) {
-            updatedStateCapsule = { ...updatedStateCapsule, ...args.stateCapsule };
+  // helper to collect all assistant message texts in order
+  function collectReplyTexts(resp) {
+    const msgs = (resp.output || []).filter((o) => o.type === 'message');
+    for (const m of msgs) {
+      for (const c of m.content || []) {
+        if (c.type === 'output_text' && c.text) {
+          // avoid pushing exact duplicate of the last collected chunk
+          if (replyParts[replyParts.length - 1] !== c.text) {
+            replyParts.push(c.text);
           }
-        } catch (e) {
-          console.error('error parsing function call state update', e);
         }
       }
     }
   }
 
-  // 1) First turn
+  // First turn
   let resp = await step({});
-  extractStateCapsule(resp);
 
   for (let i = 0; i < MAX_LOOPS; i++) {
+    // 0) Capture any assistant message(s) from this turn, even if tool calls exist
+    collectReplyTexts(resp);
+
+    // 1) Gather tool calls
     const toolCalls = (resp.output || []).filter((o) => o.type === 'function_call');
 
-    // 2) If no more tool calls, grab final message text
-    if (!toolCalls.length) {
-      const msgs = (resp.output || []).filter((o) => o.type === 'message');
-      replyText = msgs?.[msgs.length - 1]?.content?.[0]?.text || '';
-      break;
-    }
+    // 2) If no more tool calls, we’re done (we already collected messages above)
+    if (!toolCalls.length) break;
 
-    // 3) Resolve all tool calls
+    // 3) Resolve all tool calls in parallel
     const toolResults = await Promise.all(
       toolCalls.map(async (tc) => {
         let args = {};
@@ -547,7 +553,6 @@ export async function askChatGpt({
         } catch (e) {
           console.error('error parsing tool call args', e);
         }
-
         const output = await callFunction({
           name: tc.name,
           args,
@@ -558,7 +563,6 @@ export async function askChatGpt({
           conversationId,
           guestUserId,
         });
-
         return {
           type: 'function_call_output',
           call_id: tc.call_id,
@@ -573,13 +577,12 @@ export async function askChatGpt({
       instructions:
         "Give TTS friendly responses without any characters that can't be conveyed in speech",
     });
-
-    extractStateCapsule(resp);
   }
+
+  const replyText = replyParts.join('\n\n'); // or " " if you prefer single-line TTS
 
   return {
     reply: replyText,
-    stateCapsule: updatedStateCapsule,
   };
 }
 

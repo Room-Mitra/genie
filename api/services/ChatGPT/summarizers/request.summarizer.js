@@ -21,6 +21,7 @@ export function summarizeRequests(requests) {
 }
 
 export function summarizeCart(cart) {
+  if (!cart) return "";
   const forTime = cart.scheduledAt ? `to be delivered at ${toIsoString(cart.scheduledAt)}` : '';
   const instructions = cart.instructions ? `Instructions: ${cart.instructions}` : '';
   const items = cart.items
