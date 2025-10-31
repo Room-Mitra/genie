@@ -30,7 +30,7 @@ export function Department({ department, reqType }) {
   const Icon = DepartmentIcons[department] || QuestionMarkCircleIcon;
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col min-w-40">
       <div className="flex items-center gap-2">
         <Icon className="h-6 w-6 text-gray-500" />
 
@@ -40,7 +40,7 @@ export function Department({ department, reqType }) {
       </div>
 
       {reqType && (
-        <span className="ml-6 mt-0.5 inline-block rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+        <span className="ml-6 w-fit mt-0.5 inline-block rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-800 dark:text-gray-400">
           {reqType}
         </span>
       )}

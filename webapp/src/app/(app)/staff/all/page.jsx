@@ -104,7 +104,7 @@ export default function Page() {
           + New Staff
         </Link>
       </div>
-      <div className="rounded-[10px] bg-white p-6 dark:bg-gray-dark">
+      <div className="rounded-[10px] w-fit sm:w-full  bg-white p-6 dark:bg-gray-dark">
         <SortTable
           columns={columns}
           data={data}

@@ -76,10 +76,10 @@ export const NAV_DATA = [
             title: "Concierge",
             url: "/hotel/concierge",
           },
-          {
-            title: "Restaurant Menu",
-            url: "/hotel/restaurant-menu",
-          },
+          // {
+          //   title: "Restaurant Menu",
+          //   url: "/hotel/restaurant-menu",
+          // },
         ],
       },
 
