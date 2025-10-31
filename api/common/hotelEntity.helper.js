@@ -174,7 +174,7 @@ export function buildHotelEntityItem(input) {
 
         roomId: i.roomId,
         status: i.status,
-        stateCapsule: i.stateCapsule,
+
         channel: i.channel,
         createdAt: i.createdAt,
       });

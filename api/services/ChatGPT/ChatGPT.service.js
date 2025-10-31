@@ -12,7 +12,6 @@ import { get_booking_details } from './tools/get_booking_details.tool.js';
 import { get_concierge_services } from './tools/get_concierge_services.tool.js';
 import { get_hotel_details } from './tools/get_hotel_details.tool.js';
 import { get_previous_requests } from './tools/get_previous_requests.tool.js';
-import { music_control } from './tools/music_control.tool.js';
 
 export function getHotelPrompt({ hotel, amenities, concierge, restaurantMenu, previousRequests }) {
   const promptLines = [
@@ -386,7 +385,6 @@ const tools = [
   get_hotel_details,
   get_previous_requests,
   create_hotel_requests,
-  music_control,
 ];
 
 const system = `
@@ -433,6 +431,38 @@ const system = `
   if the guest hasn't specified anything.
 
   Always be polite, concise, and TTS-friendly.
+
+  After every assistant message, always include a small JSON metadata block with a 
+  boolean field "isUserResponseNeeded" indicating whether the assistant is expecting 
+  a reply or confirmation from the guest. Use this logic:
+  - If the assistant has asked a question, offered a choice, or is waiting for 
+    confirmation → "isUserResponseNeeded": true
+  - Otherwise → "isUserResponseNeeded": false
+    Output this metadata block immediately after the message in JSON format, 
+    clearly separated, like: {"isUserResponseNeeded": true} 
+  - After the assistant’s message, output a single line in 
+    the form <META>{...}</META> that contains JSON. Do not include anything else on that line.
+    For example: <META>{"isUserResponseNeeded": true}</META>
+
+
+  The app has a music player that must be invoked with a specific song list. When the 
+  guest asks to play music, do NOT create a hotel service request or call any tools, 
+  instead include a small JSON metadata block with array field "agents" that instructs 
+  the local app to play music. After the assistant’s message, output a single line in 
+  the form <META>{...}</META> that contains JSON. Do not include anything else on that line.
+  Format for music invocation:
+  <META>{"agents": [{"type": "Music","parameters": ["Song 1", "Song 2", "Song 3"]}]}</META>
+  
+  Provide specific song titles (not vague phrases) in the parameters array. If the guest 
+  asks for a specific track by name, include 10 - 15 song suggestions similar to that
+  track. If the guest asks for an artist or playlist (e.g., "play A. R. Rahman songs"), 
+  return a short 10 - 15 suggested list of representative song titles by that artist 
+  in parameters. If the guest says "stop" or "stop the music", return:
+  <META>{"agents": [{"type": "Music","parameters": []}]}</META>
+
+  Music agent actions are app-internal and should not invoke any tools. When a music 
+  request is made (including artist, playlist, or specific song requests), do not end 
+  your reply with a question. "isUserResponseNeeded" should be false in these cases.
 `;
 
 const callFunction = async ({
@@ -481,6 +511,81 @@ const callFunction = async ({
   }
 };
 
+function collectReplyTexts(resp) {
+  if (!resp?.output) return;
+
+  let isUserResponseNeeded = false;
+  let agents = [];
+  const replyParts = [];
+
+  // Gather all assistant text chunks for this turn
+  const textBlobs = [];
+  const msgs = resp.output.filter((o) => o.type === 'message');
+  for (const m of msgs) {
+    for (const c of m.content || []) {
+      if (c.type === 'output_text' && typeof c.text === 'string') {
+        textBlobs.push(c.text);
+      }
+    }
+  }
+
+  // Combine for easier parsing
+  let combined = textBlobs.join('\n').trim();
+  if (!combined) return;
+
+  // 1) Prefer META-wrapped JSON blocks: <META>{...}</META>
+  const META_RE = /<META>\s*({[\s\S]*?})\s*<\/META>/g;
+  combined = combined
+    .replace(META_RE, (full, jsonStr) => {
+      try {
+        const meta = JSON.parse(jsonStr);
+        if (typeof meta.isUserResponseNeeded === 'boolean') {
+          isUserResponseNeeded = meta.isUserResponseNeeded;
+        }
+        if (Array.isArray(meta.agents)) {
+          agents = meta.agents;
+        }
+      } catch (e) {
+        console.error('META parse error:', e);
+      }
+      return ''; // strip meta from user-facing text
+    })
+    .trim();
+
+  // 2) Fallback: scan lines for standalone JSON blocks (if no META markers)
+  if (!/<META>/.test(combined)) {
+    const lines = combined.split('\n');
+    const kept = [];
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+        try {
+          const obj = JSON.parse(trimmed);
+          if (typeof obj.isUserResponseNeeded === 'boolean') {
+            isUserResponseNeeded = obj.isUserResponseNeeded;
+            continue; // don't keep this line in reply text
+          }
+          if (Array.isArray(obj.agents)) {
+            agents = obj.agents;
+            continue;
+          }
+        } catch (e) {
+          // not valid JSON; keep it
+        }
+      }
+      kept.push(line);
+    }
+    combined = kept.join('\n').trim();
+  }
+
+  // 3) Accumulate final human-facing reply (avoid duplicate trailing pushes)
+  if (combined && replyParts[replyParts.length - 1] !== combined) {
+    replyParts.push(combined);
+  }
+
+  return { parts: replyParts, agents, isUserResponseNeeded };
+}
+
 export async function askChatGpt({
   userText,
   messagesInConversation,
@@ -493,9 +598,7 @@ export async function askChatGpt({
 }) {
   const baseInput = [
     { role: 'system', content: system },
-
     ...messagesInConversation,
-
     { role: 'user', content: userText },
   ];
 
@@ -514,29 +617,21 @@ export async function askChatGpt({
     return resp;
   }
 
-  const replyParts = [];
-
-  // helper to collect all assistant message texts in order
-  function collectReplyTexts(resp) {
-    const msgs = (resp.output || []).filter((o) => o.type === 'message');
-    for (const m of msgs) {
-      for (const c of m.content || []) {
-        if (c.type === 'output_text' && c.text) {
-          // avoid pushing exact duplicate of the last collected chunk
-          if (replyParts[replyParts.length - 1] !== c.text) {
-            replyParts.push(c.text);
-          }
-        }
-      }
-    }
-  }
+  let replyParts = [];
+  let isUserResponseNeeded = false;
+  let agents = [];
 
   // First turn
   let resp = await step({});
 
   for (let i = 0; i < MAX_LOOPS; i++) {
     // 0) Capture any assistant message(s) from this turn, even if tool calls exist
-    collectReplyTexts(resp);
+    const reply = collectReplyTexts(resp);
+    if (reply) {
+      isUserResponseNeeded = reply.isUserResponseNeeded;
+      agents = [...agents, ...reply.agents];
+      replyParts = [...replyParts, ...reply.parts];
+    }
 
     // 1) Gather tool calls
     const toolCalls = (resp.output || []).filter((o) => o.type === 'function_call');
@@ -582,7 +677,9 @@ export async function askChatGpt({
   const replyText = replyParts.join('\n\n'); // or " " if you prefer single-line TTS
 
   return {
-    reply: replyText,
+    reply: replyText || 'Something went wrong, could you please try that again?',
+    isUserResponseNeeded,
+    agents,
   };
 }
 

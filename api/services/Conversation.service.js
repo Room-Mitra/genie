@@ -74,8 +74,8 @@ export async function handleConversation({
   const response = {
     conversationId,
     message: chatGPTResponse.reply,
-    // isConversationOpen: parsed.isUserResponseNeeded,
-    // agents: parsed.agents,
+    isConversationOpen: chatGPTResponse.isUserResponseNeeded,
+    agents: chatGPTResponse.agents,
     // requests: savedRequests.map(requestResponse),
   };
 
