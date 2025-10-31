@@ -114,164 +114,169 @@ export function AddItemModal({ item, onClose, showModal }) {
               Add Item
             </DialogTitle>
 
-            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <InputGroup
-                required
-                height="sm"
-                type="text"
-                name="name"
-                label="Name"
-                placeholder="Pumpkin soup"
-                value={itemForm.name || ""}
-                handleChange={(e) =>
-                  setItemForm((f) => ({ ...f, name: e.target.value }))
-                }
-              />
-              <InputGroup
-                required
-                height="sm"
-                type="text"
-                name="unitPrice"
-                label="Unit Price"
-                placeholder="160.00"
-                value={itemForm.unitPrice || ""}
-                handleChange={(e) =>
-                  setItemForm((f) => ({ ...f, unitPrice: e.target.value }))
-                }
-              />
+            <form onSubmit={handleSaveNewItem}>
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <InputGroup
+                  required
+                  height="sm"
+                  type="text"
+                  name="name"
+                  label="Name"
+                  placeholder="Pumpkin soup"
+                  value={itemForm.name || ""}
+                  handleChange={(e) =>
+                    setItemForm((f) => ({ ...f, name: e.target.value }))
+                  }
+                />
+                <InputGroup
+                  required
+                  height="sm"
+                  type="text"
+                  name="unitPrice"
+                  label="Unit Price"
+                  placeholder="160.00"
+                  value={itemForm.unitPrice || ""}
+                  handleChange={(e) =>
+                    setItemForm((f) => ({ ...f, unitPrice: e.target.value }))
+                  }
+                />
 
-              <TextAreaGroup
-                className="col-span-1 sm:col-span-2"
-                name="description"
-                label="Description"
-                placeholder="Silky pumpkin soup with toasted seeds."
-                value={itemForm.description}
-                handleChange={(e) =>
-                  setItemForm((f) => ({
-                    ...f,
-                    description: e.target.value,
-                  }))
-                }
-              />
+                <TextAreaGroup
+                  className="col-span-1 sm:col-span-2"
+                  name="description"
+                  label="Description"
+                  placeholder="Silky pumpkin soup with toasted seeds."
+                  value={itemForm.description}
+                  handleChange={(e) =>
+                    setItemForm((f) => ({
+                      ...f,
+                      description: e.target.value,
+                    }))
+                  }
+                />
 
-              <MultiSelectGroup
-                label="Allergens"
-                name="allergens"
-                options={ALLERGEN_OPTIONS}
-                value={itemForm.allergens}
-                onChange={(selectedOptions) => {
-                  setItemForm((f) => ({
-                    ...f,
-                    allergens: selectedOptions.map((o) => o.value),
-                  }));
-                }}
-                placeholder="Dairy, Gluten"
-                helperText="Choose one or more"
-              />
+                <MultiSelectGroup
+                  label="Allergens"
+                  name="allergens"
+                  options={ALLERGEN_OPTIONS}
+                  value={itemForm.allergens}
+                  onChange={(selectedOptions) => {
+                    setItemForm((f) => ({
+                      ...f,
+                      allergens: selectedOptions.map((o) => o.value),
+                    }));
+                  }}
+                  placeholder="Dairy, Gluten"
+                  helperText="Choose one or more"
+                />
 
-              <InputGroup
-                height="sm"
-                type="text"
-                name="calories"
-                label="Calories"
-                placeholder="220"
-                value={itemForm.calories || ""}
-                handleChange={(e) =>
-                  setItemForm((f) => ({ ...f, calories: e.target.value }))
-                }
-              />
+                <InputGroup
+                  height="sm"
+                  type="text"
+                  name="calories"
+                  label="Calories"
+                  placeholder="220"
+                  value={itemForm.calories || ""}
+                  handleChange={(e) =>
+                    setItemForm((f) => ({ ...f, calories: e.target.value }))
+                  }
+                />
 
-              <ImageUpload
-                aspectRatio={"1 / 1"}
-                onFileSelected={(fl) =>
-                  setItemForm((f) => ({
-                    ...f,
-                    imageFile: fl,
-                  }))
-                }
-              />
+                <ImageUpload
+                  aspectRatio={"1 / 1"}
+                  onFileSelected={(fl) =>
+                    setItemForm((f) => ({
+                      ...f,
+                      imageFile: fl,
+                    }))
+                  }
+                />
 
-              <div className="flex flex-col gap-5">
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col gap-5">
+                  <div className="flex items-center gap-4">
+                    <CheckboxTwo
+                      id={"veg"}
+                      label={"Veg"}
+                      value={itemForm.veg}
+                      handleChange={(e) =>
+                        setItemForm((f) => ({ ...f, veg: e.target.checked }))
+                      }
+                    />
+
+                    <CheckboxTwo
+                      id={"vegan"}
+                      label={"Vegan"}
+                      value={itemForm.vegan}
+                      handleChange={(e) =>
+                        setItemForm((f) => ({ ...f, vegan: e.target.checked }))
+                      }
+                    />
+
+                    <CheckboxTwo
+                      id={"glutenFree"}
+                      label={"Gluten Free"}
+                      value={itemForm.glutenFree}
+                      handleChange={(e) =>
+                        setItemForm((f) => ({
+                          ...f,
+                          glutenFree: e.target.checked,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="spiceLevel"
+                      className="block pb-4 text-body-sm font-medium text-dark dark:text-white"
+                    >
+                      Spice Level
+                    </label>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <RadioInput
+                        id="spiceLevel"
+                        label="Mild"
+                        name="spiceLevel"
+                        value="mild"
+                      />
+
+                      <RadioInput
+                        id="spiceLevel"
+                        label="Medium"
+                        name="spiceLevel"
+                        value="medium"
+                      />
+
+                      <RadioInput
+                        id="spiceLevel"
+                        label="Spicy"
+                        name="spiceLevel"
+                        value="spicy"
+                      />
+
+                      <RadioInput
+                        id="spiceLevel"
+                        label="Extra Spicy"
+                        name="spiceLevel"
+                        value="extra_spicy"
+                      />
+                    </div>
+                  </div>
+
                   <CheckboxTwo
-                    id={"veg"}
-                    label={"Veg"}
-                    value={itemForm.veg}
-                    handleChange={(e) =>
-                      setItemForm((f) => ({ ...f, veg: e.target.checked }))
-                    }
-                  />
-
-                  <CheckboxTwo
-                    id={"vegan"}
-                    label={"Vegan"}
-                    value={itemForm.vegan}
-                    handleChange={(e) =>
-                      setItemForm((f) => ({ ...f, vegan: e.target.checked }))
-                    }
-                  />
-
-                  <CheckboxTwo
-                    id={"glutenFree"}
-                    label={"Gluten Free"}
-                    value={itemForm.glutenFree}
+                    id={"available"}
+                    label={"Available"}
+                    value={itemForm.available}
                     handleChange={(e) =>
                       setItemForm((f) => ({
                         ...f,
-                        glutenFree: e.target.checked,
+                        available: e.target.checked,
                       }))
                     }
                   />
                 </div>
-                <div>
-                  <label
-                    htmlFor="spiceLevel"
-                    className="block pb-4 text-body-sm font-medium text-dark dark:text-white"
-                  >
-                    Spice Level
-                  </label>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <RadioInput
-                      id="spiceLevel"
-                      label="Mild"
-                      name="spiceLevel"
-                      value="mild"
-                    />
-
-                    <RadioInput
-                      id="spiceLevel"
-                      label="Medium"
-                      name="spiceLevel"
-                      value="medium"
-                    />
-
-                    <RadioInput
-                      id="spiceLevel"
-                      label="Spicy"
-                      name="spiceLevel"
-                      value="spicy"
-                    />
-
-                    <RadioInput
-                      id="spiceLevel"
-                      label="Extra Spicy"
-                      name="spiceLevel"
-                      value="extra_spicy"
-                    />
-                  </div>
-                </div>
-
-                <CheckboxTwo
-                  id={"available"}
-                  label={"Available"}
-                  value={itemForm.available}
-                  handleChange={(e) =>
-                    setItemForm((f) => ({ ...f, available: e.target.checked }))
-                  }
-                />
               </div>
-            </div>
+            </form>
 
             <div className="mt-2 flex items-center justify-end gap-3">
               <button
@@ -294,21 +299,6 @@ export function AddItemModal({ item, onClose, showModal }) {
                 {savingItem ? "Saving..." : "Save item"}
               </button>
             </div>
-
-            {/* <div className="mt-6 flex justify-end gap-3">
-              <button
-                onClick={() => onClose()}
-                className="rounded border border-gray-700 px-4 py-2 text-sm text-gray-200 hover:bg-gray-800"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveNewItem}
-                className="rounded bg-cyan-600 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-500"
-              >
-                Save
-              </button>
-            </div> */}
           </DialogPanel>
         </div>
       </div>
