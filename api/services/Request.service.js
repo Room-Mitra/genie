@@ -92,9 +92,10 @@ export async function createRequest(requestData) {
   await requestRepo.createRequest(request);
 
   if (cart) {
-    const order = await placeOrder({
+    await placeOrder({
       cart,
       hotelId,
+      roomId,
       requestId: request.requestId,
       bookingId,
       guestUserId,
