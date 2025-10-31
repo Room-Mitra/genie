@@ -8,10 +8,9 @@ import { hasAnyRole } from '#common/auth.helper.js';
 import { HotelRole } from '#Constants/roles.js';
 import S3 from '#clients/S3.client.js';
 import { amenityOrConciergeResponse } from '#presenters/amenity.js';
+import { S3_ASSET_BUCKET, S3_PUBLIC_BASE_URL } from '#Constants/S3.constants.js';
 
 const ALLOWED_UPDATE_FIELDS = ['name', 'address', 'contactEmail', 'contactPhone'];
-const ASSETS_S3_BUCKET = 'roommitra-assets-bucket';
-const PUBLIC_BASE_URL = 'https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com';
 
 export async function getHotelById(hotelId) {
   const item = await hotelRepo.queryLatestHotelById(hotelId);
@@ -141,14 +140,14 @@ export async function addAmenityOrConcierge({
   const ext = originalName && originalName.includes('.') ? originalName.split('.').pop() : 'bin';
   const key = [hotelId, entityType, `${ulid()}.${ext}`].join('/');
 
-  const out = await S3.upload({
-    Bucket: ASSETS_S3_BUCKET,
+  await S3.upload({
+    Bucket: S3_ASSET_BUCKET,
     Key: key,
     Body: headerImage.buffer,
     ContentType: headerImage.mimetype,
   }).promise();
 
-  const imageUrl = PUBLIC_BASE_URL ? `${PUBLIC_BASE_URL}/${encodeURI(key)}` : out.Location;
+  const imageUrl = `${S3_PUBLIC_BASE_URL}/${encodeURI(key)}`;
 
   const idFields = {
     AMENITY: 'amenityId',
