@@ -478,22 +478,16 @@ export async function askChatGpt({
     { role: 'developer', content: JSON.stringify({ stateCapsule }) },
   ];
 
-  const MAX_LOOPS = 6; // safety stop
+  const MAX_LOOPS = 6;
   let previousResponseId = null;
   let replyText = '';
+  let updatedStateCapsule = { ...stateCapsule };
 
-  // Utility to run one model step, either from scratch or continuing a thread
   async function step({ input, instructions }) {
-    const args = {
-      model: 'gpt-5-nano',
-      tools,
-    };
-    if (previousResponseId) {
-      args.previous_response_id = previousResponseId;
-    } else {
-      args.input = baseInput; // first turn includes the base input
-    }
-    if (input) args.input = input; // subsequent turns send only new tool outputs
+    const args = { model: 'gpt-5-nano', tools };
+    if (previousResponseId) args.previous_response_id = previousResponseId;
+    if (!previousResponseId) args.input = baseInput;
+    if (input) args.input = input;
     if (instructions) args.instructions = instructions;
 
     const resp = await OpenAIClient.responses.create(args);
@@ -501,28 +495,57 @@ export async function askChatGpt({
     return resp;
   }
 
-  // 1) First assistant turn
+  function extractStateCapsule(resp) {
+    if (!resp?.output) return;
+    for (const o of resp.output) {
+      // Option 1: developer messages may include updated state JSON
+      if (o.type === 'message' && o.role === 'developer') {
+        try {
+          const parsed = JSON.parse(o.content?.[0]?.text || '{}');
+          if (parsed.stateCapsule) {
+            updatedStateCapsule = { ...updatedStateCapsule, ...parsed.stateCapsule };
+          }
+        } catch (e) {
+          console.error('error parsing developer message for state capsule', e);
+        }
+      }
+
+      // Option 2: model might output an explicit state_update tool call
+      if (o.type === 'function_call' && o.name === 'state_update') {
+        try {
+          const args = JSON.parse(o.arguments || '{}');
+          if (args.stateCapsule) {
+            updatedStateCapsule = { ...updatedStateCapsule, ...args.stateCapsule };
+          }
+        } catch (e) {
+          console.error('error parsing function call state update', e);
+        }
+      }
+    }
+  }
+
+  // 1) First turn
   let resp = await step({});
+  extractStateCapsule(resp);
 
   for (let i = 0; i < MAX_LOOPS; i++) {
-    // Collect all tool calls from this turn
     const toolCalls = (resp.output || []).filter((o) => o.type === 'function_call');
 
-    // If no tool calls, we are done. Pull the last assistant message text.
+    // 2) If no more tool calls, grab final message text
     if (!toolCalls.length) {
       const msgs = (resp.output || []).filter((o) => o.type === 'message');
       replyText = msgs?.[msgs.length - 1]?.content?.[0]?.text || '';
       break;
     }
 
-    // 2) Resolve all tool calls in parallel
+    // 3) Resolve all tool calls
     const toolResults = await Promise.all(
       toolCalls.map(async (tc) => {
         let args = {};
         try {
           args = tc.arguments ? JSON.parse(tc.arguments) : {};
-        } catch (_) {
-          // If args are not valid JSON, pass empty object or handle as needed
+        } catch (e) {
+          console.error('error parsing tool call args', e);
         }
 
         const output = await callFunction({
@@ -538,23 +561,26 @@ export async function askChatGpt({
 
         return {
           type: 'function_call_output',
-          call_id: tc.call_id, // must match the call we are answering
+          call_id: tc.call_id,
           output: JSON.stringify(output ?? null),
         };
       })
     );
 
-    // 3) Feed all tool results back in one go and continue
+    // 4) Continue conversation
     resp = await step({
       input: toolResults,
       instructions:
         "Give TTS friendly responses without any characters that can't be conveyed in speech",
     });
 
-    // Loop continues: the follow-up response might contain more tool calls
+    extractStateCapsule(resp);
   }
 
-  return { reply: replyText };
+  return {
+    reply: replyText,
+    stateCapsule: updatedStateCapsule,
+  };
 }
 
 async function create_hotel_requests_handler({

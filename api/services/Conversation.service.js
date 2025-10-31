@@ -29,12 +29,9 @@ export async function handleConversation({
   userContent,
 }) {
   let conversation = null;
-  let messagesInConversation = [];
 
   if (conversationId) {
-    // For existing conversations, retrieve the past messages
-    const messages = await messageRepo.getMessages({ conversationId });
-    messagesInConversation = messages.map((m) => ({ role: m.role, content: m.content }));
+    conversation = await conversationRepo.getConversationById({ hotelId, conversationId });
   } else {
     // Create a new conversation
     conversationId = ulid();
@@ -54,7 +51,7 @@ export async function handleConversation({
 
   const chatGPTResponse = await chatGPTService.askChatGpt({
     userText: userContent,
-    stateCapsule: [],
+    stateCapsule: conversation.stateCapsule,
     hotelId,
     roomId,
     deviceId,
@@ -68,6 +65,8 @@ export async function handleConversation({
     newUserMessage,
     newMessage({ role: 'assistant', content: chatGPTResponse.reply, conversationId }),
   ];
+
+  conversation.stateCapsule = chatGPTResponse.stateCapsule;
 
   // Now we save everything in the db
   await conversationRepo.saveConversationEntities(conversation, newMessages);
