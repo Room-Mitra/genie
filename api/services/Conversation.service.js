@@ -5,7 +5,7 @@ import * as conversationRepo from '#repositories/Conversation.repository.js';
 import * as chatGPTService from '#services/ChatGPT/ChatGPT.service.js';
 import * as requestService from '#services/Request.service.js';
 import { requestResponse } from '#presenters/request.js';
-import { callChatGptApi, parseGptResponse } from '#libs/ChatGptOld.js';
+import { callChatGptApi, parseGptResponse } from '#libs/ChatGpt.js';
 import { ulid } from 'ulid';
 
 function newMessage({ role, content, conversationId, ...props }) {
