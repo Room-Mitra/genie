@@ -17,7 +17,7 @@ export async function putHotel(hotel) {
         Put: {
           TableName: ENTITY_TABLE_NAME,
           Item: hotelItem,
-          ConditionExpression: 'attribute_not_exists(pk) AND attribute_not_exists(entityTypeTs)',
+          ConditionExpression: 'attribute_not_exists(pk) AND attribute_not_exists(sk)',
         },
       },
     ],

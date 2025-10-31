@@ -5,17 +5,41 @@ import { ENTITY_TABLE_NAME } from '#Constants/DB.constants.js';
 export async function saveConversationEntities(conversation, messages) {
   const TransactItems = [];
 
+  // 1) Upsert the conversation atomically using Update (Update acts as upsert in DynamoDB)
   if (conversation) {
     const conversationItem = buildHotelEntityItem(conversation);
+    const { pk, sk, ...attrs } = conversationItem;
+
+    // Build a dynamic SET expression for all attrs except pk/sk
+    const ExpressionAttributeNames = {};
+    const ExpressionAttributeValues = {};
+    const sets = [];
+
+    Object.entries(attrs).forEach(([key, value]) => {
+      const nameKey = `#${key}`;
+      const valueKey = `:${key}`;
+      ExpressionAttributeNames[nameKey] = key;
+      ExpressionAttributeValues[valueKey] = value;
+      sets.push(`${nameKey} = ${valueKey}`);
+    });
+
+    // Ensure updatedAt gets touched (optional)
+    ExpressionAttributeNames['#updatedAt'] = 'updatedAt';
+    ExpressionAttributeValues[':updatedAt'] = new Date().toISOString();
+    sets.push('#updatedAt = :updatedAt');
+
     TransactItems.push({
-      Put: {
+      Update: {
         TableName: ENTITY_TABLE_NAME,
-        Item: conversationItem,
-        ConditionExpression: 'attribute_not_exists(pk)',
+        Key: { pk, sk },
+        UpdateExpression: `SET ${sets.join(', ')}`,
+        ExpressionAttributeNames,
+        ExpressionAttributeValues,
       },
     });
   }
 
+  // 2) Insert messages once (immutable/idempotent)
   messages.map(buildHotelEntityItem).forEach((mi) => {
     TransactItems.push({
       Put: {
@@ -27,4 +51,20 @@ export async function saveConversationEntities(conversation, messages) {
   });
 
   return DDB.transactWrite({ TransactItems }).promise();
+}
+
+export async function getConversationById({ hotelId, conversationId }) {
+  const pk = `HOTEL#${hotelId}`;
+  const sk = `CONVERSATION#${conversationId}`;
+
+  const params = {
+    TableName: ENTITY_TABLE_NAME,
+    Key: {
+      pk,
+      sk,
+    },
+  };
+
+  const { Item } = await DDB.get(params).promise();
+  return Item || null;
 }

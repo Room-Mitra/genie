@@ -9,12 +9,13 @@ import { HotelRole } from '#Constants/roles.js';
 import S3 from '#clients/S3.client.js';
 import { amenityOrConciergeResponse } from '#presenters/amenity.js';
 import { S3_ASSET_BUCKET, S3_PUBLIC_BASE_URL } from '#Constants/S3.constants.js';
+import { hotelResponse } from '#presenters/hotel.js';
 
 const ALLOWED_UPDATE_FIELDS = ['name', 'address', 'contactEmail', 'contactPhone'];
 
 export async function getHotelById(hotelId) {
   const item = await hotelRepo.queryLatestHotelById(hotelId);
-  return item || null;
+  return hotelResponse(item) || null;
 }
 
 export async function addHotel({ name, address, contactEmail, contactPhone }) {
