@@ -6,6 +6,7 @@ import * as requestRepo from '#repositories/Request.repository.js';
 import * as roomRepo from '#repositories/Room.repository.js';
 import * as staffRepo from '#repositories/Staff.repository.js';
 import { ulid } from 'ulid';
+import { placeOrder } from './Order.service.js';
 
 const minsToFulfillByDepartment = {
   house_keeping: () => {
@@ -46,12 +47,16 @@ export async function createRequest(requestData) {
   const {
     hotelId,
     roomId,
-    bookingId,
     deviceId,
-    department,
-    requestType,
+    bookingId,
     conversationId,
     guestUserId,
+
+    department,
+    requestType,
+    details,
+    priority,
+    cart,
   } = requestData;
 
   const minsToFulfillFn = minsToFulfillByDepartment?.[department];
@@ -67,19 +72,36 @@ export async function createRequest(requestData) {
   const request = {
     entityType: 'REQUEST',
     requestId: ulid(),
-    estimatedTimeOfFulfillment,
-    department: department,
-    requestType: requestType,
     hotelId,
     roomId,
     deviceId,
     bookingId,
     conversationId,
     guestUserId,
+
+    department,
+    requestType,
+    details,
+    priority,
+    cart,
+
     status: RequestStatus.UNACKNOWLEDGED,
+    estimatedTimeOfFulfillment,
   };
 
-  return await requestRepo.createRequest(request);
+  await requestRepo.createRequest(request);
+
+  if (cart) {
+    const order = await placeOrder({
+      cart,
+      hotelId,
+      requestId: request.requestId,
+      bookingId,
+      guestUserId,
+    });
+  }
+
+  return request;
 }
 
 export async function listRequests({ hotelId, statuses, limit, nextToken }) {

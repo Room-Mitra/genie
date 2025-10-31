@@ -14,3 +14,6 @@ export const GSI_ASSIGNEEWORKLOAD_NAME = 'GSI_AssigneeWorkload';
 export const GSI_REQUESTSTATUS_NAME = 'GSI_RequestStatus';
 export const GSI_BOOKINGTYPE_NAME = 'GSI_BookingType';
 
+
+
+export const GSI_MENUBYHOTEL_NAME = 'GSI_MenuByHotel'

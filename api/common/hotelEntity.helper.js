@@ -134,15 +134,19 @@ export function buildHotelEntityItem(input) {
         entityType: 'REQUEST',
         hotelId: i.hotelId,
         roomId: i.roomId,
+        orderId: i.orderId,
+
         department: i.department,
         requestType: i.requestType,
+        details: i.details,
+        priority: i.priority,
+
         estimatedTimeOfFulfillment: i.estimatedTimeOfFulfillment,
         status: i.status,
         assignedToUserId: i.assignedToUserId,
         conversationId: i.conversationId,
         guestUserId: i.guestUserId,
         createdAt: i.createdAt,
-        description: i.description,
       });
     }
 
@@ -273,6 +277,34 @@ export function buildHotelEntityItem(input) {
         entityType: 'MENU',
         hotelId: i.hotelId,
         contents: i.contents,
+        createdAt: i.createdAt,
+      });
+    }
+
+    case 'ORDER': {
+      const orderId = i.orderId ?? ulid();
+      const pk = `HOTEL#${i.hotelId}`;
+      const sk = `ORDER#${orderId}`;
+
+      return clean({
+        pk,
+        sk,
+        orderId,
+
+        // room timeline gsi (for order per room)
+        roomType_pk: `ROOM#${i.roomId}`,
+        roomType_sk: `ORDER#${orderId}`,
+
+        // booking timeline gsi (for order per booking)
+        bookingType_pk: `BOOKING#${i.bookingId}`,
+        bookingType_sk: `ORDER#${orderId}`,
+
+        entityType: 'ORDER',
+
+        requestId: i.requestId,
+        guestUserId: i.guestUserId,
+        cart: i.cart,
+
         createdAt: i.createdAt,
       });
     }

@@ -1,7 +1,23 @@
+import OpenAIClient from '#clients/OpenAI.client.js';
+import { queryHotelMeta } from '#repositories/Hotel.repository.js';
+import { getBookingById } from '#services/Booking.service.js';
+import { getHotelById } from '#services/Hotel.service.js';
+import { handleFetchMenu } from '#services/Menu.service.js';
+import { createRequest, listRequestsByBooking } from '#services/Request.service.js';
+import { summarizeRequests } from './summarizers/request.summarizer.js';
+import { create_hotel_requests } from './tools/create_hotel_requests.tool.js';
+import { fetch_menu } from './tools/fetch_menu.tool.js';
+import { get_amenities } from './tools/get_amenities.tool.js';
+import { get_booking_details } from './tools/get_booking_details.tool.js';
+import { get_concierge_services } from './tools/get_concierge_services.tool.js';
+import { get_hotel_details } from './tools/get_hotel_details.tool.js';
+import { get_previous_requests } from './tools/get_previous_requests.tool.js';
+import { music_control } from './tools/music_control.tool.js';
+
 export function getHotelPrompt({ hotel, amenities, concierge, restaurantMenu, previousRequests }) {
   const promptLines = [
     `
-    You are Room Mitra — a  android tab-based smart hotel 
+    You are Room Mitra — an android tab-based smart hotel 
     assistant placed in hotel rooms. Your role is to understand guest requests related to hotel 
     services, local information, or app actions and respond politely and helpfully.
     `,
@@ -360,4 +376,179 @@ export function getHotelPrompt({ hotel, amenities, concierge, restaurantMenu, pr
   const systemMsg = [...promptLines, ...examples, ...hotelMeta, ...bookingMeta].join('\n');
 
   return { role: 'system', content: systemMsg };
+}
+
+const tools = [
+  fetch_menu,
+  get_amenities,
+  get_booking_details,
+  get_concierge_services,
+  get_hotel_details,
+  get_previous_requests,
+  create_hotel_requests,
+  music_control,
+];
+
+const system = `
+  You are Room Mitra, a helpful in-room assistant. 
+  your role is to understand guest requests and respond politely.
+  Call tools only when needed.
+  
+  Keep replies conversational and TTS-friendly (avoid brackets, acronyms, 
+  non-conversational punctuation or meta-text in the reply). If the user 
+  asks something unrelated to hotel services, give a very short answer and do not 
+  ask follow-up questions unless explicitly needed.
+
+  Only mention menu categories that actually exist for this hotel. 
+  Never ask about “mains, snacks, desserts, or drinks” unless they are present 
+  in the menu sections returned by tools.
+  If only one section exists (e.g., Soups), say so and proceed with that.
+`;
+
+const callFunction = async ({
+  name,
+  args,
+  hotelId,
+  roomId,
+  deviceId,
+  bookingId,
+  conversationId,
+  guestUserId,
+}) => {
+  switch (name) {
+    case 'fetch_menu':
+      return await handleFetchMenu(args);
+
+    case 'get_amenities':
+      return await queryHotelMeta({ hotelId, entityType: 'AMENITY' });
+
+    case 'get_booking_details': {
+      return await getBookingById({ hotelId, bookingId });
+    }
+
+    case 'get_concierge_services':
+      return await queryHotelMeta({ hotelId, entityType: 'CONCIERGE' });
+
+    case 'get_hotel_details':
+      return await getHotelById(hotelId);
+
+    case 'get_previous_requests':
+      return await listRequestsByBooking({ bookingId: bookingId });
+
+    case 'create_hotel_requests':
+      return create_hotel_requests_handler({
+        args,
+        hotelId,
+        roomId,
+        deviceId,
+        bookingId,
+        conversationId,
+        guestUserId,
+      });
+
+    case 'music_control':
+      return 'music';
+  }
+};
+
+export async function askChatGpt({
+  userText,
+  stateCapsule,
+  hotelId,
+  roomId,
+  deviceId,
+  bookingId,
+  conversationId,
+  guestUserId,
+}) {
+  const input = [
+    { role: 'system', content: system },
+    {
+      role: 'user',
+      content: userText,
+    },
+    {
+      role: 'developer',
+      content: JSON.stringify({
+        stateCapsule,
+      }),
+    },
+  ];
+
+  const response = await OpenAIClient.responses.create({
+    model: 'gpt-5-nano',
+    tools,
+    input,
+  });
+
+  for (const toolCall of response.output) {
+    if (toolCall.type !== 'function_call') {
+      continue;
+    }
+
+    const name = toolCall.name;
+    const args = JSON.parse(toolCall.arguments);
+
+    const result = await callFunction({
+      name,
+      args,
+      hotelId,
+      roomId,
+      deviceId,
+      bookingId,
+      conversationId,
+      guestUserId,
+    });
+    input.push({
+      type: 'function_call_output',
+      call_id: toolCall.call_id,
+      output: JSON.stringify(result),
+    });
+  }
+
+  const toolCallResponse = await OpenAIClient.responses.create({
+    model: 'gpt-5-nano',
+    instructions:
+      "Give TTS friendly responses without any characters that can't be conveyed in speech",
+    previous_response_id: response.id,
+    tools,
+    input,
+  });
+
+  const askResponse = {
+    reply: toolCallResponse?.output?.filter((o) => o.type === 'message')?.[0]?.content?.[0]?.text,
+  };
+
+  return askResponse;
+}
+
+async function create_hotel_requests_handler({
+  args,
+  hotelId,
+  roomId,
+  deviceId,
+  bookingId,
+  conversationId,
+  guestUserId,
+}) {
+  const requests = await Promise.all(
+    args.map((a) => {
+      return createRequest({
+        hotelId,
+        roomId,
+        deviceId,
+        bookingId,
+        conversationId,
+        guestUserId,
+
+        department: a.department,
+        requestType: a.requestType,
+        details: a.details,
+        priority: a.priority,
+        cart: a.cart,
+      });
+    })
+  );
+
+  return summarizeRequests(requests);
 }
