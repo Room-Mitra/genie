@@ -8,7 +8,7 @@ export async function createOrder({ order }) {
   const params = {
     TableName: ENTITY_TABLE_NAME,
     Item: orderEntity,
-    ConditionExpression: 'attributes_not_exists(pk) and attribute_not_exists(sk)',
+    ConditionExpression: 'attribute_not_exists(pk) and attribute_not_exists(sk)',
   };
 
   await DDB.put(params).promise();

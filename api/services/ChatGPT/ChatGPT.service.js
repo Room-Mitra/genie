@@ -403,6 +403,17 @@ const system = `
   Never ask about “mains, snacks, desserts, or drinks” unless they are present 
   in the menu sections returned by tools.
   If only one section exists (e.g., Soups), say so and proceed with that.
+
+  For Room Service orders, when the user requests food, ask the user to confirm the order 
+  before making the tool call to create a hotel request for room service. 
+  For example, "You asked for two Pumpkin Soups and a black coffee. Shall I place 
+  the order?". Only when the guest confirms, make the tool call to create the
+  hotel request for room service.
+
+  Only send the item notes as specified by the guest. Do not include anything and 
+  proceed with blank item notes if the guest hasn't specified anything. Only send
+  cart or order mentioned by the guest. Do not include any order or cart instrutions 
+  if the guest hasn't specified anything.
 `;
 
 const callFunction = async ({
@@ -461,65 +472,89 @@ export async function askChatGpt({
   conversationId,
   guestUserId,
 }) {
-  const input = [
+  const baseInput = [
     { role: 'system', content: system },
-    {
-      role: 'user',
-      content: userText,
-    },
-    {
-      role: 'developer',
-      content: JSON.stringify({
-        stateCapsule,
-      }),
-    },
+    { role: 'user', content: userText },
+    { role: 'developer', content: JSON.stringify({ stateCapsule }) },
   ];
 
-  const response = await OpenAIClient.responses.create({
-    model: 'gpt-5-nano',
-    tools,
-    input,
-  });
+  const MAX_LOOPS = 6; // safety stop
+  let previousResponseId = null;
+  let replyText = '';
 
-  for (const toolCall of response.output) {
-    if (toolCall.type !== 'function_call') {
-      continue;
+  // Utility to run one model step, either from scratch or continuing a thread
+  async function step({ input, instructions }) {
+    const args = {
+      model: 'gpt-5-nano',
+      tools,
+    };
+    if (previousResponseId) {
+      args.previous_response_id = previousResponseId;
+    } else {
+      args.input = baseInput; // first turn includes the base input
     }
+    if (input) args.input = input; // subsequent turns send only new tool outputs
+    if (instructions) args.instructions = instructions;
 
-    const name = toolCall.name;
-    const args = JSON.parse(toolCall.arguments);
-
-    const result = await callFunction({
-      name,
-      args,
-      hotelId,
-      roomId,
-      deviceId,
-      bookingId,
-      conversationId,
-      guestUserId,
-    });
-    input.push({
-      type: 'function_call_output',
-      call_id: toolCall.call_id,
-      output: JSON.stringify(result),
-    });
+    const resp = await OpenAIClient.responses.create(args);
+    previousResponseId = resp.id;
+    return resp;
   }
 
-  const toolCallResponse = await OpenAIClient.responses.create({
-    model: 'gpt-5-nano',
-    instructions:
-      "Give TTS friendly responses without any characters that can't be conveyed in speech",
-    previous_response_id: response.id,
-    tools,
-    input,
-  });
+  // 1) First assistant turn
+  let resp = await step({});
 
-  const askResponse = {
-    reply: toolCallResponse?.output?.filter((o) => o.type === 'message')?.[0]?.content?.[0]?.text,
-  };
+  for (let i = 0; i < MAX_LOOPS; i++) {
+    // Collect all tool calls from this turn
+    const toolCalls = (resp.output || []).filter((o) => o.type === 'function_call');
 
-  return askResponse;
+    // If no tool calls, we are done. Pull the last assistant message text.
+    if (!toolCalls.length) {
+      const msgs = (resp.output || []).filter((o) => o.type === 'message');
+      replyText = msgs?.[msgs.length - 1]?.content?.[0]?.text || '';
+      break;
+    }
+
+    // 2) Resolve all tool calls in parallel
+    const toolResults = await Promise.all(
+      toolCalls.map(async (tc) => {
+        let args = {};
+        try {
+          args = tc.arguments ? JSON.parse(tc.arguments) : {};
+        } catch (_) {
+          // If args are not valid JSON, pass empty object or handle as needed
+        }
+
+        const output = await callFunction({
+          name: tc.name,
+          args,
+          hotelId,
+          roomId,
+          deviceId,
+          bookingId,
+          conversationId,
+          guestUserId,
+        });
+
+        return {
+          type: 'function_call_output',
+          call_id: tc.call_id, // must match the call we are answering
+          output: JSON.stringify(output ?? null),
+        };
+      })
+    );
+
+    // 3) Feed all tool results back in one go and continue
+    resp = await step({
+      input: toolResults,
+      instructions:
+        "Give TTS friendly responses without any characters that can't be conveyed in speech",
+    });
+
+    // Loop continues: the follow-up response might contain more tool calls
+  }
+
+  return { reply: replyText };
 }
 
 async function create_hotel_requests_handler({
@@ -532,7 +567,7 @@ async function create_hotel_requests_handler({
   guestUserId,
 }) {
   const requests = await Promise.all(
-    args.map((a) => {
+    args?.requests?.map((a) => {
       return createRequest({
         hotelId,
         roomId,
