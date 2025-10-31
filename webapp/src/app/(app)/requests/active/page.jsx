@@ -9,6 +9,7 @@ import { ActionButton } from "../_components/actionButton";
 import User from "@/components/ui/user";
 import { Dates } from "@/components/ui/dates";
 import { Department } from "@/components/ui/department";
+import { Details } from "@/components/ui/details";
 import {
   Dialog,
   DialogBackdrop,
@@ -102,6 +103,7 @@ export default function Page() {
       { key: "status", label: "STATUS" },
       { key: "room", label: "ROOM" },
       { key: "department", label: "DEPARTMENT" },
+      { key: "details", label: "", sortable: false },
       { key: "conversation", label: "", sortable: false },
       { key: "assignedStaff", label: "ASSIGNEE" },
       { key: "dates", label: "DATES" },
@@ -146,6 +148,7 @@ export default function Page() {
           requestId: <ID ulid={r.requestId} />,
           status: <RequestStatus status={r.status} />,
           room: <Room room={r.room || {}} />,
+          details: <Details details={r.details} />,
           department: (
             <Department department={r.department} reqType={r.requestType} />
           ),
@@ -168,12 +171,17 @@ export default function Page() {
               }}
             />
           ),
-          assignedStaff: (
+          assignedStaff: r.assignedStaff ? (
             <User
               user={r.assignedStaff}
               showRoles={true}
               showDepartment={true}
             />
+          ) : (
+            <div className="text-center">
+              <div className="font-bold text-red-600">Unassigned</div>
+              <div className="text-xs text-gray-600">Click Start to assign</div>
+            </div>
           ),
           conversation: r.conversation && (
             <div className="group relative inline-block">
@@ -245,7 +253,7 @@ export default function Page() {
   return (
     <div>
       <Breadcrumb pageName="Active Requests" parent="Requests" />
-      <div className="rounded-[10px] w-fit sm:w-full  bg-white p-6 dark:bg-gray-dark">
+      <div className="w-fit rounded-[10px] bg-white p-6 dark:bg-gray-dark sm:w-full">
         <SortTable
           columns={columns}
           data={data}
@@ -336,7 +344,7 @@ export default function Page() {
 
                         <TextAreaGroup
                           label="Note"
-                          placeholder="Note about the task"
+                          placeholder="Note about the request"
                           handleChange={(e) => setNote(e.target.value)}
                         />
 

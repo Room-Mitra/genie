@@ -13,6 +13,7 @@ export function requestResponse(request) {
     createdAt,
     conversationId,
     bookingId,
+    details,
   } = request;
 
   return {
@@ -27,5 +28,6 @@ export function requestResponse(request) {
     createdAt,
     conversationId,
     bookingId,
+    details,
   };
 }
