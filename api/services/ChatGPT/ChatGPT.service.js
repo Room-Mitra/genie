@@ -12,16 +12,7 @@ import { get_booking_details } from './tools/get_booking_details.tool.js';
 import { get_concierge_services } from './tools/get_concierge_services.tool.js';
 import { get_hotel_details } from './tools/get_hotel_details.tool.js';
 import { get_previous_requests } from './tools/get_previous_requests.tool.js';
-
-const tools = [
-  fetch_menu,
-  get_amenities,
-  get_booking_details,
-  get_concierge_services,
-  get_hotel_details,
-  get_previous_requests,
-  create_hotel_requests,
-];
+import { order_food } from './tools/order_food.tool.js';
 
 const system = `
   You are Room Mitra, an intelligent hotel in-room guest assistant that interprets guest request.
@@ -38,34 +29,6 @@ const system = `
   asks something unrelated to hotel services, give a very short answer and do not 
   ask follow-up questions unless explicitly needed.
 
-  Only mention menu categories that actually exist for this hotel. 
-  Never ask about “mains, snacks, desserts, or drinks” unless they are present 
-  in the menu sections returned by tools.
-  If only one section exists (e.g., Soups), say so and proceed with that.
-
-  If a guest asks for a dish not on the menu, politely inform the guest that 
-  the dish is not available and suggest a similar dish from the menu. If 
-  no similar dish exists on the menu, let the guest know and do nothing.
-
-  Before confirming any food or drink order, always check if the requested items 
-  exist in the provided menu data.
-  If an item is found on the menu, confirm it politely with the guest before 
-  placing the order.
-  If an item is NOT on the menu, inform the guest that it’s currently unavailable 
-  and suggest similar available items instead.
-  Never confirm or offer to place an order for items that are not listed in the menu.
-
-  For Room Service orders, when the user requests food, ask the user to confirm the order 
-  before making the tool call to create a hotel request for room service. 
-  For example, "You asked for two Pumpkin Soups and a black coffee. Shall I place 
-  the order?". Only when the guest confirms, make the tool call to create the
-  hotel request for room service.
-
-  Only send the item notes as specified by the guest. Do not include anything and 
-  proceed with blank item notes if the guest hasn't specified anything. Only send
-  cart or order mentioned by the guest. Do not include any order or cart instrutions 
-  if the guest hasn't specified anything.
-
   Always be polite, concise, and TTS-friendly.
 
   After every assistant message, always include a small JSON metadata block with a 
@@ -80,25 +43,6 @@ const system = `
     the form <META>{...}</META> that contains JSON. Do not include anything else on that line.
     For example: <META>{"isUserResponseNeeded": true}</META>
 
-
-  The app has a music player that must be invoked with a specific song list. When the 
-  guest asks to play music, do NOT create a hotel service request or call any tools, 
-  instead include a small JSON metadata block with array field "agents" that instructs 
-  the local app to play music. After the assistant’s message, output a single line in 
-  the form <META>{...}</META> that contains JSON. Do not include anything else on that line.
-  Format for music invocation:
-  <META>{"agents": [{"type": "Music","parameters": ["Song 1", "Song 2", "Song 3"]}]}</META>
-  
-  Provide specific song titles (not vague phrases) in the parameters array. If the guest 
-  asks for a specific track by name, include 10 - 15 song suggestions similar to that
-  track. If the guest asks for an artist or playlist (e.g., "play A. R. Rahman songs"), 
-  return a short 10 - 15 suggested list of representative song titles by that artist 
-  in parameters. If the guest says "stop" or "stop the music", return:
-  <META>{"agents": [{"type": "Music","parameters": []}]}</META>
-
-  Music agent actions are app-internal and should not invoke any tools. When a music 
-  request is made (including artist, playlist, or specific song requests), do not end 
-  your reply with a question. "isUserResponseNeeded" should be false in these cases.
 `;
 
 const callFunction = async ({
@@ -142,8 +86,26 @@ const callFunction = async ({
         guestUserId,
       });
 
-    case 'music_control':
-      return 'music';
+    case 'order_food':
+      return create_hotel_requests_handler({
+        args: {
+          requests: [
+            {
+              department: 'room_service',
+              requestType: args.requestType,
+              details: args.details,
+              priority: 'high',
+              cart: args.cart,
+            },
+          ],
+        },
+        hotelId,
+        roomId,
+        deviceId,
+        bookingId,
+        conversationId,
+        guestUserId,
+      });
   }
 };
 
@@ -221,6 +183,294 @@ function collectReplyTexts(resp) {
 
   return { parts: replyParts, agents, isUserResponseNeeded };
 }
+export async function discoverIntents({ userText, messagesInConversation }) {
+  const resp = await OpenAIClient.responses.create({
+    model: 'gpt-5-nano',
+    text: {
+      format: {
+        name: 'intent',
+        type: 'json_schema',
+        strict: true,
+        schema: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            intents: {
+              type: 'array',
+              description: 'one or maximum two best intents for this query',
+              items: {
+                type: 'string',
+                enum: [
+                  'create_hotel_request',
+                  'order_food',
+                  'menu_enquiry',
+                  'fetch_menu',
+                  'get_amenities',
+                  'get_concierge',
+                  'get_hotel_details',
+                  'get_booking_details',
+                  'get_previous_requests',
+                  'order_status',
+                  'request_status',
+                  'cancel_request',
+                  'modify_request',
+                  'play_music',
+                  'stop_music',
+                  'get_hours',
+                  'get_directions',
+                  'get_contact',
+                  'get_billing_info',
+                  'leave_feedback',
+                  'help',
+                  'repeat',
+                  'cancel',
+                  'small_talk',
+                  'general_knowledge',
+                  'out_of_scope',
+                  'unknown',
+                  'negative_confirmation',
+                ],
+              },
+            },
+            confidence: { type: 'number' },
+          },
+          required: ['intents', 'confidence'],
+        },
+      },
+    },
+    input: [
+      {
+        role: 'system',
+        content: [
+          {
+            type: 'input_text',
+            text:
+              "Classify the user's ask into one or two intent" +
+              'Return ONLY JSON matching the schema.',
+          },
+        ],
+      },
+
+      ...messagesInConversation,
+      {
+        role: 'user',
+        content: [{ type: 'input_text', text: userText }],
+      },
+    ],
+  });
+
+  // Extract JSON from the Responses API output
+  const msg = (resp.output || []).find((o) => o.type === 'message');
+  const textParts = (msg?.content || [])
+    .filter((c) => c.type === 'output_text' && typeof c.text === 'string')
+    .map((c) => c.text);
+
+  if (!textParts?.length) throw new Error('No output_text returned by router');
+
+  const raw = textParts.join('').trim();
+  // Strip accidental code fences if any
+  const cleaned = raw.replace(/^```json\s*|\s*```$/g, '');
+  return JSON.parse(cleaned); // { intent, slots, confidence }
+}
+
+const MENU_ENQUIRY_PROMPT = `
+  Only mention menu categories that actually exist for this hotel. 
+  Never ask about “mains, snacks, desserts, or drinks” unless they are present 
+  in the menu sections returned by tools.
+  If only one section exists (e.g., Soups), say so and proceed with that.
+
+  If a guest asks for a dish not on the menu, politely inform the guest that 
+  the dish is not available and suggest a similar dish from the menu. If 
+  no similar dish exists on the menu, let the guest know and do nothing.
+`;
+
+const ORDER_FOOD_PROMPT = `
+  Before confirming any food or drink order, always check if the requested items 
+  exist in the provided menu data.
+  If an item is found on the menu, confirm it politely with the guest before 
+  placing the order.
+  If an item is NOT on the menu, inform the guest that it’s currently unavailable 
+  and suggest similar available items instead.
+  Never confirm or offer to place an order for items that are not listed in the menu.
+
+  For Room Service orders, when the user requests food, ask the user to confirm the order 
+  before making the tool call to create a hotel request for room service. 
+  For example, "You asked for two Pumpkin Soups and a black coffee. Shall I place 
+  the order?". Only when the guest confirms, make the tool call to create the
+  hotel request for room service.
+
+  Only send the item notes as specified by the guest. Do not include anything and 
+  proceed with blank item notes if the guest hasn't specified anything. Only send
+  cart or order mentioned by the guest. Do not include any order or cart instrutions 
+  if the guest hasn't specified anything.
+`;
+
+const MUSIC_PROMPT = `
+  The app has a music player that must be invoked with a specific song list. When the 
+  guest asks to play music, do NOT create a hotel service request or call any tools, 
+  instead include a small JSON metadata block with array field "agents" that instructs 
+  the local app to play music. After the assistant’s message, output a single line in 
+  the form <META>{...}</META> that contains JSON. Do not include anything else on that line.
+  Format for music invocation:
+  <META>{"agents": [{"type": "Music","parameters": ["Song 1", "Song 2", "Song 3"]}]}</META>
+  
+  Provide specific song titles (not vague phrases) in the parameters array. If the guest 
+  asks for a specific track by name, include 10 - 15 song suggestions similar to that
+  track. If the guest asks for an artist or playlist (e.g., "play A. R. Rahman songs"), 
+  return a short 10 - 15 suggested list of representative song titles by that artist 
+  in parameters. If the guest says "stop" or "stop the music", return:
+  <META>{"agents": [{"type": "Music","parameters": []}]}</META>
+
+  Music agent actions are app-internal and should not invoke any tools. When a music 
+  request is made (including artist, playlist, or specific song requests), do not end 
+  your reply with a question. "isUserResponseNeeded" should be false in these cases.
+`;
+
+function getPromptAndToolsForIntents({ intents }) {
+  const tools = [];
+  const toolSet = new Set();
+
+  const prompts = [];
+  const promptSet = new Set();
+
+  for (const intent of intents) {
+    switch (intent) {
+      case 'create_hotel_request': {
+        toolSet.add(create_hotel_requests);
+        continue;
+      }
+      case 'order_food': {
+        toolSet.add(fetch_menu);
+        toolSet.add(order_food);
+
+        promptSet.add(MENU_ENQUIRY_PROMPT);
+        promptSet.add(ORDER_FOOD_PROMPT);
+
+        continue;
+      }
+
+      case 'menu_enquiry': {
+        toolSet.add(fetch_menu);
+
+        promptSet.add(MENU_ENQUIRY_PROMPT);
+
+        continue;
+      }
+
+      case 'fetch_menu': {
+        toolSet.add(fetch_menu);
+
+        promptSet.add(MENU_ENQUIRY_PROMPT);
+
+        continue;
+      }
+      case 'get_amenities': {
+        toolSet.add(get_amenities);
+        continue;
+      }
+      case 'get_concierge': {
+        toolSet.add(get_concierge_services);
+        toolSet.add(create_hotel_requests);
+        continue;
+      }
+      case 'get_hotel_details': {
+        toolSet.add(get_hotel_details);
+        continue;
+      }
+      case 'get_booking_details': {
+        toolSet.add(get_booking_details);
+        continue;
+      }
+      case 'get_previous_requests': {
+        toolSet.add(get_previous_requests);
+        continue;
+      }
+      case 'order_status': {
+        toolSet.add(get_previous_requests);
+        continue;
+      }
+      case 'request_status': {
+        toolSet.add(get_previous_requests);
+        continue;
+      }
+      case 'cancel_request': {
+        toolSet.add(get_previous_requests);
+        toolSet.add(create_hotel_requests);
+        continue;
+      }
+      case 'modify_request': {
+        toolSet.add(get_previous_requests);
+        toolSet.add(create_hotel_requests);
+        continue;
+      }
+      case 'play_music': {
+        promptSet.add(MUSIC_PROMPT);
+
+        continue;
+      }
+      case 'stop_music': {
+        promptSet.add(MUSIC_PROMPT);
+
+        continue;
+      }
+      case 'get_hours': {
+        continue;
+      }
+      case 'get_directions': {
+        toolSet.add(get_hotel_details);
+        continue;
+      }
+      case 'get_contact': {
+        toolSet.add(get_hotel_details);
+        continue;
+      }
+      case 'get_billing_info': {
+        toolSet.add(create_hotel_requests);
+        toolSet.add(get_booking_details);
+        continue;
+      }
+      case 'leave_feedback': {
+        toolSet.add(create_hotel_requests);
+        continue;
+      }
+      case 'help': {
+        toolSet.add(create_hotel_requests);
+        continue;
+      }
+      case 'repeat': {
+        continue;
+      }
+      case 'cancel': {
+        continue;
+      }
+      case 'small_talk': {
+        continue;
+      }
+      case 'general_knowledge': {
+        continue;
+      }
+      case 'out_of_scope': {
+        continue;
+      }
+      case 'unknown': {
+        continue;
+      }
+      case 'negative_confirmation': {
+        continue;
+      }
+    }
+  }
+
+  for (const tool of toolSet) {
+    tools.push(tool);
+  }
+
+  for (const prompt of promptSet) {
+    prompts.push(prompt);
+  }
+
+  return { tools, prompts };
+}
 
 export async function askChatGpt({
   userText,
@@ -232,8 +482,11 @@ export async function askChatGpt({
   conversationId,
   guestUserId,
 }) {
+  const intentResp = await discoverIntents({ userText, messagesInConversation });
+  const { tools, prompts } = getPromptAndToolsForIntents({ intents: intentResp.intents });
+
   const baseInput = [
-    { role: 'system', content: system },
+    { role: 'system', content: [system, ...prompts].join('\n\n') },
     ...messagesInConversation,
     { role: 'user', content: userText },
   ];
