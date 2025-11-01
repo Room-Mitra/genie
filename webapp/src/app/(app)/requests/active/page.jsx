@@ -259,7 +259,7 @@ export default function Page() {
   return (
     <div>
       <Breadcrumb pageName="Active Requests" parent="Requests" />
-      <div className="w-full rounded-[10px] bg-white p-6 dark:bg-gray-dark">
+      <div className="w-fit rounded-[10px] bg-white p-6 dark:bg-gray-dark lg:w-full">
         <SortTable
           columns={columns}
           data={data}
@@ -291,7 +291,7 @@ export default function Page() {
               <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
                 <DialogPanel
                   transition
-                  className="data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in data-closed:sm:translate-y-0 data-closed:sm:scale-95 relative transform overflow-hidden rounded-lg bg-gray-800 text-left shadow-xl outline -outline-offset-1 outline-white/10 transition-all sm:my-8 sm:w-full sm:max-w-lg"
+                  className="data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in data-closed:sm:translate-y-0 data-closed:sm:scale-95 relative transform overflow-hidden rounded-lg bg-gray-800 text-left shadow-xl outline -outline-offset-1 outline-white/10 transition-all sm:my-8 sm:max-w-lg lg:w-full"
                 >
                   <div className="bg-gray-200 text-dark dark:bg-gray-900 sm:p-5">
                     <DialogTitle

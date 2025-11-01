@@ -74,7 +74,7 @@ export default function Page() {
   return (
     <div>
       <Breadcrumb pageName="Past Bookings" parent="Bookings" />
-      <div className="w-fit rounded-[10px] bg-white p-6 dark:bg-gray-dark sm:w-full">
+      <div className="w-fit rounded-[10px] bg-white p-6 dark:bg-gray-dark lg:w-full">
         <SortTable
           columns={columns}
           data={data}

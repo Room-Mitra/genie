@@ -31,7 +31,7 @@ export function Dates({
   }
 
   return (
-    <div className="flex flex-col gap-1 text-sm text-gray-600 dark:text-gray-400">
+    <div className="flex w-55 lg:w-fit flex-col gap-1 text-sm text-gray-600 dark:text-gray-400">
       {/* Requested */}
       {requestedAt && (
         <div className="flex items-center justify-start gap-1">

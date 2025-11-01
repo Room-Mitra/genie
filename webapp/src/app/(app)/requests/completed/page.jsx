@@ -189,7 +189,7 @@ export default function Page() {
     <div>
       <Breadcrumb pageName="Completed Requests" parent="Requests" />
 
-      <div className="w-fit rounded-[10px] bg-white p-6 dark:bg-gray-dark sm:w-full">
+      <div className="w-fit rounded-[10px] bg-white p-6 dark:bg-gray-dark lg:w-full">
         <SortTable
           columns={columns}
           data={completedRequests}

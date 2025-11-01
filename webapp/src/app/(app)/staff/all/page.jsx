@@ -44,7 +44,7 @@ export default function Page() {
         if (!cancelled)
           setData(
             staff?.items?.map((r) => ({
-              userId: <ID ulid={r.userId}  size="xs"/>,
+              userId: <ID ulid={r.userId} size="xs" />,
               name: <User user={r} onlyName={true} />,
               email: r.email,
               mobileNumber: r.mobileNumber || "-",
@@ -89,7 +89,7 @@ export default function Page() {
           + New Staff
         </Link>
       </div>
-      <div className="w-fit rounded-[10px] bg-white p-6 dark:bg-gray-dark sm:w-full">
+      <div className="w-fit rounded-[10px] bg-white p-6 dark:bg-gray-dark lg:w-full">
         <SortTable
           columns={columns}
           data={data}
