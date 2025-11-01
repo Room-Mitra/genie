@@ -1,10 +1,13 @@
 package com.example.roommitra.view
 
 import android.Manifest
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.IBinder
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
@@ -40,6 +43,7 @@ import com.example.roommitra.agent.AgenticHandlerRegistry
 import com.example.roommitra.service.ApiResult
 import com.example.roommitra.service.ApiService
 import com.example.roommitra.service.PollingManager
+import com.example.roommitra.service.ScreenDimService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -317,7 +321,7 @@ class MicController(
         isListening = false
     }
 
-    suspend fun autoClearConversationAfter(delayMillis: Long = 60_000L) {
+    suspend fun autoClearConversationAfter(delayMillis: Long = 3*60_000L) { // 3 mins
         Log.d("MicController", "Auto clear timer started ($delayMillis ms)")
         if (conversation.isNotEmpty()) {
             kotlinx.coroutines.delay(delayMillis)
@@ -456,6 +460,34 @@ fun MicPane(
         firstName = guest?.optString("firstName", "Guest") ?: "Guest"
 
     }
+    var screenDimService by remember { mutableStateOf<ScreenDimService?>(null) }
+
+    DisposableEffect(Unit) {
+        val connection = object : ServiceConnection {
+            override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
+                val localBinder = binder as ScreenDimService.LocalBinder
+                val s = localBinder.getService()
+                // We may optionally attach window if needed elsewhere; AutoDimWrapper already attached window.
+                screenDimService = s
+            }
+
+            override fun onServiceDisconnected(name: ComponentName?) {
+                screenDimService = null
+            }
+        }
+
+        val intent = Intent(ctx, ScreenDimService::class.java)
+        ctx.bindService(intent, connection, Context.BIND_AUTO_CREATE)
+
+        onDispose {
+            try {
+                ctx.unbindService(connection)
+            } catch (e: Exception) {
+                // ignore already unbound or crash scenarios
+            }
+        }
+    }
+
 
     fun sendUtteranceToServer(userQuery: String) {
         coroutineScope.launch {
@@ -522,6 +554,7 @@ fun MicPane(
                         } else ttsManager.speak("No response from server.")
                         if (isConversationOpen)
                             autoListenTrigger.value = System.currentTimeMillis()
+                        PollingManager.getBookingRepository().fetchBooking()
                     }
 
                     is ApiResult.Error -> {
@@ -531,6 +564,8 @@ fun MicPane(
                 }
             } catch (e: Exception) {
                 ttsManager.speak("Something went wrong. Please try later")
+            } finally {
+                screenDimService?.resetAutoDimTimer()
             }
         }
     }

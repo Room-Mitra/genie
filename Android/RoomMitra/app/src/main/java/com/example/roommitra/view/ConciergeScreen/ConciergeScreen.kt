@@ -58,14 +58,15 @@ fun ConciergeScreen(onBackClick: () -> Unit) {
 
     val hotelInfoRepo = PollingManager.getHotelInfoRepository()
     val hotelData by hotelInfoRepo.hotelData.collectAsState()
-    val conciergeArray = hotelData?.optJSONArray("concierge")
+    val conciergeObj = hotelData?.optJSONObject("concierge")
+    val items = conciergeObj?.optJSONArray("items")
 
     // Parse concierge from JSON if available
-    val concierge = remember(conciergeArray) {
+    val concierge = remember(conciergeObj) {
         mutableListOf<Concierge>().apply {
-            if (conciergeArray != null) {
-                for (i in 0 until conciergeArray.length()) {
-                    val item = conciergeArray.optJSONObject(i) ?: continue
+            if (items != null) {
+                for (i in 0 until items.length()) {
+                    val item = items.optJSONObject(i) ?: continue
                     val title = item.optString("title")
                     val description = item.optString("description")
                     val imageUrl = item.optJSONObject("headerImage")?.optString("url")
