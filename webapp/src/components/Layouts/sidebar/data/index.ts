@@ -6,12 +6,12 @@ export const NAV_DATA = [
   {
     label: "MAIN MENU",
     items: [
-      {
-        title: "Dashboard",
-        icon: LineChartIcon,
-        url: "/",
-        items: [],
-      },
+      // {
+      //   title: "Dashboard",
+      //   icon: LineChartIcon,
+      //   url: "/",
+      //   items: [],
+      // },
       {
         title: "Requests",
         icon: Icons.Bell,
@@ -76,10 +76,10 @@ export const NAV_DATA = [
             title: "Concierge",
             url: "/hotel/concierge",
           },
-          {
-            title: "Restaurant Menu",
-            url: "/hotel/restaurant-menu",
-          },
+          // {
+          //   title: "Restaurant Menu",
+          //   url: "/hotel/restaurant-menu",
+          // },
         ],
       },
 

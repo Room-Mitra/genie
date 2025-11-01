@@ -20,12 +20,7 @@ export function Room({ room, wide }) {
       <span>·</span>
 
       {/* Only Type truncates */}
-      <span
-        className="min-w-0 flex-1 truncate"
-        title={room.type} // shows full type on hover
-      >
-        {room.type}
-      </span>
+      <span className="w-17 flex-1 truncate text-center">{room.type}</span>
 
       <span>· {room.floor}F</span>
     </div>

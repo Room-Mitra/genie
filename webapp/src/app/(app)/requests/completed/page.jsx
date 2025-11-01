@@ -11,14 +11,13 @@ import { Department } from "@/components/ui/department";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { ConversationModal } from "../_components/conversationModal";
 import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
+import { Details } from "@/components/ui/details";
 
 const LIMIT = 50;
 
 export default function Page() {
   const [showConversationModal, setShowConversationModal] = useState(false);
   const [conversation, setConversation] = useState(null);
-
-  const [nextTokens, setNextTokens] = useState([]);
 
   // Page 0 uses null as the cursor (first page).
   const [cursorStack, setCursorStack] = useState([null]);
@@ -31,11 +30,10 @@ export default function Page() {
 
   const columns = useMemo(
     () => [
-      { key: "requestId", label: "REQUEST ID" },
       { key: "status", label: "STATUS" },
       { key: "room", label: "ROOM" },
       { key: "department", label: "DEPARTMENT" },
-      { key: "conversation", label: "", sortable: false },
+      { key: "icon", label: "", sortable: false },
       { key: "assignedStaff", label: "ASSIGNEE" },
       { key: "dates", label: "DATES" },
     ],
@@ -81,26 +79,48 @@ export default function Page() {
                   />
                 ),
                 requestId: <ID ulid={r.requestId} />,
-                status: <RequestStatus status={r.status} />,
+                status: (
+                  <RequestStatus status={r.status} requestId={r.requestId} />
+                ),
                 room: <Room room={r.room || {}} />,
+                details: <Details details={r.details} />,
                 department: (
                   <Department
                     department={r.department}
                     reqType={r.requestType}
+                    size="md"
                   />
                 ),
-                viewConversation: r.conversationId ? (
-                  <ConversationModal roomId={r.roomId} />
-                ) : (
-                  <></>
+                icon: (
+                  <div className="flex flex-col">
+                    {r.conversation && (
+                      <div className="group relative inline-block">
+                        <ChatBubbleLeftRightIcon
+                          className="size-6 cursor-pointer text-gray-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
+                          onClick={() => {
+                            setConversation(r.conversation);
+                            setShowConversationModal(true);
+                          }}
+                        />
+
+                        {/* Tooltip */}
+                        <span className="absolute bottom-full left-1/2 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow transition-opacity duration-200 group-hover:block group-hover:opacity-100">
+                          View Conversation
+                        </span>
+                      </div>
+                    )}
+                    <Details details={r.details} />
+                  </div>
                 ),
 
-                assignedStaff: (
+                assignedStaff: r.assignedStaff ? (
                   <User
                     user={r.assignedStaff}
                     showRoles={true}
                     showDepartment={true}
                   />
+                ) : (
+                  <div className="font-bold text-gray-600">Unassigned</div>
                 ),
                 conversation: r.conversation && (
                   <div className="group relative inline-block">
@@ -169,7 +189,7 @@ export default function Page() {
     <div>
       <Breadcrumb pageName="Completed Requests" parent="Requests" />
 
-      <div className="rounded-[10px] bg-white p-6 dark:bg-gray-dark">
+      <div className="w-fit rounded-[10px] bg-white p-6 dark:bg-gray-dark lg:w-full">
         <SortTable
           columns={columns}
           data={completedRequests}

@@ -8,10 +8,12 @@ export function requestResponse(request) {
     department,
     requestType,
     estimatedTimeOfFulfillment,
+    timeOfFulfillment,
     status,
     createdAt,
     conversationId,
     bookingId,
+    details,
   } = request;
 
   return {
@@ -21,9 +23,11 @@ export function requestResponse(request) {
     department,
     requestType,
     estimatedTimeOfFulfillment,
+    timeOfFulfillment,
     status,
     createdAt,
     conversationId,
     bookingId,
+    details,
   };
 }

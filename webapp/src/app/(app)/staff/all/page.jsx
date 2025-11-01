@@ -27,7 +27,6 @@ export default function Page() {
     () => [
       { key: "userId", label: "USER ID" },
       { key: "name", label: "NAME" },
-      { key: "roles", label: "ROLE" },
       { key: "department", label: "DEPARTMENT" },
       { key: "mobileNumber", label: "MOBILE" },
       { key: "email", label: "EMAIL" },
@@ -35,21 +34,6 @@ export default function Page() {
     ],
     [],
   );
-
-  const getFullName = (firstName, lastName) =>
-    [firstName, lastName].filter(Boolean).join(" ");
-
-  const getInitials = (firstName, lastName) => {
-    const fn = getFullName(firstName, lastName);
-    return fn
-      ? fn
-          .split(" ")
-          .map((n) => n[0])
-          .join("")
-          .slice(0, 2)
-          .toUpperCase()
-      : "?";
-  };
 
   useEffect(() => {
     let cancelled = false;
@@ -60,12 +44,13 @@ export default function Page() {
         if (!cancelled)
           setData(
             staff?.items?.map((r) => ({
-              userId: <ID ulid={r.userId} />,
+              userId: <ID ulid={r.userId} size="xs" />,
               name: <User user={r} onlyName={true} />,
               email: r.email,
               mobileNumber: r.mobileNumber || "-",
-              department: <Department department={r.department} />,
-              roles: <Roles roles={r.roles} />,
+              department: (
+                <Department department={r.department} roles={r.roles} />
+              ),
               reportingTo: r.reportingToUserId ? (
                 <User
                   user={
@@ -104,7 +89,7 @@ export default function Page() {
           + New Staff
         </Link>
       </div>
-      <div className="rounded-[10px] bg-white p-6 dark:bg-gray-dark">
+      <div className="w-fit rounded-[10px] bg-white p-6 dark:bg-gray-dark lg:w-full">
         <SortTable
           columns={columns}
           data={data}

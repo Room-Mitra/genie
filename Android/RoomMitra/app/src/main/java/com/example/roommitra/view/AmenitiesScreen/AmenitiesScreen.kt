@@ -1,7 +1,6 @@
 package com.example.roommitra.view
 
 import android.util.Log
-import androidx.activity.result.launch
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -59,14 +58,15 @@ fun AmenitiesScreen(onBackClick: () -> Unit) {
 
     val hotelInfoRepo = PollingManager.getHotelInfoRepository()
     val hotelData by hotelInfoRepo.hotelData.collectAsState()
-    val amenitiesArray = hotelData?.optJSONArray("amenities")
+    val amenitiesObj = hotelData?.optJSONObject("amenities")
+    val items = amenitiesObj?.optJSONArray("items")
 
     // Parse amenities from JSON if available
-    val amenities = remember(amenitiesArray) {
+    val amenities = remember(items) {
         mutableListOf<Amenity>().apply {
-            if (amenitiesArray != null) {
-                for (i in 0 until amenitiesArray.length()) {
-                    val item = amenitiesArray.optJSONObject(i) ?: continue
+            if (items != null) {
+                for (i in 0 until items.length()) {
+                    val item = items.optJSONObject(i) ?: continue
                     val title = item.optString("title")
                     val description = item.optString("description")
                     val imageUrl = item.optJSONObject("headerImage")?.optString("url")

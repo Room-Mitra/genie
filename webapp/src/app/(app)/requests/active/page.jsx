@@ -9,6 +9,7 @@ import { ActionButton } from "../_components/actionButton";
 import User from "@/components/ui/user";
 import { Dates } from "@/components/ui/dates";
 import { Department } from "@/components/ui/department";
+import { Details } from "@/components/ui/details";
 import {
   Dialog,
   DialogBackdrop,
@@ -98,11 +99,10 @@ export default function Page() {
 
   const columns = useMemo(
     () => [
-      { key: "requestId", label: "REQUEST ID" },
       { key: "status", label: "STATUS" },
       { key: "room", label: "ROOM" },
       { key: "department", label: "DEPARTMENT" },
-      { key: "conversation", label: "", sortable: false },
+      { key: "icon", label: "", sortable: false },
       { key: "assignedStaff", label: "ASSIGNEE" },
       { key: "dates", label: "DATES" },
       { key: "acknowledge", label: "", sortable: false },
@@ -137,19 +137,56 @@ export default function Page() {
     try {
       setData(
         activeRequests?.map((r) => ({
+          status: <RequestStatus status={r.status} requestId={r.requestId} />,
+          room: <Room room={r.room || {}} />,
+          department: (
+            <Department
+              department={r.department}
+              reqType={r.requestType}
+              size="md"
+            />
+          ),
+          icon: (
+            <div className="flex flex-col">
+              {r.conversation && (
+                <div className="group relative inline-block">
+                  <ChatBubbleLeftRightIcon
+                    className="size-6 cursor-pointer text-gray-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
+                    onClick={() => {
+                      setConversation(r.conversation);
+                      setShowConversationModal(true);
+                    }}
+                  />
+
+                  {/* Tooltip */}
+                  <span className="absolute bottom-full left-1/2 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow transition-opacity duration-200 group-hover:block group-hover:opacity-100">
+                    View Conversation
+                  </span>
+                </div>
+              )}
+              <Details details={r.details} />
+            </div>
+          ),
+          assignedStaff: r.assignedStaff ? (
+            <User
+              user={r.assignedStaff}
+              showRoles={true}
+              showDepartment={true}
+              showEmail={true}
+              showMobileNumber={true}
+            />
+          ) : (
+            <div className="text-center">
+              <div className="font-bold text-red-600">Unassigned</div>
+              <div className="text-xs text-gray-600">Click Start to assign</div>
+            </div>
+          ),
           dates: (
             <Dates
               requestedAt={r.createdAt}
               estimatedTimeOfFulfillment={r.estimatedTimeOfFulfillment}
             />
           ),
-          requestId: <ID ulid={r.requestId} />,
-          status: <RequestStatus status={r.status} />,
-          room: <Room room={r.room || {}} />,
-          department: (
-            <Department department={r.department} reqType={r.requestType} />
-          ),
-
           acknowledge: (
             <ActionButton
               status={r.status}
@@ -167,29 +204,6 @@ export default function Page() {
                 setToStatus("completed");
               }}
             />
-          ),
-          assignedStaff: (
-            <User
-              user={r.assignedStaff}
-              showRoles={true}
-              showDepartment={true}
-            />
-          ),
-          conversation: r.conversation && (
-            <div className="group relative inline-block">
-              <ChatBubbleLeftRightIcon
-                className="size-6 cursor-pointer text-gray-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
-                onClick={() => {
-                  setConversation(r.conversation);
-                  setShowConversationModal(true);
-                }}
-              />
-
-              {/* Tooltip */}
-              <span className="absolute bottom-full left-1/2 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow transition-opacity duration-200 group-hover:block group-hover:opacity-100">
-                View Conversation
-              </span>
-            </div>
           ),
         })),
       );
@@ -245,7 +259,7 @@ export default function Page() {
   return (
     <div>
       <Breadcrumb pageName="Active Requests" parent="Requests" />
-      <div className="rounded-[10px] bg-white p-6 dark:bg-gray-dark">
+      <div className="w-fit rounded-[10px] bg-white p-6 dark:bg-gray-dark lg:w-full">
         <SortTable
           columns={columns}
           data={data}
@@ -277,7 +291,7 @@ export default function Page() {
               <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
                 <DialogPanel
                   transition
-                  className="data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in data-closed:sm:translate-y-0 data-closed:sm:scale-95 relative transform overflow-hidden rounded-lg bg-gray-800 text-left shadow-xl outline -outline-offset-1 outline-white/10 transition-all sm:my-8 sm:w-full sm:max-w-lg"
+                  className="data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in data-closed:sm:translate-y-0 data-closed:sm:scale-95 relative transform overflow-hidden rounded-lg bg-gray-800 text-left shadow-xl outline -outline-offset-1 outline-white/10 transition-all sm:my-8 sm:max-w-lg lg:w-full"
                 >
                   <div className="bg-gray-200 text-dark dark:bg-gray-900 sm:p-5">
                     <DialogTitle
@@ -336,7 +350,7 @@ export default function Page() {
 
                         <TextAreaGroup
                           label="Note"
-                          placeholder="Note about the task"
+                          placeholder="Note about the request"
                           handleChange={(e) => setNote(e.target.value)}
                         />
 

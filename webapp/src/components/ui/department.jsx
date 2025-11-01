@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import {
   SparklesIcon,
   BellAlertIcon,
@@ -6,6 +7,7 @@ import {
   WrenchScrewdriverIcon,
   QuestionMarkCircleIcon,
 } from "@heroicons/react/24/outline";
+import { Roles } from "./roles";
 
 export const DepartmentLabels = {
   house_keeping: "House Keeping",
@@ -23,27 +25,61 @@ const DepartmentIcons = {
   facilities: WrenchScrewdriverIcon,
 };
 
-export function Department({ department, reqType }) {
+const HotelRoleLabels = {
+  hotel_admin: "Admin",
+  hotel_manager: "Manager",
+  hotel_associate: "Associate",
+  hotel_trainee: "Trainee",
+  hotel_supervisor: "Supervisor",
+};
+
+const RoleColors = {
+  hotel_admin: "bg-indigo-500 text-white",
+  hotel_manager: "bg-emerald-500 text-white",
+  hotel_supervisor: "bg-amber-400 text-white/90",
+  hotel_associate: "bg-sky-500 text-white",
+  hotel_trainee: "bg-gray-400 text-white",
+};
+
+export function Department({ department, reqType, roles, size }) {
   if (!department) return <span>-</span>;
 
   const Label = DepartmentLabels[department] || department;
   const Icon = DepartmentIcons[department] || QuestionMarkCircleIcon;
 
-  return (
-    <div className="flex flex-col">
-      <div className="flex items-center gap-2">
-        <Icon className="h-6 w-6 text-gray-500" />
+  const sizeToText = {
+    xs: "text-xs",
+    sm: "text-sm",
+    md: "text-md font-medium",
+  };
 
-        <span className="font-medium text-gray-800 dark:text-gray-100">
-          {Label}
-        </span>
+  const sizeToImage = {
+    xs: "h-4 w-4",
+    sm: "h-5 w-5",
+    md: "h-6 w-6",
+  };
+
+  return (
+    <div className="flex w-45 items-start gap-2">
+      <div>
+        <Icon className={cn("text-gray-500", sizeToImage[size])} />
       </div>
 
-      {reqType && (
-        <span className="ml-6 mt-0.5 inline-block rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-          {reqType}
+      <div className="flex flex-col">
+        <span
+          className={cn("text-gray-800 dark:text-gray-100", sizeToText[size])}
+        >
+          {Label}
         </span>
-      )}
+
+        {reqType && (
+          <span className="mt-0.5 inline-block w-fit rounded bg-gray-100 py-0.5 text-xs text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+            {reqType}
+          </span>
+        )}
+
+        {roles && <Roles roles={roles} />}
+      </div>
     </div>
   );
 }
