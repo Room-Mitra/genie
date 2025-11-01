@@ -63,12 +63,11 @@ export const create_hotel_requests = {
                   items: {
                     type: 'object',
                     properties: {
-                      // itemId: {
-                      //   type: 'string',
-                      //   description:
-                      //     'Menu item ID. Prefer IDs over names. If unknown, fill itemName.',
-                      // },
-                      itemName: {
+                      itemId: {
+                        type: 'string',
+                        description: 'Menu item ID. Prefer IDs over names. If unknown, fill name.',
+                      },
+                      name: {
                         type: 'string',
                         description:
                           'Name of the item asked by the guest, mapped to what is exactly on the menu',
@@ -85,7 +84,7 @@ export const create_hotel_requests = {
                           "Per-item special instructions. Example: 'less spicy', 'no onions'.",
                       },
                     },
-                    required: ['itemName', 'quantity', 'notes'],
+                    required: ['itemId', 'name', 'quantity', 'notes'],
                     additionalProperties: false,
                   },
                 },
