@@ -18,6 +18,7 @@ import {
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { Autocomplete } from "@/components/Autocomplete";
 import { Room } from "@/components/ui/room";
+import { DateTime } from "@/components/ui/datetime";
 
 async function addRoom({ roomNumber, roomType, floor, description }) {
   const res = await fetch(`/api/rooms`, {
@@ -354,15 +355,23 @@ export default function AddBookingPage() {
               <div className="text-md">
                 <span>Check in:</span>{" "}
                 <span className="font-semibold">
-                  {(checkInDate && formatDate(checkInDate)) || "—"}{" "}
-                  {(checkInTime && formatTimeString(checkInTime)) || "—"}
+                  {(checkInDate && checkInTime && (
+                    <DateTime
+                      dateTimeIso={combineToUTC(checkInDate, checkInTime)}
+                    />
+                  )) ||
+                    "—"}
                 </span>
               </div>
               <div className="text-md">
                 <span>Check out:</span>{" "}
                 <span className="font-semibold">
-                  {(checkOutDate && formatDate(checkOutDate)) || "—"}{" "}
-                  {(checkOutTime && formatTimeString(checkOutTime)) || "—"}
+                  {(checkOutDate && checkOutTime && (
+                    <DateTime
+                      dateTimeIso={combineToUTC(checkOutDate, checkOutTime)}
+                    />
+                  )) ||
+                    "—"}
                 </span>
               </div>
               <div className="text-md">

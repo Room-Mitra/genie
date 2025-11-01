@@ -14,14 +14,14 @@ function startOfLocalDay(date) {
 function formatFullDate(date) {
   // e.g. "23 Oct 2025, 9:00 AM"
   const datePart = date.toLocaleDateString("en-GB", {
-    day: "2-digit",
+    day: "numeric",
     month: "short",
     year: "numeric",
   });
   const timePart = formatTime(date);
   return `${datePart}, ${timePart}`;
 }
-
+  
 function formatDateTimeSmart(isoString, withTime = true) {
   const date = new Date(isoString);
   if (isNaN(+date)) return "";
