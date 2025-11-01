@@ -6,12 +6,12 @@ export const NAV_DATA = [
   {
     label: "MAIN MENU",
     items: [
-      {
-        title: "Dashboard",
-        icon: LineChartIcon,
-        url: "/",
-        items: [],
-      },
+      // {
+      //   title: "Dashboard",
+      //   icon: LineChartIcon,
+      //   url: "/",
+      //   items: [],
+      // },
       {
         title: "Requests",
         icon: Icons.Bell,
