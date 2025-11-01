@@ -11,33 +11,40 @@ export async function addStaff({ hotelId, userId, role, department, reportingToU
   const now = Date.now();
   const nowIso = toIsoString(now);
 
+  const updateExpression = [
+    'SET #roles = list_append(if_not_exists(#roles, :emptyList), :newRole)',
+    'hotelType_pk = :hotelTypePk',
+    'hotelType_sk = :hotelTypeSk',
+    'hotelId = :hotelId',
+    'updatedAt = :nowIso',
+    'department = :department',
+  ];
+
+  const expressionAttributeValues = {
+    ':hotelTypePk': `HOTEL#${hotelId}`,
+    ':hotelTypeSk': `USER#${userId}`,
+    ':hotelId': hotelId,
+    ':nowIso': nowIso,
+    ':newRole': [role],
+    ':emptyList': [],
+    ':roleVal': role,
+    ':department': department,
+  };
+
+  if (reportingToUserId) {
+    updateExpression.push('reportingToUserId = :reportingToUserId');
+    expressionAttributeValues[':reportingToUserId'] = reportingToUserId;
+  }
+
   const params = {
     TableName: ENTITY_TABLE_NAME,
     Key: { pk, sk }, // sk stays "USER#<ulid>"
-    UpdateExpression: [
-      'SET #roles = list_append(if_not_exists(#roles, :emptyList), :newRole)',
-      'hotelType_pk = :hotelTypePk',
-      'hotelType_sk = :hotelTypeSk',
-      'hotelId = :hotelId',
-      'updatedAt = :nowIso',
-      'department = :department',
-      'reportingToUserId = :reportingToUserId',
-    ].join(', '),
+    UpdateExpression: updateExpression.join(', '),
     ConditionExpression: 'attribute_not_exists(#roles) OR NOT contains(#roles, :roleVal)',
     ExpressionAttributeNames: {
       '#roles': 'roles',
     },
-    ExpressionAttributeValues: {
-      ':hotelTypePk': `HOTEL#${hotelId}`,
-      ':hotelTypeSk': `USER#${userId}`,
-      ':hotelId': hotelId,
-      ':nowIso': nowIso,
-      ':newRole': [role],
-      ':emptyList': [],
-      ':roleVal': role,
-      ':department': department,
-      ':reportingToUserId': reportingToUserId,
-    },
+    ExpressionAttributeValues: expressionAttributeValues,
     ReturnValues: 'ALL_NEW',
   };
 
