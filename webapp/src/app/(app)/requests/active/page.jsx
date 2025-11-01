@@ -99,12 +99,10 @@ export default function Page() {
 
   const columns = useMemo(
     () => [
-      { key: "requestId", label: "REQUEST ID" },
       { key: "status", label: "STATUS" },
       { key: "room", label: "ROOM" },
       { key: "department", label: "DEPARTMENT" },
-      { key: "details", label: "", sortable: false },
-      { key: "conversation", label: "", sortable: false },
+      { key: "icon", label: "", sortable: false },
       { key: "assignedStaff", label: "ASSIGNEE" },
       { key: "dates", label: "DATES" },
       { key: "acknowledge", label: "", sortable: false },
@@ -139,20 +137,56 @@ export default function Page() {
     try {
       setData(
         activeRequests?.map((r) => ({
+          status: <RequestStatus status={r.status} requestId={r.requestId} />,
+          room: <Room room={r.room || {}} />,
+          department: (
+            <Department
+              department={r.department}
+              reqType={r.requestType}
+              size="md"
+            />
+          ),
+          icon: (
+            <div className="flex flex-col">
+              {r.conversation && (
+                <div className="group relative inline-block">
+                  <ChatBubbleLeftRightIcon
+                    className="size-6 cursor-pointer text-gray-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
+                    onClick={() => {
+                      setConversation(r.conversation);
+                      setShowConversationModal(true);
+                    }}
+                  />
+
+                  {/* Tooltip */}
+                  <span className="absolute bottom-full left-1/2 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow transition-opacity duration-200 group-hover:block group-hover:opacity-100">
+                    View Conversation
+                  </span>
+                </div>
+              )}
+              <Details details={r.details} />
+            </div>
+          ),
+          assignedStaff: r.assignedStaff ? (
+            <User
+              user={r.assignedStaff}
+              showRoles={true}
+              showDepartment={true}
+              showEmail={true}
+              showMobileNumber={true}
+            />
+          ) : (
+            <div className="text-center">
+              <div className="font-bold text-red-600">Unassigned</div>
+              <div className="text-xs text-gray-600">Click Start to assign</div>
+            </div>
+          ),
           dates: (
             <Dates
               requestedAt={r.createdAt}
               estimatedTimeOfFulfillment={r.estimatedTimeOfFulfillment}
             />
           ),
-          requestId: <ID ulid={r.requestId} />,
-          status: <RequestStatus status={r.status} />,
-          room: <Room room={r.room || {}} />,
-          details: <Details details={r.details} />,
-          department: (
-            <Department department={r.department} reqType={r.requestType} />
-          ),
-
           acknowledge: (
             <ActionButton
               status={r.status}
@@ -170,34 +204,6 @@ export default function Page() {
                 setToStatus("completed");
               }}
             />
-          ),
-          assignedStaff: r.assignedStaff ? (
-            <User
-              user={r.assignedStaff}
-              showRoles={true}
-              showDepartment={true}
-            />
-          ) : (
-            <div className="text-center">
-              <div className="font-bold text-red-600">Unassigned</div>
-              <div className="text-xs text-gray-600">Click Start to assign</div>
-            </div>
-          ),
-          conversation: r.conversation && (
-            <div className="group relative inline-block">
-              <ChatBubbleLeftRightIcon
-                className="size-6 cursor-pointer text-gray-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
-                onClick={() => {
-                  setConversation(r.conversation);
-                  setShowConversationModal(true);
-                }}
-              />
-
-              {/* Tooltip */}
-              <span className="absolute bottom-full left-1/2 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow transition-opacity duration-200 group-hover:block group-hover:opacity-100">
-                View Conversation
-              </span>
-            </div>
           ),
         })),
       );
@@ -253,7 +259,7 @@ export default function Page() {
   return (
     <div>
       <Breadcrumb pageName="Active Requests" parent="Requests" />
-      <div className="w-fit rounded-[10px] bg-white p-6 dark:bg-gray-dark sm:w-full">
+      <div className="w-full rounded-[10px] bg-white p-6 dark:bg-gray-dark">
         <SortTable
           columns={columns}
           data={data}

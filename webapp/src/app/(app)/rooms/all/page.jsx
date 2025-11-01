@@ -41,7 +41,7 @@ export default function Page() {
         if (!cancelled)
           setData(
             rooms?.items?.map((r) => ({
-              roomId: <ID ulid={r.roomId} />,
+              roomId: <ID ulid={r.roomId} size="xs" />,
               room: <Room room={r} wide={true} />,
               number: (
                 <span className="text-md inline-block rounded-full bg-cyan-600 px-3 py-2 text-white">
@@ -85,7 +85,7 @@ export default function Page() {
           + New Room
         </Link>
       </div>
-      <div className="rounded-[10px] w-fit sm:w-full bg-white p-6 dark:bg-gray-dark">
+      <div className="w-fit rounded-[10px] bg-white p-6 dark:bg-gray-dark sm:w-full">
         <SortTable
           columns={columns}
           data={data}

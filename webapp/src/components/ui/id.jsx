@@ -2,9 +2,16 @@
 
 import { useState } from "react";
 import { ClipboardIcon, CheckIcon } from "@heroicons/react/24/outline";
+import { cn } from "@/lib/utils";
 
-export function ID({ ulid }) {
+export function ID({ ulid, size }) {
   const [copied, setCopied] = useState(false);
+
+  const sizeToText = {
+    xs: "text-xs",
+    sm: "text-sm",
+    md: "text-md",
+  };
 
   const handleCopy = async (e) => {
     e.preventDefault();
@@ -18,10 +25,13 @@ export function ID({ ulid }) {
   };
 
   return ulid ? (
-    <span className="text-md flex items-center gap-1 text-gray-500">
-      <span title={ulid} className="font-mono">
-        {ulid?.slice(0, 8)}…
-      </span>
+    <div
+      className={cn(
+        "mx-auto w-fit flex items-center text-gray-500 dark:text-gray-400",
+        sizeToText[size ?? "md"],
+      )}
+    >
+      <span className="font-mono">{ulid?.slice(0, 8)}</span>
 
       <button
         type="button"
@@ -40,7 +50,7 @@ export function ID({ ulid }) {
           <ClipboardIcon className="h-4 w-4" />
         )}
       </button>
-    </span>
+    </div>
   ) : (
     <span> --- </span>
   );

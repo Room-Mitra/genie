@@ -31,12 +31,12 @@ export function Dates({
   }
 
   return (
-    <div className="flex w-65 flex-col gap-1 text-sm text-gray-600 dark:text-gray-400">
+    <div className="flex flex-col gap-1 text-sm text-gray-600 dark:text-gray-400">
       {/* Requested */}
       {requestedAt && (
         <div className="flex items-center justify-start gap-1">
           <ClockIcon className="h-5 w-5 text-gray-500" />
-          <span>Requested:</span>
+          <span>Req:</span>
           <span className="font-medium text-gray-800 dark:text-gray-100">
             <DateTime dateTimeIso={requestedAt} />
           </span>
@@ -59,7 +59,7 @@ export function Dates({
         <>
           <div className="flex items-center gap-1">
             <CheckCircleIcon className="h-5 w-5 text-green-600" />
-            <span>Completed:</span>
+            <span>Fin:</span>
             <span className="font-medium text-gray-800 dark:text-gray-100">
               <DateTime dateTimeIso={timeOfFulfillment} />
             </span>

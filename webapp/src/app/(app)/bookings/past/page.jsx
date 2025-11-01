@@ -43,7 +43,7 @@ export default function Page() {
         if (!cancelled)
           setData(
             bookings?.items?.map((b) => ({
-              bookingId: <ID ulid={b.bookingId} />,
+              bookingId: <ID size="xs" ulid={b.bookingId} />,
               dates: (
                 <Dates
                   checkInTime={b.checkInTime}
@@ -74,7 +74,7 @@ export default function Page() {
   return (
     <div>
       <Breadcrumb pageName="Past Bookings" parent="Bookings" />
-      <div className="rounded-[10px] w-fit sm:w-full  bg-white p-6 dark:bg-gray-dark">
+      <div className="w-fit rounded-[10px] bg-white p-6 dark:bg-gray-dark sm:w-full">
         <SortTable
           columns={columns}
           data={data}

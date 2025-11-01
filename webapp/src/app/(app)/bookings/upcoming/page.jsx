@@ -43,7 +43,7 @@ export default function Page() {
         if (!cancelled)
           setData(
             bookings?.items?.map((b) => ({
-              bookingId: <ID ulid={b.bookingId} />,
+              bookingId: <ID size="xs" ulid={b.bookingId} />,
               dates: (
                 <Dates
                   checkInTime={b.checkInTime}

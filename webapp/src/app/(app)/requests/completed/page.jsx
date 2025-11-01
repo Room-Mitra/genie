@@ -30,12 +30,10 @@ export default function Page() {
 
   const columns = useMemo(
     () => [
-      { key: "requestId", label: "REQUEST ID" },
       { key: "status", label: "STATUS" },
       { key: "room", label: "ROOM" },
       { key: "department", label: "DEPARTMENT" },
-      { key: "details", label: "", sortable: false },
-      { key: "conversation", label: "", sortable: false },
+      { key: "icon", label: "", sortable: false },
       { key: "assignedStaff", label: "ASSIGNEE" },
       { key: "dates", label: "DATES" },
     ],
@@ -81,14 +79,38 @@ export default function Page() {
                   />
                 ),
                 requestId: <ID ulid={r.requestId} />,
-                status: <RequestStatus status={r.status} />,
+                status: (
+                  <RequestStatus status={r.status} requestId={r.requestId} />
+                ),
                 room: <Room room={r.room || {}} />,
                 details: <Details details={r.details} />,
                 department: (
                   <Department
                     department={r.department}
                     reqType={r.requestType}
+                    size="md"
                   />
+                ),
+                icon: (
+                  <div className="flex flex-col">
+                    {r.conversation && (
+                      <div className="group relative inline-block">
+                        <ChatBubbleLeftRightIcon
+                          className="size-6 cursor-pointer text-gray-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
+                          onClick={() => {
+                            setConversation(r.conversation);
+                            setShowConversationModal(true);
+                          }}
+                        />
+
+                        {/* Tooltip */}
+                        <span className="absolute bottom-full left-1/2 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow transition-opacity duration-200 group-hover:block group-hover:opacity-100">
+                          View Conversation
+                        </span>
+                      </div>
+                    )}
+                    <Details details={r.details} />
+                  </div>
                 ),
 
                 assignedStaff: r.assignedStaff ? (
