@@ -321,7 +321,7 @@ class MicController(
         isListening = false
     }
 
-    suspend fun autoClearConversationAfter(delayMillis: Long = 60_000L) {
+    suspend fun autoClearConversationAfter(delayMillis: Long = 3*60_000L) { // 3 mins
         Log.d("MicController", "Auto clear timer started ($delayMillis ms)")
         if (conversation.isNotEmpty()) {
             kotlinx.coroutines.delay(delayMillis)
