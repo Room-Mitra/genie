@@ -1,6 +1,7 @@
 import DDB from '#clients/DynamoDb.client.js';
 import { buildHotelEntityItem } from '#common/hotelEntity.helper.js';
 import { ENTITY_TABLE_NAME, GSI_STATUS_NAME } from '#Constants/DB.constants.js';
+import { ActiveOrderStatuses, InactiveOrderStatuses, OrderStatus } from '#Constants/statuses.js';
 import { decodeToken, encodeToken } from './repository.helper.js';
 
 export async function createOrder({ order }) {
@@ -41,5 +42,66 @@ export async function queryRequestsByStatusType({ hotelId, statusType, limit = 2
     items: data.Items || [],
     nextToken: encodeToken(data.LastEvaluatedKey),
     count: data.Count || 0,
+  };
+}
+
+export async function updateOrderStatus({ orderId, hotelId, toStatus, timeOfFulfillment }) {
+  if (!orderId || !toStatus)
+    throw new Error('orderId, toStatus are required to update order status');
+
+  const nowIso = new Date().toISOString();
+
+  const statusType = ActiveOrderStatuses.includes(toStatus)
+    ? 'ACTIVE'
+    : InactiveOrderStatuses.includes(toStatus)
+      ? 'INACTIVE'
+      : 'UNKNOWN';
+
+  const updateNames = {
+    '#status': 'status',
+    '#updatedAt': 'updatedAt',
+    '#status_pk': 'status_pk',
+    '#statusType': 'statusType',
+  };
+
+  const updateValues = {
+    ':toStatus': toStatus,
+    ':updatedAt': nowIso,
+    ':status_pk': `ORDERSTATUS#${statusType}#HOTEL#${hotelId}`,
+    ':statusType': statusType,
+  };
+
+  const updateExpressionFields = [
+    '#status = :toStatus',
+    '#updatedAt = :updatedAt',
+    '#status_pk = :status_pk',
+    '#statusType = :statusType',
+  ];
+
+  // only add this when a value is provided (null is OK, undefined is not)
+  if (timeOfFulfillment !== undefined) {
+    updateNames['#timeOfFulfillment'] = 'timeOfFulfillment';
+    updateValues[':timeOfFulfillment'] = timeOfFulfillment; // can be a string or null
+    updateExpressionFields.push('#timeOfFulfillment = :timeOfFulfillment');
+  }
+
+  const params = {
+    TableName: ENTITY_TABLE_NAME,
+    Key: {
+      pk: `HOTEL#${hotelId}`,
+      sk: `ORDER#${orderId}`,
+    },
+    UpdateExpression: `SET ${updateExpressionFields.join(', ')}`,
+    ExpressionAttributeNames: updateNames,
+    ExpressionAttributeValues: updateValues,
+    // ensure the main item exists
+    ConditionExpression: 'attribute_exists(pk) AND attribute_exists(sk)',
+  };
+
+  await DDB.update(params).promise();
+  return {
+    orderId,
+    toStatus,
+    updatedAt: nowIso,
   };
 }

@@ -117,7 +117,7 @@ export async function updateRequestStatusWithLog({
   note,
 }) {
   if (!request || !toStatus || !updatedByUserId) {
-    throw new Error('request, toStatus, updatedByUserId are required');
+    throw new Error('request, toStatus, updatedByUserId are required to update request status');
   }
 
   const fromStatus = request.status ?? 'UNKNOWN';
