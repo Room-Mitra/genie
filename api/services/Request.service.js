@@ -114,7 +114,7 @@ async function enrichRequests({ hotelId, requests }) {
   const staff = await staffRepo.queryStaffByHotelId(hotelId);
   const staffMap = new Map(staff.map((st) => [st.userId, st]));
 
-  const conversationIds = requests?.items?.map((r) => r.conversationId).filter(Boolean);
+  const conversationIds = requests?.map((r) => r.conversationId).filter(Boolean);
   const conversationsMap = await getMessagesByConversationIds(conversationIds);
 
   const getRoom = (room) => ({
@@ -170,7 +170,7 @@ export async function listRequestsByStatusType({ hotelId, statusType, limit, nex
 
   return {
     ...requests,
-    items: await enrichRequests({hotelId, requests: requests.items}),
+    items: await enrichRequests({ hotelId, requests: requests.items }),
   };
 }
 
