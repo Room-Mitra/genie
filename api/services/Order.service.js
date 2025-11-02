@@ -3,7 +3,7 @@ import * as userRepo from '#repositories/User.repository.js';
 import * as orderRepo from '#repositories/Order.repository.js';
 import { orderResponse } from '#presenters/order.js';
 import { minutesAhead } from '#common/timestamp.helper.js';
-import { OrderStatus } from '#Constants/statuses';
+import { OrderStatus } from '#Constants/statuses.js';
 
 const MIN_ORDER_SCHEDULED_MINUTES = 45;
 

@@ -329,6 +329,7 @@ export function buildHotelEntityItem(input) {
         status_pk: `ORDERSTATUS#${i.statusType}#HOTEL#${i.hotelId}`,
         status_sk: `ORDER#${orderId}`,
 
+        hotelId: i.hotelId,
         requestId: i.requestId,
         guestUserId: i.guestUserId,
 
