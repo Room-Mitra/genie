@@ -15,7 +15,7 @@ import {
   useLayoutEffect,
 } from "react";
 
-const LIMIT = 50;
+const LIMIT = 25;
 
 export default function Page() {
   const [data, setData] = useState([]);
@@ -134,6 +134,7 @@ export default function Page() {
 
   useEffect(() => {
     refreshBookings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

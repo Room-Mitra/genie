@@ -101,6 +101,7 @@ export async function createRequest(requestData) {
       requestId: request.requestId,
       bookingId,
       guestUserId,
+      estimatedTimeOfFulfillment,
     });
   }
 

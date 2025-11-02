@@ -39,6 +39,10 @@ export const NAV_DATA = [
             url: "/orders/active",
           },
           {
+            title: "Scheduled",
+            url: "/orders/scheduled",
+          },
+          {
             title: "Completed",
             url: "/orders/completed",
           },

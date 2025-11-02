@@ -7,7 +7,15 @@ import { OrderStatus } from '#Constants/statuses.js';
 
 const MIN_ORDER_SCHEDULED_MINUTES = 45;
 
-export async function placeOrder({ cart, hotelId, roomId, requestId, bookingId, guestUserId }) {
+export async function placeOrder({
+  cart,
+  hotelId,
+  roomId,
+  requestId,
+  bookingId,
+  guestUserId,
+  estimatedTimeOfFulfillment,
+}) {
   const { items, instructions, scheduledAt } = cart;
 
   let status = OrderStatus.PENDING;
@@ -31,16 +39,17 @@ export async function placeOrder({ cart, hotelId, roomId, requestId, bookingId, 
     status,
     statusType,
     scheduledAt,
+    estimatedTimeOfFulfillment,
   };
 
   return await orderRepo.createOrder({ order });
 }
 
 export async function listOrdersByStatusType({ hotelId, statusType, limit, nextToken }) {
-  if (!hotelId || !statusType) throw new Error('need hotelId and statusType to list requests');
+  if (!hotelId || !statusType) throw new Error('need hotelId and statusType to list orders');
 
-  if (!['inactive', 'active'].includes(statusType.toLowerCase())) {
-    throw new Error('invalid status type to list requests');
+  if (!['inactive', 'active', 'upcoming'].includes(statusType.toLowerCase())) {
+    throw new Error('invalid status type to list orders');
   }
 
   const orders = await orderRepo.queryRequestsByStatusType({

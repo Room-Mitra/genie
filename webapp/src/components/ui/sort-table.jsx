@@ -11,7 +11,7 @@ import { Roles } from "./roles";
 import { Department } from "./department";
 import { Dates } from "./dates";
 import User from "./user";
-import RequestStatus from "@/app/(app)/requests/_components/requestStatus";
+import Status from "@/app/(app)/requests/_components/requestStatus";
 
 const isDateTime = (e) => React.isValidElement(e) && e.type === DateTime;
 const isID = (e) => React.isValidElement(e) && e.type === ID;
@@ -20,8 +20,7 @@ const isRoles = (e) => React.isValidElement(e) && e.type === Roles;
 const isDepartment = (e) => React.isValidElement(e) && e.type === Department;
 const isDates = (e) => React.isValidElement(e) && e.type === Dates;
 const isStaff = (e) => React.isValidElement(e) && e.type === User;
-const isRequestStatus = (e) =>
-  React.isValidElement(e) && e.type === RequestStatus;
+const isRequestStatus = (e) => React.isValidElement(e) && e.type === Status;
 const isDivOrSpan = (e) =>
   (React.isValidElement(e) && e.type === "div") || e.type === "span";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import SortTable from "@/components/ui/sort-table";
-import RequestStatus from "../_components/requestStatus";
+import Status from "../_components/requestStatus";
 import {
   useCallback,
   useEffect,
@@ -19,7 +19,7 @@ import { ConversationModal } from "../_components/conversationModal";
 import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
 import { Details } from "@/components/ui/details";
 
-const LIMIT = 50;
+const LIMIT = 25;
 
 export default function Page() {
   const [showConversationModal, setShowConversationModal] = useState(false);
@@ -90,9 +90,7 @@ export default function Page() {
                   />
                 ),
                 requestId: <ID ulid={r.requestId} />,
-                status: (
-                  <RequestStatus status={r.status} requestId={r.requestId} />
-                ),
+                status: <Status status={r.status} ulid={r.requestId} />,
                 room: <Room room={r.room || {}} />,
                 details: <Details details={r.details} />,
                 department: (

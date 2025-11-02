@@ -1,12 +1,21 @@
 import { ID } from "@/components/ui/id";
 import { cn, toTitleCaseFromSnake } from "@/lib/utils";
 
-export default function RequestStatus({ status, requestId }) {
+export default function Status({ status, ulid }) {
   const colorMap = {
+    //Request Status
     unacknowledged: "bg-orange-600/90 text-white",
     delayed: "bg-red-600/90 text-white",
     in_progress: "bg-yellow-500 text-black",
     completed: "bg-green-600/90 text-white",
+
+    //Order status
+    pending: "bg-orange-600/90 text-white",
+    // delayed: "bg-red-600/90 text-white",
+    preparing: "bg-yellow-500 text-black",
+    delivered: "bg-green-600/90 text-white",
+    scheduled: "bg-sky-600/90 text-white",
+    cancelled: "bg-gray-500/90 text-white",
   };
 
   const label = toTitleCaseFromSnake(status ?? "unknown");
@@ -24,7 +33,7 @@ export default function RequestStatus({ status, requestId }) {
         </span>
       </div>
       <div className="self-start text-center">
-        <ID ulid={requestId} size="xs" withLabel={true} />
+        <ID ulid={ulid} size="xs" withLabel={true} />
       </div>
     </div>
   );

@@ -2,8 +2,6 @@
 
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { Dates } from "@/components/ui/dates";
-import { DateTime } from "@/components/ui/datetime";
-import { ID } from "@/components/ui/id";
 import { Room } from "@/components/ui/room";
 import SortTable from "@/components/ui/sort-table";
 import User from "@/components/ui/user";
@@ -14,6 +12,8 @@ import {
   useCallback,
   useLayoutEffect,
 } from "react";
+import Status from "../../requests/_components/requestStatus";
+import { Order } from "@/components/ui/order";
 
 const LIMIT = 100;
 
@@ -29,11 +29,11 @@ export default function Page() {
 
   const columns = useMemo(
     () => [
-      { key: "orderId", label: "ORDER ID" },
+      { key: "status", label: "STATUS" },
+      { key: "order", label: "ORDER" },
       { key: "room", label: "ROOM" },
-      { key: "guest", label: "GUEST" },
       { key: "dates", label: "DATES" },
-      { key: "createdAt", label: "CREATED AT" },
+      { key: "guest", label: "GUEST" },
     ],
     [],
   );
@@ -72,18 +72,19 @@ export default function Page() {
         setData(
           Array.isArray(orders?.items)
             ? orders?.items?.map((b) => ({
-                orderId: <ID ulid={b.orderId} size="xs" />,
+                status: <Status status={b.status} ulid={b.orderId} />,
                 dates: (
                   <Dates
-                    checkInTime={b.checkInTime}
-                    checkOutTime={b.checkOutTime}
+                    requestedAt={b.createdAt}
+                    estimatedTimeOfFulfillment={b.estimatedTimeOfFulfillment}
+                    scheduledAt={b.scheduledAt}
                   />
                 ),
                 room: <Room room={b.room} />,
                 guest: (
                   <User user={b.guest} showMobileNumber={true} width="w-50" />
                 ),
-                createdAt: <DateTime dateTimeIso={b.createdAt} />,
+                order: <Order items={b.items} instructions={b.instructions} />,
               }))
             : [],
         );
@@ -134,11 +135,12 @@ export default function Page() {
 
   useEffect(() => {
     refreshOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <div>
-      <Breadcrumb pageName="Inactive Orders" parent="Orders" />
+      <Breadcrumb pageName="Completed Orders" parent="Orders" />
       <div className="w-fit rounded-[10px] bg-white p-6 dark:bg-gray-dark lg:w-full">
         <SortTable
           columns={columns}
@@ -146,7 +148,7 @@ export default function Page() {
           tableRowClassNames={[
             "text-base font-medium text-dark dark:text-white",
           ]}
-          noDataMessage="No inactive orders"
+          noDataMessage="No orders completed"
           loading={loading}
           onClickNextPage={nextPage}
           onClickPrevPage={previousPage}
