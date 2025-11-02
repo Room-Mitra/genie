@@ -337,6 +337,8 @@ export function buildHotelEntityItem(input) {
         status: i.status,
         statusType: i.statusType,
         scheduledAt: i.scheduledAt,
+        estimatedTimeOfFulfillment: i.estimatedTimeOfFulfillment,
+        timeOfFulfillment: i.timeOfFulfillment,
         items: i.items,
         instructions: i.instructions,
 
