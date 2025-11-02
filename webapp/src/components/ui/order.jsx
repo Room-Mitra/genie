@@ -11,19 +11,17 @@ export function Order({ items = [], instructions }) {
           className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-800"
         >
           {/* Thumbnail */}
-          {i.image?.url ? (
-            <div className="relative h-8 w-8 flex-shrink-0 sm:h-10 sm:w-10">
-              <Image
-                src={i.image.url}
-                alt={i.name}
-                fill
-                sizes="40px"
-                className="rounded object-cover"
-              />
-            </div>
-          ) : (
-            <div className="h-8 w-8 flex-shrink-0 rounded bg-gray-200 dark:bg-gray-700 sm:h-10 sm:w-10" />
-          )}
+
+          <div className="relative h-8 w-8 flex-shrink-0 sm:h-10 sm:w-10">
+            <Image
+              src={i?.image?.url ?? `/images/food-placeholder.webp`}
+              alt={i.name}
+              fill
+              sizes="40px"
+              className="rounded object-cover"
+            />
+          </div>
+
           {/* Details */}
           <div className="min-w-0 flex-1">
             <div
