@@ -30,6 +30,7 @@ import roomRoutes from '#routes/webapp/Room.controller.js';
 import requestRoutes from '#routes/webapp/Request.controller.js';
 import hotelRoutes from '#routes/webapp/Hotel.controller.js';
 import imageRoutes from '#routes/webapp/Image.controller.js';
+import orderRoutes from '#routes/webapp/Order.controller.js';
 
 //Android Routes
 import androidLoginRoutes from '#routes/android/Login.controller.js';
@@ -43,7 +44,6 @@ import androidConversationRoutes from '#routes/android/Conversation.controller.j
 import authenticator from '#middleware/Authenticator.middleware.js';
 import androidAuthenticator from '#middleware/AndroidAuthenticator.middleware.js';
 import adminAuthenticator from '#middleware/AdminAuthenticator.middleware.js';
-
 
 // Admin Routes
 import adminHotelRoutes from '#routes/admin/Hotel.controller.js';
@@ -85,6 +85,7 @@ app.use('/rooms', authenticator, roomRoutes);
 app.use('/staff', authenticator, staffRoutes);
 app.use('/hotel', authenticator, hotelRoutes);
 app.use('/image', authenticator, imageRoutes);
+app.use('/orders', authenticator, orderRoutes);
 
 // Android Routes
 app.use('/android/login', androidLoginRoutes);

@@ -6,6 +6,7 @@ import {
   ArrowLeftEndOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 import { DateTime } from "./datetime";
+import { AlarmClock } from "lucide-react";
 
 export function Dates({
   requestedAt,
@@ -13,6 +14,7 @@ export function Dates({
   timeOfFulfillment,
   checkInTime,
   checkOutTime,
+  scheduledAt,
 }) {
   const requested = new Date(requestedAt);
   const fulfilled = timeOfFulfillment ? new Date(timeOfFulfillment) : null;
@@ -31,7 +33,7 @@ export function Dates({
   }
 
   return (
-    <div className="flex w-55 lg:w-fit flex-col gap-1 text-sm text-gray-600 dark:text-gray-400">
+    <div className="flex w-55 flex-col gap-1 text-sm text-gray-600 dark:text-gray-400 lg:w-fit">
       {/* Requested */}
       {requestedAt && (
         <div className="flex items-center justify-start gap-1">
@@ -93,6 +95,16 @@ export function Dates({
           <span>Check-out:</span>
           <span className="font-medium text-gray-800 dark:text-gray-100">
             <DateTime dateTimeIso={checkOutTime} />
+          </span>
+        </div>
+      )}
+
+      {scheduledAt && (
+        <div className="flex items-center gap-1">
+          <AlarmClock className="h-5 w-5 text-sky-500" />
+          <span>Sched. for:</span>
+          <span className="font-medium text-gray-800 dark:text-gray-100">
+            <DateTime dateTimeIso={scheduledAt} />
           </span>
         </div>
       )}

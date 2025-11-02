@@ -1,5 +1,5 @@
 import { toIsoString } from '#common/timestamp.helper.js';
-import { RequestStatus, RequestStatuses } from '#Constants/statuses.js';
+import { OrderStatus, RequestStatus } from '#Constants/statuses.js';
 import { requestResponse } from '#presenters/request.js';
 import { getMessagesByConversationIds } from '#repositories/Message.repository.js';
 import * as requestRepo from '#repositories/Request.repository.js';
@@ -7,6 +7,9 @@ import * as roomRepo from '#repositories/Room.repository.js';
 import * as staffRepo from '#repositories/Staff.repository.js';
 import { ulid } from 'ulid';
 import { placeOrder } from './Order.service.js';
+import { ENTITY_TABLE_NAME } from '#Constants/DB.constants.js';
+import { updateOrderStatus } from '#repositories/Order.repository.js';
+import DDB from '#clients/DynamoDb.client.js';
 
 const minsToFulfillByDepartment = {
   house_keeping: () => {
@@ -94,13 +97,21 @@ export async function createRequest(requestData) {
   await requestRepo.createRequest(request);
 
   if (cart) {
-    await placeOrder({
+    const order = await placeOrder({
       cart,
       hotelId,
       roomId,
       requestId: request.requestId,
       bookingId,
       guestUserId,
+      estimatedTimeOfFulfillment,
+    });
+
+    request.orderId = order.orderId;
+    DDB.update({
+      TableName: ENTITY_TABLE_NAME,
+      Key: { pk: request.pk, sk: request.sk },
+      UpdateExpression: `SET orderId = ${order.orderId}`,
     });
   }
 
@@ -189,13 +200,23 @@ export async function startRequest({
   if (!request.assignedStaffUserId && !assignedStaffUserId)
     throw new Error("require assignedStaffUserId for request that hasn't been auto assigned staff");
 
-  return requestRepo.updateRequestStatusWithLog({
+  const reqUpdate = await requestRepo.updateRequestStatusWithLog({
     request,
     toStatus: RequestStatus.IN_PROGRESS,
     assignedStaffUserId,
     updatedByUserId,
     note,
   });
+
+  if (request.orderId) {
+    updateOrderStatus({
+      hotelId,
+      orderId: request.orderId,
+      toStatus: OrderStatus.PREPARING,
+    });
+  }
+
+  return reqUpdate;
 }
 
 export async function completeRequest({ requestId, hotelId, note, updatedByUserId }) {
@@ -204,11 +225,23 @@ export async function completeRequest({ requestId, hotelId, note, updatedByUserI
   const request = await requestRepo.getRequestById(requestId, hotelId);
   if (!request) throw new Error(`request doesn't exist for id:  ${requestId}`);
 
-  return requestRepo.updateRequestStatusWithLog({
+  const now = toIsoString();
+  const reqUpdate = await requestRepo.updateRequestStatusWithLog({
     request,
     toStatus: RequestStatus.COMPLETED,
-    timeOfFulfillment: toIsoString(),
+    timeOfFulfillment: now,
     updatedByUserId,
     note,
   });
+
+  if (request.orderId) {
+    updateOrderStatus({
+      hotelId,
+      orderId: request.orderId,
+      toStatus: OrderStatus.COMPLETED,
+      timeOfFulfillment: now,
+    });
+  }
+
+  return reqUpdate;
 }

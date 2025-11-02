@@ -2,8 +2,6 @@
 
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { Dates } from "@/components/ui/dates";
-import { DateTime } from "@/components/ui/datetime";
-import { ID } from "@/components/ui/id";
 import { Room } from "@/components/ui/room";
 import SortTable from "@/components/ui/sort-table";
 import User from "@/components/ui/user";
@@ -14,8 +12,10 @@ import {
   useCallback,
   useLayoutEffect,
 } from "react";
+import Status from "../../requests/_components/requestStatus";
+import { Order } from "@/components/ui/order";
 
-const LIMIT = 25;
+const LIMIT = 100;
 
 export default function Page() {
   const [data, setData] = useState([]);
@@ -29,11 +29,11 @@ export default function Page() {
 
   const columns = useMemo(
     () => [
-      { key: "bookingId", label: "BOOKING ID" },
+      { key: "status", label: "STATUS" },
+      { key: "order", label: "ORDER" },
       { key: "room", label: "ROOM" },
-      { key: "guest", label: "GUEST" },
       { key: "dates", label: "DATES" },
-      { key: "createdAt", label: "CREATED AT" },
+      { key: "guest", label: "GUEST" },
     ],
     [],
   );
@@ -57,38 +57,39 @@ export default function Page() {
         const qToken = serializeToken(tokenForThisPage);
         if (qToken) qs.append("nextToken", qToken);
 
-        const res = await fetch(`/api/booking/past?${qs.toString()}`, {
+        const res = await fetch(`/api/orders/upcoming?${qs.toString()}`, {
           method: "GET",
           credentials: "include",
         });
 
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
-          throw new Error(err.error || "Failed to fetch past bookings");
+          throw new Error(err.error || "Failed to fetch scheduled orders");
         }
 
-        const bookings = await res.json();
+        const orders = await res.json();
 
         setData(
-          Array.isArray(bookings?.items)
-            ? bookings?.items?.map((b) => ({
-                bookingId: <ID ulid={b.bookingId} size="xs" />,
+          Array.isArray(orders?.items)
+            ? orders?.items?.map((b) => ({
+                status: <Status status={b.status} ulid={b.orderId} />,
                 dates: (
                   <Dates
-                    checkInTime={b.checkInTime}
-                    checkOutTime={b.checkOutTime}
+                    requestedAt={b.createdAt}
+                    estimatedTimeOfFulfillment={b.estimatedTimeOfFulfillment}
+                    scheduledAt={b.scheduledAt}
                   />
                 ),
                 room: <Room room={b.room} />,
                 guest: (
                   <User user={b.guest} showMobileNumber={true} width="w-50" />
                 ),
-                createdAt: <DateTime dateTimeIso={b.createdAt} />,
+                order: <Order items={b.items} instructions={b.instructions} />,
               }))
             : [],
         );
 
-        const next = bookings?.nextToken ?? null; // raw token for the *next* page
+        const next = orders?.nextToken ?? null; // raw token for the *next* page
         setHasMore(Boolean(next));
         setCursorIndex(index);
 
@@ -111,7 +112,7 @@ export default function Page() {
     });
   }, [cursorIndex]);
 
-  const refreshBookings = useCallback(
+  const refreshOrders = useCallback(
     ({ limit } = {}) => {
       setCursorStack([null]);
       setCursorIndex(0);
@@ -133,13 +134,13 @@ export default function Page() {
   }, [cursorIndex, fetchPageAt]);
 
   useEffect(() => {
-    refreshBookings();
+    refreshOrders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <div>
-      <Breadcrumb pageName="Past Bookings" parent="Bookings" />
+      <Breadcrumb pageName="Scheduled Orders" parent="Orders" />
       <div className="w-fit rounded-[10px] bg-white p-6 dark:bg-gray-dark lg:w-full">
         <SortTable
           columns={columns}
@@ -147,7 +148,7 @@ export default function Page() {
           tableRowClassNames={[
             "text-base font-medium text-dark dark:text-white",
           ]}
-          noDataMessage="No past bookings"
+          noDataMessage="No scheduled orders"
           loading={loading}
           onClickNextPage={nextPage}
           onClickPrevPage={previousPage}
