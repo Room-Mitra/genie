@@ -53,30 +53,32 @@ export async function listOrdersByStatusType({ hotelId, statusType, limit, nextT
   const rooms = await roomRepo.queryAllRooms({ hotelId });
   const roomMap = new Map(rooms.map((room) => [room.roomId, room]));
 
-  const guestUserIds = orders?.items?.map((b) => b.guest.userId);
+  const guestUserIds = orders?.items?.map((b) => b.guestUserId);
   const guestUsers = await userRepo.getUsersByIds(guestUserIds);
   const guestUsersMap = new Map(guestUsers.map((user) => [user.userId, user]));
 
-  const getRoom = (room) => ({
-    type: room.type,
-    floor: room.floor,
-    number: room.number,
-    roomId: room.roomId,
-  });
+  const getRoom = (room) =>
+    room && {
+      type: room.type,
+      floor: room.floor,
+      number: room.number,
+      roomId: room.roomId,
+    };
 
-  const getUser = (user) => ({
-    firstName: user.firstName,
-    lastName: user.lastName,
-    userId: user.userId,
-    mobileNumber: user.mobileNumber,
-  });
+  const getUser = (user) =>
+    user && {
+      firstName: user.firstName,
+      lastName: user.lastName,
+      userId: user.userId,
+      mobileNumber: user.mobileNumber,
+    };
 
   return {
     ...orders,
     items: orders?.items?.map((b) => ({
       ...orderResponse(b),
       room: getRoom(roomMap.get(b.roomId)),
-      guest: getUser(guestUsersMap.get(b.guest.userId)),
+      guest: getUser(guestUsersMap.get(b.guestUserId)),
     })),
   };
 }
