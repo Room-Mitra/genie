@@ -137,18 +137,21 @@ export async function updateRequestStatusWithLog({
     '#status': 'status',
     '#updatedAt': 'updatedAt',
     '#status_pk': 'status_pk',
+    '#statusType': 'statusType',
   };
 
   const updateValues = {
     ':toStatus': toStatus,
     ':updatedAt': nowIso,
     ':status_pk': `REQSTATUS#${statusType}#HOTEL#${request.hotelId}`,
+    ':statusType': statusType,
   };
 
   const updateExpressionFields = [
     '#status = :toStatus',
     '#updatedAt = :updatedAt',
     '#status_pk = :status_pk',
+    '#statusType = :statusType',
   ];
 
   if (assignedStaffUserId) {
