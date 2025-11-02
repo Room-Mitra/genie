@@ -78,7 +78,7 @@ export async function queryRequestsByStatusType({ hotelId, statusType, limit = 2
   const data = await DDB.query(params).promise();
   return {
     items: data.Items || [],
-    nextToken: encodeToken(data.lastEvaluatedKey),
+    nextToken: encodeToken(data.LastEvaluatedKey),
     count: data.Count || 0,
   };
 }
