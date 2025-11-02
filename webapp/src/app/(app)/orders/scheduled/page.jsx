@@ -148,7 +148,7 @@ export default function Page() {
           tableRowClassNames={[
             "text-base font-medium text-dark dark:text-white",
           ]}
-          noDataMessage="No orders scheduled"
+          noDataMessage="No scheduled orders"
           loading={loading}
           onClickNextPage={nextPage}
           onClickPrevPage={previousPage}
