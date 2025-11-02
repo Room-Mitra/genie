@@ -60,7 +60,7 @@ export default function Page() {
         const qToken = serializeToken(tokenForThisPage);
         if (qToken) qs.append("nextToken", qToken);
 
-        const res = await fetch(`/api/requests?${qs.toString()}`, {
+        const res = await fetch(`/api/requests/inactive`, {
           method: "GET",
           credentials: "include",
           cache: "no-store",

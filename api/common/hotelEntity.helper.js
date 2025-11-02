@@ -120,7 +120,7 @@ export function buildHotelEntityItem(input) {
         bookingType_sk: `REQUEST#${requestId}`,
 
         // Requests by status board
-        status_pk: `REQSTATUS#${i.status}#HOTEL#${i.hotelId}`,
+        status_pk: `REQSTATUS#${i.statusType}#HOTEL#${i.hotelId}`,
         status_sk: `REQUEST#${requestId}`,
 
         // Requests by assignee (if assigned)
@@ -143,6 +143,7 @@ export function buildHotelEntityItem(input) {
 
         estimatedTimeOfFulfillment: i.estimatedTimeOfFulfillment,
         status: i.status,
+        statusType: i.statusType,
         assignedToUserId: i.assignedToUserId,
         conversationId: i.conversationId,
         guestUserId: i.guestUserId,
