@@ -60,7 +60,7 @@ export function Department({ department, reqType, roles, size }) {
   };
 
   return (
-    <div className="flex w-45 items-start gap-2">
+    <div className="flex w-40 items-start gap-2">
       <div>
         <Icon className={cn("text-gray-500", sizeToImage[size])} />
       </div>

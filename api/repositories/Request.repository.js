@@ -1,8 +1,13 @@
 import { buildHotelEntityItem } from '#common/hotelEntity.helper.js';
 import DDB from '#clients/DynamoDb.client.js';
-import { ENTITY_TABLE_NAME, GSI_BOOKINGTYPE_NAME } from '#Constants/DB.constants.js';
+import {
+  ENTITY_TABLE_NAME,
+  GSI_BOOKINGTYPE_NAME,
+  GSI_STATUS_NAME,
+} from '#Constants/DB.constants.js';
 import { ulid } from 'ulid';
 import { decodeToken, encodeToken } from './repository.helper.js';
+import { ActiveRequestStatuses, InActiveRequestStatuses } from '#Constants/statuses.js';
 
 export async function queryRequestsForBooking({ bookingId }) {
   if (!bookingId) {
@@ -51,36 +56,24 @@ export async function createRequest(request) {
   return requestItem;
 }
 
-export async function queryRequestsForHotel({ hotelId, statuses, limit = 25, nextToken }) {
+export async function queryRequestsByStatusType({ hotelId, statusType, limit = 25, nextToken }) {
+  if (!hotelId || !statusType)
+    throw new Error('hotelId and statusType needed to query requests by status');
+
   const params = {
     TableName: ENTITY_TABLE_NAME,
-    KeyConditionExpression: 'pk = :pk and begins_with(sk, :sk)',
+    IndexName: GSI_STATUS_NAME,
+    KeyConditionExpression: '#pk = :pk',
+    ExpressionAttributeNames: {
+      '#pk': 'status_pk',
+    },
     ExpressionAttributeValues: {
-      ':pk': `HOTEL#${hotelId}`,
-      ':sk': 'REQUEST#',
+      ':pk': `REQSTATUS#${statusType.toUpperCase()}#HOTEL#${hotelId}`,
     },
     Limit: Math.min(Number(limit) || 25, 100),
     ScanIndexForward: false,
     ExclusiveStartKey: decodeToken(nextToken),
   };
-
-  if (statuses?.length) {
-    const filterExpression = `#status IN (${statuses.map((_, i) => `:s${i}`).join(', ')})`;
-
-    const expressionAttributeValues = statuses.reduce((acc, status, i) => {
-      acc[`:s${i}`] = status;
-      return acc;
-    }, {});
-
-    params.FilterExpression = filterExpression;
-    params.ExpressionAttributeValues = {
-      ...params.ExpressionAttributeValues,
-      ...expressionAttributeValues,
-    };
-    params.ExpressionAttributeNames = {
-      '#status': 'status',
-    };
-  }
 
   const data = await DDB.query(params).promise();
   return {
@@ -124,17 +117,29 @@ export async function updateRequestStatusWithLog({
   const transitionId = ulid();
   const logSk = `REQUEST_TRANSITION#${transitionId}`;
 
+  const statusType = ActiveRequestStatuses.includes(toStatus)
+    ? 'ACTIVE'
+    : InActiveRequestStatuses.includes(toStatus)
+      ? 'INACTIVE'
+      : 'UNKNOWN';
+
   const updateNames = {
     '#status': 'status',
     '#updatedAt': 'updatedAt',
+    '#status_pk': 'status_pk',
   };
 
   const updateValues = {
     ':toStatus': toStatus,
     ':updatedAt': nowIso,
+    ':status_pk': `REQSTATUS#${statusType}#HOTEL#${request.hotelId}`,
   };
 
-  const updateExpressionFields = ['#status = :toStatus', '#updatedAt = :updatedAt'];
+  const updateExpressionFields = [
+    '#status = :toStatus',
+    '#updatedAt = :updatedAt',
+    '#status_pk = :status_pk',
+  ];
 
   if (assignedStaffUserId) {
     updateNames['#assignedStaffUserId'] = 'assignedStaffUserId';

@@ -4,3 +4,18 @@ export const RequestStatus = {
   DELAYED: 'delayed',
   COMPLETED: 'completed',
 };
+
+export const RequestStatuses = [
+  RequestStatus.UNACKNOWLEDGED,
+  RequestStatus.IN_PROGRESS,
+  RequestStatus.DELAYED,
+  RequestStatus.COMPLETED,
+];
+
+export const ActiveRequestStatuses = [
+  RequestStatus.UNACKNOWLEDGED,
+  RequestStatus.IN_PROGRESS,
+  RequestStatus.DELAYED,
+];
+
+export const InActiveRequestStatuses = [RequestStatus.COMPLETED];

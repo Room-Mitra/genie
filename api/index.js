@@ -44,9 +44,6 @@ import authenticator from '#middleware/Authenticator.middleware.js';
 import androidAuthenticator from '#middleware/AndroidAuthenticator.middleware.js';
 import adminAuthenticator from '#middleware/AdminAuthenticator.middleware.js';
 
-// // Cache
-// import { warmCache as warmDevicesCache } from '#libs/Device.cache.js';
-// import { warmCache as warmIntentsCache } from '#libs/Intent.cache.js';
 
 // Admin Routes
 import adminHotelRoutes from '#routes/admin/Hotel.controller.js';
@@ -109,10 +106,6 @@ app.use('/admin/hotels', adminAuthenticator, adminHotelRoutes);
 app.use('/admin/staff', adminAuthenticator, adminStaffRoutes);
 
 app.listen(PORT, () => console.log(`Server running on port: http://localhost:${PORT}`));
-
-// run functions on server startup
-// warmDevicesCache();
-// warmIntentsCache();
 
 // swagger setup
 // const swaggerOptions = {

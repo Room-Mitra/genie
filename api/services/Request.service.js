@@ -1,5 +1,5 @@
 import { toIsoString } from '#common/timestamp.helper.js';
-import { RequestStatus } from '#Constants/statuses.js';
+import { RequestStatus, RequestStatuses } from '#Constants/statuses.js';
 import { requestResponse } from '#presenters/request.js';
 import { getMessagesByConversationIds } from '#repositories/Message.repository.js';
 import * as requestRepo from '#repositories/Request.repository.js';
@@ -86,6 +86,8 @@ export async function createRequest(requestData) {
     cart,
 
     status: RequestStatus.UNACKNOWLEDGED,
+    statusType: 'INACTIVE',
+
     estimatedTimeOfFulfillment,
   };
 
@@ -105,16 +107,7 @@ export async function createRequest(requestData) {
   return request;
 }
 
-export async function listRequests({ hotelId, statuses, limit, nextToken }) {
-  if (!hotelId) throw new Error('need hotelId to list requests');
-
-  statuses?.forEach((s) => {
-    if (!['unacknowledged', 'in_progress', 'delayed', 'completed'].includes(s))
-      throw new Error('invalid status to list requests');
-  });
-
-  const requests = await requestRepo.queryRequestsForHotel({ hotelId, statuses, limit, nextToken });
-
+async function enrichRequests({ hotelId, requests }) {
   const rooms = await roomRepo.queryAllRooms({ hotelId });
   const roomMap = new Map(rooms.map((room) => [room.roomId, room]));
 
@@ -153,14 +146,31 @@ export async function listRequests({ hotelId, statuses, limit, nextToken }) {
         }
       : null;
 
+  return requests.map((r) => ({
+    ...requestResponse(r),
+    room: getRoom(roomMap.get(r.roomId)),
+    assignedStaff: getStaff(staffMap.get(r.assignedStaffUserId)),
+    conversation: getConversation(conversationsMap.get(r.conversationId)),
+  }));
+}
+
+export async function listRequestsByStatusType({ hotelId, statusType, limit, nextToken }) {
+  if (!hotelId || !statusType) throw new Error('need hotelId and statusType to list requests');
+
+  if (!['inactive', 'active'].includes(statusType.toLowerCase())) {
+    throw new Error('invalid status type to list requests');
+  }
+
+  const requests = await requestRepo.queryRequestsByStatusType({
+    hotelId,
+    statusType,
+    limit,
+    nextToken,
+  });
+
   return {
     ...requests,
-    items: requests.items.map((r) => ({
-      ...requestResponse(r),
-      room: getRoom(roomMap.get(r.roomId)),
-      assignedStaff: getStaff(staffMap.get(r.assignedStaffUserId)),
-      conversation: getConversation(conversationsMap.get(r.conversationId)),
-    })),
+    items: await enrichRequests({hotelId, requests: requests.items}),
   };
 }
 

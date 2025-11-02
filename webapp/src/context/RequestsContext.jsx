@@ -56,7 +56,7 @@ export function RequestsProvider({ children }) {
         const qToken = serializeToken(tokenForThisPage);
         if (qToken) qs.append("nextToken", qToken);
 
-        const res = await fetch(`/api/requests?${qs.toString()}`, {
+        const res = await fetch(`/api/requests/active`, {
           method: "GET",
           credentials: "include",
           cache: "no-store",
