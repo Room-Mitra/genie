@@ -111,7 +111,10 @@ export async function createRequest(requestData) {
     await DDB.update({
       TableName: ENTITY_TABLE_NAME,
       Key: { pk: request.pk, sk: request.sk },
-      UpdateExpression: `SET orderId = ${order.orderId}`,
+      UpdateExpression: 'SET orderId = :orderId',
+      ExpressionAttributeValues: {
+        ':orderId': order.orderId,
+      },
     }).promise();
   }
 
