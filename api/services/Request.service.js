@@ -108,11 +108,11 @@ export async function createRequest(requestData) {
     });
 
     request.orderId = order.orderId;
-    DDB.update({
+    await DDB.update({
       TableName: ENTITY_TABLE_NAME,
       Key: { pk: request.pk, sk: request.sk },
       UpdateExpression: `SET orderId = ${order.orderId}`,
-    });
+    }).promise();
   }
 
   return request;
@@ -209,7 +209,7 @@ export async function startRequest({
   });
 
   if (request.orderId) {
-    updateOrderStatus({
+    await updateOrderStatus({
       hotelId,
       orderId: request.orderId,
       toStatus: OrderStatus.PREPARING,
@@ -235,7 +235,7 @@ export async function completeRequest({ requestId, hotelId, note, updatedByUserI
   });
 
   if (request.orderId) {
-    updateOrderStatus({
+    await updateOrderStatus({
       hotelId,
       orderId: request.orderId,
       toStatus: OrderStatus.COMPLETED,

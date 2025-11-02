@@ -11,7 +11,6 @@ export function Order({ items = [], instructions }) {
           className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-800"
         >
           {/* Thumbnail */}
-
           <div className="relative h-8 w-8 flex-shrink-0 sm:h-10 sm:w-10">
             <Image
               src={i?.image?.url ?? `/images/food-placeholder.webp`}
