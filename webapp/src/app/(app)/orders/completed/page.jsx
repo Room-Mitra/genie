@@ -78,6 +78,7 @@ export default function Page() {
                     requestedAt={b.createdAt}
                     estimatedTimeOfFulfillment={b.estimatedTimeOfFulfillment}
                     scheduledAt={b.scheduledAt}
+                    timeOfFulfillment={b.timeOfFulfillment}
                   />
                 ),
                 room: <Room room={b.room} />,

@@ -94,7 +94,7 @@ export async function createRequest(requestData) {
     estimatedTimeOfFulfillment,
   };
 
-  await requestRepo.createRequest(request);
+  const createdReq = await requestRepo.createRequest(request);
 
   if (cart) {
     const order = await placeOrder({
@@ -108,13 +108,13 @@ export async function createRequest(requestData) {
     });
 
     request.orderId = order.orderId;
+
     await DDB.update({
       TableName: ENTITY_TABLE_NAME,
-      Key: { pk: request.pk, sk: request.sk },
-      UpdateExpression: 'SET orderId = :orderId',
-      ExpressionAttributeValues: {
-        ':orderId': order.orderId,
-      },
+      Key: { pk: createdReq.pk, sk: createdReq.sk },
+      UpdateExpression: 'SET #orderId = :orderId',
+      ExpressionAttributeNames: { '#orderId': 'orderId' },
+      ExpressionAttributeValues: { ':orderId': order.orderId },
     }).promise();
   }
 
@@ -241,7 +241,7 @@ export async function completeRequest({ requestId, hotelId, note, updatedByUserI
     await updateOrderStatus({
       hotelId,
       orderId: request.orderId,
-      toStatus: OrderStatus.COMPLETED,
+      toStatus: OrderStatus.DELIVERED,
       timeOfFulfillment: now,
     });
   }

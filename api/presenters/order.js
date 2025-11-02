@@ -1,7 +1,17 @@
 export function orderResponse(order) {
   if (!order) return null;
-  const { instructions, items, status, scheduledAt, createdAt, guestUserId, orderId, requestId } =
-    order;
+  const {
+    instructions,
+    items,
+    status,
+    scheduledAt,
+    createdAt,
+    guestUserId,
+    orderId,
+    requestId,
+    estimatedTimeOfFulfillment,
+    timeOfFulfillment,
+  } = order;
 
   return {
     orderId,
@@ -12,5 +22,7 @@ export function orderResponse(order) {
     items,
     scheduledAt,
     createdAt,
+    estimatedTimeOfFulfillment,
+    timeOfFulfillment,
   };
 }
