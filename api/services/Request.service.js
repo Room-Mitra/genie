@@ -86,7 +86,7 @@ export async function createRequest(requestData) {
     cart,
 
     status: RequestStatus.UNACKNOWLEDGED,
-    statusType: 'INACTIVE',
+    statusType: 'ACTIVE',
 
     estimatedTimeOfFulfillment,
   };
