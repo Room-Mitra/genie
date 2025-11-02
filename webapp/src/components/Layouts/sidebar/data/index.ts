@@ -1,6 +1,10 @@
-import { BookOpenIcon, UsersIcon } from "@heroicons/react/24/outline";
+import {
+  BookOpenIcon,
+  ClipboardDocumentListIcon,
+  UsersIcon,
+} from "@heroicons/react/24/outline";
 import * as Icons from "../icons";
-import { BedDoubleIcon, HotelIcon, LineChartIcon } from "lucide-react";
+import { BedDoubleIcon, HotelIcon } from "lucide-react";
 
 export const NAV_DATA = [
   {
@@ -23,6 +27,20 @@ export const NAV_DATA = [
           {
             title: "Completed",
             url: "/requests/completed",
+          },
+        ],
+      },
+      {
+        title: "Orders",
+        icon: ClipboardDocumentListIcon,
+        items: [
+          {
+            title: "Active",
+            url: "/orders/active",
+          },
+          {
+            title: "Completed",
+            url: "/orders/completed",
           },
         ],
       },
