@@ -85,11 +85,12 @@ locals {
     # Status
     { name = "GSI_Status", hash = "status_pk", range = "status_sk" },
 
-    # Assignee Workload
-    { name = "GSI_AssigneeType", hash = "assigneeType_pk", range = "assigneeType_sk" },
-
     # Booking Type
     { name = "GSI_BookingType", hash = "bookingType_pk", range = "bookingType_sk" },
+
+    # Active Pk
+    { name = "GSI_Active", hash = "active_pk", range = "active_sk" },
+
   ]
 
   # Build a unique set of attribute definitions actually used

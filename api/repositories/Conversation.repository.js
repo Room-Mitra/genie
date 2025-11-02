@@ -1,6 +1,6 @@
 import DDB from '#clients/DynamoDb.client.js';
 import { buildHotelEntityItem } from '#common/hotelEntity.helper.js';
-import { ENTITY_TABLE_NAME } from '#Constants/DB.constants.js';
+import { ENTITY_TABLE_NAME, GSI_ACTIVE_NAME } from '#Constants/DB.constants.js';
 
 export async function saveConversationEntities(conversation, messages) {
   const TransactItems = [];
@@ -59,12 +59,21 @@ export async function getConversationById({ hotelId, conversationId }) {
 
   const params = {
     TableName: ENTITY_TABLE_NAME,
-    Key: {
-      pk,
-      sk,
+    IndexName: GSI_ACTIVE_NAME,
+    KeyConditionExpression: '#pk = :pk and #sk = :sk',
+    ExpressionAttributeNames: {
+      '#pk': 'active_pk',
+      '#sk': 'active_sk',
     },
+    ExpressionAttributeValues: {
+      ':pk': pk,
+      ':sk': sk,
+    },
+    Limit: 1,
   };
 
-  const { Item } = await DDB.get(params).promise();
-  return Item || null;
+  const { Items } = await DDB.query(params).promise();
+  if (!Items || Items.length === 0) return null;
+
+  return Items[0];
 }

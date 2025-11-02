@@ -2,6 +2,7 @@ import { buildHotelEntityItem } from '#common/hotelEntity.helper.js';
 import DDB from '#clients/DynamoDb.client.js';
 import {
   ENTITY_TABLE_NAME,
+  GSI_ACTIVE_NAME,
   GSI_BOOKINGTYPE_NAME,
   GSI_STATUS_NAME,
 } from '#Constants/DB.constants.js';
@@ -88,14 +89,23 @@ export async function getRequestById(requestId, hotelId) {
 
   const params = {
     TableName: ENTITY_TABLE_NAME,
-    Key: {
-      pk: `HOTEL#${hotelId}`,
-      sk: `REQUEST#${requestId}`,
+    IndexName: GSI_ACTIVE_NAME,
+    KeyConditionExpression: '#pk = :pk and #sk = :sk',
+    ExpressionAttributeNames: {
+      '#pk': 'active_pk',
+      '#sk': 'active_sk',
     },
+    ExpressionAttributeValues: {
+      ':pk': `HOTEL#${hotelId}`,
+      ':sk': `REQUEST#${requestId}`,
+    },
+    Limit: 1,
   };
 
-  const { Item } = await DDB.get(params).promise();
-  return Item || null;
+  const { Items } = await DDB.query(params).promise();
+  if (!Items || Items.length === 0) return null;
+
+  return Items[0];
 }
 
 export async function updateRequestStatusWithLog({
@@ -156,6 +166,10 @@ export async function updateRequestStatusWithLog({
   const transitionItem = {
     pk: request.sk,
     sk: logSk,
+
+    active_pk: request.sk,
+    active_sk: logSk,
+
     entityType: 'REQUEST_TRANSITION',
     requestId: request.requestId,
     transitionId,

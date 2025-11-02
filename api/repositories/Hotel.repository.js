@@ -1,4 +1,4 @@
-import { ENTITY_TABLE_NAME } from '#Constants/DB.constants.js';
+import { ENTITY_TABLE_NAME, GSI_ACTIVE_NAME } from '#Constants/DB.constants.js';
 import { buildHotelEntityItem } from '#common/hotelEntity.helper.js';
 import DDB from '#clients/DynamoDb.client.js';
 import { decodeToken, encodeToken } from './repository.helper.js';
@@ -37,8 +37,9 @@ export async function putHotel(hotel) {
 export async function queryAllHotels({ limit = 25, nextToken }) {
   const params = {
     TableName: ENTITY_TABLE_NAME,
+    IndexName: GSI_ACTIVE_NAME,
     KeyConditionExpression: '#pk = :p',
-    ExpressionAttributeNames: { '#pk': 'pk' },
+    ExpressionAttributeNames: { '#pk': 'active_pk' },
     ExpressionAttributeValues: { ':p': 'CATALOG#HOTEL' },
     Limit: Math.min(Number(limit) || 25, 100),
     ScanIndexForward: false,
@@ -60,8 +61,9 @@ export async function queryLatestHotelById(hotelId) {
 
   const params = {
     TableName: ENTITY_TABLE_NAME,
+    IndexName: GSI_ACTIVE_NAME,
     KeyConditionExpression: '#pk = :pk and #sk = :sk',
-    ExpressionAttributeNames: { '#pk': 'pk', '#sk': 'sk' },
+    ExpressionAttributeNames: { '#pk': 'active_pk', '#sk': 'active_sk' },
     ExpressionAttributeValues: { ':pk': pk, ':sk': sk },
     ScanIndexForward: false, // newest first
     Limit: 1,
@@ -109,7 +111,9 @@ export async function queryLatestHotelByPrefix(hotelIdPrefix) {
 
   const params = {
     TableName: ENTITY_TABLE_NAME,
-    KeyConditionExpression: 'pk = :pk and begins_with(sk, :sk)',
+    IndexName: GSI_ACTIVE_NAME,
+    KeyConditionExpression: '#pk = :pk and begins_with(#sk, :sk)',
+    ExpressionAttributeNames: { '#pk': 'active_pk', '#sk': 'active_sk' },
     ExpressionAttributeValues: { ':pk': pk, ':sk': sk },
     ScanIndexForward: false, // newest first
     Limit: 1,
@@ -137,10 +141,11 @@ export async function queryHotelMeta({ hotelId, entityType }) {
 
   const params = {
     TableName: ENTITY_TABLE_NAME,
+    IndexName: GSI_ACTIVE_NAME,
     KeyConditionExpression: '#pk = :pk AND begins_with(#sk, :sk)',
     ExpressionAttributeNames: {
-      '#pk': 'pk',
-      '#sk': 'sk',
+      '#pk': 'active_pk',
+      '#sk': 'active_sk',
     },
     ExpressionAttributeValues: {
       ':pk': `HOTEL#${hotelId}`,
@@ -172,14 +177,17 @@ export async function deleteHotelMeta({ hotelId, id, entityType }) {
 
   const params = {
     TableName: ENTITY_TABLE_NAME,
+    ConditionExpression: 'attribute_not_exists(deletedAt)',
     Key: {
       pk: `HOTEL#${hotelId}`,
       sk: `HOTEL#META#${entityType}#${id}`,
     },
+    UpdateExpression: 'SET deletedAt = :now REMOVE active_pk, active_sk',
+    ExpressionAttributeValues: { ':now': new Date().toISOString() },
   };
 
   try {
-    await DDB.delete(params).promise();
+    await DDB.update(params).promise();
   } catch (err) {
     console.error('Failed to delete hotel meta', err);
     throw new Error('Failed to delete hotel meta');

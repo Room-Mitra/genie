@@ -1,4 +1,4 @@
-import { ENTITY_TABLE_NAME, GSI_ROOMTYPE_NAME } from '#Constants/DB.constants.js';
+import { ENTITY_TABLE_NAME, GSI_ACTIVE_NAME, GSI_ROOMTYPE_NAME } from '#Constants/DB.constants.js';
 import { buildHotelEntityItem } from '#common/hotelEntity.helper.js';
 import { toIsoString } from '#common/timestamp.helper.js';
 import DDB from '#clients/DynamoDb.client.js';
@@ -57,7 +57,9 @@ export async function queryLatestBookingById({ hotelId, bookingId }) {
 
   const params = {
     TableName: ENTITY_TABLE_NAME,
-    KeyConditionExpression: 'pk = :pk and sk = :sk',
+    IndexName: GSI_ACTIVE_NAME,
+    KeyConditionExpression: '#pk = :pk and #sk = :sk',
+    ExpressionAttributeNames: { '#pk': 'active_pk', '#sk': 'active_sk' },
     ExpressionAttributeValues: { ':pk': pk, ':sk': sk },
     ScanIndexForward: false,
     Limit: 1,
@@ -84,9 +86,10 @@ export async function queryBookings({ hotelId, status, limit = 25, nextToken }) 
 
   const params = {
     TableName: ENTITY_TABLE_NAME,
-
-    KeyConditionExpression: 'pk = :pk and begins_with(sk, :sk)',
+    IndexName: GSI_ACTIVE_NAME,
+    KeyConditionExpression: '#pk = :pk and begins_with(#sk, :sk)',
     FilterExpression: filterExpressions[status],
+    ExpressionAttributeNames: { '#pk': 'active_pk', '#sk': 'active_sk' },
     ExpressionAttributeValues: {
       ':pk': `HOTEL#${hotelId}`,
       ':sk': `BOOKING#`,

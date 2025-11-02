@@ -1,4 +1,3 @@
-// handlers/fetch_menu.ts
 import { keywordScore } from '#libs/ranking.js';
 import { queryMenuByHotel } from '#repositories/Menu.repository.js';
 

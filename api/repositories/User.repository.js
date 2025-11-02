@@ -1,13 +1,18 @@
 import DDB from '#clients/DynamoDb.client.js';
-import { ENTITY_TABLE_NAME } from '#Constants/DB.constants.js';
+import { ENTITY_TABLE_NAME, GSI_ACTIVE_NAME } from '#Constants/DB.constants.js';
 import { toIsoString } from '#common/timestamp.helper.js';
 
 export async function transactCreateUserWithEmailGuard({ user }) {
   const now = new Date();
+  const pk = `CATALOG#USER`;
+  const sk = `USER#${user.userId}`;
 
   const userItem = {
-    pk: `CATALOG#USER`,
-    sk: `USER#${user.userId}`,
+    pk,
+    sk,
+
+    active_pk: pk,
+    active_sk: sk,
 
     userId: user.userId,
     entityType: 'USER_INDEX',
@@ -32,6 +37,10 @@ export async function transactCreateUserWithEmailGuard({ user }) {
           Item: {
             pk: emailKey,
             sk: `EMAIL_REGISTRY`,
+
+            active_pk: emailKey,
+            active_sk: `EMAIL_REGISTRY`,
+
             entityType: 'EMAIL_REGISTRY',
             userId: userItem.userId,
             createdAt: toIsoString(now),
@@ -48,10 +57,15 @@ export async function transactCreateUserWithEmailGuard({ user }) {
 
 export async function transactCreateUserWithMobileGuard({ user }) {
   const now = new Date();
+  const pk = `CATALOG#USER`;
+  const sk = `USER#${user.userId}`;
 
   const userItem = {
-    pk: `CATALOG#USER`,
-    sk: `USER#${user.userId}`,
+    pk,
+    sk,
+
+    active_pk: pk,
+    active_sk: sk,
 
     userId: user.userId,
     entityType: 'USER_INDEX',
@@ -76,6 +90,10 @@ export async function transactCreateUserWithMobileGuard({ user }) {
           Item: {
             pk: mobileKey,
             sk: `MOBILE_REGISTRY`,
+
+            active_pk: mobileKey,
+            active_sk: `MOBILE_REGISTRY`,
+
             entityType: 'MOBILE_REGISTRY',
             userId: userItem.userId,
             createdAt: toIsoString(now),
@@ -96,7 +114,11 @@ export async function getEmailRegistryByEmail(email) {
   // We wrote exactly one item per email in sign-up, so query with pk and limit 1
   const params = {
     TableName: ENTITY_TABLE_NAME,
-    KeyConditionExpression: 'pk = :pk',
+    IndexName: GSI_ACTIVE_NAME,
+    KeyConditionExpression: '#pk = :pk',
+    ExpressionAttributeNames: {
+      '#pk': 'active_pk',
+    },
     ExpressionAttributeValues: {
       ':pk': pk,
     },
@@ -117,7 +139,11 @@ export async function getMobileRegistryByMobile(mobile) {
   // We wrote exactly one item per email in sign-up, so query with pk and limit 1
   const params = {
     TableName: ENTITY_TABLE_NAME,
-    KeyConditionExpression: 'pk = :pk',
+    IndexName: GSI_ACTIVE_NAME,
+    KeyConditionExpression: '#pk = :pk',
+    ExpressionAttributeNames: {
+      '#pk': 'active_pk',
+    },
     ExpressionAttributeValues: {
       ':pk': pk,
     },
@@ -135,14 +161,23 @@ export async function getUserProfileById(userId) {
 
   const params = {
     TableName: ENTITY_TABLE_NAME,
-    Key: {
-      pk: `CATALOG#USER`,
-      sk: `USER#${userId}`,
+    IndexName: GSI_ACTIVE_NAME,
+    KeyConditionExpression: '#pk = :pk and #sk = :sk',
+    ExpressionAttributeNames: {
+      '#pk': 'active_pk',
+      '#sk': 'active_sk',
     },
+    ExpressionAttributeValues: {
+      ':pk': `CATALOG#USER`,
+      ':sk': `USER#${userId}`,
+    },
+    Limit: 1,
   };
 
-  const { Item } = await DDB.get(params).promise();
-  return Item || null;
+  const { Items } = await DDB.query(params).promise();
+  if (!Items || Items.length === 0) return null;
+
+  return Items[0];
 }
 
 /**
@@ -151,6 +186,7 @@ export async function getUserProfileById(userId) {
  * - Retries UnprocessedKeys with exponential backoff
  * - Optional: { consistentRead, projection }
  * - Returns results in the same order as input userIds
+ * - Doesn't exclude deleted userIds.
  */
 export async function getUsersByIds(userIds = [], opts = {}) {
   if (!userIds.length) return [];

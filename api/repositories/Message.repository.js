@@ -1,11 +1,12 @@
-import { ENTITY_TABLE_NAME } from '#Constants/DB.constants.js';
+import { ENTITY_TABLE_NAME, GSI_ACTIVE_NAME } from '#Constants/DB.constants.js';
 import DDB from '#clients/DynamoDb.client.js';
 
 export async function getMessages({ conversationId }) {
   const params = {
     TableName: ENTITY_TABLE_NAME,
+    IndexName: GSI_ACTIVE_NAME,
     KeyConditionExpression: '#pk = :p',
-    ExpressionAttributeNames: { '#pk': 'pk' },
+    ExpressionAttributeNames: { '#pk': 'active_pk' },
     ExpressionAttributeValues: { ':p': `CONVERSATION#${conversationId}` },
     ScanIndexForward: true,
   };
@@ -75,9 +76,10 @@ async function queryAllMessagesForConversation(conversationId, { consistentRead,
   do {
     const params = {
       TableName: ENTITY_TABLE_NAME,
+      IndexName: GSI_ACTIVE_NAME,
       ConsistentRead: !!consistentRead,
       KeyConditionExpression: '#pk = :pk AND begins_with(#sk, :skPrefix)',
-      ExpressionAttributeNames: { '#pk': 'pk', '#sk': 'sk' },
+      ExpressionAttributeNames: { '#pk': 'active_pk', '#sk': 'active_sk' },
       ExpressionAttributeValues: {
         ':pk': `CONVERSATION#${conversationId}`,
         ':skPrefix': 'MESSAGE#',

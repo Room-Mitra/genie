@@ -1,6 +1,6 @@
 import { buildHotelEntityItem } from '#common/hotelEntity.helper.js';
 import DDB from '#clients/DynamoDb.client.js';
-import { ENTITY_TABLE_NAME } from '#Constants/DB.constants.js';
+import { ENTITY_TABLE_NAME, GSI_ACTIVE_NAME } from '#Constants/DB.constants.js';
 
 export const createRoom = async (roomData) => {
   const roomItem = buildHotelEntityItem(roomData);
@@ -21,10 +21,11 @@ export async function queryAllRooms({ hotelId }) {
 
   const params = {
     TableName: ENTITY_TABLE_NAME,
+    IndexName: GSI_ACTIVE_NAME,
     KeyConditionExpression: '#pk = :pk AND begins_with(#sk, :sk)',
     ExpressionAttributeNames: {
-      '#pk': 'pk',
-      '#sk': 'sk',
+      '#pk': 'active_pk',
+      '#sk': 'active_sk',
     },
     ExpressionAttributeValues: {
       ':pk': `HOTEL#${hotelId}`,
@@ -57,7 +58,9 @@ export async function queryRoomByPrefix({ hotelId, roomIdPrefix }) {
 
   const params = {
     TableName: ENTITY_TABLE_NAME,
-    KeyConditionExpression: 'pk = :pk and begins_with(sk, :sk)',
+    IndexName: GSI_ACTIVE_NAME,
+    KeyConditionExpression: '#pk = :pk and begins_with(#sk, :sk)',
+    ExpressionAttributeNames: { '#pk': 'active_pk', '#sk': 'active_sk' },
     ExpressionAttributeValues: { ':pk': pk, ':sk': sk },
     ScanIndexForward: false,
     Limit: 1,

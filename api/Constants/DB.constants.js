@@ -1,12 +1,6 @@
-//  1) ENTITIES TABLE
-//     Stores ROOM, HOTEL, USER, REQUEST, DEVICE, BOOKING, etc.
-//     PK/SK allow single-table patterns.
-//     hotelId GSI with SK entityType#timestamp
-//     roomId GSI with SK entityType#timestamp (useful to fetch requests/bookings/devices by room)
-//     "pk"     # e.g., HOTEL#<hotelId> or USER#<userId> or ROOM#<roomId>
-//     "sk"     # e.g., ENTITY#<entityId> or REQUEST#<requestId> or META#<something>
-
 export const ENTITY_TABLE_NAME = 'ENTITY';
+
+export const GSI_ACTIVE_NAME = 'GSI_Active';
 
 export const GSI_HOTELTYPE_NAME = 'GSI_HotelType';
 export const GSI_ROOMTYPE_NAME = 'GSI_RoomType';
