@@ -2,6 +2,7 @@ import { ENTITY_TABLE_NAME, GSI_ROOMTYPE_NAME } from '#Constants/DB.constants.js
 import { buildHotelEntityItem } from '#common/hotelEntity.helper.js';
 import { toIsoString } from '#common/timestamp.helper.js';
 import DDB from '#clients/DynamoDb.client.js';
+import { decodeToken, encodeToken } from './repository.helper.js';
 
 export async function existsOverlappingBooking({ roomId, checkInTime, checkOutTime }) {
   // Overlap condition:
@@ -66,7 +67,7 @@ export async function queryLatestBookingById({ hotelId, bookingId }) {
   return data.Items && data.Items[0];
 }
 
-export async function queryBookings({ hotelId, status }) {
+export async function queryBookings({ hotelId, status, limit = 25, nextToken }) {
   if (!hotelId) {
     throw new Error('hotelId is required to query active bookings');
   }
@@ -91,25 +92,17 @@ export async function queryBookings({ hotelId, status }) {
       ':sk': `BOOKING#`,
       ':now': toIsoString(),
     },
+    Limit: Math.min(Number(limit) || 25, 100),
     ScanIndexForward: false,
+    ExclusiveStartKey: decodeToken(nextToken),
   };
 
-  const items = [];
-  let lastEvaluatedKey;
-
-  try {
-    do {
-      const res = await DDB.query(params).promise();
-      if (res.Items?.length) items.push(...res.Items);
-      lastEvaluatedKey = res.LastEvaluatedKey;
-      params.ExclusiveStartKey = lastEvaluatedKey;
-    } while (lastEvaluatedKey);
-
-    return items;
-  } catch (err) {
-    console.error('Failed to query active bookings:', err);
-    throw new Error('Failed to query active bookings');
-  }
+  const data = await DDB.query(params).promise();
+  return {
+    items: data.Items || [],
+    nextToken: encodeToken(data.LastEvaluatedKey),
+    count: data.Count || 0,
+  };
 }
 
 export async function getActiveBookingForRoom({ roomId }) {

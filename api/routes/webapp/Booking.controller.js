@@ -52,8 +52,14 @@ router.post('/', async (req, res) => {
 router.get('/active', async (req, res) => {
   try {
     const { hotelId } = req.userData;
+    const { limit, nextToken } = req.query;
 
-    const bookings = await bookingService.listBookings({ hotelId, status: 'active' });
+    const bookings = await bookingService.listBookings({
+      hotelId,
+      status: 'active',
+      limit,
+      nextToken,
+    });
 
     return res.status(200).json(bookings);
   } catch (err) {
@@ -65,8 +71,14 @@ router.get('/active', async (req, res) => {
 router.get('/past', async (req, res) => {
   try {
     const { hotelId } = req.userData;
+    const { limit, nextToken } = req.query;
 
-    const bookings = await bookingService.listBookings({ hotelId, status: 'past' });
+    const bookings = await bookingService.listBookings({
+      hotelId,
+      status: 'past',
+      limit,
+      nextToken,
+    });
 
     return res.status(200).json(bookings);
   } catch (err) {
@@ -78,8 +90,14 @@ router.get('/past', async (req, res) => {
 router.get('/upcoming', async (req, res) => {
   try {
     const { hotelId } = req.userData;
+    const { limit, nextToken } = req.query;
 
-    const bookings = await bookingService.listBookings({ hotelId, status: 'upcoming' });
+    const bookings = await bookingService.listBookings({
+      hotelId,
+      status: 'upcoming',
+      limit,
+      nextToken,
+    });
 
     return res.status(200).json(bookings);
   } catch (err) {

@@ -2,7 +2,13 @@
 
 import SortTable from "@/components/ui/sort-table";
 import RequestStatus from "../_components/requestStatus";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from "react";
 import { ID } from "@/components/ui/id";
 import { Room } from "@/components/ui/room";
 import User from "@/components/ui/user";
@@ -22,11 +28,11 @@ export default function Page() {
   // Page 0 uses null as the cursor (first page).
   const [cursorStack, setCursorStack] = useState([null]);
   const [cursorIndex, setCursorIndex] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const isAtStart = cursorIndex === 0;
 
   const [completedRequests, setCompletedRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [hasMore, setHasMore] = useState(false);
-  const isAtStart = cursorIndex === 0;
 
   const columns = useMemo(
     () => [
@@ -55,17 +61,22 @@ export default function Page() {
         const tokenForThisPage = cursorStack[index] ?? null;
 
         const qs = new URLSearchParams();
-        ["completed"].forEach((s) => qs.append("statuses", s));
         if (limit) qs.append("limit", String(limit));
         const qToken = serializeToken(tokenForThisPage);
         if (qToken) qs.append("nextToken", qToken);
 
-        const res = await fetch(`/api/requests/inactive`, {
+        const res = await fetch(`/api/requests/inactive?${qs.toString()}`, {
           method: "GET",
           credentials: "include",
           cache: "no-store",
           headers: { "cache-control": "no-store" },
         });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || "Failed to fetch inactive requests");
+        }
+
         const data = await res.json();
 
         setCompletedRequests(
@@ -156,6 +167,13 @@ export default function Page() {
     },
     [cursorStack],
   );
+
+  useLayoutEffect(() => {
+    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" }); // or "smooth"
+    });
+  }, [cursorIndex]);
 
   const refreshRequests = useCallback(
     ({ limit } = {}) => {

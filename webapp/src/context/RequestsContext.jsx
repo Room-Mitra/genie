@@ -49,14 +49,11 @@ export function RequestsProvider({ children }) {
         const tokenForThisPage = cursorStack[index] ?? null;
 
         const qs = new URLSearchParams();
-        ["unacknowledged", "in_progress", "delayed"].forEach((s) =>
-          qs.append("statuses", s),
-        );
         if (limit) qs.append("limit", String(limit));
         const qToken = serializeToken(tokenForThisPage);
         if (qToken) qs.append("nextToken", qToken);
 
-        const res = await fetch(`/api/requests/active`, {
+        const res = await fetch(`/api/requests/active?${qs.toString()}`, {
           method: "GET",
           credentials: "include",
           cache: "no-store",

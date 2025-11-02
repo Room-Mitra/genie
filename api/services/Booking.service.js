@@ -91,13 +91,13 @@ export async function getBookingById({ hotelId, bookingId }) {
   return bookingResponse(await bookingRepo.queryLatestBookingById({ hotelId, bookingId }));
 }
 
-export async function listBookings({ hotelId, status }) {
-  const bookings = await bookingRepo.queryBookings({ hotelId, status });
+export async function listBookings({ hotelId, status, limit, nextToken }) {
+  const bookings = await bookingRepo.queryBookings({ hotelId, status, limit, nextToken });
 
   const rooms = await roomRepo.queryAllRooms({ hotelId });
   const roomMap = new Map(rooms.map((room) => [room.roomId, room]));
 
-  const guestUserIds = bookings.map((b) => b.guest.userId);
+  const guestUserIds = bookings?.items?.map((b) => b.guest.userId);
   const guestUsers = await userRepo.getUsersByIds(guestUserIds);
   const guestUsersMap = new Map(guestUsers.map((user) => [user.userId, user]));
 
@@ -116,12 +116,12 @@ export async function listBookings({ hotelId, status }) {
   });
 
   return {
-    items: bookings?.map((b) => ({
+    ...bookings,
+    items: bookings?.items?.map((b) => ({
       ...bookingResponse(b),
       room: getRoom(roomMap.get(b.roomId)),
       guest: getUser(guestUsersMap.get(b.guest.userId)),
     })),
-    count: bookings?.length || 0,
   };
 }
 

@@ -7,25 +7,25 @@ import { ID } from "@/components/ui/id";
 import { Room } from "@/components/ui/room";
 import SortTable from "@/components/ui/sort-table";
 import User from "@/components/ui/user";
-import { useMemo, useState, useEffect } from "react";
+import {
+  useMemo,
+  useState,
+  useEffect,
+  useCallback,
+  useLayoutEffect,
+} from "react";
 
-async function fetchActiveBookings() {
-  const res = await fetch("/api/booking/active", {
-    method: "GET",
-    credentials: "include",
-  });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || "Failed to fetch active booking");
-  }
-
-  return await res.json();
-}
+const LIMIT = 100;
 
 export default function Page() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Page 0 uses null as the cursor (first page).
+  const [cursorStack, setCursorStack] = useState([null]);
+  const [cursorIndex, setCursorIndex] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const isAtStart = cursorIndex === 0;
 
   const columns = useMemo(
     () => [
@@ -38,39 +38,102 @@ export default function Page() {
     [],
   );
 
-  useEffect(() => {
-    let cancelled = false;
+  // Serialize a potentially object-shaped token for the querystring.
+  const serializeToken = (token) => {
+    if (token == null) return null;
+    return typeof token === "string"
+      ? token
+      : encodeURIComponent(JSON.stringify(token));
+  };
 
-    (async () => {
+  const fetchPageAt = useCallback(
+    async ({ index, limit } = {}) => {
+      setLoading(true);
       try {
-        const bookings = await fetchActiveBookings();
-        if (!cancelled)
-          setData(
-            bookings?.items?.map((b) => ({
-              bookingId: <ID ulid={b.bookingId} size="xs" />,
-              dates: (
-                <Dates
-                  checkInTime={b.checkInTime}
-                  checkOutTime={b.checkOutTime}
-                />
-              ),
-              room: <Room room={b.room} />,
-              guest: (
-                <User user={b.guest} showMobileNumber={true} width="w-50" />
-              ),
-              createdAt: <DateTime dateTimeIso={b.createdAt} />,
-            })),
-          );
-      } catch (err) {
-        console.error("Error fetching bookings:", err);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
+        const tokenForThisPage = cursorStack[index] ?? null;
 
-    return () => {
-      cancelled = true;
-    };
+        const qs = new URLSearchParams();
+        if (limit) qs.append("limit", String(limit));
+        const qToken = serializeToken(tokenForThisPage);
+        if (qToken) qs.append("nextToken", qToken);
+
+        const res = await fetch(`/api/booking/active?${qs.toString()}`, {
+          method: "GET",
+          credentials: "include",
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || "Failed to fetch active bookings");
+        }
+
+        const bookings = await res.json();
+
+        setData(
+          Array.isArray(bookings?.items)
+            ? bookings?.items?.map((b) => ({
+                bookingId: <ID ulid={b.bookingId} size="xs" />,
+                dates: (
+                  <Dates
+                    checkInTime={b.checkInTime}
+                    checkOutTime={b.checkOutTime}
+                  />
+                ),
+                room: <Room room={b.room} />,
+                guest: (
+                  <User user={b.guest} showMobileNumber={true} width="w-50" />
+                ),
+                createdAt: <DateTime dateTimeIso={b.createdAt} />,
+              }))
+            : [],
+        );
+
+        const next = bookings?.nextToken ?? null; // raw token for the *next* page
+        setHasMore(Boolean(next));
+        setCursorIndex(index);
+
+        setCursorStack((prev) => {
+          const copy = prev.slice(0, index + 1); // drop any forward history
+          copy[index + 1] = next; // store cursor for the next page
+          return copy;
+        });
+      } finally {
+        setLoading(false);
+      }
+    },
+    [cursorStack],
+  );
+
+  useLayoutEffect(() => {
+    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" }); // or "smooth"
+    });
+  }, [cursorIndex]);
+
+  const refreshBookings = useCallback(
+    ({ limit } = {}) => {
+      setCursorStack([null]);
+      setCursorIndex(0);
+      setHasMore(false);
+      fetchPageAt({ index: 0, limit: limit || LIMIT });
+    },
+    [fetchPageAt],
+  );
+
+  const nextPage = useCallback(() => {
+    const tokenForNext = cursorStack[cursorIndex + 1];
+    if (!tokenForNext) return; // no more pages
+    fetchPageAt({ index: cursorIndex + 1, limit: LIMIT });
+  }, [cursorIndex, cursorStack, fetchPageAt]);
+
+  const previousPage = useCallback(() => {
+    if (cursorIndex === 0) return;
+    fetchPageAt({ index: cursorIndex - 1, limit: LIMIT });
+  }, [cursorIndex, fetchPageAt]);
+
+  useEffect(() => {
+    refreshBookings();
   }, []);
 
   return (
@@ -85,6 +148,11 @@ export default function Page() {
           ]}
           noDataMessage="No active bookings"
           loading={loading}
+          onClickNextPage={nextPage}
+          onClickPrevPage={previousPage}
+          hasMore={hasMore}
+          isAtStart={isAtStart}
+          showPagination={true}
         />
       </div>
     </div>
