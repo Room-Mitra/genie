@@ -145,8 +145,8 @@ export default function Page() {
                   <Spinner />
                 ) : (
                   <TrashIcon
-                    width={25}
-                    height={25}
+                    width={20}
+                    height={20}
                     className="hover:fill-black/40 dark:hover:fill-white/80"
                     onClick={() => handleDelete(i, a.amenityId)}
                   />

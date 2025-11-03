@@ -89,7 +89,7 @@ router.delete('/amenities/:amenityId', async (req, res) => {
 
     return res.status(200).json({ message: 'deleted amenity' });
   } catch (err) {
-    console.error('failed to delete amentiy', err);
+    console.error('failed to delete amenity', err);
     res.status(500).json({ error: err?.message || 'internal server error ' });
   }
 });

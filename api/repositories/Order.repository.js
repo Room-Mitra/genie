@@ -18,7 +18,7 @@ export async function createOrder({ order }) {
   return params.Item;
 }
 
-export async function queryRequestsByStatusType({ hotelId, statusType, limit = 25, nextToken }) {
+export async function queryOrdersByStatusType({ hotelId, statusType, limit = 25, nextToken }) {
   if (!hotelId || !statusType)
     throw new Error('hotelId and statusType needed to query requests by status');
 

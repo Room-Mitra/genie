@@ -68,8 +68,8 @@ export async function queryLatestBookingById({ hotelId, bookingId }) {
   const data = await DDB.query(params).promise();
   return data.Items && data.Items[0];
 }
-
-export async function queryBookings({ hotelId, status, limit = 25, nextToken }) {
+// TODO: change this to use status_pk and status_sk and GSI_Status
+export async function queryBookings({ hotelId, status, limit = 25, nextToken, roomId }) {
   if (!hotelId) {
     throw new Error('hotelId is required to query active bookings');
   }
@@ -78,7 +78,7 @@ export async function queryBookings({ hotelId, status, limit = 25, nextToken }) 
     throw new Error('status needs to be one of all, active, upcoming or past');
   }
 
-  const filterExpressions = {
+  const statusFilterExpression = {
     active: 'checkOutTime > :now AND checkInTime < :now',
     upcoming: 'checkInTime > :now',
     past: 'checkOutTime < :now',
@@ -88,7 +88,7 @@ export async function queryBookings({ hotelId, status, limit = 25, nextToken }) 
     TableName: ENTITY_TABLE_NAME,
     IndexName: GSI_ACTIVE_NAME,
     KeyConditionExpression: '#pk = :pk and begins_with(#sk, :sk)',
-    FilterExpression: filterExpressions[status],
+    FilterExpression: statusFilterExpression[status],
     ExpressionAttributeNames: { '#pk': 'active_pk', '#sk': 'active_sk' },
     ExpressionAttributeValues: {
       ':pk': `HOTEL#${hotelId}`,
@@ -99,6 +99,12 @@ export async function queryBookings({ hotelId, status, limit = 25, nextToken }) 
     ScanIndexForward: false,
     ExclusiveStartKey: decodeToken(nextToken),
   };
+
+  if (roomId) {
+    params.FilterExpression = `${params.FilterExpression} and #roomId = :roomId`;
+    params.ExpressionAttributeNames['#roomId'] = 'roomId';
+    params.ExpressionAttributeValues[':roomId'] = roomId;
+  }
 
   const data = await DDB.query(params).promise();
   return {
@@ -127,4 +133,26 @@ export async function getActiveBookingForRoom({ roomId }) {
 
   const data = await DDB.query(params).promise();
   return data.Items && data.Items[0];
+}
+
+export async function deleteBooking({ hotelId, bookingId }) {
+  if (!hotelId || !bookingId) throw new Error('need hoteId and bookingId to delete room');
+
+  const params = {
+    TableName: ENTITY_TABLE_NAME,
+    ConditionExpression: 'attribute_not_exists(deletedAt)',
+    Key: {
+      pk: `HOTEL#${hotelId}`,
+      sk: `BOOKING#${bookingId}`,
+    },
+    UpdateExpression: `SET deletedAt = :now REMOVE active_pk, active_sk, roomType_pk, roomType_sk`,
+    ExpressionAttributeValues: { ':now': toIsoString() },
+  };
+
+  try {
+    await DDB.update(params).promise();
+  } catch (err) {
+    console.error('failed to delete booking', err);
+    throw new Error('failed to delete booking');
+  }
 }

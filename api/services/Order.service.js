@@ -52,7 +52,7 @@ export async function listOrdersByStatusType({ hotelId, statusType, limit, nextT
     throw new Error('invalid status type to list orders');
   }
 
-  const orders = await orderRepo.queryRequestsByStatusType({
+  const orders = await orderRepo.queryOrdersByStatusType({
     hotelId,
     statusType,
     limit,
