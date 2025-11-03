@@ -2,7 +2,7 @@ import OpenAIClient from '#clients/OpenAI.client.js';
 import { queryHotelMeta } from '#repositories/Hotel.repository.js';
 import { getBookingById } from '#services/Booking.service.js';
 import { getHotelById } from '#services/Hotel.service.js';
-import { handleFetchMenu } from '#services/Menu.service.js';
+import { getAvailableSections, handleFetchMenu } from '#services/Menu.service.js';
 import { createRequest, listRequestsByBooking } from '#services/Request.service.js';
 import { summarizeRequests } from './summarizers/request.summarizer.js';
 import { create_hotel_requests } from './tools/create_hotel_requests.tool.js';
@@ -57,7 +57,10 @@ const callFunction = async ({
 }) => {
   switch (name) {
     case 'fetch_menu':
-      return await handleFetchMenu(args);
+      return await handleFetchMenu({ hotelId, args });
+
+    case 'fetch_available_menu_sections':
+      return await getAvailableSections({ hotelId });
 
     case 'get_amenities':
       return await queryHotelMeta({ hotelId, entityType: 'AMENITY' });
@@ -274,14 +277,23 @@ export async function discoverIntents({ userText, messagesInConversation }) {
 }
 
 const MENU_ENQUIRY_PROMPT = `
-  Only mention menu categories that actually exist for this hotel. 
+  Only mention menu sections that actually exist for this hotel. Do not mention
+  anything that isn't in available_sections. When listing sections, start with 
+  2 - 3 sections and ask the user if they'd like to hear more.
   Never ask about “mains, snacks, desserts, or drinks” unless they are present 
-  in the menu sections returned by tools.
-  If only one section exists (e.g., Soups), say so and proceed with that.
+  in the available_sections returned by fetch_menu tool. If only one section 
+  exists (e.g., Soups), say so and proceed with that.
 
   If a guest asks for a dish not on the menu, politely inform the guest that 
   the dish is not available and suggest a similar dish from the menu. If 
   no similar dish exists on the menu, let the guest know and do nothing.
+
+  Menu sections are dynamic per hotel.
+  Only mention sections that exist in the latest tool result's available_sections.
+  When calling fetch_menu, if you include sections, they MUST be values from 
+  available_sections (case-insensitive match allowed). If the guest asks for a 
+  non-existent section, politely say it isn’t available and offer only the sections 
+  from available_sections.
 `;
 
 const ORDER_FOOD_PROMPT = `
