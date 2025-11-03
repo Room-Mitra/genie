@@ -293,7 +293,10 @@ const MENU_ENQUIRY_PROMPT = `
   When calling fetch_menu, if you include sections, they MUST be values from 
   available_sections (case-insensitive match allowed). If the guest asks for a 
   non-existent section, politely say it isn’t available and offer only the sections 
-  from available_sections.
+  from available_sections. 
+
+  Narrate items and sections conversationally as if you're a waiter speaker to a 
+  customer at a restaurant.
 `;
 
 const ORDER_FOOD_PROMPT = `
