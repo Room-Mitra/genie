@@ -143,7 +143,7 @@ const menu = {
         {
           name: 'Clear broth (veg)',
           unitPrice: '120.00',
-          description: 'Flavourful stock with veggies or chicken',
+          description: 'Flavourful stock with veggies',
           veg: false,
           vegan: false,
           glutenFree: true,
@@ -152,7 +152,7 @@ const menu = {
         {
           name: 'Clear broth (chk)',
           unitPrice: '140.00',
-          description: 'Flavourful stock with veggies or chicken',
+          description: 'Flavourful stock with chicken',
           veg: false,
           vegan: false,
           glutenFree: true,

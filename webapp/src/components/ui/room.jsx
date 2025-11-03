@@ -20,7 +20,11 @@ export function Room({ room, wide }) {
       <span>·</span>
 
       {/* Only Type truncates */}
-      <span className="w-17 flex-1 truncate text-center">{room.type}</span>
+      <span
+        className={cn("flex-1 truncate text-center", wide ? "w-30" : "w-17")}
+      >
+        {room.type}
+      </span>
 
       <span>· {room.floor}F</span>
     </div>

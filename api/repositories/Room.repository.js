@@ -1,6 +1,7 @@
 import { buildHotelEntityItem } from '#common/hotelEntity.helper.js';
 import DDB from '#clients/DynamoDb.client.js';
 import { ENTITY_TABLE_NAME, GSI_ACTIVE_NAME } from '#Constants/DB.constants.js';
+import { toIsoString } from '#common/timestamp.helper.js';
 
 export const createRoom = async (roomData) => {
   const roomItem = buildHotelEntityItem(roomData);
@@ -68,4 +69,26 @@ export async function queryRoomByPrefix({ hotelId, roomIdPrefix }) {
 
   const data = await DDB.query(params).promise();
   return data.Items && data.Items[0];
+}
+
+export async function deleteRoom({ hotelId, roomId }) {
+  if (!hotelId || !roomId) throw new Error('need hoteId and roomId to delete room');
+
+  const params = {
+    TableName: ENTITY_TABLE_NAME,
+    ConditionExpression: 'attribute_not_exists(deletedAt)',
+    Key: {
+      pk: `HOTEL#${hotelId}`,
+      sk: `ROOM#${roomId}`,
+    },
+    UpdateExpression: `SET deletedAt = :now REMOVE active_pk, active_sk`,
+    ExpressionAttributeValues: { ':now': toIsoString() },
+  };
+
+  try {
+    await DDB.update(params).promise();
+  } catch (err) {
+    console.error('failed to delete room', err);
+    throw new Error('failed to delete room');
+  }
 }
