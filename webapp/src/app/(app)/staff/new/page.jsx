@@ -9,6 +9,7 @@ import { Select } from "@/components/FormElements/select";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { useRouter } from "next/navigation";
 import { Autocomplete } from "@/components/Autocomplete";
+import User from "@/components/ui/user";
 
 async function fetchStaff() {
   const res = await fetch("/api/staff", {
@@ -211,7 +212,7 @@ export default function AddStaffPage() {
                 { label: "Concierge", value: "concierge" },
                 { label: "Facilities", value: "facilities" },
               ]}
-              defaultValue="room_service"
+              placeholder="Room Service"
               handleChange={(e) => setDepartment(e.target.value)}
               required
             />
@@ -225,7 +226,7 @@ export default function AddStaffPage() {
                 { label: "Associate", value: "hotel_associate" },
                 { label: "Trainee", value: "hotel_trainee" },
               ]}
-              defaultValue="hotel_associate"
+              placeholder="Associate"
               handleChange={(e) => setRole(e.target.value)}
               required
             />
@@ -249,20 +250,7 @@ export default function AddStaffPage() {
               return [name, roles].filter(Boolean).join(" || ");
             }}
             renderItem={(st) => (
-              <div className="flex min-h-15 items-center gap-2 border-b border-gray-300">
-                <span className="w-[30%] font-bold text-dark dark:text-gray-200">
-                  {st.firstName} {st.lastName}
-                </span>
-                <span className="w-[40%] text-dark dark:text-gray-200">
-                  {[st.mobileNumber, st.email].filter((t) => t).join(" | ")}
-                </span>
-                <span className="text-md w-[30%] font-semibold text-dark dark:text-gray-200">
-                  {[st.department, ...(st.roles || [])]
-                    .filter(Boolean)
-                    .map(toTitleCaseFromSnake)
-                    .join(", ")}
-                </span>
-              </div>
+              <User user={st} showDepartment={true} showRoles={true} />
             )}
             noResultsContent={
               <div className="flex items-center justify-between">
