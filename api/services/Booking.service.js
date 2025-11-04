@@ -5,6 +5,7 @@ import * as roomRepo from '#repositories/Room.repository.js';
 import { toIsoString } from '#common/timestamp.helper.js';
 import { bookingResponse } from '#presenters/booking.js';
 import { userResponse } from '#presenters/user.js';
+import { queryRequestsByStatusType } from '#repositories/Request.repository.js';
 
 function parseAndValidateTimes(checkInTime, checkoutTime) {
   const start = new Date(checkInTime);
@@ -91,13 +92,13 @@ export async function getBookingById({ hotelId, bookingId }) {
   return bookingResponse(await bookingRepo.queryLatestBookingById({ hotelId, bookingId }));
 }
 
-export async function listBookings({ hotelId, status }) {
-  const bookings = await bookingRepo.queryBookings({ hotelId, status });
+export async function listBookings({ hotelId, status, limit, nextToken }) {
+  const bookings = await bookingRepo.queryBookings({ hotelId, status, limit, nextToken });
 
   const rooms = await roomRepo.queryAllRooms({ hotelId });
   const roomMap = new Map(rooms.map((room) => [room.roomId, room]));
 
-  const guestUserIds = bookings.map((b) => b.guest.userId);
+  const guestUserIds = bookings?.items?.map((b) => b.guest.userId);
   const guestUsers = await userRepo.getUsersByIds(guestUserIds);
   const guestUsersMap = new Map(guestUsers.map((user) => [user.userId, user]));
 
@@ -116,12 +117,12 @@ export async function listBookings({ hotelId, status }) {
   });
 
   return {
-    items: bookings?.map((b) => ({
+    ...bookings,
+    items: bookings?.items?.map((b) => ({
       ...bookingResponse(b),
       room: getRoom(roomMap.get(b.roomId)),
       guest: getUser(guestUsersMap.get(b.guest.userId)),
     })),
-    count: bookings?.length || 0,
   };
 }
 
@@ -134,4 +135,21 @@ export async function getActiveBookingForRoom({ roomId }) {
   }
 
   return bookingResponse(booking);
+}
+
+export async function deleteBooking({ hotelId, bookingId }) {
+  /* 
+    1. Ensure there are no active requests for room
+  */
+
+  const activeRequests = await queryRequestsByStatusType({
+    hotelId,
+    statusType: 'ACTIVE',
+    bookingId,
+  });
+  if (activeRequests.items.length) {
+    throw new Error('cannot delete booking with active requests associated');
+  }
+
+  await bookingRepo.deleteBooking({ hotelId, bookingId });
 }

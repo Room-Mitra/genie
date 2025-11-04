@@ -2,10 +2,6 @@
 
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { Dates } from "@/components/ui/dates";
-import { DateTime } from "@/components/ui/datetime";
-import { DeleteButton } from "@/components/ui/delete-button";
-import { DeleteModal } from "@/components/ui/delete-modal";
-import { ID } from "@/components/ui/id";
 import { Room } from "@/components/ui/room";
 import SortTable from "@/components/ui/sort-table";
 import User from "@/components/ui/user";
@@ -16,7 +12,8 @@ import {
   useCallback,
   useLayoutEffect,
 } from "react";
-import { toast } from "react-toastify";
+import Status from "../../requests/_components/requestStatus";
+import { Order } from "@/components/ui/order";
 
 const LIMIT = 100;
 
@@ -30,17 +27,13 @@ export default function Page() {
   const [hasMore, setHasMore] = useState(false);
   const isAtStart = cursorIndex === 0;
 
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [bookingToDelete, setBookingToDelete] = useState(null);
-
   const columns = useMemo(
     () => [
-      { key: "bookingId", label: "BOOKING ID" },
+      { key: "status", label: "STATUS" },
+      { key: "order", label: "ORDER" },
       { key: "room", label: "ROOM" },
-      { key: "guest", label: "GUEST" },
       { key: "dates", label: "DATES" },
-      { key: "createdAt", label: "CREATED AT" },
-      { key: "delete", label: "", sortable: false },
+      { key: "guest", label: "GUEST" },
     ],
     [],
   );
@@ -64,46 +57,40 @@ export default function Page() {
         const qToken = serializeToken(tokenForThisPage);
         if (qToken) qs.append("nextToken", qToken);
 
-        const res = await fetch(`/api/booking/active?${qs.toString()}`, {
+        const res = await fetch(`/api/orders/inactive?${qs.toString()}`, {
           method: "GET",
           credentials: "include",
         });
 
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
-          throw new Error(err.error || "Failed to fetch active bookings");
+          throw new Error(err.error || "Failed to fetch inactive orders");
         }
 
-        const bookings = await res.json();
+        const orders = await res.json();
 
         setData(
-          Array.isArray(bookings?.items)
-            ? bookings?.items?.map((b) => ({
-                bookingId: <ID ulid={b.bookingId} size="xs" />,
+          Array.isArray(orders?.items)
+            ? orders?.items?.map((b) => ({
+                status: <Status status={b.status} ulid={b.orderId} />,
                 dates: (
                   <Dates
-                    checkInTime={b.checkInTime}
-                    checkOutTime={b.checkOutTime}
+                    requestedAt={b.createdAt}
+                    estimatedTimeOfFulfillment={b.estimatedTimeOfFulfillment}
+                    scheduledAt={b.scheduledAt}
+                    timeOfFulfillment={b.timeOfFulfillment}
                   />
                 ),
                 room: <Room room={b.room} />,
                 guest: (
                   <User user={b.guest} showMobileNumber={true} width="w-50" />
                 ),
-                createdAt: <DateTime dateTimeIso={b.createdAt} />,
-                delete: (
-                  <DeleteButton
-                    onClick={() => {
-                      setBookingToDelete(b);
-                      setShowDeleteModal(true);
-                    }}
-                  />
-                ),
+                order: <Order items={b.items} instructions={b.instructions} />,
               }))
             : [],
         );
 
-        const next = bookings?.nextToken ?? null; // raw token for the *next* page
+        const next = orders?.nextToken ?? null; // raw token for the *next* page
         setHasMore(Boolean(next));
         setCursorIndex(index);
 
@@ -126,7 +113,7 @@ export default function Page() {
     });
   }, [cursorIndex]);
 
-  const refreshBookings = useCallback(
+  const refreshOrders = useCallback(
     ({ limit } = {}) => {
       setCursorStack([null]);
       setCursorIndex(0);
@@ -148,31 +135,13 @@ export default function Page() {
   }, [cursorIndex, fetchPageAt]);
 
   useEffect(() => {
-    refreshBookings();
+    refreshOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  async function deleteBooking(bookingId) {
-    const res = await fetch(`/api/booking/${bookingId}`, {
-      method: "DELETE",
-      credentials: "include",
-    });
-
-    setShowDeleteModal(false);
-    setBookingToDelete(null);
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      toast.error(`Failed to delete booking: ${err.error}`);
-      return;
-    }
-
-    toast.success("Booking deleted");
-    refreshBookings();
-  }
 
   return (
     <div>
-      <Breadcrumb pageName="Active Bookings" parent="Bookings" />
+      <Breadcrumb pageName="Completed Orders" parent="Orders" />
       <div className="w-fit rounded-[10px] bg-white p-6 dark:bg-gray-dark lg:w-full">
         <SortTable
           columns={columns}
@@ -180,50 +149,13 @@ export default function Page() {
           tableRowClassNames={[
             "text-base font-medium text-dark dark:text-white",
           ]}
-          noDataMessage="No active bookings"
+          noDataMessage="No completed orders"
           loading={loading}
           onClickNextPage={nextPage}
           onClickPrevPage={previousPage}
           hasMore={hasMore}
           isAtStart={isAtStart}
           showPagination={true}
-        />
-
-        <DeleteModal
-          showModal={showDeleteModal}
-          onClose={() => {
-            setBookingToDelete(null);
-            setShowDeleteModal(false);
-          }}
-          message={
-            <div className="px-6">
-              <div className="pb-2 pt-6 font-bold">
-                Are you sure you want to delete booking?
-              </div>
-              <div className="mx-auto w-fit">
-                <div className="py-4">
-                  <Room room={bookingToDelete?.room} wide={true} />
-                </div>
-                <div className="py-4">
-                  <Dates
-                    checkInTime={bookingToDelete?.checkInTime}
-                    checkOutTime={bookingToDelete?.checkOutTime}
-                  />
-                </div>
-                <div className="pb-4">
-                  <User
-                    user={bookingToDelete?.guest}
-                    showMobileNumber={true}
-                    width="w-50"
-                  />
-                </div>
-              </div>
-            </div>
-          }
-          header={"Delete booking"}
-          onConfirmDelete={async () =>
-            await deleteBooking(bookingToDelete.bookingId)
-          }
         />
       </div>
     </div>

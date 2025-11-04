@@ -1,8 +1,14 @@
 "use client";
 
 import SortTable from "@/components/ui/sort-table";
-import RequestStatus from "../_components/requestStatus";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import Status from "../_components/requestStatus";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from "react";
 import { ID } from "@/components/ui/id";
 import { Room } from "@/components/ui/room";
 import User from "@/components/ui/user";
@@ -13,7 +19,7 @@ import { ConversationModal } from "../_components/conversationModal";
 import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
 import { Details } from "@/components/ui/details";
 
-const LIMIT = 50;
+const LIMIT = 25;
 
 export default function Page() {
   const [showConversationModal, setShowConversationModal] = useState(false);
@@ -22,11 +28,11 @@ export default function Page() {
   // Page 0 uses null as the cursor (first page).
   const [cursorStack, setCursorStack] = useState([null]);
   const [cursorIndex, setCursorIndex] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const isAtStart = cursorIndex === 0;
 
   const [completedRequests, setCompletedRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [hasMore, setHasMore] = useState(false);
-  const isAtStart = cursorIndex === 0;
 
   const columns = useMemo(
     () => [
@@ -55,17 +61,22 @@ export default function Page() {
         const tokenForThisPage = cursorStack[index] ?? null;
 
         const qs = new URLSearchParams();
-        ["completed"].forEach((s) => qs.append("statuses", s));
         if (limit) qs.append("limit", String(limit));
         const qToken = serializeToken(tokenForThisPage);
         if (qToken) qs.append("nextToken", qToken);
 
-        const res = await fetch(`/api/requests?${qs.toString()}`, {
+        const res = await fetch(`/api/requests/inactive?${qs.toString()}`, {
           method: "GET",
           credentials: "include",
           cache: "no-store",
           headers: { "cache-control": "no-store" },
         });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || "Failed to fetch inactive requests");
+        }
+
         const data = await res.json();
 
         setCompletedRequests(
@@ -79,9 +90,7 @@ export default function Page() {
                   />
                 ),
                 requestId: <ID ulid={r.requestId} />,
-                status: (
-                  <RequestStatus status={r.status} requestId={r.requestId} />
-                ),
+                status: <Status status={r.status} ulid={r.requestId} />,
                 room: <Room room={r.room || {}} />,
                 details: <Details details={r.details} />,
                 department: (
@@ -122,22 +131,6 @@ export default function Page() {
                 ) : (
                   <div className="font-bold text-gray-600">Unassigned</div>
                 ),
-                conversation: r.conversation && (
-                  <div className="group relative inline-block">
-                    <ChatBubbleLeftRightIcon
-                      className="size-6 cursor-pointer text-gray-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
-                      onClick={() => {
-                        setConversation(r.conversation);
-                        setShowConversationModal(true);
-                      }}
-                    />
-
-                    {/* Tooltip */}
-                    <span className="absolute bottom-full left-1/2 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow transition-opacity duration-200 group-hover:block group-hover:opacity-100">
-                      View Conversation
-                    </span>
-                  </div>
-                ),
               }))
             : [],
         );
@@ -156,6 +149,13 @@ export default function Page() {
     },
     [cursorStack],
   );
+
+  useLayoutEffect(() => {
+    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" }); // or "smooth"
+    });
+  }, [cursorIndex]);
 
   const refreshRequests = useCallback(
     ({ limit } = {}) => {

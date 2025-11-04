@@ -2,10 +2,10 @@ import { pickTextColor, stringToColor } from "@/lib/text";
 import { cn } from "@/lib/utils";
 
 export function Room({ room, wide }) {
-  const bg = stringToColor(room.type || "Unknown");
+  const bg = stringToColor(room?.type || "Unknown");
   const text = pickTextColor(bg);
 
-  return (
+  return room ? (
     <div
       className={cn(
         "inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-sm font-medium",
@@ -20,9 +20,15 @@ export function Room({ room, wide }) {
       <span>·</span>
 
       {/* Only Type truncates */}
-      <span className="w-17 flex-1 truncate text-center">{room.type}</span>
+      <span
+        className={cn("flex-1 truncate text-center", wide ? "w-30" : "w-17")}
+      >
+        {room.type}
+      </span>
 
       <span>· {room.floor}F</span>
     </div>
+  ) : (
+    <div>---</div>
   );
 }

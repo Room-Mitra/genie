@@ -3,15 +3,15 @@ import * as requestService from '#services/Request.service.js';
 
 const router = express.Router();
 
-router.get('/', async (req, res) => {
+router.get('/:statusType', async (req, res) => {
   try {
     const { hotelId } = req.userData;
+    const { statusType } = req.params;
+    const { limit, nextToken } = req.query;
 
-    const { limit, nextToken, statuses } = req.query;
-
-    const result = await requestService.listRequests({
+    const result = await requestService.listRequestsByStatusType({
       hotelId,
-      statuses: typeof statuses == 'string' ? [statuses] : statuses,
+      statusType,
       limit,
       nextToken,
     });

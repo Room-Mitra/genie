@@ -6,25 +6,30 @@ export const fetch_menu = {
     Do not include price information for items unless guest explicitly asks for prices.
     Don't suggest or offer any item or menu section that isn't provided to you.
     `,
+  strict: true,
   parameters: {
     type: 'object',
     properties: {
+      mode: {
+        type: 'string',
+        enum: ['sections', 'items'],
+        description:
+          'sections = return only available_sections + counts + small samples. items = return items.',
+      },
       sections: {
         type: 'array',
         items: { type: 'string' },
-        description: 'Restrict to these sections (e.g., Breakfast, Indian).',
+        description: 'Optional. When provided, return only items from these sections.',
       },
-      query: {
-        type: 'string',
-        description: 'Raw user ask, for keyword filter and semantic ranking.',
-      },
-      topK: { type: 'integer', default: 20, minimum: 1, maximum: 50 },
-      withSectionsSummary: {
-        type: 'boolean',
-        default: true,
-        description: 'Include per-section names if only a summary is needed.',
+      topK: {
+        type: 'integer',
+        minimum: 1,
+        maximum: 50,
+        default: 8,
+        description: 'how many top items are needed in the result',
       },
     },
-    required: ['hotelId'],
+    required: ['mode', 'sections', 'topK'],
+    additionalProperties: false,
   },
 };

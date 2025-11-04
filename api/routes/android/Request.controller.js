@@ -10,7 +10,7 @@ router.post('/', async (req, res) => {
     const { hotelId, roomId, deviceId } = req.deviceData;
     const guestUserId = req.headers['x-guest-user-id'];
 
-    const { department, requestType, bookingId } = req.body;
+    const { department, requestType, details, bookingId } = req.body;
     if (!department || !requestType) {
       // bookingId cant be sent for CTA button in NoActiveBookingScreen
       return res
@@ -26,6 +26,7 @@ router.post('/', async (req, res) => {
       guestUserId,
       department,
       requestType,
+      details,
     };
 
     const result = await requestService.createRequest(requestData);

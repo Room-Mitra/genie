@@ -1,7 +1,7 @@
 "use client";
 
 import SortTable from "@/components/ui/sort-table";
-import RequestStatus from "../_components/requestStatus";
+import Status from "../_components/requestStatus";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ID } from "@/components/ui/id";
 import { Room } from "@/components/ui/room";
@@ -137,7 +137,7 @@ export default function Page() {
     try {
       setData(
         activeRequests?.map((r) => ({
-          status: <RequestStatus status={r.status} requestId={r.requestId} />,
+          status: <Status status={r.status} ulid={r.requestId} />,
           room: <Room room={r.room || {}} />,
           department: (
             <Department
@@ -301,7 +301,7 @@ export default function Page() {
                       <div className="mx-auto flex w-fit flex-row items-center gap-3">
                         <span>Change Request </span>
                         <ID ulid={request?.requestId} /> <span>to </span>
-                        <RequestStatus status={toStatus} />
+                        <Status status={toStatus} />
                       </div>
                     </DialogTitle>
                   </div>

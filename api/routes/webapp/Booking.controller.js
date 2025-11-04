@@ -52,8 +52,14 @@ router.post('/', async (req, res) => {
 router.get('/active', async (req, res) => {
   try {
     const { hotelId } = req.userData;
+    const { limit, nextToken } = req.query;
 
-    const bookings = await bookingService.listBookings({ hotelId, status: 'active' });
+    const bookings = await bookingService.listBookings({
+      hotelId,
+      status: 'active',
+      limit,
+      nextToken,
+    });
 
     return res.status(200).json(bookings);
   } catch (err) {
@@ -65,8 +71,14 @@ router.get('/active', async (req, res) => {
 router.get('/past', async (req, res) => {
   try {
     const { hotelId } = req.userData;
+    const { limit, nextToken } = req.query;
 
-    const bookings = await bookingService.listBookings({ hotelId, status: 'past' });
+    const bookings = await bookingService.listBookings({
+      hotelId,
+      status: 'past',
+      limit,
+      nextToken,
+    });
 
     return res.status(200).json(bookings);
   } catch (err) {
@@ -78,13 +90,35 @@ router.get('/past', async (req, res) => {
 router.get('/upcoming', async (req, res) => {
   try {
     const { hotelId } = req.userData;
+    const { limit, nextToken } = req.query;
 
-    const bookings = await bookingService.listBookings({ hotelId, status: 'upcoming' });
+    const bookings = await bookingService.listBookings({
+      hotelId,
+      status: 'upcoming',
+      limit,
+      nextToken,
+    });
 
     return res.status(200).json(bookings);
   } catch (err) {
     console.error('Error querying active bookings', err);
     return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.delete('/:bookingId', async (req, res) => {
+  try {
+    const { hotelId } = req.userData;
+    const { bookingId } = req.params;
+
+    if (!bookingId) return res.status(400).json({ error: 'booking id needed to delete' });
+
+    await bookingService.deleteBooking({ hotelId, bookingId });
+
+    return res.status(200).json({ message: 'deleted booking' });
+  } catch (err) {
+    console.error('failed to delete booking', err);
+    res.status(500).json({ error: err?.message || 'internal server error ' });
   }
 });
 

@@ -42,6 +42,10 @@ export function buildHotelEntityItem(input) {
         sk,
         hotelId,
         entityType: 'HOTEL',
+
+        active_pk: pk,
+        active_sk: sk,
+
         name: i.name,
         address: i.address,
         contactEmail: i.contactEmail,
@@ -60,6 +64,10 @@ export function buildHotelEntityItem(input) {
         sk,
         roomId,
         entityType: 'ROOM',
+
+        active_pk: pk,
+        active_sk: sk,
+
         hotelId: i.hotelId,
         number: i.number,
         type: i.type,
@@ -78,16 +86,15 @@ export function buildHotelEntityItem(input) {
         pk,
         sk,
         bookingId,
+        entityType: 'BOOKING',
+
+        active_pk: pk,
+        active_sk: sk,
 
         // Room GSI (for bookings per room)
         roomType_pk: `ROOM#${i.roomId}`,
         roomType_sk: `BOOKING#${bookingId}`,
 
-        // Bookings by status
-        status_pk: `BOOKINGSTATUS#${i.status}#HOTEL#${i.hotelId}`,
-        status_sk: `BOOKING#${bookingId}`,
-
-        entityType: 'BOOKING',
         hotelId: i.hotelId,
         roomId: i.roomId,
 
@@ -110,6 +117,10 @@ export function buildHotelEntityItem(input) {
         pk,
         sk,
         requestId,
+        entityType: 'REQUEST',
+
+        active_pk: pk,
+        active_sk: sk,
 
         // Room timeline GSI (for requests per room)
         roomType_pk: `ROOM#${i.roomId}`,
@@ -120,18 +131,9 @@ export function buildHotelEntityItem(input) {
         bookingType_sk: `REQUEST#${requestId}`,
 
         // Requests by status board
-        status_pk: `REQSTATUS#${i.status}#HOTEL#${i.hotelId}`,
+        status_pk: `REQSTATUS#${i.statusType}#HOTEL#${i.hotelId}`,
         status_sk: `REQUEST#${requestId}`,
 
-        // Requests by assignee (if assigned)
-        ...(i.assignedToUserId
-          ? {
-              assigneeType_pk: `ASSIGNEE#${i.assignedToUserId}`,
-              assigneeType_sk: `${i.status}#HOTEL#${i.hotelId}#${requestId}`,
-            }
-          : {}),
-
-        entityType: 'REQUEST',
         hotelId: i.hotelId,
         roomId: i.roomId,
         orderId: i.orderId,
@@ -143,6 +145,7 @@ export function buildHotelEntityItem(input) {
 
         estimatedTimeOfFulfillment: i.estimatedTimeOfFulfillment,
         status: i.status,
+        statusType: i.statusType,
         assignedToUserId: i.assignedToUserId,
         conversationId: i.conversationId,
         guestUserId: i.guestUserId,
@@ -159,6 +162,10 @@ export function buildHotelEntityItem(input) {
         pk,
         sk,
         conversationId,
+        entityType: 'CONVERSATION',
+
+        active_pk: pk,
+        active_sk: sk,
 
         // Room timeline
         roomType_pk: `ROOM#${i.roomId}`,
@@ -168,7 +175,6 @@ export function buildHotelEntityItem(input) {
         bookingType_pk: `BOOKING#${i.bookingId}`,
         bookingType_sk: `CONVERSATION#${conversationId}`,
 
-        entityType: 'CONVERSATION',
         hotelId: i.hotelId,
         deviceId: i.deviceId,
 
@@ -188,8 +194,11 @@ export function buildHotelEntityItem(input) {
         pk,
         sk,
         messageId,
-
         entityType: 'MESSAGE',
+
+        active_pk: pk,
+        active_sk: sk,
+
         hotelId: i.hotelId,
         conversationId: i.conversationId,
         roomId: i.roomId,
@@ -213,11 +222,14 @@ export function buildHotelEntityItem(input) {
         pk,
         sk,
         deviceId,
+        entityType: 'DEVICE',
+
+        active_pk: pk,
+        active_sk: sk,
 
         roomType_pk: `ROOM#${i.roomId}`,
         roomType_sk: `DEVICE#${deviceId}`,
 
-        entityType: 'DEVICE',
         hotelId: i.hotelId,
         roomId: i.roomId,
         serial: i.serial,
@@ -236,8 +248,11 @@ export function buildHotelEntityItem(input) {
         pk,
         sk,
         amenityId,
-
         entityType: 'AMENITY',
+
+        active_pk: pk,
+        active_sk: sk,
+
         hotelId: i.hotelId,
         title: i.title,
         description: i.description,
@@ -255,8 +270,11 @@ export function buildHotelEntityItem(input) {
         pk,
         sk,
         serviceId,
-
         entityType: 'CONCIERGE',
+
+        active_pk: pk,
+        active_sk: sk,
+
         hotelId: i.hotelId,
         title: i.title,
         description: i.description,
@@ -274,8 +292,11 @@ export function buildHotelEntityItem(input) {
         pk,
         sk,
         menuId,
-
         entityType: 'MENU',
+
+        active_pk: pk,
+        active_sk: sk,
+
         hotelId: i.hotelId,
         contents: i.contents,
         createdAt: i.createdAt,
@@ -291,6 +312,10 @@ export function buildHotelEntityItem(input) {
         pk,
         sk,
         orderId,
+        entityType: 'ORDER',
+
+        active_pk: pk,
+        active_sk: sk,
 
         // room timeline gsi (for order per room)
         roomType_pk: `ROOM#${i.roomId}`,
@@ -300,11 +325,22 @@ export function buildHotelEntityItem(input) {
         bookingType_pk: `BOOKING#${i.bookingId}`,
         bookingType_sk: `ORDER#${orderId}`,
 
-        entityType: 'ORDER',
+        // Requests by status board
+        status_pk: `ORDERSTATUS#${i.statusType}#HOTEL#${i.hotelId}`,
+        status_sk: `ORDER#${orderId}`,
 
+        roomId: i.roomId,
+        hotelId: i.hotelId,
         requestId: i.requestId,
         guestUserId: i.guestUserId,
-        cart: i.cart,
+
+        status: i.status,
+        statusType: i.statusType,
+        scheduledAt: i.scheduledAt,
+        estimatedTimeOfFulfillment: i.estimatedTimeOfFulfillment,
+        timeOfFulfillment: i.timeOfFulfillment,
+        items: i.items,
+        instructions: i.instructions,
 
         createdAt: i.createdAt,
       });
