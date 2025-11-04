@@ -131,22 +131,6 @@ export default function Page() {
                 ) : (
                   <div className="font-bold text-gray-600">Unassigned</div>
                 ),
-                conversation: r.conversation && (
-                  <div className="group relative inline-block">
-                    <ChatBubbleLeftRightIcon
-                      className="size-6 cursor-pointer text-gray-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
-                      onClick={() => {
-                        setConversation(r.conversation);
-                        setShowConversationModal(true);
-                      }}
-                    />
-
-                    {/* Tooltip */}
-                    <span className="absolute bottom-full left-1/2 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow transition-opacity duration-200 group-hover:block group-hover:opacity-100">
-                      View Conversation
-                    </span>
-                  </div>
-                ),
               }))
             : [],
         );

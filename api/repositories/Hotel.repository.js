@@ -2,6 +2,7 @@ import { ENTITY_TABLE_NAME, GSI_ACTIVE_NAME } from '#Constants/DB.constants.js';
 import { buildHotelEntityItem } from '#common/hotelEntity.helper.js';
 import DDB from '#clients/DynamoDb.client.js';
 import { decodeToken, encodeToken } from './repository.helper.js';
+import { toIsoString } from '#common/timestamp.helper.js';
 
 /**
  * Writes a Hotel entity.
@@ -183,7 +184,7 @@ export async function deleteHotelMeta({ hotelId, id, entityType }) {
       sk: `HOTEL#META#${entityType}#${id}`,
     },
     UpdateExpression: 'SET deletedAt = :now REMOVE active_pk, active_sk',
-    ExpressionAttributeValues: { ':now': new Date().toISOString() },
+    ExpressionAttributeValues: { ':now': toIsoString() },
   };
 
   try {

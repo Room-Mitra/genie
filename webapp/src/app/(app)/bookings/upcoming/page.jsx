@@ -3,6 +3,8 @@
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { Dates } from "@/components/ui/dates";
 import { DateTime } from "@/components/ui/datetime";
+import { DeleteButton } from "@/components/ui/delete-button";
+import { DeleteModal } from "@/components/ui/delete-modal";
 import { ID } from "@/components/ui/id";
 import { Room } from "@/components/ui/room";
 import SortTable from "@/components/ui/sort-table";
@@ -14,6 +16,7 @@ import {
   useCallback,
   useLayoutEffect,
 } from "react";
+import { toast } from "react-toastify";
 
 const LIMIT = 100;
 
@@ -27,6 +30,9 @@ export default function Page() {
   const [hasMore, setHasMore] = useState(false);
   const isAtStart = cursorIndex === 0;
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [bookingToDelete, setBookingToDelete] = useState(null);
+
   const columns = useMemo(
     () => [
       { key: "bookingId", label: "BOOKING ID" },
@@ -34,6 +40,7 @@ export default function Page() {
       { key: "guest", label: "GUEST" },
       { key: "dates", label: "DATES" },
       { key: "createdAt", label: "CREATED AT" },
+      { key: "delete", label: "", sortable: false },
     ],
     [],
   );
@@ -84,6 +91,14 @@ export default function Page() {
                   <User user={b.guest} showMobileNumber={true} width="w-50" />
                 ),
                 createdAt: <DateTime dateTimeIso={b.createdAt} />,
+                delete: (
+                  <DeleteButton
+                    onClick={() => {
+                      setBookingToDelete(b);
+                      setShowDeleteModal(true);
+                    }}
+                  />
+                ),
               }))
             : [],
         );
@@ -136,6 +151,25 @@ export default function Page() {
     refreshBookings();
   }, []);
 
+  async function deleteBooking(bookingId) {
+    const res = await fetch(`/api/booking/${bookingId}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+
+    setShowDeleteModal(false);
+    setBookingToDelete(null);
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      toast.error(`Failed to delete booking: ${err.error}`);
+      return;
+    }
+
+    toast.success("Booking deleted");
+    refreshBookings();
+  }
+
   return (
     <div>
       <Breadcrumb pageName="Upcoming Bookings" parent="Bookings" />
@@ -153,6 +187,43 @@ export default function Page() {
           hasMore={hasMore}
           isAtStart={isAtStart}
           showPagination={true}
+        />
+
+        <DeleteModal
+          showModal={showDeleteModal}
+          onClose={() => {
+            setBookingToDelete(null);
+            setShowDeleteModal(false);
+          }}
+          message={
+            <div className="px-6">
+              <div className="pb-2 pt-6 font-bold">
+                Are you sure you want to delete booking?
+              </div>
+              <div className="mx-auto w-fit">
+                <div className="py-4">
+                  <Room room={bookingToDelete?.room} wide={true} />
+                </div>
+                <div className="py-4">
+                  <Dates
+                    checkInTime={bookingToDelete?.checkInTime}
+                    checkOutTime={bookingToDelete?.checkOutTime}
+                  />
+                </div>
+                <div className="pb-4">
+                  <User
+                    user={bookingToDelete?.guest}
+                    showMobileNumber={true}
+                    width="w-50"
+                  />
+                </div>
+              </div>
+            </div>
+          }
+          header={"Delete booking"}
+          onConfirmDelete={async () =>
+            await deleteBooking(bookingToDelete.bookingId)
+          }
         />
       </div>
     </div>

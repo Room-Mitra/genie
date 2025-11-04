@@ -106,4 +106,20 @@ router.get('/upcoming', async (req, res) => {
   }
 });
 
+router.delete('/:bookingId', async (req, res) => {
+  try {
+    const { hotelId } = req.userData;
+    const { bookingId } = req.params;
+
+    if (!bookingId) return res.status(400).json({ error: 'booking id needed to delete' });
+
+    await bookingService.deleteBooking({ hotelId, bookingId });
+
+    return res.status(200).json({ message: 'deleted booking' });
+  } catch (err) {
+    console.error('failed to delete booking', err);
+    res.status(500).json({ error: err?.message || 'internal server error ' });
+  }
+});
+
 export default router;

@@ -131,12 +131,15 @@ async function enrichRequests({ hotelId, requests }) {
   const conversationIds = requests?.map((r) => r.conversationId).filter(Boolean);
   const conversationsMap = await getMessagesByConversationIds(conversationIds);
 
-  const getRoom = (room) => ({
-    type: room.type,
-    floor: room.floor,
-    number: room.number,
-    roomId: room.roomId,
-  });
+  const getRoom = (room) =>
+    room
+      ? {
+          type: room.type,
+          floor: room.floor,
+          number: room.number,
+          roomId: room.roomId,
+        }
+      : null;
 
   const getStaff = (st) =>
     st

@@ -7,6 +7,8 @@ import { toast } from "react-toastify";
 import Image from "next/image";
 import { TrashIcon } from "@/assets/icons";
 import { Spinner } from "@material-tailwind/react";
+import { DeleteButton } from "@/components/ui/delete-button";
+import { DeleteModal } from "@/components/ui/delete-modal";
 
 async function fetchConcierge() {
   const res = await fetch("/api/hotel/concierge", {
@@ -30,16 +32,18 @@ async function deleteConciergeService(serviceId) {
 
 export default function Page() {
   const [showAddFacility, setShowAddFacility] = useState(false);
-  const [deleting, setDeleting] = useState([]);
+
   const [concierge, setConcierge] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [conciergeToDelete, setConciergeToDelete] = useState(null);
 
   const refreshConcierge = async () => {
     setLoading(true);
     try {
       const am = await fetchConcierge();
       setConcierge(am.items);
-      setDeleting(new Array(am.count).fill(false));
     } catch (err) {
       toast.error(err?.message || "Error fetching concierge services");
     } finally {
@@ -47,19 +51,17 @@ export default function Page() {
     }
   };
 
-  const handleDelete = async (i, serviceId) => {
-    const d = new Array(concierge.length).fill(false);
-    d[i] = true;
-    setDeleting(d);
+  const handleDelete = async (serviceId) => {
     try {
       await deleteConciergeService(serviceId);
+
       toast.success("Deleted concierge service");
       refreshConcierge();
     } catch (err) {
       toast.error(err?.message || "Failed to delete concierge service");
     } finally {
-      d[i] = false;
-      setDeleting(d);
+      setShowDeleteModal(false);
+      setConciergeToDelete(null);
     }
   };
 
@@ -143,16 +145,12 @@ export default function Page() {
                 </span>
               </div>
               <div>
-                {deleting[i] ? (
-                  <Spinner />
-                ) : (
-                  <TrashIcon
-                    width={25}
-                    height={25}
-                    className="hover:fill-black/40 dark:hover:fill-white/80"
-                    onClick={() => handleDelete(i, a.serviceId)}
-                  />
-                )}
+                <DeleteButton
+                  onClick={() => {
+                    setConciergeToDelete(a);
+                    setShowDeleteModal(true);
+                  }}
+                />
               </div>
             </div>
           </div>
@@ -160,6 +158,26 @@ export default function Page() {
       ) : (
         <></>
       )}
+
+      <DeleteModal
+        showModal={showDeleteModal}
+        onClose={() => {
+          setConciergeToDelete(null);
+          setShowDeleteModal(false);
+        }}
+        message={
+          <div className="px-6">
+            <div className="pb-2 pt-6 font-bold">
+              Are you sure you want to delete concierge?
+            </div>
+            <div className="pb-4">{conciergeToDelete?.title}</div>
+          </div>
+        }
+        header={"Delete concierge"}
+        onConfirmDelete={async () =>
+          await handleDelete(conciergeToDelete.serviceId)
+        }
+      />
     </div>
   );
 }

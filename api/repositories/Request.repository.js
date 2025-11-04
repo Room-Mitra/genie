@@ -57,7 +57,14 @@ export async function createRequest(request) {
   return requestItem;
 }
 
-export async function queryRequestsByStatusType({ hotelId, statusType, limit = 25, nextToken }) {
+export async function queryRequestsByStatusType({
+  hotelId,
+  statusType,
+  limit = 25,
+  nextToken,
+  roomId,
+  bookingId,
+}) {
   if (!hotelId || !statusType)
     throw new Error('hotelId and statusType needed to query requests by status');
 
@@ -75,6 +82,18 @@ export async function queryRequestsByStatusType({ hotelId, statusType, limit = 2
     ScanIndexForward: false,
     ExclusiveStartKey: decodeToken(nextToken),
   };
+
+  if (roomId) {
+    params.FilterExpression = '#roomId = :roomId';
+    params.ExpressionAttributeNames['#roomId'] = 'roomId';
+    params.ExpressionAttributeValues[':roomId'] = roomId;
+  }
+
+  if (bookingId) {
+    params.FilterExpression = '#bookingId = :bookingId';
+    params.ExpressionAttributeNames['#bookingId'] = 'bookingId';
+    params.ExpressionAttributeValues[':bookingId'] = bookingId;
+  }
 
   const data = await DDB.query(params).promise();
   return {

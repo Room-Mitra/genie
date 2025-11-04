@@ -5,6 +5,7 @@ import * as roomRepo from '#repositories/Room.repository.js';
 import { toIsoString } from '#common/timestamp.helper.js';
 import { bookingResponse } from '#presenters/booking.js';
 import { userResponse } from '#presenters/user.js';
+import { queryRequestsByStatusType } from '#repositories/Request.repository.js';
 
 function parseAndValidateTimes(checkInTime, checkoutTime) {
   const start = new Date(checkInTime);
@@ -134,4 +135,21 @@ export async function getActiveBookingForRoom({ roomId }) {
   }
 
   return bookingResponse(booking);
+}
+
+export async function deleteBooking({ hotelId, bookingId }) {
+  /* 
+    1. Ensure there are no active requests for room
+  */
+
+  const activeRequests = await queryRequestsByStatusType({
+    hotelId,
+    statusType: 'ACTIVE',
+    bookingId,
+  });
+  if (activeRequests.items.length) {
+    throw new Error('cannot delete booking with active requests associated');
+  }
+
+  await bookingRepo.deleteBooking({ hotelId, bookingId });
 }
