@@ -101,12 +101,12 @@ fun HouseKeepingScreen(onBackClick: () -> Unit) {
                         showDialog = true
                     }
                 }
-                PremiumSectionCard("🔑 Special") {
-                    SectionGrid(HousekeepingSections.specialRequests) { option ->
-                        selectedRequest = option
-                        showDialog = true
-                    }
-                }
+//                PremiumSectionCard("🔑 Special") {
+//                    SectionGrid(HousekeepingSections.specialRequests) { option ->
+//                        selectedRequest = option
+//                        showDialog = true
+//                    }
+//                }
                 PremiumSectionCard("Miscellaneous") {
                     SectionGrid(HousekeepingSections.miscellanious) { option ->
                         selectedRequest = option

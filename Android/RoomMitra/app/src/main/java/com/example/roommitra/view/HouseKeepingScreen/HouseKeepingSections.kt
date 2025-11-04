@@ -31,7 +31,7 @@ object HousekeepingSections {
         "Mini-Bar Refill" to Icons.Default.LocalBar,
         "Tea/Coffee Refill" to Icons.Default.Coffee,
         "Water Bottle" to Icons.Default.WaterDrop,
-        "Fruit Basket" to Icons.Default.ShoppingBasket
+//        "Fruit Basket" to Icons.Default.ShoppingBasket
     )
 
     val maintenanceRequests = listOf(
@@ -40,10 +40,10 @@ object HousekeepingSections {
         "Plumbing Issue" to Icons.Default.Plumbing,
     )
 
-    val specialRequests = listOf(
-        "Do Not Disturb" to Icons.Default.DoNotDisturbOn,
-        "Wake-up Call" to Icons.Default.Alarm
-    )
+//    val specialRequests = listOf(
+//        "Do Not Disturb" to Icons.Default.DoNotDisturbOn,
+//        "Wake-up Call" to Icons.Default.Alarm
+//    )
 
     val checkoutOption = listOf(
         "Request Late Checkout" to Icons.Default.ExitToApp,

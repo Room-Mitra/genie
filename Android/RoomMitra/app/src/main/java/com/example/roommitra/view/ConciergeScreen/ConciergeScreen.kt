@@ -40,9 +40,6 @@ import coil.compose.AsyncImage
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.withStyle
 import com.example.roommitra.data.DepartmentType
 import com.example.roommitra.service.ApiResult
 import com.example.roommitra.service.ApiService
@@ -236,7 +233,7 @@ fun ConciergeDetail(
     imageUrl: String? = null,
     actions: List<ConciergeAction> = emptyList()
 ) {
-    val annotatedDesc = parseConciergeDescription(description)
+    val annotatedDesc = parseStyle(description)
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
@@ -349,46 +346,5 @@ data class ConciergeAction(
     val label: String
 )
 
-@Composable
-fun parseConciergeDescription(desc: String): AnnotatedString {
-    val builder = AnnotatedString.Builder()
-    var cursor = 0
-    val regex = Regex("<(Bold|Primary|Tertiary)>(.*?)</\\1>")
 
-    regex.findAll(desc).forEach { match ->
-        // Add text before match
-        if (cursor < match.range.first) {
-            builder.append(desc.substring(cursor, match.range.first))
-        }
-
-        val tag = match.groupValues[1]
-        val content = match.groupValues[2]
-
-        val style = when (tag) {
-            "Bold" -> SpanStyle(fontWeight = FontWeight.Bold)
-            "Primary" -> SpanStyle(
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
-
-            "Tertiary" -> SpanStyle(
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.tertiary
-            )
-
-            else -> SpanStyle()
-        }
-
-        builder.withStyle(style) { append(content) }
-
-        cursor = match.range.last + 1
-    }
-
-    // Add remaining text
-    if (cursor < desc.length) {
-        builder.append(desc.substring(cursor))
-    }
-
-    return builder.toAnnotatedString()
-}
 
