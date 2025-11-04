@@ -13,8 +13,8 @@ android {
         minSdk = 26
         targetSdk = 36
 
-        versionCode = 29
-        versionName = "1.0.29"
+        versionCode = 33
+        versionName = "1.0.33"
 
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -106,6 +106,9 @@ dependencies {
     // ExoPlayer
     implementation("androidx.media3:media3-exoplayer:1.4.1")
     implementation("androidx.media3:media3-ui:1.4.1")
+
+    //esper
+    //implementation("io.esper.devicesdk:app:+")
 
     // Unit testing
     testImplementation(libs.junit)
