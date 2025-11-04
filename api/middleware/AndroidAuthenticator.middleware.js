@@ -24,8 +24,10 @@ const authenticator = async (req, res, next) => {
     const room = await queryRoomByPrefix({ hotelId, roomIdPrefix: roomId });
     if (!room) return res.status(401).json({ message: 'invalid roomId, not found' });
 
-    const booking = await queryLatestBookingById({ hotelId, bookingId });
-    if (!booking) return res.status(401).json({ message: 'invalid bookingId, not found' });
+    if (bookingId) {
+      const booking = await queryLatestBookingById({ hotelId, bookingId });
+      if (!booking) return res.status(401).json({ message: 'invalid bookingId, not found' });
+    }
 
     req.deviceData = {
       ...deviceData,
