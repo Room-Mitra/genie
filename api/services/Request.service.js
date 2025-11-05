@@ -92,7 +92,7 @@ export async function createRequest(requestData) {
       itemNames.push(item.name);
     }
 
-    details = `Guest has placed room service order for ${details.join(', ')}`;
+    details = `Guest has placed room service order for ${itemQuantities.join(', ')}`;
     requestType = `Order: ${itemNames.join(', ')}`;
   }
 
