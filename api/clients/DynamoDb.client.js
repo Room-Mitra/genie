@@ -24,6 +24,7 @@ const localConfig = {
 const envConfigMap = {
   local: localConfig,
   prod: baseConfig,
+  stage: baseConfig,
 };
 
 const awsConfig = envConfigMap[ENV];

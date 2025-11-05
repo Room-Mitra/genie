@@ -1,31 +1,31 @@
-name: Deploy api
+name: Deploy webapp-stage
 
 on:
   push:
     branches:
       - release
     paths:
-      - 'api/**'
-      - '.github/workflows/deploy-api.yml'
-      - 'api/Dockerfile'
+      - 'webapp/**'
+      - '.github/workflows/deploy-webapp-stage.yml'
+      - 'webapp/Dockerfile'
 
 permissions:
   id-token: write
   contents: read
 
 env:
-  NAME: 'prod'
+  NAME: 'stage'
   AWS_REGION: ap-south-1
   AWS_ACCOUNT_ID: '086325458599'
   PUBLIC_ECR_ALIAS: p1s3y6q3
-  PUBLIC_ECR_REPO: roommitra/api
+  PUBLIC_ECR_REPO: roommitra/webapp
   INSTANCE_TAG_KEY: Name
   INSTANCE_TAG_VALUE: roommitra-ec2
   IMAGE_TAG: ${{ github.sha }}
 
 defaults:
   run:
-    working-directory: ./api
+    working-directory: ./webapp
 
 jobs:
   build-and-push:
@@ -51,7 +51,7 @@ jobs:
               "blocks": [
                 { "type": "section",
                   "text": { "type": "mrkdwn",
-                    "text": ":alarm_clock: *PROD 🟣 `api` Build started* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
+                    "text": ":alarm_clock: *STAGE 🟠 `webapp` Build started* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
                   }
                 },
                 { "type": "context", "elements": [
@@ -82,14 +82,15 @@ jobs:
       - name: Build & Push with ECR cache
         uses: docker/build-push-action@v5
         with:
-          context: ./api
-          file: ./api/Dockerfile
+          context: ./webapp
+          file: ./webapp/Dockerfile
           push: true
           provenance: false
+          build-args: |
+            NODE_ENV=production
+            NEXT_PUBLIC_API_BASE_URL=https://api-stage.roommitra.com
           tags: |
             public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:${{ env.IMAGE_TAG }}
-            public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:latest
-            public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:release
           cache-from: |
             type=gha
             type=registry,ref=public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:buildcache
@@ -114,12 +115,12 @@ jobs:
           {
             "commands": [
               "set -euo pipefail",
-              "sudo -u appuser -H bash -lc \"aws ssm get-parameter --name '/roommitra/api/env' --with-decryption --query 'Parameter.Value' --output text > /opt/roommitra/api/.env\"",
-              "sudo -u appuser -H bash -lc \"chmod 600 /opt/roommitra/api/.env\"",
+              "sudo -u appuser -H bash -lc \"aws ssm get-parameter --name '/roommitra/webapp-stage/env' --with-decryption --query 'Parameter.Value' --output text > /opt/roommitra/webapp-stage/.env\"",
+              "sudo -u appuser -H bash -lc \"chmod 600 /opt/roommitra/webapp-stage/.env\"",
               "sudo -u appuser -H bash -lc \"docker pull ${IMAGE_URI}\"",
-              "sudo -u appuser -H bash -lc \"docker stop api || true\"",
-              "sudo -u appuser -H bash -lc \"docker rm api || true\"",
-              "sudo -u appuser -H bash -lc \"docker run -d --name api --env-file /opt/roommitra/api/.env --restart unless-stopped -p 4000:4000 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=api ${IMAGE_URI}\"",
+              "sudo -u appuser -H bash -lc \"docker stop webapp-stage || true\"",
+              "sudo -u appuser -H bash -lc \"docker rm webapp-stage || true\"",
+              "sudo -u appuser -H bash -lc \"docker run -d --name webapp-stage -e PORT=3003 --env-file /opt/roommitra/webapp-stage/.env --restart unless-stopped -p 3003:3003 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=webapp-stage ${IMAGE_URI}\"",
               "sudo -u appuser -H bash -lc \"docker system prune -af --volumes\"",
               "sudo -u appuser -H bash -lc \"docker builder prune -af\""
             ],
@@ -135,7 +136,7 @@ jobs:
             --region ${{ env.AWS_REGION }} \
             --instance-ids "${{ steps.find.outputs.instance_id }}" \
             --document-name "AWS-RunShellScript" \
-            --comment "Deploy api ${{ github.sha }}" \
+            --comment "Deploy webapp-stage ${{ github.sha }}" \
             --parameters file:///tmp/ssm-params.json
 
       # Success message
@@ -148,7 +149,7 @@ jobs:
               "blocks": [
                 { "type": "section",
                   "text": { "type": "mrkdwn",
-                    "text": ":white_check_mark: *PROD 🟣 `api` Build passed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
+                    "text": ":white_check_mark: *STAGE 🟠 `webapp` Build passed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
                   }
                 },
                 { "type": "context", "elements": [
@@ -171,7 +172,7 @@ jobs:
               "blocks": [
                 { "type": "section",
                   "text": { "type": "mrkdwn",
-                    "text": ":x: *PROD 🟣 `api` Build failed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
+                    "text": ":x: *STAGE 🟠 `webapp` Build failed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
                   }
                 },
                 { "type": "context", "elements": [
