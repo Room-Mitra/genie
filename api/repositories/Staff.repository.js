@@ -38,7 +38,7 @@ export async function addStaff({ hotelId, userId, role, department, reportingToU
   }
 
   const params = {
-    TableNafme: ENTITY_TABLE_NAME,
+    TableName: ENTITY_TABLE_NAME,
     Key: { pk, sk }, // sk stays "USER#<ulid>"
     UpdateExpression: updateExpression.join(', '),
     ConditionExpression: 'attribute_not_exists(#roles) OR NOT contains(#roles, :roleVal)',
@@ -107,7 +107,7 @@ export async function removeHotelFromUser({ user }) {
   }
 }
 
-export async function queryStaffByHotelId(hotelId) {
+export async function queryStaffByHotelId(hotelId, reportingToUserId) {
   if (!hotelId) {
     throw new Error('hotelId is required to query all staff for hotel');
   }
@@ -126,6 +126,12 @@ export async function queryStaffByHotelId(hotelId) {
     },
     ScanIndexForward: false,
   };
+
+  if (reportingToUserId) {
+    params.FilterExpression = '#reportingToUserId = :reportingToUserId';
+    params.ExpressionAttributeNames['#reportingToUserId'] = 'reportingToUserId';
+    params.ExpressionAttributeValues[':reportingToUserId'] = reportingToUserId;
+  }
 
   const items = [];
   let lastEvaluatedKey;

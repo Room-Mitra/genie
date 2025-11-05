@@ -11,6 +11,9 @@ import { amenityOrConciergeResponse } from '#presenters/amenity.js';
 import { S3_ASSET_BUCKET, S3_PUBLIC_BASE_URL } from '#Constants/S3.constants.js';
 import { hotelResponse } from '#presenters/hotel.js';
 import { queryRequestsByStatusType } from '#repositories/Request.repository.js';
+import { ENTITY_TABLE_NAME } from '#Constants/DB.constants.js';
+import { toIsoString } from '#common/timestamp.helper.js';
+import DDB from '#clients/DynamoDb.client.js';
 
 const ALLOWED_UPDATE_FIELDS = ['name', 'address', 'contactEmail', 'contactPhone'];
 
@@ -129,9 +132,9 @@ export async function removeStaffFromHotel(hotelId, userId) {
   // 3) Ensure user exists (create PROFILE row if missing)
   let user = await userRepo.getUserProfileById(userId);
 
-  if (user?.hotelId !== hotelId) {
-    throw new Error(`user ${userId} doesn't belong to hotel ${hotelId}`);
-  }
+  // if (user?.hotelId !== hotelId) {
+  //   throw new Error(`user ${userId.slice(0, 8)} doesn't belong to hotel ${hotelId.slice(0, 8)}`);
+  // }
 
   const activeRequests = await queryRequestsByStatusType({
     hotelId,
@@ -140,7 +143,35 @@ export async function removeStaffFromHotel(hotelId, userId) {
   });
 
   if (activeRequests.count) {
-    throw new Error(`can't delete user with active requests assigned to them`);
+    const err = new Error("can't delete user with active requests assigned to them");
+    err.code = 'USER_WITH_ACTIVE_REQUESTS';
+    throw err;
+  }
+
+  const hotelStaff = await staffRepo.queryStaffByHotelId(hotelId, userId);
+  // Step 2: Loop through and remove reportingToUserId
+  for (const staff of hotelStaff) {
+    const params = {
+      TableName: ENTITY_TABLE_NAME,
+      Key: {
+        pk: staff.pk,
+        sk: staff.sk,
+      },
+      UpdateExpression: 'REMOVE #reportingToUserId SET #updatedAt = :now',
+      ExpressionAttributeNames: {
+        '#reportingToUserId': 'reportingToUserId',
+        '#updatedAt': 'updatedAt',
+      },
+      ExpressionAttributeValues: {
+        ':now': toIsoString(),
+      },
+    };
+
+    try {
+      await DDB.update(params).promise();
+    } catch (err) {
+      console.error(`Failed to remove reportingToUserId for ${staff.sk}`, err);
+    }
   }
 
   await staffRepo.removeHotelFromUser({ user });

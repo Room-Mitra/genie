@@ -12,6 +12,7 @@ import { ResetPasswordButton } from "../_components/resetPasswordButton";
 import { DeleteModal } from "@/components/ui/delete-modal";
 import { toast } from "react-toastify";
 import { useUser } from "@/context/UserContext";
+import { ResetPasswordModal } from "../_components/resetPasswordModal";
 
 async function fetchStaff() {
   const res = await fetch("/api/staff", {
@@ -29,6 +30,8 @@ export default function Page() {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [user, setUser] = useState(null);
+
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
 
   const { user: loggedInUser } = useUser();
 
@@ -80,7 +83,7 @@ export default function Page() {
               )}
 
               <ResetPasswordButton
-                onCilck={() => {
+                onClick={() => {
                   setUser(r);
                   setShowResetPasswordModal(true);
                 }}
@@ -117,6 +120,31 @@ export default function Page() {
 
     toast.success("User deleted");
     refreshStaff();
+  }
+
+  async function resetUserPassword({ userId, password }) {
+    const res = await fetch(`/api/staff/password`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userId,
+        password,
+      }),
+    });
+
+    setShowResetPasswordModal(false);
+    setUser(null);
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      toast.error(`Failed to reset user password: ${err.error}`);
+      return;
+    }
+
+    toast.success("Password changed");
   }
 
   return (
@@ -168,6 +196,18 @@ export default function Page() {
           }
           header={"Delete user"}
           onConfirmDelete={async () => await deleteUser(user.userId)}
+        />
+
+        <ResetPasswordModal
+          showModal={showResetPasswordModal}
+          onConfirm={async (password) =>
+            await resetUserPassword({ userId: user.userId, password })
+          }
+          onClose={() => {
+            setShowResetPasswordModal(false);
+            setUser(null);
+          }}
+          user={user}
         />
       </div>
     </div>

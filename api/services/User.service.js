@@ -1,6 +1,9 @@
 import bcrypt from 'bcrypt';
 import { ulid } from 'ulid';
 import * as UserRepo from '#repositories/User.repository.js';
+import { ENTITY_TABLE_NAME } from '#Constants/DB.constants.js';
+import { toIsoString } from '#common/timestamp.helper.js';
+import DDB from '#clients/DynamoDb.client.js';
 
 const SALT_ROUNDS = 12;
 
@@ -8,7 +11,7 @@ export async function signUp({ firstName, lastName, email, password }) {
   const normalizedEmail = String(email).trim().toLowerCase();
   const userId = ulid();
 
-  const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+  const passwordHash = await hashPassword(password);
 
   const user = {
     entityType: 'USER',
@@ -30,4 +33,27 @@ export async function signUp({ firstName, lastName, email, password }) {
 
 export async function hashPassword(password) {
   return await bcrypt.hash(password, SALT_ROUNDS);
+}
+
+export async function updatePassword(userId, password) {
+  const passwordHash = await hashPassword(password);
+
+  const params = {
+    TableName: ENTITY_TABLE_NAME,
+    Key: {
+      pk: `CATALOG#USER`,
+      sk: `USER#${userId}`,
+    },
+    UpdateExpression: `SET #password = :password, #updatedAt = :now`,
+    ExpressionAttributeNames: {
+      '#password': 'passwordHash',
+      '#updatedAt': 'updatedAt',
+    },
+    ExpressionAttributeValues: {
+      ':password': passwordHash,
+      ':now': toIsoString(),
+    },
+  };
+
+  await DDB.update(params).promise();
 }
