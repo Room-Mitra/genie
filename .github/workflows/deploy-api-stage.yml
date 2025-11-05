@@ -1,12 +1,12 @@
-name: Deploy api
+name: Deploy api-stage
 
 on:
   push:
     branches:
-      - release
+      - main
     paths:
       - 'api/**'
-      - '.github/workflows/deploy-api.yml'
+      - '.github/workflows/deploy-api-stage.yml'
       - 'api/Dockerfile'
 
 permissions:
@@ -14,7 +14,7 @@ permissions:
   contents: read
 
 env:
-  NAME: 'prod'
+  NAME: 'stage'
   AWS_REGION: ap-south-1
   AWS_ACCOUNT_ID: '086325458599'
   PUBLIC_ECR_ALIAS: p1s3y6q3
@@ -51,7 +51,7 @@ jobs:
               "blocks": [
                 { "type": "section",
                   "text": { "type": "mrkdwn",
-                    "text": ":alarm_clock: *PROD 🟣 `api` Build started* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
+                    "text": ":alarm_clock: *STAGE 🟠 `api` Build started* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
                   }
                 },
                 { "type": "context", "elements": [
@@ -88,8 +88,6 @@ jobs:
           provenance: false
           tags: |
             public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:${{ env.IMAGE_TAG }}
-            public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:latest
-            public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:release
           cache-from: |
             type=gha
             type=registry,ref=public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:buildcache
@@ -114,12 +112,12 @@ jobs:
           {
             "commands": [
               "set -euo pipefail",
-              "sudo -u appuser -H bash -lc \"aws ssm get-parameter --name '/roommitra/api/env' --with-decryption --query 'Parameter.Value' --output text > /opt/roommitra/api/.env\"",
-              "sudo -u appuser -H bash -lc \"chmod 600 /opt/roommitra/api/.env\"",
+              "sudo -u appuser -H bash -lc \"aws ssm get-parameter --name '/roommitra/api-stage/env' --with-decryption --query 'Parameter.Value' --output text > /opt/roommitra/api-stage/.env\"",
+              "sudo -u appuser -H bash -lc \"chmod 600 /opt/roommitra/api-stage/.env\"",
               "sudo -u appuser -H bash -lc \"docker pull ${IMAGE_URI}\"",
-              "sudo -u appuser -H bash -lc \"docker stop api || true\"",
-              "sudo -u appuser -H bash -lc \"docker rm api || true\"",
-              "sudo -u appuser -H bash -lc \"docker run -d --name api --env-file /opt/roommitra/api/.env --restart unless-stopped -p 4000:4000 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=api ${IMAGE_URI}\"",
+              "sudo -u appuser -H bash -lc \"docker stop api-stage || true\"",
+              "sudo -u appuser -H bash -lc \"docker rm api-stage || true\"",
+              "sudo -u appuser -H bash -lc \"docker run -d --name api-stage --env-file /opt/roommitra/api-stage/.env --restart unless-stopped -p 4001:4001 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=api-stage ${IMAGE_URI}\"",
               "sudo -u appuser -H bash -lc \"docker system prune -af --volumes\"",
               "sudo -u appuser -H bash -lc \"docker builder prune -af\""
             ],
@@ -135,7 +133,7 @@ jobs:
             --region ${{ env.AWS_REGION }} \
             --instance-ids "${{ steps.find.outputs.instance_id }}" \
             --document-name "AWS-RunShellScript" \
-            --comment "Deploy api ${{ github.sha }}" \
+            --comment "Deploy api-stage ${{ github.sha }}" \
             --parameters file:///tmp/ssm-params.json
 
       # Success message
@@ -148,7 +146,7 @@ jobs:
               "blocks": [
                 { "type": "section",
                   "text": { "type": "mrkdwn",
-                    "text": ":white_check_mark: *PROD 🟣 `api` Build passed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
+                    "text": ":white_check_mark: *STAGE 🟠 `api` Build passed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
                   }
                 },
                 { "type": "context", "elements": [
@@ -171,7 +169,7 @@ jobs:
               "blocks": [
                 { "type": "section",
                   "text": { "type": "mrkdwn",
-                    "text": ":x: *PROD 🟣 `api` Build failed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
+                    "text": ":x: *STAGE 🟠 `api` Build failed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
                   }
                 },
                 { "type": "context", "elements": [

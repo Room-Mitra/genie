@@ -42,7 +42,7 @@ variable "website_image_uri" {
 variable "api_image_uri" {
   type        = string
   description = "ECR URI for the API Docker image"
-  default     = "public.ecr.aws/p1s3y6q3/roommitra/api:latest"
+  default     = "public.ecr.aws/p1s3y6q3/roommitra/api:release"
 }
 
 variable "webapp_image_uri" {
