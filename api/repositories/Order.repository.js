@@ -1,7 +1,7 @@
 import DDB from '#clients/DynamoDb.client.js';
 import { buildHotelEntityItem } from '#common/hotelEntity.helper.js';
 import { ENTITY_TABLE_NAME, GSI_STATUS_NAME } from '#Constants/DB.constants.js';
-import { ActiveOrderStatuses, InactiveOrderStatuses, OrderStatus } from '#Constants/statuses.js';
+import { ActiveOrderStatuses, InactiveOrderStatuses } from '#Constants/statuses.constasnts.js';
 import { decodeToken, encodeToken } from './repository.helper.js';
 
 export async function createOrder({ order }) {

@@ -3,7 +3,9 @@ import * as userRepo from '#repositories/User.repository.js';
 import * as orderRepo from '#repositories/Order.repository.js';
 import { orderResponse } from '#presenters/order.js';
 import { minutesAhead } from '#common/timestamp.helper.js';
-import { OrderStatus } from '#Constants/statuses.js';
+import { OrderStatus } from '#Constants/statuses.constasnts.js';
+import { validateCart } from './Cart.service.js';
+import { getItemsOnMenu } from './Menu.service.js';
 
 const MIN_ORDER_SCHEDULED_MINUTES = 45;
 
@@ -16,7 +18,12 @@ export async function placeOrder({
   guestUserId,
   estimatedTimeOfFulfillment,
 }) {
-  const { items, instructions, scheduledAt } = cart;
+  const allItems = await getItemsOnMenu({ hotelId });
+
+  const cartValidation = await validateCart({ hotelId, cart, allItems });
+  if (cartValidation.errors.length) throw { errors: cartValidation.errors };
+
+  const { items: cartItems, instructions, scheduledAt } = cart;
 
   let status = OrderStatus.PENDING;
   let statusType = 'ACTIVE';
@@ -24,6 +31,22 @@ export async function placeOrder({
   if (scheduledAt && minutesAhead(scheduledAt) > MIN_ORDER_SCHEDULED_MINUTES) {
     status = OrderStatus.SCHEDULED;
     statusType = 'UPCOMING';
+  }
+
+  const getOrderItem = (item, quantity) => ({
+    itemId: item.itemId,
+    name: item.name,
+    unitPrice: item.unitPrice,
+    quantity,
+    total: Number(Number(item.unitPrice) * quantity).toFixed(2),
+    image: item.image,
+  });
+
+  const orderItems = [];
+  const itemsMap = new Map(allItems.map((i) => [i.itemId, i]));
+  for (const cartItem of cartItems) {
+    const item = itemsMap.get(cartItem.itemId);
+    orderItems.push(getOrderItem(item, cartItem.quantity));
   }
 
   const order = {
@@ -34,7 +57,7 @@ export async function placeOrder({
     bookingId,
     guestUserId,
 
-    items,
+    items: orderItems,
     instructions,
     status,
     statusType,

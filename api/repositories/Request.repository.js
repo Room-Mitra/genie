@@ -8,7 +8,7 @@ import {
 } from '#Constants/DB.constants.js';
 import { ulid } from 'ulid';
 import { decodeToken, encodeToken } from './repository.helper.js';
-import { ActiveRequestStatuses, InActiveRequestStatuses } from '#Constants/statuses.js';
+import { ActiveRequestStatuses, InActiveRequestStatuses } from '#Constants/statuses.constasnts.js';
 
 export async function queryRequestsForBooking({ bookingId }) {
   if (!bookingId) {
