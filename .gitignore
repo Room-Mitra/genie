@@ -12,6 +12,7 @@ webapp/node_modules/
 .env.local
 .env.development.local
 .env.test.local
+.env.stage
 .env.production
 .env.prod
 
