@@ -64,6 +64,7 @@ export async function queryRequestsByStatusType({
   nextToken,
   roomId,
   bookingId,
+  assignedStaffUserId,
 }) {
   if (!hotelId || !statusType)
     throw new Error('hotelId and statusType needed to query requests by status');
@@ -93,6 +94,12 @@ export async function queryRequestsByStatusType({
     params.FilterExpression = '#bookingId = :bookingId';
     params.ExpressionAttributeNames['#bookingId'] = 'bookingId';
     params.ExpressionAttributeValues[':bookingId'] = bookingId;
+  }
+
+  if (assignedStaffUserId) {
+    params.FilterExpression = '#assignedStaffUserId = :assignedStaffUserId';
+    params.ExpressionAttributeNames['#assignedStaffUserId'] = 'assignedStaffUserId';
+    params.ExpressionAttributeValues[':assignedStaffUserId'] = assignedStaffUserId;
   }
 
   const data = await DDB.query(params).promise();

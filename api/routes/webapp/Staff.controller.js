@@ -63,4 +63,19 @@ router.post('/', async (req, res) => {
   }
 });
 
+router.delete('/:userId', async (req, res) => {
+  try {
+    const { hotelId, sub: userId } = req.userData;
+    const { userId: toDeleteUserId } = req.params;
+
+    if (userId === toDeleteUserId)
+      return res.status(400).json({ error: 'user cannot delete self' });
+
+    await hotelService.removeStaffFromHotel(hotelId, toDeleteUserId);
+  } catch (err) {
+    console.error('delete staff user id error: ', err);
+    return res.status(500).json({ error: 'Failed to delete staff user id' });
+  }
+});
+
 export default router;

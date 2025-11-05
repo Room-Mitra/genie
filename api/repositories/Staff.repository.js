@@ -1,6 +1,7 @@
 import { ENTITY_TABLE_NAME, GSI_HOTELTYPE_NAME } from '#Constants/DB.constants.js';
 import { toIsoString } from '#common/timestamp.helper.js';
 import DDB from '#clients/DynamoDb.client.js';
+import { HotelRoles } from '#Constants/roles.js';
 
 export async function addStaff({ hotelId, userId, role, department, reportingToUserId }) {
   if (!userId) throw new Error('userId is required');
@@ -37,7 +38,7 @@ export async function addStaff({ hotelId, userId, role, department, reportingToU
   }
 
   const params = {
-    TableName: ENTITY_TABLE_NAME,
+    TableNafme: ENTITY_TABLE_NAME,
     Key: { pk, sk }, // sk stays "USER#<ulid>"
     UpdateExpression: updateExpression.join(', '),
     ConditionExpression: 'attribute_not_exists(#roles) OR NOT contains(#roles, :roleVal)',
@@ -50,6 +51,60 @@ export async function addStaff({ hotelId, userId, role, department, reportingToU
 
   const { Attributes } = await DDB.update(params).promise();
   return Attributes;
+}
+
+export async function removeHotelFromUser({ user }) {
+  if (!user) return;
+
+  const key = { pk: 'CATALOG#USER', sk: `USER#${user.userId}` };
+
+  const HOTEL_ROLES = new Set(HotelRoles);
+
+  // 2) Compute filtered roles (retain non-hotel roles)
+  const currentRoles = Array.isArray(user.roles) ? user.roles : [];
+  const filteredRoles = currentRoles.filter((r) => !HOTEL_ROLES.has(r));
+
+  // 3) Update: set hotel fields to null + roles + updatedAt
+  const now = toIsoString();
+
+  const params = {
+    TableName: ENTITY_TABLE_NAME,
+    Key: key,
+    UpdateExpression: `
+      SET 
+        #roles = :roles,
+        #updatedAt = :now
+      REMOVE 
+        #hotelType_pk, 
+        #hotelType_sk, 
+        #hotelId, 
+        #department,
+        #reportingToUserId  
+    `,
+    ExpressionAttributeNames: {
+      '#roles': 'roles',
+      '#hotelType_pk': 'hotelType_pk',
+      '#hotelType_sk': 'hotelType_sk',
+      '#hotelId': 'hotelId',
+      '#department': 'department',
+      '#updatedAt': 'updatedAt',
+      '#reportingToUserId': 'reportingToUserId',
+    },
+    ExpressionAttributeValues: {
+      ':roles': filteredRoles,
+      ':now': now,
+    },
+    ConditionExpression: 'attribute_exists(pk) AND attribute_exists(sk)',
+    ReturnValues: 'ALL_NEW',
+  };
+
+  try {
+    const { Attributes } = await DDB.update(params).promise();
+    return Attributes;
+  } catch (err) {
+    console.error('failed to remove hotel from user', err);
+    throw new Error('failed to remove hotel from user');
+  }
 }
 
 export async function queryStaffByHotelId(hotelId) {

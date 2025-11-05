@@ -3,11 +3,15 @@
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { Department } from "@/components/ui/department";
 import { ID } from "@/components/ui/id";
-import { Roles } from "@/components/ui/roles";
 import SortTable from "@/components/ui/sort-table";
 import User from "@/components/ui/user";
 import Link from "next/link";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { DeleteButton } from "@/components/ui/delete-button";
+import { ResetPasswordButton } from "../_components/resetPasswordButton";
+import { DeleteModal } from "@/components/ui/delete-modal";
+import { toast } from "react-toastify";
+import { useUser } from "@/context/UserContext";
 
 async function fetchStaff() {
   const res = await fetch("/api/staff", {
@@ -23,6 +27,11 @@ export default function Page() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [user, setUser] = useState(null);
+
+  const { user: loggedInUser } = useUser();
+
   const columns = useMemo(
     () => [
       { key: "userId", label: "USER ID" },
@@ -31,52 +40,84 @@ export default function Page() {
       { key: "mobileNumber", label: "MOBILE" },
       { key: "email", label: "EMAIL" },
       { key: "reportingTo", label: "REPORTS TO" },
+      { key: "icons", label: "", sortable: false },
     ],
     [],
   );
 
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const staff = await fetchStaff();
-        if (!cancelled)
-          setData(
-            staff?.items?.map((r) => ({
-              userId: <ID ulid={r.userId} size="xs" />,
-              name: <User user={r} onlyName={true} />,
-              email: r.email,
-              mobileNumber: r.mobileNumber || "-",
-              department: (
-                <Department department={r.department} roles={r.roles} />
-              ),
-              reportingTo: r.reportingToUserId ? (
-                <User
-                  user={
-                    staff?.items?.filter(
-                      (s) => s.userId === r?.reportingToUserId,
-                    )?.[0]
-                  }
-                  showDepartment={true}
-                  showRoles={true}
+  const refreshStaff = useCallback(async () => {
+    try {
+      const staff = await fetchStaff();
+      setData(
+        staff?.items?.map((r) => ({
+          userId: <ID ulid={r.userId} size="xs" />,
+          name: <User user={r} onlyName={true} />,
+          email: r.email,
+          mobileNumber: r.mobileNumber || "-",
+          department: <Department department={r.department} roles={r.roles} />,
+          reportingTo: r.reportingToUserId ? (
+            <User
+              user={
+                staff?.items?.filter(
+                  (s) => s.userId === r?.reportingToUserId,
+                )?.[0]
+              }
+              showDepartment={true}
+              showRoles={true}
+            />
+          ) : (
+            "-"
+          ),
+          icons: (
+            <div className="flex flex-col gap-2">
+              {loggedInUser?.userId !== r.userId && (
+                <DeleteButton
+                  onClick={() => {
+                    setUser(r);
+                    setShowDeleteModal(true);
+                  }}
                 />
-              ) : (
-                "-"
-              ),
-            })),
-          );
-      } catch (err) {
-        console.error("Error fetching staff:", err);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
+              )}
 
-    return () => {
-      cancelled = true;
-    };
+              <ResetPasswordButton
+                onCilck={() => {
+                  setUser(r);
+                  setShowResetPasswordModal(true);
+                }}
+              />
+            </div>
+          ),
+        })),
+      );
+    } catch (err) {
+      console.error("Error fetching staff:", err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    refreshStaff();
+  }, []);
+
+  async function deleteUser(userId) {
+    const res = await fetch(`/api/staff/${userId}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+
+    setShowDeleteModal(false);
+    setUser(null);
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      toast.error(`Failed to delete user: ${err.error}`);
+      return;
+    }
+
+    toast.success("User deleted");
+    refreshStaff();
+  }
 
   return (
     <div>
@@ -98,6 +139,35 @@ export default function Page() {
           ]}
           noDataMessage="No staff added"
           loading={loading}
+        />
+
+        <DeleteModal
+          showModal={showDeleteModal}
+          onClose={() => {
+            setUser(null);
+            setShowDeleteModal(false);
+          }}
+          message={
+            <div className="px-6">
+              <div className="pb-2 pt-6 font-bold">
+                Are you sure you want to delete user?
+              </div>
+              <div className="mx-auto w-fit">
+                <div className="rounded-lg bg-gray-200/75 pb-4 text-left dark:bg-gray-700">
+                  <User
+                    user={user}
+                    showMobileNumber={true}
+                    showEmail={true}
+                    showDepartment={true}
+                    showRoles={true}
+                    width="w-60"
+                  />
+                </div>
+              </div>
+            </div>
+          }
+          header={"Delete user"}
+          onConfirmDelete={async () => await deleteUser(user.userId)}
         />
       </div>
     </div>

@@ -10,6 +10,7 @@ import S3 from '#clients/S3.client.js';
 import { amenityOrConciergeResponse } from '#presenters/amenity.js';
 import { S3_ASSET_BUCKET, S3_PUBLIC_BASE_URL } from '#Constants/S3.constants.js';
 import { hotelResponse } from '#presenters/hotel.js';
+import { queryRequestsByStatusType } from '#repositories/Request.repository.js';
 
 const ALLOWED_UPDATE_FIELDS = ['name', 'address', 'contactEmail', 'contactPhone'];
 
@@ -122,6 +123,27 @@ export async function addStaffToHotel(hotelId, userPayload) {
   });
 
   return updated;
+}
+
+export async function removeStaffFromHotel(hotelId, userId) {
+  // 3) Ensure user exists (create PROFILE row if missing)
+  let user = await userRepo.getUserProfileById(userId);
+
+  if (user?.hotelId !== hotelId) {
+    throw new Error(`user ${userId} doesn't belong to hotel ${hotelId}`);
+  }
+
+  const activeRequests = await queryRequestsByStatusType({
+    hotelId,
+    statusType: 'ACTIVE',
+    assignedStaffUserId: userId,
+  });
+
+  if (activeRequests.count) {
+    throw new Error(`can't delete user with active requests assigned to them`);
+  }
+
+  await staffRepo.removeHotelFromUser({ user });
 }
 
 export async function addAmenityOrConcierge({
