@@ -70,7 +70,7 @@ export async function updateHotelById(hotelId, payload) {
 }
 
 export async function addStaffToHotel(hotelId, userPayload) {
-  // 1) Ensure hotel exists (latest version)
+  // Ensure hotel exists (latest version)
   const hotel = await hotelRepo.queryLatestHotelById(hotelId);
   if (!hotel) {
     const err = new Error('Hotel not found');
@@ -80,10 +80,10 @@ export async function addStaffToHotel(hotelId, userPayload) {
 
   const normalizedEmail = String(userPayload.email).trim().toLowerCase();
 
-  // 1) find the EMAIL_REGISTRY row to get userId
+  // find the EMAIL_REGISTRY row to get userId
   const emailReg = await userRepo.getEmailRegistryByEmail(normalizedEmail);
 
-  // 3) Ensure user exists (create PROFILE row if missing)
+  // Ensure user exists (create PROFILE row if missing)
   let user = await userRepo.getUserProfileById(emailReg?.userId);
   if (!user) {
     if (
@@ -129,12 +129,12 @@ export async function addStaffToHotel(hotelId, userPayload) {
 }
 
 export async function removeStaffFromHotel(hotelId, userId) {
-  // 3) Ensure user exists (create PROFILE row if missing)
+  // Ensure user exists (create PROFILE row if missing)
   let user = await userRepo.getUserProfileById(userId);
 
-  // if (user?.hotelId !== hotelId) {
-  //   throw new Error(`user ${userId.slice(0, 8)} doesn't belong to hotel ${hotelId.slice(0, 8)}`);
-  // }
+  if (user?.hotelId !== hotelId) {
+    throw new Error(`user ${userId.slice(0, 8)} doesn't belong to hotel ${hotelId.slice(0, 8)}`);
+  }
 
   const activeRequests = await queryRequestsByStatusType({
     hotelId,
@@ -149,7 +149,7 @@ export async function removeStaffFromHotel(hotelId, userId) {
   }
 
   const hotelStaff = await staffRepo.queryStaffByHotelId(hotelId, userId);
-  // Step 2: Loop through and remove reportingToUserId
+  // Loop through and remove reportingToUserId
   for (const staff of hotelStaff) {
     const params = {
       TableName: ENTITY_TABLE_NAME,
