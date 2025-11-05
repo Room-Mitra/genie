@@ -21,12 +21,6 @@ data "aws_iam_policy_document" "dynamodb_access" {
       "dynamodb:ListTagsOfResource"
     ]
     resources = [
-      aws_dynamodb_table.devices.arn,
-      "${aws_dynamodb_table.devices.arn}/index/*",
-      aws_dynamodb_table.guest.arn,
-      "${aws_dynamodb_table.guest.arn}/index/*",
-      aws_dynamodb_table.intents.arn,
-      "${aws_dynamodb_table.intents.arn}/index/*",
       aws_dynamodb_table.entity.arn,
       "${aws_dynamodb_table.entity.arn}/index/*",
     ]
