@@ -8,3 +8,11 @@ export const HotelRole = {
   ASSOCIATE: 'hotel_associate',
   TRAINEE: 'hotel_trainee',
 };
+
+export const HotelRoles = [
+  HotelRole.ADMIN,
+  HotelRole.MANAGER,
+  HotelRole.SUPERVISOR,
+  HotelRole.ASSOCIATE,
+  HotelRole.TRAINEE,
+];

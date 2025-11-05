@@ -1,4 +1,4 @@
-import { listStaffForHotel } from '#services/Staff.service.js';
+import { listStaffForHotel, resetStaffPassword } from '#services/Staff.service.js';
 import * as hotelService from '#services/Hotel.service.js';
 
 import express from 'express';
@@ -60,6 +60,40 @@ router.post('/', async (req, res) => {
     return res
       .status(500)
       .json({ error: 'Failed to add staff to hotel' + (err.message ? ': ' + err.message : '') });
+  }
+});
+
+router.delete('/:userId', async (req, res) => {
+  try {
+    const { hotelId, sub: userId } = req.userData;
+    const { userId: toDeleteUserId } = req.params;
+
+    if (userId === toDeleteUserId)
+      return res.status(400).json({ error: 'user cannot delete self' });
+
+    await hotelService.removeStaffFromHotel(hotelId, toDeleteUserId);
+
+    return res.status(200).json({ message: 'deleted staff' });
+  } catch (err) {
+    console.error('delete staff user id error: ', err);
+    if (err.code === 'USER_WITH_ACTIVE_REQUESTS') {
+      return res.status(400).json({ error: err?.message });
+    }
+    return res.status(500).json({ error: err?.message ?? 'Failed to delete staff user id' });
+  }
+});
+
+router.post('/password', async (req, res) => {
+  try {
+    const { hotelId } = req.userData;
+    const { userId, password } = req.body;
+
+    await resetStaffPassword({ hotelId, staffUserId: userId, password });
+
+    return res.status(200).json({ message: 'password reset' });
+  } catch (err) {
+    console.error('reset password error', err);
+    return res.status(500).json({ error: err?.message ?? 'Failed to reset password' });
   }
 });
 

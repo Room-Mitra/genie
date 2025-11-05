@@ -36,6 +36,7 @@ router.post('/', async (req, res) => {
 
     return res.status(201).json(result);
   } catch (err) {
+    console.error('createBookingController error:', err);
     if (err.code === 'BOOKING_OVERLAP') {
       return res
         .status(409)
@@ -44,7 +45,6 @@ router.post('/', async (req, res) => {
     if (err.code === 'VALIDATION_ERROR') {
       return res.status(400).json({ error: err.message });
     }
-    console.error('createBookingController error:', err);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 });
