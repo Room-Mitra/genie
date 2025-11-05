@@ -28,6 +28,11 @@ const nextConfig = {
         hostname: "roommitra-assets-bucket.s3.ap-south-1.amazonaws.com",
         port: "",
       },
+      {
+        protocol: "https",
+        hostname: "app.roommitra.com",
+        port: "",
+      },
     ],
   },
 };

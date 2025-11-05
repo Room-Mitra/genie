@@ -126,6 +126,23 @@ export async function getAvailableSections({ hotelId, withSamples = false }) {
   }));
 }
 
+export async function getItemsOnMenu({ hotelId }) {
+  const menu = await queryMenuByHotel({ hotelId });
+  return (menu?.sections ?? [])
+    .filter((s) => Array.isArray(s?.items))
+    .flatMap((s) => {
+      return s?.items.map((i) => ({
+        itemId: i.itemId,
+        name: i.name,
+        unitPrice: i.unitPrice,
+        description: i.description,
+        image: i.image,
+        available: true,
+        section: s.name,
+      }));
+    });
+}
+
 function getMenuVersion({ hotelId }) {
   return 'v1';
 }

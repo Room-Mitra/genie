@@ -1,5 +1,5 @@
 import { toIsoString } from '#common/timestamp.helper.js';
-import { OrderStatus, RequestStatus } from '#Constants/statuses.js';
+import { OrderStatus, RequestStatus } from '#Constants/statuses.constasnts.js';
 import { requestResponse } from '#presenters/request.js';
 import { getMessagesByConversationIds } from '#repositories/Message.repository.js';
 import * as requestRepo from '#repositories/Request.repository.js';
@@ -54,13 +54,12 @@ export async function createRequest(requestData) {
     bookingId,
     conversationId,
     guestUserId,
-
     department,
-    requestType,
-    details,
     priority,
     cart,
   } = requestData;
+
+  let { details, requestType } = requestData;
 
   const minsToFulfillFn = minsToFulfillByDepartment?.[department];
   if (!minsToFulfillFn) {
@@ -72,9 +71,34 @@ export async function createRequest(requestData) {
     now.setMinutes(now.getMinutes() + minsToFulfillFn())
   );
 
+  const requestId = ulid();
+
+  let order;
+  if (cart) {
+    order = await placeOrder({
+      cart,
+      hotelId,
+      roomId,
+      requestId,
+      bookingId,
+      guestUserId,
+      estimatedTimeOfFulfillment,
+    });
+    const itemQuantities = [];
+    const itemNames = [];
+
+    for (const item of order.items) {
+      itemQuantities.push(`${item.name} x ${item.quantity}`);
+      itemNames.push(item.name);
+    }
+
+    details = `Guest has placed room service order for ${details.join(', ')}`;
+    requestType = `Order: ${itemNames.join(', ')}`;
+  }
+
   const request = {
     entityType: 'REQUEST',
-    requestId: ulid(),
+    requestId,
     hotelId,
     roomId,
     deviceId,
@@ -92,33 +116,14 @@ export async function createRequest(requestData) {
     statusType: 'ACTIVE',
 
     estimatedTimeOfFulfillment,
+
+    orderId: order?.orderId,
   };
 
   const createdReq = await requestRepo.createRequest(request);
+  createdReq.order = order;
 
-  if (cart) {
-    const order = await placeOrder({
-      cart,
-      hotelId,
-      roomId,
-      requestId: request.requestId,
-      bookingId,
-      guestUserId,
-      estimatedTimeOfFulfillment,
-    });
-
-    request.orderId = order.orderId;
-
-    await DDB.update({
-      TableName: ENTITY_TABLE_NAME,
-      Key: { pk: createdReq.pk, sk: createdReq.sk },
-      UpdateExpression: 'SET #orderId = :orderId',
-      ExpressionAttributeNames: { '#orderId': 'orderId' },
-      ExpressionAttributeValues: { ':orderId': order.orderId },
-    }).promise();
-  }
-
-  return request;
+  return createdReq;
 }
 
 async function enrichRequests({ hotelId, requests }) {

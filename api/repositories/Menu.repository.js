@@ -44,7 +44,7 @@ import { ulid } from 'ulid';
 const menu = {
   createdAt: '2025-11-03T03:50:56.000',
   title: 'Melting Pot',
-  menuId: ulid(),
+  menuId: '01K979ZCC4KYJZWYEVN2EKXR6N',
   sections: [
     {
       name: 'Soups & Salads',
@@ -57,6 +57,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJK49RAAACH0ETXANXKX',
         },
         {
           name: 'Cream of corn (chk)',
@@ -66,6 +67,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJK403NBSGP5WNZM8GPK',
         },
         {
           name: 'Hot & Sour (veg)',
@@ -75,6 +77,7 @@ const menu = {
           vegan: true,
           glutenFree: true,
           allergens: ['soya'],
+          itemId: '01K999PJK5BSWBY030XRYJC6BP',
         },
         {
           name: 'Hot & Sour (chk)',
@@ -84,6 +87,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['soya'],
+          itemId: '01K999PJK5HGBWNGH8VMKSPAE7',
         },
         {
           name: 'Manchow (veg)',
@@ -93,6 +97,7 @@ const menu = {
           vegan: true,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJK5GX612GD54XVP90ED',
         },
         {
           name: 'Manchow (chk)',
@@ -102,6 +107,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJK5D58VSF2TFNQXZ81K',
         },
         {
           name: 'Caesars salad (veg)',
@@ -111,6 +117,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJK5HDX40PYX4N9WYFFD',
         },
         {
           name: 'Caesars salad (chk)',
@@ -120,6 +127,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJK6HKZKHN38QNJBEK1Y',
         },
         {
           name: 'Iceberg tandoori (veg)',
@@ -129,6 +137,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJK6M7YG6VV9CD8A96G5',
         },
         {
           name: 'Iceberg tandoori (chk)',
@@ -138,8 +147,8 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJK6PAGTJ6VSEHWQ7ZBD',
         },
-
         {
           name: 'Clear broth (veg)',
           unitPrice: '120.00',
@@ -148,6 +157,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['egg'],
+          itemId: '01K999PJK664P5RF7DX8Y4Z9GS',
         },
         {
           name: 'Clear broth (chk)',
@@ -157,6 +167,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['egg'],
+          itemId: '01K999PJK6D3R8EM21K4RJWH2V',
         },
         {
           name: 'Cream of tomato & basil',
@@ -166,6 +177,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJK68M2H30RSH5S5MP7J',
         },
         {
           name: 'Smoked mushroom bisque',
@@ -175,6 +187,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJK7P072H7NXVNPXKNX8',
         },
         {
           name: 'Caprese',
@@ -184,6 +197,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJK7J9HA00K0S8Z4E0G4',
         },
         {
           name: 'Greek salad',
@@ -193,11 +207,12 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJK7JYZWEYZV0MDHZDYG',
         },
       ],
       description: '12PM TO 3PM & 7PM TO 11PM',
+      sectionId: '01K999PJK33QVKDZN1NPH5S2D2',
     },
-
     {
       name: 'Snacks',
       description: '11AM TO 11PM',
@@ -209,6 +224,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJK8YDJTX72R4PTCG1DK',
         },
         {
           name: 'Peri peri fries',
@@ -217,6 +233,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJK80JAVEHA7JPE1N9ND',
         },
         {
           name: 'Tamarind chilli french fries',
@@ -225,6 +242,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJK8TCEQBDM7S3SYWHW2',
         },
         {
           name: 'Chatpata wedges',
@@ -233,6 +251,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJK8T0GVADE898S6E8BS',
         },
         {
           name: 'Jalapeños cheese coins',
@@ -242,6 +261,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJK8C4M5SN86EFJAW750',
         },
         {
           name: 'Nachos with chilli cheese',
@@ -251,6 +271,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJK936W6SZTH13NVTKEK',
         },
         {
           name: 'Onion & Cheese rings',
@@ -260,6 +281,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJK95PXBN0MC4FZE9P1J',
         },
         {
           name: 'Veggie cutlet',
@@ -269,6 +291,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['egg', 'gluten'],
+          itemId: '01K999PJK9CGK1XR27FZWW924Z',
         },
         {
           name: 'Pyaaz pakoras',
@@ -278,6 +301,7 @@ const menu = {
           vegan: true,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJK9H9QWMG0JZZQHJCWK',
         },
         {
           name: 'Assorted veggie pakoda',
@@ -287,6 +311,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk', 'egg'],
+          itemId: '01K999PJK9M1B95CG3TKT4M99B',
         },
         {
           name: 'Paneer pakora',
@@ -296,6 +321,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJKANPHX5TVH56JDNKB8',
         },
         {
           name: 'Cheese garlic buns',
@@ -305,6 +331,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['milk', 'gluten'],
+          itemId: '01K999PJKAJQJQCA2BP2CJRG3F',
         },
         {
           name: 'Cheese balls',
@@ -314,6 +341,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJKA141ZHV4PVNWC9577',
         },
         {
           name: 'Eggspectation',
@@ -323,8 +351,10 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk', 'egg'],
+          itemId: '01K999PJKACJG4441XQB2C617E',
         },
       ],
+      sectionId: '01K999PJK8ZTJQNYYCZA1WDHJ6',
     },
     {
       name: 'Sandwiches & Burgers',
@@ -337,6 +367,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['milk', 'gluten'],
+          itemId: '01K999PJKAS4VV1ACYBHB0MDEB',
         },
         {
           name: 'Cucumber tomato & cheese',
@@ -346,6 +377,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJKB75VW0F00D4JAQ5N2',
         },
         {
           name: 'Beetroot guava chutney s/w',
@@ -354,6 +386,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJKBRX30VPZ822HGAMJQ',
         },
         {
           name: 'Smoked pepper-slaw s/w',
@@ -362,6 +395,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJKBZJCFADFG1T3EFF80',
         },
         {
           name: 'Chilli cheese toast',
@@ -371,6 +405,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['milk', 'gluten'],
+          itemId: '01K999PJKBKDF4G5BX7A2N14G7',
         },
         {
           name: 'Veggie Cheese burger',
@@ -380,6 +415,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['milk', 'egg', 'gluten'],
+          itemId: '01K999PJKB6VY3QSR5E2W1K4G9',
         },
         {
           name: 'Pesto chicken bruschetta',
@@ -389,6 +425,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJKCS2DFJ5B8GFJD1833',
         },
         {
           name: 'Chicken & Cheese s/w',
@@ -398,6 +435,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['milk', 'gluten'],
+          itemId: '01K999PJKCQB73KK5864SB0PWP',
         },
         {
           name: 'Coronation chicken s/w',
@@ -407,6 +445,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['milk', 'gluten'],
+          itemId: '01K999PJKCN0J3XWXFW36B4X9E',
         },
         {
           name: 'Chicken cheese chilli toast',
@@ -416,6 +455,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['milk', 'sesame', 'gluten'],
+          itemId: '01K999PJKCY6M638SE3Y70B86F',
         },
         {
           name: 'Chicken cheese burger',
@@ -425,6 +465,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['milk', 'gluten'],
+          itemId: '01K999PJKC2FDVTZM0MMQM4YRJ',
         },
         {
           name: 'Lamb Cheese burger',
@@ -434,9 +475,11 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['milk', 'egg', 'gluten'],
+          itemId: '01K999PJKC8FYZZQXV619A5JJQ',
         },
       ],
       description: '11AM TO 11PM',
+      sectionId: '01K999PJKAKQ82V3KK35NXGMDJ',
     },
     {
       name: 'Pizza',
@@ -449,6 +492,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['milk', 'gluten'],
+          itemId: '01K999PJKD3ZQDDJ0X4H95GYMG',
         },
         {
           name: 'Tre- formaggio',
@@ -458,6 +502,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['milk', 'gluten'],
+          itemId: '01K999PJKD01JWSHY2GAZM8DED',
         },
         {
           name: 'Creole corn & pineapple',
@@ -467,6 +512,7 @@ const menu = {
           vegan: true,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJKDS03A50BTTBN1DVMF',
         },
         {
           name: 'Ortolana cheese pizza',
@@ -476,6 +522,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['milk', 'gluten'],
+          itemId: '01K999PJKEJ3QEJ4F48GYCVWS5',
         },
         {
           name: 'Peri-peri cottage cheese',
@@ -485,6 +532,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['milk', 'gluten'],
+          itemId: '01K999PJKERJB0964GS4HQJXFJ',
         },
         {
           name: 'Roasted mushroom & basil',
@@ -494,6 +542,7 @@ const menu = {
           vegan: true,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJKEPDCZH221860XTS1C',
         },
         {
           name: 'Creole chicken',
@@ -503,6 +552,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJKEK8B67EPQ4NWMHK8S',
         },
         {
           name: 'Peri peri pepper chicken',
@@ -512,6 +562,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJKE78VDN219JVHGRF0Q',
         },
         {
           name: 'Hawaiian Chicken & Pineapple',
@@ -521,6 +572,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJKFKHVHCVTKMDJT2QR1',
         },
         {
           name: 'Butter chicken pizza',
@@ -530,6 +582,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['milk', 'gluten'],
+          itemId: '01K999PJKFY1B9N7KXYY1A5HB7',
         },
         {
           name: "Lamb mince & Jalapeño's",
@@ -539,6 +592,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJKFHKSC4SBY8PHSFDAM',
         },
         {
           name: 'Lamb pepperoni',
@@ -548,9 +602,11 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJKFFHMN6588X4JE0J97',
         },
       ],
       description: '11AM TO 11PM',
+      sectionId: '01K999PJKD9908RS442V5MJ8CW',
     },
     {
       name: 'Veggie Starters',
@@ -563,6 +619,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['egg'],
+          itemId: '01K999PJKGS2VZ2R796DEGXP82',
         },
         {
           name: 'Mushroom galauti',
@@ -572,6 +629,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['egg'],
+          itemId: '01K999PJKGZX8CWXMJQWKQVDHP',
         },
         {
           name: 'Khubani matar kebab',
@@ -581,6 +639,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk', 'egg'],
+          itemId: '01K999PJKGT9WX835FSB64VVX1',
         },
         {
           name: 'Beetroot radish kebab',
@@ -590,6 +649,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['egg'],
+          itemId: '01K999PJKGXEQ2AHVSS02S01S1',
         },
         {
           name: 'Tandoori gobi',
@@ -599,6 +659,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['egg'],
+          itemId: '01K999PJKHNZY6C8ADM4NGV4BA',
         },
         {
           name: 'Chatpata masala soya chaap',
@@ -608,6 +669,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['egg', 'soya'],
+          itemId: '01K999PJKH652QKVK9J3K60WCJ',
         },
         {
           name: 'Sigdi ki cheesy broccoli',
@@ -617,6 +679,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk', 'egg'],
+          itemId: '01K999PJKH9V6G1XS3NRAPNVYM',
         },
         {
           name: 'Angara paneer tikka',
@@ -626,6 +689,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk', 'egg'],
+          itemId: '01K999PJKH0FVBB6WDM7WDPRZ7',
         },
         {
           name: 'Achari paneer tikka',
@@ -635,6 +699,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk', 'egg'],
+          itemId: '01K999PJKJDQNHJE0RMTWV52MG',
         },
         {
           name: 'Malai cheese paneer tikka',
@@ -644,6 +709,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk', 'egg'],
+          itemId: '01K999PJKJCWFBM840PDAAT8VV',
         },
         {
           name: 'Tandoori veg platter',
@@ -654,6 +720,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk', 'egg', 'soya'],
+          itemId: '01K999PJKJM0APM3YY58WXGZ1P',
         },
         {
           name: 'Sautéed herb vegetables',
@@ -663,6 +730,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk', 'egg'],
+          itemId: '01K999PJKJTX7P2YBRYEDB2PR1',
         },
         {
           name: 'Potato corn croquette',
@@ -672,6 +740,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['egg'],
+          itemId: '01K999PJKJ0SER59ARTX925BTW',
         },
         {
           name: 'Honey Chilli potato',
@@ -681,6 +750,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['egg'],
+          itemId: '01K999PJKKVSJ9F4KJGW2VZ4T7',
         },
         {
           name: 'Paneer cornito fingers',
@@ -690,6 +760,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk', 'egg'],
+          itemId: '01K999PJKKM1BBF0324CTDHN4A',
         },
         {
           name: 'Veggie cigarillos',
@@ -699,6 +770,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['egg', 'gluten'],
+          itemId: '01K999PJKK6F7Z9TSXC34H0KSD',
         },
         {
           name: 'Veggie kothe dumpling',
@@ -708,6 +780,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['egg'],
+          itemId: '01K999PJKMK50GYKB430WE5Q31',
         },
         {
           name: 'Crispy chilli corn',
@@ -717,6 +790,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['egg'],
+          itemId: '01K999PJKMD5960ZXXX952HW77',
         },
         {
           name: 'Salt & pepper veggies',
@@ -726,6 +800,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['egg', 'gluten'],
+          itemId: '01K999PJKNDQB9M4WR7D0RTRDV',
         },
         {
           name: 'Chilli paneer',
@@ -735,6 +810,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk', 'egg'],
+          itemId: '01K999PJKNW49EGE3HFYMJ6T8G',
         },
         {
           name: 'Manchurian balls',
@@ -744,6 +820,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['egg'],
+          itemId: '01K999PJKNGYE8SQ771EFP1FBS',
         },
         {
           name: 'Andhra mushroom fry',
@@ -753,6 +830,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['egg'],
+          itemId: '01K999PJKNHSSEBSAMVA7WVC27',
         },
         {
           name: 'Ghee roast paneer',
@@ -762,9 +840,11 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk', 'egg'],
+          itemId: '01K999PJKPQ75WZZ353GC5AJQW',
         },
       ],
       description: '12PM TO 3PM & 7PM TO 11PM',
+      sectionId: '01K999PJKFN7AV6KGMM2FK3G0V',
     },
     {
       name: 'Non-Veg Starters',
@@ -777,6 +857,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJKPY7GBWZCFH0NWG7TR',
         },
         {
           name: 'Shikaari tikka',
@@ -785,6 +866,7 @@ const menu = {
           veg: false,
           vegan: false,
           glutenFree: true,
+          itemId: '01K999PJKP0G8397ARZ66V1PD4',
         },
         {
           name: 'Bhatti da murg (half)',
@@ -793,6 +875,7 @@ const menu = {
           veg: false,
           vegan: false,
           glutenFree: true,
+          itemId: '01K999PJKQCBCVY1FJHMBTH2QT',
         },
         {
           name: 'Malai cheese murg Tikka',
@@ -802,6 +885,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJKQ0D7F809HHWCK25FZ',
         },
         {
           name: 'Lasooni murg tikka',
@@ -811,6 +895,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJKQTJ5QKB0TDZ3FX7KG',
         },
         {
           name: 'Chicken seekh kebab',
@@ -819,6 +904,7 @@ const menu = {
           veg: false,
           vegan: false,
           glutenFree: true,
+          itemId: '01K999PJKRDJ1KFJV056881S6V',
         },
         {
           name: 'Mutton shami kebab',
@@ -827,6 +913,7 @@ const menu = {
           veg: false,
           vegan: false,
           glutenFree: true,
+          itemId: '01K999PJKR6DX24M74CJQEH889',
         },
         {
           name: 'Bhuna mutton with toast',
@@ -836,6 +923,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['milk', 'gluten'],
+          itemId: '01K999PJKR4286VKX9Y0J10DP7',
         },
         {
           name: 'Sarson fish tikka',
@@ -845,6 +933,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['fish', 'mustard'],
+          itemId: '01K999PJKSDAK0Z36AS8MYZQMP',
         },
         {
           name: 'Achari fish tikka',
@@ -854,6 +943,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['fish'],
+          itemId: '01K999PJKSF6CANVXAAHVCYSP0',
         },
         {
           name: 'Tandoori Murg (Half)',
@@ -863,6 +953,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJKS35WCNAFQMK4K7SFN',
         },
         {
           name: 'Tandoori non veg platter',
@@ -873,6 +964,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['fish', 'shellfish'],
+          itemId: '01K999PJKSX49B7AMN3RJ752NH',
         },
         {
           name: 'Chicken fingers',
@@ -882,6 +974,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJKTSTP4J327T6X1B9XD',
         },
         {
           name: 'Grilled chicken medallions',
@@ -890,6 +983,7 @@ const menu = {
           veg: false,
           vegan: false,
           glutenFree: true,
+          itemId: '01K999PJKTTEWPBJT813KEZD2N',
         },
         {
           name: 'Fish fingers with tartare',
@@ -899,6 +993,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['fish', 'gluten'],
+          itemId: '01K999PJKT2RDMBHW6W7TTW3BN',
         },
         {
           name: 'Chicken lollipop',
@@ -907,6 +1002,7 @@ const menu = {
           veg: false,
           vegan: false,
           glutenFree: true,
+          itemId: '01K999PJKT6WV8J8J2EPCEEM48',
         },
         {
           name: 'Chilli chicken',
@@ -916,6 +1012,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJKTK8N8WFQYK0Y8P9B3',
         },
         {
           name: 'Chicken kothe dumpling',
@@ -924,6 +1021,7 @@ const menu = {
           veg: false,
           vegan: false,
           glutenFree: true,
+          itemId: '01K999PJKVE0N8XM9D2PX0HHXC',
         },
         {
           name: 'Five spiced fish',
@@ -933,6 +1031,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['fish'],
+          itemId: '01K999PJKVJHRBDA0549PM2ZDY',
         },
         {
           name: 'Chicken espetada',
@@ -941,6 +1040,7 @@ const menu = {
           veg: false,
           vegan: false,
           glutenFree: true,
+          itemId: '01K999PJKVMRVXQBGNJ5R3SM5P',
         },
         {
           name: 'Andhra mutton fry',
@@ -949,6 +1049,7 @@ const menu = {
           veg: false,
           vegan: false,
           glutenFree: true,
+          itemId: '01K999PJKV2EDEY5YTX2SSRJDX',
         },
         {
           name: 'Ghee roast chicken',
@@ -957,6 +1058,7 @@ const menu = {
           veg: false,
           vegan: false,
           glutenFree: true,
+          itemId: '01K999PJKVS46D24SCG24PDW9K',
         },
         {
           name: 'Kerala prawn fry',
@@ -966,6 +1068,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['shellfish'],
+          itemId: '01K999PJKWQ8KYRZZ4Y173NGEG',
         },
         {
           name: 'Butter garlic prawn',
@@ -975,6 +1078,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk', 'shellfish'],
+          itemId: '01K999PJKWEWF7FTQWC9ASAWNS',
         },
         {
           name: 'Prawn tempura sweet chilli',
@@ -984,9 +1088,11 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['shellfish', 'gluten'],
+          itemId: '01K999PJKW19X9BH90BSAXJRWH',
         },
       ],
       description: '12PM TO 3PM & 7PM TO 11PM',
+      sectionId: '01K999PJKPD076Z49QAS6Y2EB1',
     },
     {
       name: 'Indian Main-Course',
@@ -999,6 +1105,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['egg', 'nuts'],
+          itemId: '01K999PJKWY5KH5HW647JWEV82',
         },
         {
           name: 'Dhaba chicken curry',
@@ -1007,6 +1114,7 @@ const menu = {
           veg: false,
           vegan: false,
           glutenFree: true,
+          itemId: '01K999PJKXQMW999Y78MES2M2X',
         },
         {
           name: 'Butter chicken',
@@ -1016,6 +1124,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk', 'nuts'],
+          itemId: '01K999PJKX2FXZP9VSRMW5Q528',
         },
         {
           name: 'Murg tikka lababdar',
@@ -1024,6 +1133,7 @@ const menu = {
           veg: false,
           vegan: false,
           glutenFree: true,
+          itemId: '01K999PJKX3QX1QS8D5P61TFX4',
         },
         {
           name: 'Palak methi murg',
@@ -1033,6 +1143,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJKX3TYFWHQAC8RR125E',
         },
         {
           name: 'Afghani gosht korma',
@@ -1042,6 +1153,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk', 'nuts'],
+          itemId: '01K999PJKYDH30PRMXTQ8YSRNP',
         },
         {
           name: 'Chicken pepper chettinad',
@@ -1050,6 +1162,7 @@ const menu = {
           veg: false,
           vegan: false,
           glutenFree: true,
+          itemId: '01K999PJKYJHEDF1HA1SCG2DKX',
         },
         {
           name: 'Fish alleppey curry',
@@ -1059,6 +1172,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk', 'fish'],
+          itemId: '01K999PJKYTK2G6F2RKAB5S09F',
         },
         {
           name: 'Tawa king fish',
@@ -1068,6 +1182,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['fish'],
+          itemId: '01K999PJKY2PVMH516TCXS8Z1C',
         },
         {
           name: 'Bhuna mutton keema',
@@ -1076,6 +1191,7 @@ const menu = {
           veg: false,
           vegan: false,
           glutenFree: true,
+          itemId: '01K999PJKYT2XTY0W8RZNR17R4',
         },
         {
           name: 'Kosha mangsho',
@@ -1084,6 +1200,7 @@ const menu = {
           veg: false,
           vegan: false,
           glutenFree: true,
+          itemId: '01K999PJKZAQ2J1QNK2J1XXRJM',
         },
         {
           name: 'Chemmeen curry',
@@ -1093,6 +1210,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['shellfish'],
+          itemId: '01K999PJKZ51Q6QVDYC93HNW9H',
         },
         {
           name: 'Dal tadka',
@@ -1101,6 +1219,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJKZ7TC90YQ4DF6MZJZ6',
         },
         {
           name: 'Dal dhuadar makhni',
@@ -1110,6 +1229,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJKZZ1G7GX27B0VCE6T2',
         },
         {
           name: 'Jeera aloo',
@@ -1118,6 +1238,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJKZGAGA3CGTQ78E5WP5',
         },
         {
           name: 'Gobi musallam',
@@ -1126,6 +1247,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJM01YNX4FQP5G9Z1J6A',
         },
         {
           name: 'Subz do pyaaza',
@@ -1135,6 +1257,7 @@ const menu = {
           vegan: true,
           glutenFree: true,
           allergens: ['nuts'],
+          itemId: '01K999PJM0TYB29E1VQ56C602D',
         },
         {
           name: 'Nimboo churan bhindi',
@@ -1143,6 +1266,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJM020VRNE13CHY2AEMN',
         },
         {
           name: 'Avial',
@@ -1152,6 +1276,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk', 'egg'],
+          itemId: '01K999PJM0TFHPWY419PM4STKJ',
         },
         {
           name: 'Methi malai mutter',
@@ -1161,6 +1286,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk', 'nuts'],
+          itemId: '01K999PJM070QQKD1RGCD83T2B',
         },
         {
           name: 'Paneer ghee roast',
@@ -1170,6 +1296,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJM1H88EXXAFBKV0AY9Z',
         },
         {
           name: 'Chettinad pepper paneer',
@@ -1179,6 +1306,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJM13J2WV20R1XYZCFWP',
         },
         {
           name: 'Paneer makhni',
@@ -1188,6 +1316,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk', 'nuts'],
+          itemId: '01K999PJM1SNGMWH4KVSMP7JZX',
         },
         {
           name: 'Paneer lababdar',
@@ -1197,9 +1326,11 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJM1XTA0C6G5APAAQGN6',
         },
       ],
       description: '12PM TO 3PM & 7PM TO 11PM',
+      sectionId: '01K999PJKWZ3PP9FDCCNJ59M54',
     },
     {
       name: 'Accompaniments',
@@ -1211,6 +1342,7 @@ const menu = {
           vegan: true,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJM2Y6S9RJ31Y8JNSFHD',
         },
         {
           name: 'Ghee tawa roti',
@@ -1219,6 +1351,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJM2P1WDSBFN49FBZBQT',
         },
         {
           name: 'Tandoori roti',
@@ -1227,6 +1360,7 @@ const menu = {
           vegan: true,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJM2Z68P1JJJV7YP7S5S',
         },
         {
           name: 'Butter tandoori roti',
@@ -1235,6 +1369,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['milk', 'gluten'],
+          itemId: '01K999PJM2FWETJ7BM21BDNZMB',
         },
         {
           name: 'Mirch tandoori roti',
@@ -1243,6 +1378,7 @@ const menu = {
           vegan: true,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJM333J1Y7CPFVD9MDPZ',
         },
         {
           name: 'Lachcha paratha',
@@ -1251,6 +1387,7 @@ const menu = {
           vegan: true,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJM3ZH9XV0Q05NX8GTNF',
         },
         {
           name: 'Naan',
@@ -1259,6 +1396,7 @@ const menu = {
           vegan: true,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJM3E54C1JWGFTM9TYE7',
         },
         {
           name: 'Butter naan',
@@ -1267,6 +1405,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['milk', 'gluten'],
+          itemId: '01K999PJM3J8M05RXTTSKH5GWK',
         },
         {
           name: 'Garlic butter naan',
@@ -1275,6 +1414,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['milk', 'gluten'],
+          itemId: '01K999PJM3C73ZZ08C9HTFJ81Q',
         },
         {
           name: 'Cheese naan',
@@ -1283,6 +1423,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['milk', 'gluten'],
+          itemId: '01K999PJM4QWY7EY1XFP4J55A1',
         },
         {
           name: 'Cheese garlic naan',
@@ -1291,6 +1432,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['milk', 'gluten'],
+          itemId: '01K999PJM4X9R063VQMSWN9H7N',
         },
         {
           name: 'Kerala paratha',
@@ -1299,6 +1441,7 @@ const menu = {
           vegan: true,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJM48N7X1NB4K46WW5TY',
         },
         {
           name: 'Kulcha',
@@ -1307,6 +1450,7 @@ const menu = {
           vegan: true,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJM44YQG6Z7TKAP8YMKY',
         },
         {
           name: 'Plain rice',
@@ -1314,6 +1458,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJM5Q740KD7VTRSPXAG0',
         },
         {
           name: 'Jeera pulao',
@@ -1321,6 +1466,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJM5NR87ZYR2KKE081S4',
         },
         {
           name: 'Vegetable pulao',
@@ -1328,6 +1474,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJM5J0AHZ26W63A7F4ZX',
         },
         {
           name: 'Shahi pulao',
@@ -1335,6 +1482,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJM52WCQY9XX5N2XJPVH',
         },
         {
           name: 'Lemon rice',
@@ -1342,6 +1490,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJM68E7VYBQCVF5JYPGD',
         },
         {
           name: 'Puliyogare rice',
@@ -1349,6 +1498,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJM6V0WMNJ6H00J6EKHW',
         },
         {
           name: 'Khichdi (dal / palak)',
@@ -1356,6 +1506,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJM61V2480ZD3WP7G5YJ',
         },
         {
           name: 'Bisi bele bath',
@@ -1363,8 +1514,10 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJM66ENSQ3R46AS9B5BJ',
         },
       ],
+      sectionId: '01K999PJM1BPM0BX97RD4Q9YX6',
     },
     {
       name: 'Mini Meals',
@@ -1376,6 +1529,7 @@ const menu = {
           vegan: true,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJM7BDE6J8QHN6H10YSN',
         },
         {
           name: 'Paneer paratha',
@@ -1384,6 +1538,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['milk', 'gluten'],
+          itemId: '01K999PJM7P3N3SKJDKZ4WKX4G',
         },
         {
           name: 'Pav Bhaji',
@@ -1392,6 +1547,7 @@ const menu = {
           vegan: true,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJM7MF1V7P9WF50BGGQ5',
         },
         {
           name: 'Kathi roll (paneer / chicken)',
@@ -1400,6 +1556,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['milk', 'gluten'],
+          itemId: '01K999PJM7AYV35H1VQ04G4JXV',
         },
         {
           name: 'Keema pav',
@@ -1408,8 +1565,10 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJM7PCJDCCC60584TWXK',
         },
       ],
+      sectionId: '01K999PJM6P3JBQ5P4C8781VYG',
     },
     {
       name: "Biryani'S",
@@ -1421,6 +1580,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJM8CNX55560QP4KWJEF',
         },
         {
           name: 'Hyderabadi egg biryani',
@@ -1430,6 +1590,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['egg'],
+          itemId: '01K999PJM8R99ZS3Y6ESKVS43Q',
         },
         {
           name: 'Murg handi biryani',
@@ -1439,6 +1600,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['nuts'],
+          itemId: '01K999PJM8X17QNGBK9K74KBKT',
         },
         {
           name: 'Mutton dum biryani',
@@ -1447,9 +1609,11 @@ const menu = {
           veg: false,
           vegan: false,
           glutenFree: true,
+          itemId: '01K999PJM89MH0KS3HP0QBC26D',
         },
       ],
       description: '12PM TO 3PM & 7PM TO 11PM',
+      sectionId: '01K999PJM83KQEFK53NCVQ4F6T',
     },
     {
       name: 'International Main Course',
@@ -1462,6 +1626,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['egg', 'nuts'],
+          itemId: '01K999PJM98H1KWGQEKHF1C251',
         },
         {
           name: 'Chilli basil greens',
@@ -1471,6 +1636,7 @@ const menu = {
           vegan: true,
           glutenFree: true,
           allergens: ['sesame'],
+          itemId: '01K999PJM9HNQWRG7BMD5YHTSA',
         },
         {
           name: 'Cottage cheese in black bean',
@@ -1480,6 +1646,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk', 'soya'],
+          itemId: '01K999PJM92ACK6B7HF10KT08C',
         },
         {
           name: 'Thai curry with rice',
@@ -1489,6 +1656,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk', 'egg'],
+          itemId: '01K999PJM9BN28EJA4KW24M1E4',
         },
         {
           name: 'Veg fried rice',
@@ -1496,6 +1664,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJMAEA5J9MDT86P1J53N',
         },
         {
           name: 'Egg fried rice',
@@ -1504,6 +1673,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['egg'],
+          itemId: '01K999PJMADJP6ZTQ23W5XA0S4',
         },
         {
           name: 'Schezwan fried rice (veg)',
@@ -1511,6 +1681,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJMAMHWDGY1ERWN1S3HV',
         },
         {
           name: 'Schezwan fried rice (chk)',
@@ -1518,6 +1689,7 @@ const menu = {
           veg: false,
           vegan: false,
           glutenFree: true,
+          itemId: '01K999PJMAVY77YDXPAYQQS7YE',
         },
         {
           name: 'Hot garlic sichuan chicken',
@@ -1527,6 +1699,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJMAPCE7E57VGEDQ55FN',
         },
         {
           name: 'Ginger steamed fish nam pla',
@@ -1536,6 +1709,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['fish'],
+          itemId: '01K999PJMB8D8ETQWPVTMNSZVD',
         },
         {
           name: 'Prawn in black bean sauce',
@@ -1545,6 +1719,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['soya', 'shellfish'],
+          itemId: '01K999PJMBTMGR6MSKRGGH0YGV',
         },
         {
           name: 'Thai chicken curry',
@@ -1553,6 +1728,7 @@ const menu = {
           veg: false,
           vegan: false,
           glutenFree: true,
+          itemId: '01K999PJMBJ0B4DA9E8V4QQ03M',
         },
         {
           name: 'Hakka noodles (veg)',
@@ -1561,6 +1737,7 @@ const menu = {
           vegan: true,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJMBQ6MTDSEQQGABQ3ZD',
         },
         {
           name: 'Hakka noodles (chk)',
@@ -1569,6 +1746,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJMC853XJ896GT9YK705',
         },
         {
           name: 'Burnt chilly garlic noodles',
@@ -1577,6 +1755,7 @@ const menu = {
           vegan: true,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJMC9FN27D17318RAYEB',
         },
         {
           name: 'Pad thai noodles (veg)',
@@ -1585,6 +1764,7 @@ const menu = {
           vegan: true,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJMCSXEX7AV71CA7PJ23',
         },
         {
           name: 'Pad thai noodles (chk)',
@@ -1593,9 +1773,11 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['gluten'],
+          itemId: '01K999PJMCZSZS65FX45KJ1WRQ',
         },
       ],
       description: '12PM TO 3PM & 7PM TO 11PM',
+      sectionId: '01K999PJM9V7XJT6076W1QVF50',
     },
     {
       name: 'Pasta (Choose Your Sauce And Preparation; Served With Buttered French Bread)',
@@ -1608,6 +1790,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['milk', 'gluten'],
+          itemId: '01K999PJMD67G5X26FSKAG4SFX',
         },
         {
           name: 'Penne arrabbiata',
@@ -1617,6 +1800,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['milk', 'gluten'],
+          itemId: '01K999PJMDNQWNRE0WSKVEBMWQ',
         },
         {
           name: 'Penne mornay',
@@ -1626,6 +1810,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['milk', 'gluten'],
+          itemId: '01K999PJMDRXQEC5X6AY69DD5P',
         },
         {
           name: 'Spaghetti rosé (pink sauce)',
@@ -1635,6 +1820,7 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['milk', 'gluten'],
+          itemId: '01K999PJMDVP810MNSCWR159FT',
         },
         {
           name: 'Penne pesto',
@@ -1644,8 +1830,10 @@ const menu = {
           vegan: false,
           glutenFree: false,
           allergens: ['milk', 'nuts', 'gluten'],
+          itemId: '01K999PJMDDYTKKWAGSEE79XZN',
         },
       ],
+      sectionId: '01K999PJMC8ZVNBRTRMPDZ9XTS',
     },
     {
       name: "Chef'S Special",
@@ -1656,6 +1844,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJMEFSWRY62WFJW4JV4Y',
         },
         {
           name: 'Grilled veggies',
@@ -1664,6 +1853,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['egg'],
+          itemId: '01K999PJMEB0VDPRECFAKQ6F38',
         },
         {
           name: 'Herb roasted mushrooms',
@@ -1671,6 +1861,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJMESQ9BJTYZVZ95PNTH',
         },
         {
           name: 'Braised chicken',
@@ -1678,6 +1869,7 @@ const menu = {
           veg: false,
           vegan: false,
           glutenFree: true,
+          itemId: '01K999PJMF2KE0M0AKNVGV5FAV',
         },
         {
           name: 'Lamb ragout',
@@ -1685,6 +1877,7 @@ const menu = {
           veg: false,
           vegan: false,
           glutenFree: true,
+          itemId: '01K999PJMF286811AGJGRH0REB',
         },
         {
           name: 'Sautéed prawns',
@@ -1693,6 +1886,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['shellfish'],
+          itemId: '01K999PJMF12Q94J940MP27NEK',
         },
         {
           name: 'BBQ Roast chicken',
@@ -1701,8 +1895,10 @@ const menu = {
           veg: false,
           vegan: false,
           glutenFree: true,
+          itemId: '01K999PJMFYJA3BVWHB446YRAF',
         },
       ],
+      sectionId: '01K999PJMEVFD73GWDD1Z57MEG',
     },
     {
       name: 'Desserts',
@@ -1715,6 +1911,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJMG2B1174NC11CCBEA9',
         },
         {
           name: 'Rasmalai',
@@ -1724,6 +1921,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJMGH4WVT0MDRN6CF0JW',
         },
         {
           name: 'Trifle pudding',
@@ -1733,6 +1931,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJMGVBPDA5MGNC8JXWGZ',
         },
         {
           name: 'Apple pie with vanilla',
@@ -1741,6 +1940,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJMGWGCYTHXN8QKMXDYM',
         },
         {
           name: 'Blueberry cheese cake',
@@ -1750,6 +1950,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJMGF9HAA5QKN2M5X8BH',
         },
         {
           name: 'Gulab jamun',
@@ -1759,6 +1960,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJMHDEFEWYCEK1RQGH36',
         },
         {
           name: 'Kesar badam halwa',
@@ -1768,6 +1970,7 @@ const menu = {
           vegan: true,
           glutenFree: true,
           allergens: ['nuts'],
+          itemId: '01K999PJMHCCEM9ENRGMJB59KB',
         },
         {
           name: 'Tutti frutti sundae',
@@ -1777,6 +1980,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJMHNM01G21JBBKYXH4H',
         },
         {
           name: 'Brownie with ice cream',
@@ -1786,6 +1990,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk', 'nuts'],
+          itemId: '01K999PJMHG8AVT025ZVW84ATP',
         },
         {
           name: 'Chocolate mousse',
@@ -1795,6 +2000,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJMHJKVWC764QHJ27BTT',
         },
         {
           name: 'Ice cream of your choice: vanilla, strawberry, chocolate, butterscotch',
@@ -1803,9 +2009,11 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJMJPSVX740WVP01PAJ6',
         },
       ],
       description: '12PM TO 3PM & 7PM TO 11PM',
+      sectionId: '01K999PJMFXG7HQ9X1W7G2ADQX',
     },
     {
       name: 'Beverages',
@@ -1816,6 +2024,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJMJCY8TCWQMHCMBXR8M',
         },
         {
           name: 'Lassi',
@@ -1824,6 +2033,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJMJAEN8S7G5CPFZE68E',
         },
         {
           name: 'Seasonal fruit lassi',
@@ -1832,6 +2042,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk'],
+          itemId: '01K999PJMKVT8S1M1SD4RB2WHJ',
         },
         {
           name: 'Cold blended coffee',
@@ -1839,6 +2050,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJMKZS9D827TK0E16C0J',
         },
         {
           name: 'Choco shake',
@@ -1846,6 +2058,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJMKHFPRPZKN9W23ZD21',
         },
         {
           name: 'Vanilla shake',
@@ -1853,6 +2066,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJMK7Y00JM8W3BRNQ369',
         },
         {
           name: 'Strawberry shake',
@@ -1860,6 +2074,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJMKXZ9V5C35DTF3NPM9',
         },
         {
           name: 'Banana & peanut butter shake',
@@ -1868,6 +2083,7 @@ const menu = {
           vegan: false,
           glutenFree: true,
           allergens: ['milk', 'peanuts'],
+          itemId: '01K999PJMMY7CVJEMGAT8FB305',
         },
         {
           name: 'Guava groove',
@@ -1875,6 +2091,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJMMZYVXKETDF0EB8FM0',
         },
         {
           name: 'Hawaiian punch',
@@ -1882,6 +2099,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJMM0ZV9WTVEJF2H7NFS',
         },
         {
           name: 'Fresh lime water (sw/sl/mix)',
@@ -1889,6 +2107,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJMMAEDSS4EJJRD531E5',
         },
         {
           name: 'Fresh lime soda (sw/sl/mix)',
@@ -1896,6 +2115,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJMMARFP1PWCREPA9WSK',
         },
         {
           name: 'Jaljeera',
@@ -1903,6 +2123,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJMNA2GFREXDXK3SBHAZ',
         },
         {
           name: 'Lemon ice tea',
@@ -1910,6 +2131,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJMN5V00J54ZR7K79X3S',
         },
         {
           name: 'Peach ice tea',
@@ -1917,6 +2139,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJMN8AYFAQ2WJ4YED5JD',
         },
         {
           name: 'Lemon mojito',
@@ -1924,6 +2147,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJMN8J3PG2ZWG430A46F',
         },
         {
           name: 'Watermelon Mojito',
@@ -1931,6 +2155,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJMNMX7NBKKFK5DPXPKT',
         },
         {
           name: 'Tea',
@@ -1938,6 +2163,7 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJMP9H1Q0M7M9AFM2A11',
         },
         {
           name: 'Coffee',
@@ -1946,24 +2172,14 @@ const menu = {
           veg: true,
           vegan: true,
           glutenFree: true,
+          itemId: '01K999PJMPKBA5Y2P4MSHEX6DA',
         },
       ],
+      sectionId: '01K999PJMJ5C6EPJG8WB11KPQZ',
     },
   ],
 };
 
 export async function queryMenuByHotel({ hotelId, sections }) {
-  return {
-    ...menu,
-    sections: menu.sections.map((s) => ({
-      ...s,
-      items: s?.items?.map((i) => ({
-        ...i,
-        itemId: ulid(),
-        image: {
-          url: 'https://app.roommitra.com/images/food-placeholder.webp',
-        },
-      })),
-    })),
-  };
+  return menu;
 }

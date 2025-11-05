@@ -1,3 +1,5 @@
+import { orderResponse } from "./order.js";
+
 export function requestResponse(request) {
   if (!request) return null;
 
@@ -14,6 +16,7 @@ export function requestResponse(request) {
     conversationId,
     bookingId,
     details,
+    order,
   } = request;
 
   return {
@@ -29,5 +32,6 @@ export function requestResponse(request) {
     conversationId,
     bookingId,
     details,
+    order: orderResponse(order),
   };
 }
