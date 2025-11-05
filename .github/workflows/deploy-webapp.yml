@@ -50,7 +50,7 @@ jobs:
               "blocks": [
                 { "type": "section",
                   "text": { "type": "mrkdwn",
-                    "text": ":alarm_clock: *`webapp` Build started* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
+                    "text": ":alarm_clock: *PROD 🟣 `webapp` Build started* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
                   }
                 },
                 { "type": "context", "elements": [
@@ -150,7 +150,7 @@ jobs:
               "blocks": [
                 { "type": "section",
                   "text": { "type": "mrkdwn",
-                    "text": ":white_check_mark: *`webapp` Build passed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
+                    "text": ":white_check_mark: *PROD 🟣 `webapp` Build passed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
                   }
                 },
                 { "type": "context", "elements": [
@@ -173,7 +173,7 @@ jobs:
               "blocks": [
                 { "type": "section",
                   "text": { "type": "mrkdwn",
-                    "text": ":x: *`webapp` Build failed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
+                    "text": ":x: *PROD 🟣 `webapp` Build failed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
                   }
                 },
                 { "type": "context", "elements": [
