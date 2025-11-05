@@ -151,7 +151,7 @@ server {
   }
 }
 
-# app-stage.roommitra.com -> :3002
+# app-stage.roommitra.com -> :3003
 server {
   listen 80;
   listen [::]:80;
@@ -161,7 +161,7 @@ server {
   client_body_timeout 60s;
 
   location / {
-    proxy_pass http://127.0.0.1:3002;
+    proxy_pass http://127.0.0.1:3003;
     proxy_set_header Host $host;
   }
 }
