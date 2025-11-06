@@ -21,10 +21,6 @@ export async function addRoom({ hotelId, number, type, floor, description }) {
 export async function listRooms({ hotelId }) {
   const rooms = await roomRepo.queryAllRooms({ hotelId });
 
-
-
-
-
   return {
     items: rooms.map(roomResponse),
     count: rooms.length,
@@ -52,6 +48,5 @@ export async function deleteRoom({ hotelId, roomId }) {
     throw new Error('cannot delete room with upcoming bookings associated');
   }
 
-  await roomRepo.deleteRoom({ hotelId, roomId })
-
+  await roomRepo.deleteRoom({ hotelId, roomId });
 }

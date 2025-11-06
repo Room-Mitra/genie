@@ -12,6 +12,8 @@ import {
 
 import { WifiOffIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { RoomNumberType } from "./roomType";
+import { stringToColor } from "@/lib/text";
 
 /**
  * RoomsGrid
@@ -84,13 +86,13 @@ const typeOrder = ["Suite", "Deluxe", "Standard"]; // used as a tertiary sort ke
 export function RoomsGrid({ rooms = [], onSelectRoom }) {
   const [query, setQuery] = useState("");
   const [onlyIssues, setOnlyIssues] = useState(false); // show offline devices or checkout soon
+  const [compact, setCompact] = useState(false);
 
-
-            // {room.status === "occupied"
-            // ? "Occupied"
-            // : room.status === "checkout_soon"
-            //   ? "Checkout soon"
-            //   : "Empty"}
+  // {room.status === "occupied"
+  // ? "Occupied"
+  // : room.status === "checkout_soon"
+  //   ? "Checkout soon"
+  //   : "Empty"}
   const sorted = useMemo(() => {
     const copy = [...rooms];
     copy.sort((a, b) => {
@@ -158,6 +160,13 @@ export function RoomsGrid({ rooms = [], onSelectRoom }) {
               Only attention
             </span>
           </label>
+          <button
+            onClick={() => setCompact((v) => !v)}
+            className="rounded-xl border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+            title={compact ? "Switch to comfy" : "Switch to compact"}
+          >
+            {compact ? "Comfy" : "Compact"}
+          </button>
         </div>
       </div>
 
@@ -177,8 +186,9 @@ export function RoomsGrid({ rooms = [], onSelectRoom }) {
       {/* Grid */}
       <div
         className={cn(
-          "grid gap-3",
           // Responsive columns
+          "grid",
+          compact ? "gap-2" : "gap-3",
           "[grid-template-columns:repeat(auto-fill,minmax(160px,1fr))]",
         )}
       >
@@ -187,6 +197,11 @@ export function RoomsGrid({ rooms = [], onSelectRoom }) {
             key={room.roomId}
             room={room}
             onClick={() => onSelectRoom?.(room)}
+            compact={compact}
+            highlightAttention={
+              onlyIssues &&
+              (!room.device?.online || room.status === "checkout_soon")
+            }
           />
         ))}
       </div>
@@ -203,7 +218,7 @@ function LegendSwatch({ className, label }) {
   );
 }
 
-function RoomCard({ room, onClick }) {
+function RoomCard({ room, compact, highlightAttention, onClick }) {
   const styles = statusStyles(room.status);
   const lastSeenText = room.device?.online
     ? "Online"
@@ -217,24 +232,24 @@ function RoomCard({ room, onClick }) {
       onClick={onClick}
       title={`${room.type} • Floor ${room.floor} • ${title}`}
       className={cn(
-        "group relative flex aspect-square w-full flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left shadow-sm transition",
+        "group relative flex aspect-square w-full flex-col justify-between overflow-hidden rounded-2xl border text-left shadow-sm transition",
+        compact ? "p-2 text-xs" : "p-3 text-sm",
         styles.bg,
         styles.border,
         "hover:ring-2",
         styles.ring,
+        highlightAttention && "animate-pulse ring-2 ring-rose-500/70",
       )}
     >
+      {highlightAttention && (
+        <span className="pointer-events-none absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-semibold text-white shadow-sm">
+          Attention
+        </span>
+      )}
       {/* Top line: Room number + type */}
       <div className="flex items-start justify-between">
-        <div className="flex min-w-0 flex-col">
-          <div className="truncate text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
-            {room.number}
-          </div>
-          <div className="flex items-center gap-1 text-xs text-zinc-600 dark:text-zinc-300">
-            <TagIcon className="size-4" />
-            <span className="truncate">{room.type}</span>
-          </div>
-        </div>
+        <RoomNumberType number={room.number} type={room.type} />
+
         {/* Status badge */}
         <span
           className={cn(
@@ -283,12 +298,15 @@ function RoomCard({ room, onClick }) {
           ) : (
             <WifiOffIcon className="size-4" />
           )}
-          <span className="truncate" title={title}>
+          <span className="w-20" title={title}>
             {lastSeenText}
           </span>
         </div>
-        <span className="text-xs text-zinc-500 dark:text-zinc-400">
-          Floor {room.floor}
+        <span
+          className="text-xs font-semibold"
+          style={{ color: stringToColor(room.type) }}
+        >
+          {room.floor}F
         </span>
       </div>
 
