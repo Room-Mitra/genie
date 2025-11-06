@@ -3,7 +3,7 @@ name: Deploy webapp-stage
 on:
   push:
     branches:
-      - release
+      - main
     paths:
       - 'webapp/**'
       - '.github/workflows/deploy-webapp-stage.yml'
