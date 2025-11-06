@@ -23,13 +23,13 @@ export function Room({ room, wide }) {
       {/* Only Type truncates */}
       <span
         className={cn(
-          "flex-1 items-center truncate text-center",
+          "flex-1 items-center text-center",
           wide ? "w-30" : "w-17",
         )}
       >
         <div className="flex items-center justify-center gap-1 text-center font-semibold">
           <TagIcon className="size-4" />
-          {room.type}
+          <span className="truncate">{room.type}</span>
         </div>
       </span>
 

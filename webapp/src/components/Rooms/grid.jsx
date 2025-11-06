@@ -3,17 +3,16 @@
 import { useMemo, useState } from "react";
 import {
   WifiIcon,
-  BuildingOffice2Icon,
-  ChevronUpDownIcon,
-  TagIcon,
   UserIcon,
   ClockIcon,
+  MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 
-import { WifiOffIcon } from "lucide-react";
+import { BedDoubleIcon, WifiOffIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { RoomNumberType } from "./roomType";
+import { RoomNumberType } from "./roomNumberType";
 import { stringToColor } from "@/lib/text";
+import InputGroup from "../FormElements/InputGroup";
 
 /**
  * RoomsGrid
@@ -81,18 +80,10 @@ function statusStyles(status) {
   }
 }
 
-const typeOrder = ["Suite", "Deluxe", "Standard"]; // used as a tertiary sort key
-
 export function RoomsGrid({ rooms = [], onSelectRoom }) {
   const [query, setQuery] = useState("");
-  const [onlyIssues, setOnlyIssues] = useState(false); // show offline devices or checkout soon
-  const [compact, setCompact] = useState(false);
+  const [needsAttention, setNeedsAttention] = useState(false); // show offline devices or checkout soon
 
-  // {room.status === "occupied"
-  // ? "Occupied"
-  // : room.status === "checkout_soon"
-  //   ? "Checkout soon"
-  //   : "Empty"}
   const sorted = useMemo(() => {
     const copy = [...rooms];
     copy.sort((a, b) => {
@@ -107,7 +98,7 @@ export function RoomsGrid({ rooms = [], onSelectRoom }) {
           numeric: true,
         });
       // 3) type order
-      return typeOrder.indexOf(a.type) - typeOrder.indexOf(b.type);
+      return 1;
     });
     return copy;
   }, [rooms]);
@@ -120,90 +111,82 @@ export function RoomsGrid({ rooms = [], onSelectRoom }) {
         String(r.number).toLowerCase().includes(q) ||
         String(r.floor).toLowerCase().includes(q) ||
         String(r.type).toLowerCase().includes(q) ||
-        String(r.guestName || "")
-          .toLowerCase()
-          .includes(q);
-      const issue = !r.device?.online || r.status === "checkout_soon";
-      return matches && (!onlyIssues || issue);
+        String(r?.activeBooking?.guest?.firstName).toLowerCase().includes(q) ||
+        String(r?.activeBooking?.guest?.lastName).toLowerCase().includes(q);
+
+      return matches;
     });
-  }, [sorted, query, onlyIssues]);
+  }, [sorted, query, needsAttention]);
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Header / Controls */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300">
-          <BuildingOffice2Icon className="size-5" />
-          <span className="font-medium">Rooms</span>
-          <span className="text-xs">
-            ({filtered.length} / {rooms.length})
-          </span>
-        </div>
-        <div className="flex flex-1 items-center justify-end gap-2">
-          <div className="relative">
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search floor, room, type, guest"
-              className="w-64 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm outline-none ring-0 focus:border-transparent focus:ring-2 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900"
-            />
-            <ChevronUpDownIcon className="pointer-events-none absolute right-2 top-2.5 size-5 text-zinc-400" />
-          </div>
-          <label className="inline-flex cursor-pointer items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              className="size-4 accent-amber-600"
-              checked={onlyIssues}
-              onChange={(e) => setOnlyIssues(e.target.checked)}
-            />
-            <span className="text-zinc-700 dark:text-zinc-300">
-              Only attention
+    <div>
+      <div className="flex flex-col gap-4">
+        {/* Header / Controls */}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300">
+            <BedDoubleIcon className="size-5" />
+            <span className="font-medium">Rooms</span>
+            <span className="text-sm">
+              ({filtered.length} / {rooms.length})
             </span>
-          </label>
-          <button
-            onClick={() => setCompact((v) => !v)}
-            className="rounded-xl border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
-            title={compact ? "Switch to comfy" : "Switch to compact"}
-          >
-            {compact ? "Comfy" : "Compact"}
-          </button>
-        </div>
-      </div>
+          </div>
 
-      {/* Legend */}
-      <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-600 dark:text-zinc-300">
-        <LegendSwatch label="Occupied" className="bg-emerald-600" />
-        <LegendSwatch label="Checkout soon" className="bg-amber-600" />
-        <LegendSwatch label="Empty" className="bg-zinc-700 dark:bg-zinc-500" />
-        <span className="ml-2 inline-flex items-center gap-1">
-          <WifiIcon className="size-4" /> online
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <WifiOffIcon className="size-4" /> offline
-        </span>
-      </div>
-
-      {/* Grid */}
-      <div
-        className={cn(
-          // Responsive columns
-          "grid",
-          compact ? "gap-2" : "gap-3",
-          "[grid-template-columns:repeat(auto-fill,minmax(160px,1fr))]",
-        )}
-      >
-        {filtered.map((room) => (
-          <RoomCard
-            key={room.roomId}
-            room={room}
-            onClick={() => onSelectRoom?.(room)}
-            compact={compact}
-            highlightAttention={
-              onlyIssues &&
-              (!room.device?.online || room.status === "checkout_soon")
-            }
+          <InputGroup
+            type="text"
+            className="w-60 sm:w-75"
+            name="query"
+            placeholder="search floor, room, type, guest"
+            value={query}
+            handleChange={(e) => setQuery(e.target.value)}
           />
-        ))}
+        </div>
+
+        {/* Legend */}
+        <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-zinc-600 dark:text-zinc-300">
+          <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-zinc-600 dark:text-zinc-300">
+            <LegendSwatch label="Occupied" className="bg-emerald-600" />
+            <LegendSwatch label="Checkout soon" className="bg-amber-600" />
+            <LegendSwatch
+              label="Empty"
+              className="bg-zinc-700 dark:bg-zinc-500"
+            />
+            <span className="ml-2 inline-flex items-center gap-1">
+              <WifiIcon className="size-4" /> Online
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <WifiOffIcon className="size-4" /> Offline
+            </span>
+          </div>
+          <div>
+            <label className="inline-flex cursor-pointer items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="size-4 accent-amber-600"
+                checked={needsAttention}
+                onChange={(e) => setNeedsAttention(e.target.checked)}
+              />
+              <span className="text-zinc-700 dark:text-zinc-300">
+                Needs attention
+              </span>
+            </label>
+          </div>
+        </div>
+
+        {/* Grid */}
+        <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(170px,1fr))]">
+          {filtered.map((room) => (
+            <RoomCard
+              key={room.roomId}
+              room={room}
+              onClick={() => onSelectRoom?.(room)}
+              highlightAttention={
+                needsAttention &&
+                !room.noDevice &&
+                (!room.device?.online || room.status === "checkout_soon")
+              }
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -218,22 +201,29 @@ function LegendSwatch({ className, label }) {
   );
 }
 
-function RoomCard({ room, compact, highlightAttention, onClick }) {
+function RoomCard({ room, highlightAttention, onClick }) {
   const styles = statusStyles(room.status);
   const lastSeenText = room.device?.online
-    ? "Online"
-    : `Offline · last seen ${formatRelative(room.device?.lastSeenIso)}`;
-  const title = room.device?.online
-    ? `Tablet online (${formatRelative(room.device?.lastSeenIso)})`
-    : `Tablet offline · last seen ${formatRelative(room.device?.lastSeenIso)}`;
+    ? `Online · last seen ${formatRelative(room.device?.lastSeen)}`
+    : `Offline · last seen ${formatRelative(room.device?.lastSeen)}`;
+
+  const getGuestName = (guest) => {
+    if (!guest || !guest.firstName || !guest.lastName) {
+      return null;
+    }
+
+    const first = guest.firstName.trim();
+    const lastInitial = guest.lastName.trim().charAt(0).toUpperCase();
+
+    return `${first} ${lastInitial}.`;
+  };
 
   return (
     <button
       onClick={onClick}
-      title={`${room.type} • Floor ${room.floor} • ${title}`}
       className={cn(
         "group relative flex aspect-square w-full flex-col justify-between overflow-hidden rounded-2xl border text-left shadow-sm transition",
-        compact ? "p-2 text-xs" : "p-3 text-sm",
+        "p-3 text-sm",
         styles.bg,
         styles.border,
         "hover:ring-2",
@@ -241,11 +231,6 @@ function RoomCard({ room, compact, highlightAttention, onClick }) {
         highlightAttention && "animate-pulse ring-2 ring-rose-500/70",
       )}
     >
-      {highlightAttention && (
-        <span className="pointer-events-none absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-semibold text-white shadow-sm">
-          Attention
-        </span>
-      )}
       {/* Top line: Room number + type */}
       <div className="flex items-start justify-between">
         <RoomNumberType number={room.number} type={room.type} />
@@ -253,14 +238,14 @@ function RoomCard({ room, compact, highlightAttention, onClick }) {
         {/* Status badge */}
         <span
           className={cn(
-            "rounded-full px-2 py-0.5 text-[10px] font-semibold",
+            "rounded-full px-2 py-0.5 text-xs font-semibold",
             styles.badge,
           )}
         >
           {room.status === "occupied"
             ? "Occupied"
             : room.status === "checkout_soon"
-              ? "Checkout soon"
+              ? "Checkout"
               : "Empty"}
         </span>
       </div>
@@ -269,41 +254,49 @@ function RoomCard({ room, compact, highlightAttention, onClick }) {
       <div
         className={cn(
           "mt-2 line-clamp-2 text-sm",
-          room.guestName
+          room?.activeBooking?.guest
             ? "text-zinc-900 dark:text-zinc-100"
             : "text-zinc-500 dark:text-zinc-400",
         )}
       >
         <div className="flex items-center gap-2">
           <UserIcon className="size-5" />
-          <span className="truncate">
-            {room.guestName || (room.status === "empty" ? "—" : "Guest TBD")}
+          <span className="truncate font-bold">
+            {getGuestName(room?.activeBooking?.guest) ||
+              (room.status === "empty" ? "—" : "Guest TBD")}
           </span>
         </div>
-        {room.status === "checkout_soon" && room.checkoutAt && (
-          <div className="mt-1 inline-flex items-center gap-1 text-xs text-zinc-600 dark:text-zinc-300">
+        {room.status === "checkout_soon" && (
+          <div className="mt-1 inline-flex items-center gap-1 text-sm text-zinc-600 dark:text-zinc-300">
             <ClockIcon className="size-4" />
-            <span title={new Date(room.checkoutAt).toLocaleString()}>
-              Checkout {timeUntil(room.checkoutAt)}
+            <span
+              title={new Date(
+                room?.activeBooking?.checkOutTime,
+              ).toLocaleString()}
+            >
+              Checkout {timeUntil(room?.activeBooking?.checkOutTime)}
             </span>
           </div>
         )}
       </div>
 
       {/* Bottom: Device status */}
+
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1 text-xs text-zinc-700 dark:text-zinc-300">
-          {room.device?.online ? (
-            <WifiIcon className="size-4" />
-          ) : (
-            <WifiOffIcon className="size-4" />
-          )}
-          <span className="w-20" title={title}>
-            {lastSeenText}
-          </span>
-        </div>
+        {room.noDevice ? (
+          <span className="text-sm">No device in room</span>
+        ) : (
+          <div className="flex items-center gap-1 text-sm text-zinc-700 dark:text-zinc-300">
+            {room.device?.online ? (
+              <WifiIcon className="size-4" />
+            ) : (
+              <WifiOffIcon className="size-4" />
+            )}
+            <span className="w-28">{lastSeenText}</span>
+          </div>
+        )}
         <span
-          className="text-xs font-semibold"
+          className="text-sm font-semibold"
           style={{ color: stringToColor(room.type) }}
         >
           {room.floor}F
@@ -311,24 +304,38 @@ function RoomCard({ room, compact, highlightAttention, onClick }) {
       </div>
 
       {/* Hover overlay for more detail */}
-      <div className="pointer-events-none absolute inset-0 hidden items-center justify-center bg-black/5 p-3 text-center text-xs text-zinc-800 backdrop-blur-sm group-hover:flex dark:bg-white/5 dark:text-zinc-200">
+      <div className="pointer-events-none absolute inset-0 hidden items-center justify-center bg-black/5 p-3 text-center text-sm text-zinc-800 backdrop-blur-sm group-hover:flex dark:bg-white/5 dark:text-zinc-200">
         <div className="space-y-1">
           <div className="font-semibold">Room {room.number}</div>
           <div>
             {room.type} • Floor {room.floor}
           </div>
           <div>
-            {room.guestName
-              ? `Guest: ${room.guestName}`
+            {room?.activeBooking?.guest
+              ? `Guest: ${getGuestName(room?.activeBooking?.guest)}`
               : room.status === "empty"
                 ? "Currently empty"
                 : "Guest info pending"}
           </div>
           <div>
-            {room.device?.online
-              ? `Tablet online (${formatRelative(room.device?.lastSeenIso)})`
-              : `Tablet offline · last seen ${formatRelative(room.device?.lastSeenIso)}`}
+            {room.noDevice ? (
+              "No device in room"
+            ) : room.device?.online ? (
+              `Tablet online · last seen ${formatRelative(room.device?.lastSeen)}`
+            ) : (
+              <span className={cn(highlightAttention && "font-bold text-red")}>
+                Tablet offline · last seen{" "}
+                {formatRelative(room.device?.lastSeen)}
+              </span>
+            )}
           </div>
+          {highlightAttention &&
+            room.status === "checkout_soon" &&
+            !room.noDevice && (
+              <div className="font-bold text-red">
+                Check tablet is in room after checkout
+              </div>
+            )}
         </div>
       </div>
     </button>

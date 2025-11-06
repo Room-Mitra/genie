@@ -15,7 +15,7 @@ export function RoomNumberType({ number, type }) {
       </div>
 
       <div
-        className="flex items-center gap-1 text-xs font-semibold"
+        className="flex items-center gap-1 text-sm font-semibold"
         style={{ color: textColor }}
       >
         <TagIcon className="size-4" />
