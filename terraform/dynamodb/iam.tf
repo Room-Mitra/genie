@@ -23,6 +23,10 @@ data "aws_iam_policy_document" "dynamodb_access" {
     resources = [
       aws_dynamodb_table.entity.arn,
       "${aws_dynamodb_table.entity.arn}/index/*",
+
+      aws_dynamodb_table.entity_stage.arn,
+      "${aws_dynamodb_table.entity_stage.arn}/index/*",
+
     ]
   }
 

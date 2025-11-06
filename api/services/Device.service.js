@@ -1,5 +1,5 @@
 import { toIsoString } from '#common/timestamp.helper.js';
-import { registerNewDevice } from '#repositories/Device.repository.js';
+import * as deviceRepo from '#repositories/Device.repository.js';
 import { queryLatestHotelByPrefix } from '#repositories/Hotel.repository.js';
 import { queryRoomByPrefix } from '#repositories/Room.repository.js';
 import jwt from 'jsonwebtoken';
@@ -24,7 +24,7 @@ export const loginDevice = async ({ deviceId, hotelId, roomId }) => {
     throw new Error(`Room not found for ID: ${roomId}`);
   }
 
-  const device = await registerNewDevice({
+  const device = await deviceRepo.registerNewDevice({
     entityType: 'DEVICE',
     deviceId,
     hotelId: hotel.hotelId,
@@ -54,3 +54,7 @@ export const loginDevice = async ({ deviceId, hotelId, roomId }) => {
     },
   };
 };
+
+export async function updateLastSeen({ hotelId, deviceId }) {
+  return deviceRepo.updateLastSeen({ hotelId, deviceId });
+}

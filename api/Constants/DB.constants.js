@@ -1,4 +1,7 @@
-export const ENTITY_TABLE_NAME = 'ENTITY';
+import dotenv from 'dotenv';
+dotenv.config();
+
+export const ENTITY_TABLE_NAME = process.env.ENTITY_TABLE_NAME;
 
 export const GSI_ACTIVE_NAME = 'GSI_Active';
 

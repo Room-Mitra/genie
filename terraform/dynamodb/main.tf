@@ -72,3 +72,45 @@ resource "aws_dynamodb_table" "entity" {
     env     = "prod"
   }
 }
+
+
+
+resource "aws_dynamodb_table" "entity_stage" {
+  name         = "ENTITY_STAGE"
+  billing_mode = "PAY_PER_REQUEST"
+
+  hash_key  = "pk"
+  range_key = "sk"
+
+  # Emit only used attributes
+  dynamic "attribute" {
+    for_each = { for a in local.all_keys : a.name => a }
+    content {
+      name = attribute.value.name
+      type = attribute.value.type
+    }
+  }
+
+  # GSIs
+  dynamic "global_secondary_index" {
+    for_each = { for g in local.gsis : g.name => g }
+    content {
+      name            = global_secondary_index.value.name
+      hash_key        = global_secondary_index.value.hash
+      range_key       = global_secondary_index.value.range
+      projection_type = "ALL"
+    }
+  }
+
+  point_in_time_recovery { enabled = true }
+  server_side_encryption { enabled = true }
+
+  stream_enabled   = true
+  stream_view_type = "NEW_AND_OLD_IMAGES"
+
+  tags = {
+    service = "roommitra"
+    table   = "entity_stage"
+    env     = "stage"
+  }
+}

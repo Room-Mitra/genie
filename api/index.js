@@ -74,7 +74,11 @@ const PORT = process.env.PORT || 3000;
 app.use(bodyParser.json());
 app.use(
   cors({
-    origin: ['http://localhost:3000', 'https://app.roommitra.com'],
+    origin: [
+      'http://localhost:3000',
+      'https://app.roommitra.com',
+      'https://app-stage.roommitra.com',
+    ],
   })
 );
 

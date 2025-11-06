@@ -43,7 +43,11 @@ export async function addHotel({ name, address, contactEmail, contactPhone }) {
 }
 
 export async function listHotels({ limit, nextToken }) {
-  return await hotelRepo.queryAllHotels({ limit, nextToken });
+  const res = await hotelRepo.queryAllHotels({ limit, nextToken });
+  return {
+    ...res,
+    items: res.items.map(hotelResponse),
+  };
 }
 
 export async function updateHotelById(hotelId, payload) {
