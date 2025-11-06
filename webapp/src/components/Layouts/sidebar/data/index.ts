@@ -10,12 +10,12 @@ export const NAV_DATA = [
   {
     label: "MAIN MENU",
     items: [
-      // {
-      //   title: "Dashboard",
-      //   icon: LineChartIcon,
-      //   url: "/",
-      //   items: [],
-      // },
+      {
+        title: "Rooms",
+        icon: BedDoubleIcon,
+        items: [],
+        url: "/rooms/all",
+      },
       {
         title: "Requests",
         icon: Icons.Bell,
@@ -70,12 +70,7 @@ export const NAV_DATA = [
           },
         ],
       },
-      {
-        title: "Rooms",
-        icon: BedDoubleIcon,
-        items: [],
-        url: "/rooms/all",
-      },
+
       {
         title: "Staff",
         icon: UsersIcon,
