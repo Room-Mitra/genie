@@ -1,13 +1,24 @@
-"use client";
-
 import { RoomsGrid } from "@/components/Rooms/grid";
-import { useRouter } from "next/navigation";
+import { getTokenFromCookie } from "@/lib/auth";
 
-export default function Home() {
-  // const { selected_time_frame } = await searchParams;
-  // const extractTimeFrame = createTimeFrameExtractor(selected_time_frame);
-  const router = useRouter();
+async function fetchRooms() {
+  const token = await getTokenFromCookie();
+  const res = await fetch(`${process.env.API_BASE_URL}/rooms`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Failed to fetch rooms");
+  }
+
+  return await res.json();
+}
+
+export default async function Home() {
   const sample = [
     {
       id: "r-301",
@@ -67,12 +78,11 @@ export default function Home() {
     },
   ];
 
+  const rooms = await fetchRooms();
+
   return (
     <div className="p-4">
-      <RoomsGrid
-        rooms={sample}
-        onSelectRoom={(room) => alert(`Open room ${room.number}`)}
-      />
+      <RoomsGrid rooms={rooms.items} />
     </div>
   );
 }

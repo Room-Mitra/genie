@@ -85,6 +85,12 @@ export function RoomsGrid({ rooms = [], onSelectRoom }) {
   const [query, setQuery] = useState("");
   const [onlyIssues, setOnlyIssues] = useState(false); // show offline devices or checkout soon
 
+
+            // {room.status === "occupied"
+            // ? "Occupied"
+            // : room.status === "checkout_soon"
+            //   ? "Checkout soon"
+            //   : "Empty"}
   const sorted = useMemo(() => {
     const copy = [...rooms];
     copy.sort((a, b) => {
@@ -178,7 +184,7 @@ export function RoomsGrid({ rooms = [], onSelectRoom }) {
       >
         {filtered.map((room) => (
           <RoomCard
-            key={room.id}
+            key={room.roomId}
             room={room}
             onClick={() => onSelectRoom?.(room)}
           />

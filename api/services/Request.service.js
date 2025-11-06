@@ -7,9 +7,7 @@ import * as roomRepo from '#repositories/Room.repository.js';
 import * as staffRepo from '#repositories/Staff.repository.js';
 import { ulid } from 'ulid';
 import { placeOrder } from './Order.service.js';
-import { ENTITY_TABLE_NAME } from '#Constants/DB.constants.js';
 import { updateOrderStatus } from '#repositories/Order.repository.js';
-import DDB from '#clients/DynamoDb.client.js';
 
 const minsToFulfillByDepartment = {
   house_keeping: () => {
