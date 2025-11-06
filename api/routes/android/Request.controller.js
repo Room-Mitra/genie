@@ -2,6 +2,7 @@ import express from 'express';
 import * as requestService from '#services/Request.service.js';
 import * as bookingService from '#services/Booking.service.js';
 import { requestResponse } from '#presenters/request.js';
+import { updateLastSeen } from '#services/Device.service.js';
 
 const router = express.Router();
 
@@ -40,8 +41,9 @@ router.post('/', async (req, res) => {
 
 router.get('/', async (req, res) => {
   try {
-    const deviceData = req.deviceData;
-    const roomId = deviceData.roomId;
+    const { hotelId, roomId, deviceId } = req.deviceData;
+
+    await updateLastSeen({ hotelId, deviceId });
 
     let requests = {};
     const booking = await bookingService.getActiveBookingForRoom({ roomId });
