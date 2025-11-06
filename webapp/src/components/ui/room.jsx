@@ -1,5 +1,6 @@
 import { pickTextColor, stringToColor } from "@/lib/text";
 import { cn } from "@/lib/utils";
+import { TagIcon } from "@heroicons/react/24/outline";
 
 export function Room({ room, wide }) {
   const bg = stringToColor(room?.type || "Unknown");
@@ -21,9 +22,15 @@ export function Room({ room, wide }) {
 
       {/* Only Type truncates */}
       <span
-        className={cn("flex-1 truncate text-center", wide ? "w-30" : "w-17")}
+        className={cn(
+          "flex-1 items-center text-center",
+          wide ? "w-30" : "w-17",
+        )}
       >
-        {room.type}
+        <div className="flex items-center justify-center gap-1 text-center font-semibold">
+          <TagIcon className="size-4" />
+          <span className="truncate">{room.type}</span>
+        </div>
       </span>
 
       <span>· {room.floor}F</span>
