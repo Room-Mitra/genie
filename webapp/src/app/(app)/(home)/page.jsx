@@ -1,7 +1,7 @@
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { RoomsGrid } from "@/components/Rooms/grid";
 
-export default async function Home() {
+export default function Home() {
   return (
     <div>
       <Breadcrumb pageName="Rooms" parent="Dashboard" />

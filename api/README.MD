@@ -54,24 +54,23 @@ endpoint=http://localhost:8000
 3. Enter the access key and secret.
 4. Anytime you want to use terraform's roommitra IAM, run an `aws` command with `--profile roommitra`.
 
+## SSM session to EC2
+```sh
+aws ssm start-session --target $(aws ec2 describe-instances --filters "Name=tag:Name,Values=roommitra-ec2" "Name=instance-state-name,Values=running" --query "Reservations[0].Instances[0].InstanceId" --output text)
+```
+
 ## Certificate on the EC2
 
-### NOTE: Run this only if EC2 instance was recreated
+If you need to generate new certificates for EC
 
-1. Grab the EC2 instance ID using `terraform show`
-2. Create a ssm to the EC2
-
-```
-aws ssm start-session --target i-0547ae1ad3fe5c2f1 --profile roommitra
-```
-
-3. Run `certbot` to generate certificates
+1. Start ssm session to EC2 using command above
+2. Run `certbot` to generate certificates
 
 ```sh
-sudo certbot --nginx -d roommitra.com -d api.roommitra.com -d app.roommitra.com --agree-tos -m chai@roommitra.com --redirect -n
+sudo certbot --nginx -d roommitra.com -d api.roommitra.com -d app.roommitra.com -d app-stage.roommitra.com -d api-stage.roommitra.com --agree-tos -m chai@roommitra.com --redirect -n
 ```
 
-4. Backup the certificates to S3
+3. Backup the certificates to S3
 
 ```sh
 BUCKET="s3://roommitra-codedeploy/certs"

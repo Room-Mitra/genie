@@ -70,7 +70,7 @@ export default function SigninWithPassword() {
       }
 
       // 3) Hard navigation so middleware/SSR sees the cookie instantly
-      window.location.assign("/requests/active");
+      window.location.assign("/");
     } catch (err) {
       toast.error(
         "Error logging in user" + (err?.message ? `: ${err.message}` : ""),

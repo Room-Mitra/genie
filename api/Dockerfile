@@ -33,6 +33,6 @@ COPY --from=builder   /app ./
 RUN chown -R express:nodejs /app
 
 USER express
-EXPOSE 4000
-ENV PORT=4000
+
+ENV PORT=${PORT:-4000}
 CMD ["npm", "start"]

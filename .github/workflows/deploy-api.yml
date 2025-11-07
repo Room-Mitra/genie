@@ -14,6 +14,7 @@ permissions:
   contents: read
 
 env:
+  NAME: 'prod'
   AWS_REGION: ap-south-1
   AWS_ACCOUNT_ID: '086325458599'
   PUBLIC_ECR_ALIAS: p1s3y6q3
@@ -50,7 +51,7 @@ jobs:
               "blocks": [
                 { "type": "section",
                   "text": { "type": "mrkdwn",
-                    "text": ":alarm_clock: *`api` Build started* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
+                    "text": ":alarm_clock: *PROD 🟣 `api` Build started* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
                   }
                 },
                 { "type": "context", "elements": [
@@ -88,6 +89,7 @@ jobs:
           tags: |
             public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:${{ env.IMAGE_TAG }}
             public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:latest
+            public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:release
           cache-from: |
             type=gha
             type=registry,ref=public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:buildcache
@@ -146,7 +148,7 @@ jobs:
               "blocks": [
                 { "type": "section",
                   "text": { "type": "mrkdwn",
-                    "text": ":white_check_mark: *`api` Build passed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
+                    "text": ":white_check_mark: *PROD 🟣 `api` Build passed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
                   }
                 },
                 { "type": "context", "elements": [
@@ -169,7 +171,7 @@ jobs:
               "blocks": [
                 { "type": "section",
                   "text": { "type": "mrkdwn",
-                    "text": ":x: *`api` Build failed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
+                    "text": ":x: *PROD 🟣 `api` Build failed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
                   }
                 },
                 { "type": "context", "elements": [
