@@ -19,7 +19,7 @@ router.get('/config', async (req, res) => {
               title: 'Indian Music Experience',
               description: `India's first interactive music museum, featuring a Sound Garden, nine interactive exhibit galleries, and lots more to showcase the diversity of Indian music.`,
               asset: {
-                url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/1.png`,
+                url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/AGLIO+OLIO.png`,
               },
             },
             {
