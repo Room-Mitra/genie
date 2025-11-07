@@ -1,13 +1,6 @@
 package com.example.roommitra.view
 
-import android.app.Activity
-import android.content.Context
-import android.content.pm.PackageManager
 import android.net.*
-import android.net.wifi.WifiManager
-import android.os.BatteryManager
-import android.os.Build
-import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -21,25 +14,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import com.example.roommitra.service.ApiResult
 import com.example.roommitra.service.ApiService
 import com.example.roommitra.service.SessionManager
 import kotlinx.coroutines.*
 import org.json.JSONObject
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.net.InetAddress
-import java.net.NetworkInterface
-import java.net.URL
 import java.util.*
-import android.Manifest
-
-import android.content.Intent
-import android.content.IntentFilter
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import java.net.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,6 +31,7 @@ fun LoginScreen(onBackClick: () -> Unit = {}) {
     var isLoading by remember { mutableStateOf(false) }
     var loginMessage by remember { mutableStateOf<String?>(null) }
     var showDiagnostics by remember { mutableStateOf(false) }
+    var showServerConfig by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
@@ -89,7 +70,13 @@ fun LoginScreen(onBackClick: () -> Unit = {}) {
     if (showDiagnostics) {
         DiagnosticsDialog(onClose = { showDiagnostics = false })
     }
-
+    if (showServerConfig) {
+        ServerConfigDialog(
+            onClose = { showServerConfig = false },
+            sessionManager = sessionManager,
+            apiService = apiService
+        )
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -188,189 +175,21 @@ fun LoginScreen(onBackClick: () -> Unit = {}) {
             }
         }
 
-        // 🩺 Floating Diagnostics Button (bottom right)
-        Button(
-            onClick = { showDiagnostics = true },
+
+        Row(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(bottom = 16.dp, end = 16.dp)
+                .padding(bottom = 16.dp, end = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text("Show Diagnostics")
-        }
-    }
-}
-
-
-
-
-@Composable
-fun DiagnosticsDialog(onClose: () -> Unit) {
-    val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-
-    var diagnostics by remember { mutableStateOf<Map<String, String?>>(emptyMap()) }
-    var internetStatus by remember { mutableStateOf("Not checked") }
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        val granted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true &&
-                permissions[Manifest.permission.ACCESS_WIFI_STATE] == true
-        if (granted) diagnostics = getDiagnostics(context)
-    }
-
-    // Request both permissions
-    LaunchedEffect(Unit) {
-        val fineLocGranted = ContextCompat.checkSelfPermission(
-            context, Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-        val wifiStateGranted = ContextCompat.checkSelfPermission(
-            context, Manifest.permission.ACCESS_WIFI_STATE
-        ) == PackageManager.PERMISSION_GRANTED
-
-        if (!fineLocGranted || !wifiStateGranted) {
-            permissionLauncher.launch(
-                arrayOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_WIFI_STATE
-                )
-            )
-        } else {
-            diagnostics = getDiagnostics(context)
-        }
-    }
-
-    AlertDialog(
-        onDismissRequest = onClose,
-        title = { Text("Device Diagnostics") },
-        text = {
-            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                diagnostics.forEach { (label, value) ->
-                    Text("$label: ${value ?: "N/A"}", fontSize = 14.sp)
-                    Spacer(modifier = Modifier.height(4.dp))
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-                Text("Internet Check: $internetStatus", fontSize = 14.sp)
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Button(onClick = {
-                    coroutineScope.launch {
-                        internetStatus = "Checking..."
-                        val connectivityOk = checkConnectivityManager(context)
-                        val httpOk = checkInternetHttp()
-                        withContext(Dispatchers.Main) {
-                            internetStatus =
-                                if (connectivityOk && httpOk) "Internet OK ✅"
-                                else if (!connectivityOk && httpOk) "Limited Connectivity ⚠️"
-                                else "No Internet ❌"
-                        }
-                    }
-                }) {
-                    Text("Check Internet")
-                }
+            Button(onClick = { showServerConfig = true }) {
+                Text("Server Config")
             }
-        },
-        confirmButton = { TextButton(onClick = onClose) { Text("Close") } }
-    )
-}
-
-/** Collect all diagnostics safely **/
-fun getDiagnostics(context: Context): Map<String, String?> {
-    val hasWifiPermission =
-        ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_WIFI_STATE) ==
-                PackageManager.PERMISSION_GRANTED
-    val hasLocationPermission =
-        ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
-                PackageManager.PERMISSION_GRANTED
-
-    val wifiManager =
-        if (hasWifiPermission) context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        else null
-
-    val info = try {
-        if (hasWifiPermission) wifiManager?.connectionInfo else null
-    } catch (e: SecurityException) {
-        null
-    }
-
-    val batteryIntent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-    val batteryLevel = batteryIntent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
-    val chargingType = batteryIntent?.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1)
-    val batteryStatus = when (chargingType) {
-        BatteryManager.BATTERY_PLUGGED_AC -> "Charging (AC)"
-        BatteryManager.BATTERY_PLUGGED_USB -> "Charging (USB)"
-        BatteryManager.BATTERY_PLUGGED_WIRELESS -> "Charging (Wireless)"
-        else -> "Not Charging"
-    }
-
-    // Try to get hardware MAC (may be masked)
-    val macAddr = try {
-        NetworkInterface.getNetworkInterfaces().toList()
-            .firstOrNull { it.name.equals("wlan0", ignoreCase = true) }
-            ?.hardwareAddress
-            ?.joinToString(":") { String.format("%02X", it) }
-    } catch (e: Exception) { null }
-
-    val realMac = when {
-        macAddr == null -> "Unavailable"
-        macAddr == "02:00:00:00:00:00" -> "Masked by Android"
-        else -> macAddr
-    }
-
-    val ssid = when {
-        !hasLocationPermission -> "Location permission needed"
-        info?.ssid.isNullOrBlank() -> "Not connected"
-        else -> info?.ssid?.trim('"')
-    }
-
-    val bssid = when {
-        !hasLocationPermission -> "Location permission needed"
-        info?.bssid.isNullOrBlank() -> "Masked / Not available"
-        else -> info?.bssid
-    }
-
-    return mapOf(
-        "Wi-Fi SSID" to ssid,
-        "BSSID" to bssid,
-        "IP Address" to (info?.ipAddress?.let { intToIp(it) } ?: "N/A"),
-        "Link Speed" to "${info?.linkSpeed ?: "?"} Mbps",
-        "Signal Strength (RSSI)" to "${info?.rssi ?: "?"} dBm",
-        "Randomized MAC (API)" to info?.macAddress,
-        "Actual MAC (wlan0)" to realMac,
-        "Battery Level" to "$batteryLevel%",
-        "Battery Status" to batteryStatus,
-        "Device" to "${Build.MANUFACTURER} ${Build.MODEL}",
-        "Android Version" to Build.VERSION.RELEASE
-    )
-}
-
-private fun intToIp(ip: Int): String =
-    "${ip and 0xFF}.${ip shr 8 and 0xFF}.${ip shr 16 and 0xFF}.${ip shr 24 and 0xFF}"
-
-suspend fun checkConnectivityManager(context: Context): Boolean = withContext(Dispatchers.IO) {
-    try {
-        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val network = cm.activeNetwork ?: return@withContext false
-        val caps = cm.getNetworkCapabilities(network)
-        caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
-    } catch (e: Exception) {
-        false
-    }
-}
-
-suspend fun checkInternetHttp(): Boolean = withContext(Dispatchers.IO) {
-    try {
-        val url = URL("https://clients3.google.com/generate_204")
-        (url.openConnection() as HttpURLConnection).run {
-            connectTimeout = 2000
-            readTimeout = 2000
-            connect()
-            val ok = responseCode == 204
-            disconnect()
-            ok
+            Button(onClick = { showDiagnostics = true }) {
+                Text("Show Diagnostics")
+            }
         }
-    } catch (e: Exception) {
-        false
     }
 }
+
+
