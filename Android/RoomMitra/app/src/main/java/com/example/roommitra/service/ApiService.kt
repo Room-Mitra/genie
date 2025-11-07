@@ -3,6 +3,7 @@ package com.example.roommitra.service
 import android.content.Context
 import android.provider.Settings
 import android.util.Log
+import com.example.roommitra.data.Constants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -20,15 +21,17 @@ sealed class ApiResult {
     data class Error(val code: Int, val message: String? = null) : ApiResult()
 }
 class ApiService(private val context: Context) {
-    companion object {
-  //      private const val BASE_URL = "https://legal-chefs-run.loca.lt"+"/android"
-        private const val BASE_URL = "https://api.roommitra.com/android"
-    }
+//    private val sessionManager = SessionManager(context)
+//    companion object {
+////        private const val BASE_URL = "https://major-candles-arrive.loca.lt"+"/android"
+//        private const val BASE_URL = "https://api.roommitra.com/android"
+////        private const val BASE_URL = "https://api-stage.roommitra.com"
+//    }
 
     private val client = OkHttpClient.Builder()
-        .connectTimeout(60, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
-        .writeTimeout(60, TimeUnit.SECONDS)
+        .connectTimeout(Constants.NETWORK_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        .readTimeout(Constants.NETWORK_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        .writeTimeout(Constants.NETWORK_TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .build()
 
     // Example: default headers
@@ -95,10 +98,16 @@ class ApiService(private val context: Context) {
         var attempt = 0
         var currentDelay = retryDelayMillis
 
+        var baseUrl = SessionManager(context).getBaseUrl()
+        if (baseUrl.isBlank()) {
+            Log.e("ApiService", "BASE_URL is empty. Using default production URL.")
+            baseUrl = Constants.DEFAULT_BASE_URL
+        }
+
         while (attempt < maxRetries) {
             try {
                 val requestBuilder = Request.Builder()
-                    .url("$BASE_URL/$endpoint")
+                    .url("$baseUrl/$endpoint")
 
                 // Merge default + custom headers
                 (defaultHeaders + headers).forEach { (key, value) ->
