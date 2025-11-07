@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ClipboardIcon, CheckIcon } from "@heroicons/react/24/outline";
 import { cn } from "@/lib/utils";
 
-export function ID({ ulid, size }) {
+export function ID({ ulid, size, noToolTip }) {
   const [copied, setCopied] = useState(false);
 
   const sizeToText = {
@@ -27,7 +27,7 @@ export function ID({ ulid, size }) {
   return ulid ? (
     <div
       className={cn(
-        "mx-auto w-fit flex items-center text-gray-500 dark:text-gray-400",
+        "flex w-fit items-center text-gray-500 dark:text-gray-400",
         sizeToText[size ?? "md"],
       )}
     >
@@ -40,9 +40,11 @@ export function ID({ ulid, size }) {
         aria-label="Copy ULID"
       >
         {/* Tooltip */}
-        <span className="absolute bottom-full left-1/2 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white shadow group-hover:block">
-          {copied ? "Copied" : "Copy ID"}
-        </span>
+        {!noToolTip && (
+          <span className="absolute bottom-full left-1/2 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white shadow group-hover:block">
+            {copied ? "Copied" : "Copy ID"}
+          </span>
+        )}
 
         {copied ? (
           <CheckIcon className="h-4 w-4 text-green-500" />

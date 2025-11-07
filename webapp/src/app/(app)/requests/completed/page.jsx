@@ -89,10 +89,8 @@ export default function Page() {
                     timeOfFulfillment={r.timeOfFulfillment}
                   />
                 ),
-                requestId: <ID ulid={r.requestId} />,
                 status: <Status status={r.status} ulid={r.requestId} />,
                 room: <Room room={r.room || {}} />,
-                details: <Details details={r.details} />,
                 department: (
                   <Department
                     department={r.department}
