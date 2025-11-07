@@ -163,3 +163,35 @@ aws ssm get-parameter --name "/roommitra/api/env" --with-decryption --query "Par
 ```
 
 2. Do the same for `website` and `webapp`. Use ssm parameter name `/roommitra/api/website` and `/roommitra/api/webapp` respectively.
+
+
+# Checking disk space on EC2
+1. Check current disk usage
+```sh
+df -h /
+```
+2. To see all mounts
+```sh
+df -h
+```
+This shows total, used, and available space. Note the % used or Avail column.
+
+3. Check which directories take the most space
+```sh
+sudo du -h -d1 / | sort -hr | head -20
+```
+
+4. To visualize it after say deploys
+```sh
+df -h > befoer.txt
+# run deploy
+df -h > after.txt
+diff before.txt after.txt
+```
+
+```sh
+sudo du -sh /* > before_dirs.txt
+# run deploy
+sudo du -sh /* > after_dirs.txt
+diff before_dirs.txt after_dirs.txt
+```
