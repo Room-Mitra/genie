@@ -301,140 +301,136 @@ function RoomCard({ room, highlightAttention, onClick, onDelete }) {
   };
 
   return (
-    <>
-      <button
-        onClick={onClick}
-        className={cn(
-          "group relative flex aspect-square w-full flex-col justify-between overflow-hidden rounded-2xl border text-left shadow-sm transition",
-          "p-3 text-sm",
-          styles.bg,
-          styles.border,
-          "hover:ring-2",
-          styles.ring,
-          highlightAttention && "animate-pulse ring-2 ring-rose-500/70",
-        )}
-      >
-        {/* Top line: Room number + type */}
-        <div className="flex items-start justify-between">
-          <RoomNumberType number={room.number} type={room.type} />
+    <button
+      onClick={onClick}
+      className={cn(
+        "group relative flex aspect-square w-full flex-col justify-between overflow-hidden rounded-2xl border text-left shadow-sm transition",
+        "p-3 text-sm",
+        styles.bg,
+        styles.border,
+        "hover:ring-2",
+        styles.ring,
+        highlightAttention && "animate-pulse ring-2 ring-rose-500/70",
+      )}
+    >
+      {/* Top line: Room number + type */}
+      <div className="flex items-start justify-between">
+        <RoomNumberType number={room.number} type={room.type} />
 
-          {/* Status badge */}
-          <span
-            className={cn(
-              "rounded-full px-2 py-0.5 text-xs font-semibold",
-              styles.badge,
-            )}
-          >
-            {room.status === "occupied"
-              ? "Occupied"
-              : room.status === "checkout_soon"
-                ? "Checkout"
-                : "Empty"}
-          </span>
-        </div>
-
-        {/* Center: Guest name (if any) */}
-        <div
+        {/* Status badge */}
+        <span
           className={cn(
-            "mt-2 line-clamp-2 text-sm",
-            room?.activeBooking?.guest
-              ? "text-zinc-900 dark:text-zinc-100"
-              : "text-zinc-500 dark:text-zinc-400",
+            "rounded-full px-2 py-0.5 text-xs font-semibold",
+            styles.badge,
           )}
         >
-          <div className="flex items-center gap-2">
-            <UserIcon className="size-5" />
-            <span className="truncate font-bold">
-              {getGuestName(room?.activeBooking?.guest) ||
-                (room.status === "empty" ? "—" : "Guest TBD")}
-            </span>
-          </div>
-          {room.status === "checkout_soon" && (
-            <div className="mt-1 inline-flex items-center gap-1 text-sm text-zinc-600 dark:text-zinc-300">
-              <ClockIcon className="size-4" />
-              <span
-                title={new Date(
-                  room?.activeBooking?.checkOutTime,
-                ).toLocaleString()}
-              >
-                Checkout {timeUntil(room?.activeBooking?.checkOutTime)}
-              </span>
-            </div>
-          )}
-        </div>
+          {room.status === "occupied"
+            ? "Occupied"
+            : room.status === "checkout_soon"
+              ? "Checkout"
+              : "Empty"}
+        </span>
+      </div>
 
-        {/* Bottom: Device status */}
-
-        <div className="flex items-center justify-between">
-          {room.noDevice ? (
-            <span className="text-sm">No device in room</span>
-          ) : (
-            <div className="flex items-center gap-1 text-sm text-zinc-700 dark:text-zinc-300">
-              {room.device?.online ? (
-                <WifiIcon className="size-4" />
-              ) : (
-                <WifiOffIcon className="size-4" />
-              )}
-              <span className="w-28">{lastSeenText}</span>
-            </div>
-          )}
-          <span
-            className="text-sm font-semibold"
-            style={{ color: stringToColor(room.type) }}
-          >
-            {room.floor}F
+      {/* Center: Guest name (if any) */}
+      <div
+        className={cn(
+          "mt-2 line-clamp-2 text-sm",
+          room?.activeBooking?.guest
+            ? "text-zinc-900 dark:text-zinc-100"
+            : "text-zinc-500 dark:text-zinc-400",
+        )}
+      >
+        <div className="flex items-center gap-2">
+          <UserIcon className="size-5" />
+          <span className="truncate font-bold">
+            {getGuestName(room?.activeBooking?.guest) ||
+              (room.status === "empty" ? "—" : "Guest TBD")}
           </span>
         </div>
-
-        {/* Hover overlay for more detail */}
-        <div className="pointer-events-none absolute inset-0 hidden items-center justify-center bg-black/5 p-3 text-center text-sm text-zinc-800 backdrop-blur-sm group-hover:flex dark:bg-white/5 dark:text-zinc-200">
-          {/* Delete button positioned absolutely in the top-right corner */}
-          <div className="pointer-events-auto absolute right-2 top-2">
-            <DeleteButton
-              noToolTip={true}
-              onClick={() => {
-                onDelete(room);
-              }}
-            />
+        {room.status === "checkout_soon" && (
+          <div className="mt-1 inline-flex items-center gap-1 text-sm text-zinc-600 dark:text-zinc-300">
+            <ClockIcon className="size-4" />
+            <span
+              title={new Date(
+                room?.activeBooking?.checkOutTime,
+              ).toLocaleString()}
+            >
+              Checkout {timeUntil(room?.activeBooking?.checkOutTime)}
+            </span>
           </div>
+        )}
+      </div>
 
-          <div className="space-y-1">
-            <div className="font-semibold">Room {room.number}</div>
-            <div>
-              {room.type} • Floor {room.floor}
-            </div>
-            <div>
-              {room?.activeBooking?.guest
-                ? `Guest: ${getGuestName(room?.activeBooking?.guest)}`
-                : room.status === "empty"
-                  ? "Currently empty"
-                  : "Guest info pending"}
-            </div>
-            <div>
-              {room.noDevice ? (
-                "No device in room"
-              ) : room.device?.online ? (
-                `Tablet online · last seen ${formatRelative(room.device?.lastSeen)}`
-              ) : (
-                <span
-                  className={cn(highlightAttention && "font-bold text-red")}
-                >
-                  Tablet offline · last seen{" "}
-                  {formatRelative(room.device?.lastSeen)}
-                </span>
-              )}
-            </div>
-            {highlightAttention &&
-              room.status === "checkout_soon" &&
-              !room.noDevice && (
-                <div className="font-bold text-red">
-                  Check tablet is in room after checkout
-                </div>
-              )}
+      {/* Bottom: Device status */}
+
+      <div className="flex items-center justify-between">
+        {room.noDevice ? (
+          <span className="text-sm">No device in room</span>
+        ) : (
+          <div className="flex items-center gap-1 text-sm text-zinc-700 dark:text-zinc-300">
+            {room.device?.online ? (
+              <WifiIcon className="size-4" />
+            ) : (
+              <WifiOffIcon className="size-4" />
+            )}
+            <span className="w-28">{lastSeenText}</span>
           </div>
+        )}
+        <span
+          className="text-sm font-semibold"
+          style={{ color: stringToColor(room.type) }}
+        >
+          {room.floor}F
+        </span>
+      </div>
+
+      {/* Hover overlay for more detail */}
+      <div className="pointer-events-none absolute inset-0 hidden items-center justify-center bg-black/5 p-3 text-center text-sm text-zinc-800 backdrop-blur-sm group-hover:flex dark:bg-white/5 dark:text-zinc-200">
+        {/* Delete button positioned absolutely in the top-right corner */}
+        <div className="pointer-events-auto absolute right-2 top-2">
+          <DeleteButton
+            noToolTip={true}
+            onClick={() => {
+              onDelete(room);
+            }}
+          />
         </div>
-      </button>
-    </>
+
+        <div className="space-y-1">
+          <div className="font-semibold">Room {room.number}</div>
+          <div>
+            {room.type} • Floor {room.floor}
+          </div>
+          <div>
+            {room?.activeBooking?.guest
+              ? `Guest: ${getGuestName(room?.activeBooking?.guest)}`
+              : room.status === "empty"
+                ? "Currently empty"
+                : "Guest info pending"}
+          </div>
+          <div>
+            {room.noDevice ? (
+              "No device in room"
+            ) : room.device?.online ? (
+              `Tablet online · last seen ${formatRelative(room.device?.lastSeen)}`
+            ) : (
+              <span className={cn(highlightAttention && "font-bold text-red")}>
+                Tablet offline · last seen{" "}
+                {formatRelative(room.device?.lastSeen)}
+              </span>
+            )}
+          </div>
+          {highlightAttention &&
+            room.status === "checkout_soon" &&
+            !room.noDevice && (
+              <div className="font-bold text-red">
+                Check tablet is in room after checkout
+              </div>
+            )}
+        </div>
+      </div>
+    </button>
   );
 }
 
