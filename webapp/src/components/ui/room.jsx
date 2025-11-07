@@ -9,7 +9,7 @@ export function Room({ room, wide }) {
   return room ? (
     <div
       className={cn(
-        "inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-sm font-medium",
+        "inline-flex min-w-0 items-center gap-1 rounded-full px-2.5 py-1.5 text-sm font-medium",
         !wide && "max-w-[180px] sm:max-w-[200px]",
       )}
       style={{
@@ -17,23 +17,16 @@ export function Room({ room, wide }) {
         color: text,
       }}
     >
-      <span>#{room.number}</span>
+      <span className="whitespace-nowrap">#{room.number}</span>
       <span>·</span>
 
-      {/* Only Type truncates */}
-      <span
-        className={cn(
-          "flex-1 items-center text-center",
-          wide ? "w-30" : "w-17",
-        )}
-      >
-        <div className="flex items-center justify-center gap-1 text-center font-semibold">
-          <TagIcon className="size-4" />
-          <span className="truncate">{room.type}</span>
-        </div>
-      </span>
+      {/* Type section with truncation */}
+      <div className="flex min-w-0 flex-shrink items-center gap-1 overflow-hidden">
+        <TagIcon className="size-4 flex-shrink-0" />
+        <span className="truncate">{room.type}</span>
+      </div>
 
-      <span>· {room.floor}F</span>
+      <span className="whitespace-nowrap">· {room.floor}F</span>
     </div>
   ) : (
     <div>---</div>
