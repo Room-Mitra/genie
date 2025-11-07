@@ -5,9 +5,11 @@ import { getMessagesByConversationIds } from '#repositories/Message.repository.j
 import * as requestRepo from '#repositories/Request.repository.js';
 import * as roomRepo from '#repositories/Room.repository.js';
 import * as staffRepo from '#repositories/Staff.repository.js';
+import * as orderRepo from '#repositories/Order.repository.js';
 import { ulid } from 'ulid';
 import { placeOrder } from './Order.service.js';
 import { updateOrderStatus } from '#repositories/Order.repository.js';
+import { orderResponse } from '#presenters/order.js';
 
 const minsToFulfillByDepartment = {
   house_keeping: () => {
@@ -38,8 +40,15 @@ const minsToFulfillByDepartment = {
 
 export async function listRequestsByBooking({ bookingId }) {
   const requests = await requestRepo.queryRequestsForBooking({ bookingId });
+
+  const orders = await orderRepo.queryOrdersByBooking({ bookingId });
+  const requestOrdersMap = new Map(orders.map((o) => [o.requestId, o]));
+
   return {
-    items: requests,
+    items: requests.map((r) => ({
+      ...requestResponse(r),
+      order: orderResponse(requestOrdersMap.get(r.requestId)),
+    })),
     count: requests.length,
   };
 }

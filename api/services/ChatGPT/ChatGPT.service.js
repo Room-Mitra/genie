@@ -75,8 +75,9 @@ const callFunction = async ({
     case 'get_hotel_details':
       return await getHotelById(hotelId);
 
-    case 'get_previous_requests':
-      return await listRequestsByBooking({ bookingId: bookingId });
+    case 'get_previous_requests': {
+      return summarizeRequests(await listRequestsByBooking({ bookingId: bookingId }));
+    }
 
     case 'create_hotel_requests':
       return create_hotel_requests_handler({
