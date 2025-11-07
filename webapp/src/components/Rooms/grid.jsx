@@ -1,38 +1,33 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import {
-  WifiIcon,
-  UserIcon,
-  ClockIcon,
-  MagnifyingGlassIcon,
-} from "@heroicons/react/24/outline";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { WifiIcon, UserIcon, ClockIcon } from "@heroicons/react/24/outline";
 
 import { BedDoubleIcon, WifiOffIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RoomNumberType } from "./roomNumberType";
 import { stringToColor } from "@/lib/text";
 import InputGroup from "../FormElements/InputGroup";
+import Link from "next/link";
+import { DeleteModal } from "../ui/delete-modal";
+import { Room } from "../ui/room";
+import { toast } from "react-toastify";
+import { DeleteButton } from "../ui/delete-button";
+import { Spinner } from "@material-tailwind/react";
 
-/**
- * RoomsGrid
- *
- * Props:
- *  - rooms: Array<Room>
- *  - onSelectRoom?: (room: Room) => void
- *
- * Room shape example:
- * {
- *   id: "01H...",
- *   floor: 3,
- *   number: "305",
- *   type: "Deluxe", // e.g., Standard | Deluxe | Suite
- *   status: "occupied" | "empty" | "checkout_soon",
- *   guestName?: "A. Sharma",
- *   checkoutAt?: string, // ISO, used when status === "checkout_soon"
- *   device: { online: boolean, lastSeenIso?: string }
- * }
- */
+async function fetchRooms() {
+  const res = await fetch(`/api/rooms`, {
+    method: "GET",
+    credentials: "include",
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Failed to fetch rooms");
+  }
+
+  return await res.json();
+}
 
 function minutesSince(iso) {
   if (!iso) return null;
@@ -80,12 +75,18 @@ function statusStyles(status) {
   }
 }
 
-export function RoomsGrid({ rooms = [], onSelectRoom }) {
+export function RoomsGrid() {
+  const [rooms, setRooms] = useState([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const [roomToDelete, setRoomToDelete] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
   const [query, setQuery] = useState("");
   const [needsAttention, setNeedsAttention] = useState(false); // show offline devices or checkout soon
 
   const sorted = useMemo(() => {
-    const copy = [...rooms];
+    const copy = rooms.length ? [...rooms] : [];
     copy.sort((a, b) => {
       // 1) floor asc
       if (a.floor !== b.floor) return a.floor - b.floor;
@@ -116,7 +117,47 @@ export function RoomsGrid({ rooms = [], onSelectRoom }) {
 
       return matches;
     });
-  }, [sorted, query, needsAttention]);
+  }, [sorted, query]);
+
+  const refreshRooms = useCallback(async () => {
+    try {
+      setIsRefreshing(true);
+      const data = await fetchRooms();
+      setRooms(data?.items);
+    } catch (err) {
+      toast.error(`Error fetching rooms: ${err?.message || err}`);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, []);
+
+  async function deleteRoom(roomId) {
+    const res = await fetch(`/api/rooms/${roomId}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+
+    setShowDeleteModal(false);
+    setRoomToDelete(null);
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      toast.error(`Failed to delete room: ${err.error}`);
+      return;
+    }
+
+    toast.success("Room deleted");
+    refreshRooms();
+  }
+
+  useEffect(() => {
+    // initial load
+    refreshRooms();
+
+    // refresh every minute
+    const interval = setInterval(refreshRooms, 60 * 1000);
+    return () => clearInterval(interval);
+  }, [refreshRooms]);
 
   return (
     <div>
@@ -129,6 +170,12 @@ export function RoomsGrid({ rooms = [], onSelectRoom }) {
             <span className="text-sm">
               ({filtered.length} / {rooms.length})
             </span>
+            <Link
+              className="mx-4 rounded-md bg-indigo-600 px-2 py-1 text-xs font-medium text-white hover:bg-indigo-500"
+              href="/rooms/new"
+            >
+              + New Room
+            </Link>
           </div>
 
           <InputGroup
@@ -173,21 +220,56 @@ export function RoomsGrid({ rooms = [], onSelectRoom }) {
         </div>
 
         {/* Grid */}
-        <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(170px,1fr))]">
-          {filtered.map((room) => (
-            <RoomCard
-              key={room.roomId}
-              room={room}
-              onClick={() => onSelectRoom?.(room)}
-              highlightAttention={
-                needsAttention &&
-                !room.noDevice &&
-                (!room.device?.online || room.status === "checkout_soon")
-              }
-            />
-          ))}
-        </div>
+        {isRefreshing && filtered.length === 0 ? (
+          <div className="flex h-40 w-full items-center justify-center text-center">
+            <Spinner />
+          </div>
+        ) : (
+          <div
+            className={cn(
+              "grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(170px,1fr))]",
+              isRefreshing && "animate-pulse opacity-100 backdrop-blur-[2px]",
+            )}
+          >
+            {filtered.map((room) => (
+              <RoomCard
+                key={room.roomId}
+                room={room}
+                onClick={() => {}}
+                highlightAttention={
+                  needsAttention &&
+                  !room.noDevice &&
+                  (!room.device?.online || room.status === "checkout_soon")
+                }
+                onDelete={(r) => {
+                  setRoomToDelete(r);
+                  setShowDeleteModal(true);
+                }}
+              />
+            ))}
+          </div>
+        )}
       </div>
+
+      <DeleteModal
+        showModal={showDeleteModal}
+        onClose={() => {
+          setRoomToDelete(null);
+          setShowDeleteModal(false);
+        }}
+        message={
+          <div className="px-6">
+            <div className="py-6 font-bold">
+              Are you sure you want to delete room?
+            </div>
+            <div className="pb-6">
+              <Room room={roomToDelete} wide={true} />
+            </div>
+          </div>
+        }
+        header={"Delete room"}
+        onConfirmDelete={async () => await deleteRoom(roomToDelete.roomId)}
+      />
     </div>
   );
 }
@@ -201,7 +283,7 @@ function LegendSwatch({ className, label }) {
   );
 }
 
-function RoomCard({ room, highlightAttention, onClick }) {
+function RoomCard({ room, highlightAttention, onClick, onDelete }) {
   const styles = statusStyles(room.status);
   const lastSeenText = room.device?.online
     ? `Online · last seen ${formatRelative(room.device?.lastSeen)}`
@@ -219,126 +301,140 @@ function RoomCard({ room, highlightAttention, onClick }) {
   };
 
   return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "group relative flex aspect-square w-full flex-col justify-between overflow-hidden rounded-2xl border text-left shadow-sm transition",
-        "p-3 text-sm",
-        styles.bg,
-        styles.border,
-        "hover:ring-2",
-        styles.ring,
-        highlightAttention && "animate-pulse ring-2 ring-rose-500/70",
-      )}
-    >
-      {/* Top line: Room number + type */}
-      <div className="flex items-start justify-between">
-        <RoomNumberType number={room.number} type={room.type} />
-
-        {/* Status badge */}
-        <span
-          className={cn(
-            "rounded-full px-2 py-0.5 text-xs font-semibold",
-            styles.badge,
-          )}
-        >
-          {room.status === "occupied"
-            ? "Occupied"
-            : room.status === "checkout_soon"
-              ? "Checkout"
-              : "Empty"}
-        </span>
-      </div>
-
-      {/* Center: Guest name (if any) */}
-      <div
+    <>
+      <button
+        onClick={onClick}
         className={cn(
-          "mt-2 line-clamp-2 text-sm",
-          room?.activeBooking?.guest
-            ? "text-zinc-900 dark:text-zinc-100"
-            : "text-zinc-500 dark:text-zinc-400",
+          "group relative flex aspect-square w-full flex-col justify-between overflow-hidden rounded-2xl border text-left shadow-sm transition",
+          "p-3 text-sm",
+          styles.bg,
+          styles.border,
+          "hover:ring-2",
+          styles.ring,
+          highlightAttention && "animate-pulse ring-2 ring-rose-500/70",
         )}
       >
-        <div className="flex items-center gap-2">
-          <UserIcon className="size-5" />
-          <span className="truncate font-bold">
-            {getGuestName(room?.activeBooking?.guest) ||
-              (room.status === "empty" ? "—" : "Guest TBD")}
+        {/* Top line: Room number + type */}
+        <div className="flex items-start justify-between">
+          <RoomNumberType number={room.number} type={room.type} />
+
+          {/* Status badge */}
+          <span
+            className={cn(
+              "rounded-full px-2 py-0.5 text-xs font-semibold",
+              styles.badge,
+            )}
+          >
+            {room.status === "occupied"
+              ? "Occupied"
+              : room.status === "checkout_soon"
+                ? "Checkout"
+                : "Empty"}
           </span>
         </div>
-        {room.status === "checkout_soon" && (
-          <div className="mt-1 inline-flex items-center gap-1 text-sm text-zinc-600 dark:text-zinc-300">
-            <ClockIcon className="size-4" />
-            <span
-              title={new Date(
-                room?.activeBooking?.checkOutTime,
-              ).toLocaleString()}
-            >
-              Checkout {timeUntil(room?.activeBooking?.checkOutTime)}
+
+        {/* Center: Guest name (if any) */}
+        <div
+          className={cn(
+            "mt-2 line-clamp-2 text-sm",
+            room?.activeBooking?.guest
+              ? "text-zinc-900 dark:text-zinc-100"
+              : "text-zinc-500 dark:text-zinc-400",
+          )}
+        >
+          <div className="flex items-center gap-2">
+            <UserIcon className="size-5" />
+            <span className="truncate font-bold">
+              {getGuestName(room?.activeBooking?.guest) ||
+                (room.status === "empty" ? "—" : "Guest TBD")}
             </span>
           </div>
-        )}
-      </div>
-
-      {/* Bottom: Device status */}
-
-      <div className="flex items-center justify-between">
-        {room.noDevice ? (
-          <span className="text-sm">No device in room</span>
-        ) : (
-          <div className="flex items-center gap-1 text-sm text-zinc-700 dark:text-zinc-300">
-            {room.device?.online ? (
-              <WifiIcon className="size-4" />
-            ) : (
-              <WifiOffIcon className="size-4" />
-            )}
-            <span className="w-28">{lastSeenText}</span>
-          </div>
-        )}
-        <span
-          className="text-sm font-semibold"
-          style={{ color: stringToColor(room.type) }}
-        >
-          {room.floor}F
-        </span>
-      </div>
-
-      {/* Hover overlay for more detail */}
-      <div className="pointer-events-none absolute inset-0 hidden items-center justify-center bg-black/5 p-3 text-center text-sm text-zinc-800 backdrop-blur-sm group-hover:flex dark:bg-white/5 dark:text-zinc-200">
-        <div className="space-y-1">
-          <div className="font-semibold">Room {room.number}</div>
-          <div>
-            {room.type} • Floor {room.floor}
-          </div>
-          <div>
-            {room?.activeBooking?.guest
-              ? `Guest: ${getGuestName(room?.activeBooking?.guest)}`
-              : room.status === "empty"
-                ? "Currently empty"
-                : "Guest info pending"}
-          </div>
-          <div>
-            {room.noDevice ? (
-              "No device in room"
-            ) : room.device?.online ? (
-              `Tablet online · last seen ${formatRelative(room.device?.lastSeen)}`
-            ) : (
-              <span className={cn(highlightAttention && "font-bold text-red")}>
-                Tablet offline · last seen{" "}
-                {formatRelative(room.device?.lastSeen)}
+          {room.status === "checkout_soon" && (
+            <div className="mt-1 inline-flex items-center gap-1 text-sm text-zinc-600 dark:text-zinc-300">
+              <ClockIcon className="size-4" />
+              <span
+                title={new Date(
+                  room?.activeBooking?.checkOutTime,
+                ).toLocaleString()}
+              >
+                Checkout {timeUntil(room?.activeBooking?.checkOutTime)}
               </span>
-            )}
-          </div>
-          {highlightAttention &&
-            room.status === "checkout_soon" &&
-            !room.noDevice && (
-              <div className="font-bold text-red">
-                Check tablet is in room after checkout
-              </div>
-            )}
+            </div>
+          )}
         </div>
-      </div>
-    </button>
+
+        {/* Bottom: Device status */}
+
+        <div className="flex items-center justify-between">
+          {room.noDevice ? (
+            <span className="text-sm">No device in room</span>
+          ) : (
+            <div className="flex items-center gap-1 text-sm text-zinc-700 dark:text-zinc-300">
+              {room.device?.online ? (
+                <WifiIcon className="size-4" />
+              ) : (
+                <WifiOffIcon className="size-4" />
+              )}
+              <span className="w-28">{lastSeenText}</span>
+            </div>
+          )}
+          <span
+            className="text-sm font-semibold"
+            style={{ color: stringToColor(room.type) }}
+          >
+            {room.floor}F
+          </span>
+        </div>
+
+        {/* Hover overlay for more detail */}
+        <div className="pointer-events-none absolute inset-0 hidden items-center justify-center bg-black/5 p-3 text-center text-sm text-zinc-800 backdrop-blur-sm group-hover:flex dark:bg-white/5 dark:text-zinc-200">
+          {/* Delete button positioned absolutely in the top-right corner */}
+          <div className="pointer-events-auto absolute right-2 top-2">
+            <DeleteButton
+              noToolTip={true}
+              onClick={() => {
+                onDelete(room);
+              }}
+            />
+          </div>
+
+          <div className="space-y-1">
+            <div className="font-semibold">Room {room.number}</div>
+            <div>
+              {room.type} • Floor {room.floor}
+            </div>
+            <div>
+              {room?.activeBooking?.guest
+                ? `Guest: ${getGuestName(room?.activeBooking?.guest)}`
+                : room.status === "empty"
+                  ? "Currently empty"
+                  : "Guest info pending"}
+            </div>
+            <div>
+              {room.noDevice ? (
+                "No device in room"
+              ) : room.device?.online ? (
+                `Tablet online · last seen ${formatRelative(room.device?.lastSeen)}`
+              ) : (
+                <span
+                  className={cn(highlightAttention && "font-bold text-red")}
+                >
+                  Tablet offline · last seen{" "}
+                  {formatRelative(room.device?.lastSeen)}
+                </span>
+              )}
+            </div>
+            {highlightAttention &&
+              room.status === "checkout_soon" &&
+              !room.noDevice && (
+                <div className="font-bold text-red">
+                  Check tablet is in room after checkout
+                </div>
+              )}
+          </div>
+        </div>
+      </button>
+    </>
   );
 }
 
