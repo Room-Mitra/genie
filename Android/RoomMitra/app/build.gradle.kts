@@ -88,6 +88,7 @@ dependencies {
 
     implementation(libs.androidx.animation)
     implementation(libs.material3)
+    implementation(libs.runtime)
 
     // Debug utilities
     debugImplementation("androidx.compose.ui:ui-tooling")

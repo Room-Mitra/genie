@@ -16,6 +16,7 @@ animationCore = "1.9.3"
 uiText = "1.9.4"
 animation = "1.9.4"
 material3Version = "1.4.0"
+runtimeVersion = "1.9.4"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -39,6 +40,7 @@ androidx-animation-core = { group = "androidx.compose.animation", name = "animat
 androidx-ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiText" }
 androidx-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animation" }
 material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3Version" }
+runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtimeVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
