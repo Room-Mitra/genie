@@ -102,12 +102,15 @@ export async function listBookings({ hotelId, status, limit, nextToken }) {
   const guestUsers = await userRepo.getUsersByIds(guestUserIds);
   const guestUsersMap = new Map(guestUsers.map((user) => [user.userId, user]));
 
-  const getRoom = (room) => ({
-    type: room.type,
-    floor: room.floor,
-    number: room.number,
-    roomId: room.roomId,
-  });
+  const getRoom = (room) =>
+    room
+      ? {
+          type: room.type,
+          floor: room.floor,
+          number: room.number,
+          roomId: room.roomId,
+        }
+      : null;
 
   const getUser = (user) => ({
     firstName: user.firstName,

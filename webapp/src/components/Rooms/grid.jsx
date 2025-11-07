@@ -14,6 +14,7 @@ import { Room } from "../ui/room";
 import { toast } from "react-toastify";
 import { DeleteButton } from "../ui/delete-button";
 import { Spinner } from "@material-tailwind/react";
+import { ID } from "../ui/id";
 
 async function fetchRooms() {
   const res = await fetch(`/api/rooms`, {
@@ -109,6 +110,7 @@ export function RoomsGrid() {
     return sorted.filter((r) => {
       const matches =
         !q ||
+        String(r.roomId).toLocaleLowerCase().includes(q) ||
         String(r.number).toLowerCase().includes(q) ||
         String(r.floor).toLowerCase().includes(q) ||
         String(r.type).toLowerCase().includes(q) ||
@@ -386,9 +388,9 @@ function RoomCard({ room, highlightAttention, onClick, onDelete }) {
       </div>
 
       {/* Hover overlay for more detail */}
-      <div className="pointer-events-none absolute inset-0 hidden items-center justify-center bg-black/5 p-3 text-center text-sm text-zinc-800 backdrop-blur-sm group-hover:flex dark:bg-white/5 dark:text-zinc-200">
-        {/* Delete button positioned absolutely in the top-right corner */}
-        <div className="pointer-events-auto absolute right-2 top-2">
+      <div className="pointer-events-none absolute inset-0 hidden items-center justify-center bg-black/5 p-3 text-center text-sm text-zinc-800 backdrop-blur-lg group-hover:flex dark:bg-white/5 dark:text-white">
+        <div className="pointer-events-auto absolute left-2 right-2 top-2 flex items-center justify-between">
+          <ID ulid={room.roomId} noToolTip={true} />
           <DeleteButton
             noToolTip={true}
             onClick={() => {

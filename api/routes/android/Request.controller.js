@@ -52,7 +52,7 @@ router.get('/', async (req, res) => {
 
     return res.status(200).json({
       booking: booking,
-      requests: requests?.items?.map(requestResponse) || [],
+      requests: requests?.items || [],
     });
   } catch (err) {
     console.error('Error querying requests', err);

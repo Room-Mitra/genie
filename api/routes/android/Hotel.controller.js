@@ -16,17 +16,100 @@ router.get('/config', async (req, res) => {
         carousel: {
           cards: [
             {
-              title: 'Order Vegan Biryani',
-              description: 'Spare the animals!',
+              title: 'Indian Music Experience',
+              description: `India's first interactive music museum, featuring a Sound Garden, nine interactive exhibit galleries, and lots more to showcase the diversity of Indian music.`,
               asset: {
-                url: `https://www.sharmispassions.com/wp-content/uploads/2022/03/VegBiryani4.jpg`,
+                url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/AGLIO+OLIO.png`,
               },
             },
             {
-              title: 'Party Party',
-              description: 'Spare the animals!',
+              title: 'Spaghetti Aglio',
               asset: {
-                url: `https://plus.unsplash.com/premium_photo-1683121126477-17ef068309bc?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8cGFydHl8ZW58MHx8MHx8fDA%3D&fm=jpg&q=60&w=3000`,
+                url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/2.png`,
+              },
+            },
+            {
+              title: 'Stir Fry Veggies',
+              asset: {
+                url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/3.png`,
+              },
+            },
+            {
+              title: 'Subzi Do Pyaza',
+              asset: {
+                url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/4.png`,
+              },
+            },
+            {
+              title: 'Eggspectation',
+              asset: {
+                url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/5.png`,
+              },
+            },
+            {
+              title: 'Cornito Paneer',
+              asset: {
+                url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/6.png`,
+              },
+            },
+            {
+              title: 'Bhatti Ka Murgh',
+              asset: {
+                url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/7.png`,
+              },
+            },
+            {
+              title: 'Afghani Gosht Korma',
+              asset: {
+                url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/8.png`,
+              },
+            },
+            {
+              title: 'Palak Methi Murgh',
+              asset: {
+                url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/9.png`,
+              },
+            },
+            {
+              title: 'Bhuna Mutton Kheema',
+              asset: {
+                url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/10.png`,
+              },
+            },
+            {
+              title: 'Egg Hyderabadi Curry',
+              asset: {
+                url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/11.png`,
+              },
+            },
+            {
+              title: 'Paneer Ghee Roast',
+              asset: {
+                url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/12.png`,
+              },
+            },
+            {
+              title: 'Khubani Matar Kebab',
+              asset: {
+                url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/13.png`,
+              },
+            },
+            {
+              title: 'Shahi Pulao',
+              asset: {
+                url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/14.png`,
+              },
+            },
+            {
+              title: 'Cigarillos',
+              asset: {
+                url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/15.png`,
+              },
+            },
+            {
+              title: 'Andhra Mutton Fry',
+              asset: {
+                url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/16.png`,
               },
             },
           ],
@@ -41,5 +124,3 @@ router.get('/config', async (req, res) => {
 });
 
 export default router;
-
-//hi

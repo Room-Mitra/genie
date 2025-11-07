@@ -352,6 +352,9 @@ const menu = {
           glutenFree: true,
           allergens: ['milk', 'egg'],
           itemId: '01K999PJKACJG4441XQB2C617E',
+          image: {
+            url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/5.png`,
+          },
         },
       ],
       sectionId: '01K999PJK8ZTJQNYYCZA1WDHJ6',
@@ -640,6 +643,9 @@ const menu = {
           glutenFree: true,
           allergens: ['milk', 'egg'],
           itemId: '01K999PJKGT9WX835FSB64VVX1',
+          image: {
+            url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/13.png`,
+          },
         },
         {
           name: 'Beetroot radish kebab',
@@ -753,7 +759,7 @@ const menu = {
           itemId: '01K999PJKKVSJ9F4KJGW2VZ4T7',
         },
         {
-          name: 'Paneer cornito fingers',
+          name: 'Cornito Paneer',
           unitPrice: '320.00',
           description: 'Panko crusted cottage cheese fingers',
           veg: false,
@@ -761,9 +767,12 @@ const menu = {
           glutenFree: true,
           allergens: ['milk', 'egg'],
           itemId: '01K999PJKKM1BBF0324CTDHN4A',
+          image: {
+            url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/6.png`,
+          },
         },
         {
-          name: 'Veggie cigarillos',
+          name: 'Cigarillos (veggie)',
           unitPrice: '260.00',
           description: 'Crispy mini spring rolls stuffed with stir fried veggies',
           veg: false,
@@ -771,6 +780,9 @@ const menu = {
           glutenFree: false,
           allergens: ['egg', 'gluten'],
           itemId: '01K999PJKK6F7Z9TSXC34H0KSD',
+          image: {
+            url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/15.png`,
+          },
         },
         {
           name: 'Veggie kothe dumpling',
@@ -876,6 +888,9 @@ const menu = {
           vegan: false,
           glutenFree: true,
           itemId: '01K999PJKQCBCVY1FJHMBTH2QT',
+          image: {
+            url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/7.png`,
+          },
         },
         {
           name: 'Malai cheese murg Tikka',
@@ -1050,6 +1065,9 @@ const menu = {
           vegan: false,
           glutenFree: true,
           itemId: '01K999PJKV2EDEY5YTX2SSRJDX',
+          image: {
+            url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/16.png`,
+          },
         },
         {
           name: 'Ghee roast chicken',
@@ -1106,6 +1124,9 @@ const menu = {
           glutenFree: true,
           allergens: ['egg', 'nuts'],
           itemId: '01K999PJKWY5KH5HW647JWEV82',
+          image: {
+            url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/11.png`,
+          },
         },
         {
           name: 'Dhaba chicken curry',
@@ -1144,6 +1165,9 @@ const menu = {
           glutenFree: true,
           allergens: ['milk'],
           itemId: '01K999PJKX3TYFWHQAC8RR125E',
+          image: {
+            url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/9.png`,
+          },
         },
         {
           name: 'Afghani gosht korma',
@@ -1154,6 +1178,9 @@ const menu = {
           glutenFree: true,
           allergens: ['milk', 'nuts'],
           itemId: '01K999PJKYDH30PRMXTQ8YSRNP',
+          image: {
+            url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/8.png`,
+          },
         },
         {
           name: 'Chicken pepper chettinad',
@@ -1185,13 +1212,16 @@ const menu = {
           itemId: '01K999PJKY2PVMH516TCXS8Z1C',
         },
         {
-          name: 'Bhuna mutton keema',
+          name: 'Bhuna Mutton Kheema',
           unitPrice: '440.00',
           description: 'Slow roasted mutton mince in spices',
           veg: false,
           vegan: false,
           glutenFree: true,
           itemId: '01K999PJKYT2XTY0W8RZNR17R4',
+          image: {
+            url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/10.png`,
+          },
         },
         {
           name: 'Kosha mangsho',
@@ -1250,7 +1280,7 @@ const menu = {
           itemId: '01K999PJM01YNX4FQP5G9Z1J6A',
         },
         {
-          name: 'Subz do pyaaza',
+          name: 'Subzi Do Pyaaza',
           unitPrice: '280.00',
           description: 'Melody of mix vegetables tossed in cashew curry',
           veg: true,
@@ -1258,6 +1288,9 @@ const menu = {
           glutenFree: true,
           allergens: ['nuts'],
           itemId: '01K999PJM0TYB29E1VQ56C602D',
+          image: {
+            url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/4.png`,
+          },
         },
         {
           name: 'Nimboo churan bhindi',
@@ -1297,6 +1330,9 @@ const menu = {
           glutenFree: true,
           allergens: ['milk'],
           itemId: '01K999PJM1H88EXXAFBKV0AY9Z',
+          image: {
+            url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/12.png`,
+          },
         },
         {
           name: 'Chettinad pepper paneer',
@@ -1483,6 +1519,9 @@ const menu = {
           vegan: true,
           glutenFree: true,
           itemId: '01K999PJM52WCQY9XX5N2XJPVH',
+          image: {
+            url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/14.png`,
+          },
         },
         {
           name: 'Lemon rice',
@@ -1627,6 +1666,9 @@ const menu = {
           glutenFree: true,
           allergens: ['egg', 'nuts'],
           itemId: '01K999PJM98H1KWGQEKHF1C251',
+          image: {
+            url: `https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/3.png`,
+          },
         },
         {
           name: 'Chilli basil greens',
@@ -1791,6 +1833,9 @@ const menu = {
           glutenFree: false,
           allergens: ['milk', 'gluten'],
           itemId: '01K999PJMD67G5X26FSKAG4SFX',
+          image: {
+            url: 'https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/PROMOTIONS/2.png',
+          },
         },
         {
           name: 'Penne arrabbiata',

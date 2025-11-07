@@ -1,9 +1,10 @@
 package com.example.roommitra.service
 
 import android.content.Context
+import com.example.roommitra.data.Constants
 
 class SessionManager(context: Context) {
-    private val prefs = context.getSharedPreferences("roommitra_prefs", Context.MODE_PRIVATE)
+    private val prefs = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
 
     companion object {
         private const val KEY_AUTH_TOKEN = "auth_token"
@@ -11,6 +12,8 @@ class SessionManager(context: Context) {
         private const val KEY_ROOM_ID = "room_id"
         private const val KEY_BOOKING_ID = "booking_id"
         private const val KEY_GUEST_ID = "guest_id"
+        private const val KEY_BASE_URL = "base_url"
+
     }
 
     fun saveSessionData(token: String, hotelId: String?, roomId: String?) {
@@ -59,5 +62,18 @@ class SessionManager(context: Context) {
         prefs.edit()
             .remove(KEY_GUEST_ID)
             .apply()
+    }
+
+    fun setBaseUrl(url: String) {
+        prefs.edit().putString(KEY_BASE_URL, url).apply()
+    }
+
+    fun getBaseUrl(): String {
+        val url = prefs.getString(KEY_BASE_URL, null)
+        return if (!url.isNullOrBlank()) url else Constants.DEFAULT_BASE_URL
+    }
+
+    fun clearBaseUrl() {
+        prefs.edit().remove(KEY_BASE_URL).apply()
     }
 }
