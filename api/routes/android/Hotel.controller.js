@@ -41,5 +41,3 @@ router.get('/config', async (req, res) => {
 });
 
 export default router;
-
-//hi

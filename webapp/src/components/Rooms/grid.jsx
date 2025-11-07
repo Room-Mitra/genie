@@ -386,7 +386,7 @@ function RoomCard({ room, highlightAttention, onClick, onDelete }) {
       </div>
 
       {/* Hover overlay for more detail */}
-      <div className="pointer-events-none absolute inset-0 hidden items-center justify-center bg-black/5 p-3 text-center text-sm text-zinc-800 backdrop-blur-sm group-hover:flex dark:bg-white/5 dark:text-zinc-200">
+      <div className="pointer-events-none absolute inset-0 hidden items-center justify-center bg-black/5 p-3 text-center text-sm text-zinc-800 backdrop-blur-lg group-hover:flex dark:bg-white/5 dark:text-white">
         {/* Delete button positioned absolutely in the top-right corner */}
         <div className="pointer-events-auto absolute right-2 top-2">
           <DeleteButton
