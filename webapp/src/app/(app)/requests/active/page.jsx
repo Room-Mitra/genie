@@ -222,7 +222,6 @@ export default function Page() {
                 setRequest(r);
               }}
               cancel={() => {
-                console.log("cancel");
                 setShowRequestCancellationModal(true);
                 setRequest(r);
               }}
