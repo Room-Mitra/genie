@@ -4,12 +4,8 @@ import {
   DialogTitle,
   DialogPanel,
 } from "@headlessui/react";
-import {
-  ArrowLeftEndOnRectangleIcon,
-  ChatBubbleLeftRightIcon,
-} from "@heroicons/react/24/outline";
-import ConversationThread from "./conversationThread";
-import { DateOnly, DateTime } from "@/components/ui/datetime";
+import { ArrowLeftEndOnRectangleIcon } from "@heroicons/react/24/outline";
+import { DateTime } from "@/components/ui/datetime";
 import InputGroup from "@/components/FormElements/InputGroup";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -191,7 +187,7 @@ export function CheckInModal({ room, requestId, onClose, showModal }) {
                       />
                     </div>
 
-                    <hr className="my-2" />
+                    <hr className="my-5" />
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <InputGroup
@@ -229,7 +225,7 @@ export function CheckInModal({ room, requestId, onClose, showModal }) {
                       />
                     </div>
 
-                    <hr className="my-2" />
+                    <hr className="my-5" />
 
                     {/* Summary */}
                     <div className="rounded-2xl border border-gray-700 p-4 text-dark dark:text-white">
@@ -283,7 +279,7 @@ export function CheckInModal({ room, requestId, onClose, showModal }) {
                       </div>
                     </div>
                   </div>
-                  <div className="gap-2 bg-gray-300 px-4 py-3 dark:bg-gray-700/25 sm:flex sm:flex-row-reverse sm:px-6">
+                  <div className="mt-3 gap-2 bg-gray-300 px-4 py-3 dark:bg-gray-700/25 sm:flex sm:flex-row-reverse sm:px-6">
                     <button
                       type="submit"
                       disabled={!canSubmit}
