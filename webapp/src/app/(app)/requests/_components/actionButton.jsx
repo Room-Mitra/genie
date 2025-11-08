@@ -2,10 +2,13 @@ import React, { useMemo, useRef, useState, useEffect } from "react";
 
 export function ActionButton({
   status, // "unacknowledged" | "in_progress" | "delayed" | "completed"
+  department,
+  requestType,
   onStart,
   onDelay,
   onResume,
   onComplete,
+  checkIn,
   className = "",
 }) {
   const [open, setOpen] = useState(false);
@@ -32,6 +35,9 @@ export function ActionButton({
 
   const actions = useMemo(() => {
     if (status === "unacknowledged") {
+      if (department === "front_office" && requestType === "Check In Guest") {
+        return [{ label: "Check In", intent: "primary", onClick: checkIn }];
+      }
       return [{ label: "Start", intent: "primary", onClick: onStart }];
     }
     if (status === "in_progress") {

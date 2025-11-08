@@ -25,6 +25,8 @@ import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { useRequests } from "@/context/RequestsContext";
 import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
 import { ConversationModal } from "../_components/conversationModal";
+import { CheckInModal } from "../_components/checkInModal";
+import { useUser } from "@/context/UserContext";
 
 async function fetchStaff() {
   const res = await fetch("/api/staff", {
@@ -58,6 +60,8 @@ export default function Page() {
   const [data, setData] = useState([]);
   const [staff, setStaff] = useState([]);
 
+  const { user } = useUser();
+
   const [showStateTransitionModal, setShowStateTransitionModal] =
     useState(false);
   const [showConversationModal, setShowConversationModal] = useState(false);
@@ -65,6 +69,9 @@ export default function Page() {
   const [isChangingStatus, setIsChangingStatus] = useState(false);
   const [requireAssignedStaffUser, setRequireAssignedStaffUser] =
     useState(false);
+
+  const [showCheckInModal, setShowCheckInModal] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState(null);
 
   const [request, setRequest] = useState(null);
   const [assignedStaffUser, setAssignedStaffUser] = useState(null);
@@ -190,6 +197,8 @@ export default function Page() {
           acknowledge: (
             <ActionButton
               status={r.status}
+              department={r.department}
+              requestType={r.requestType}
               onStart={() => {
                 setShowStateTransitionModal(true);
                 setAssignedStaffUser(r.assignedStaff);
@@ -202,6 +211,11 @@ export default function Page() {
                 setRequireAssignedStaffUser(false);
                 setRequest(r);
                 setToStatus("completed");
+              }}
+              checkIn={() => {
+                setShowCheckInModal(true);
+                setSelectedRoom(r.room);
+                setRequest(r);
               }}
             />
           ),
@@ -392,6 +406,18 @@ export default function Page() {
           onClose={() => {
             setConversation(null);
             setShowConversationModal(false);
+          }}
+        />
+
+        <CheckInModal
+          showModal={showCheckInModal}
+          room={selectedRoom}
+          requestId={request?.requestId}
+          onClose={(refresh) => {
+            setShowCheckInModal(false);
+            setSelectedRoom(null);
+            setRequest(null);
+            if (refresh) refreshRequests({});
           }}
         />
       </div>

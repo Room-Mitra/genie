@@ -237,7 +237,13 @@ export async function startRequest({
   return reqUpdate;
 }
 
-export async function completeRequest({ requestId, hotelId, note, updatedByUserId }) {
+export async function completeRequest({
+  requestId,
+  hotelId,
+  assignedStaffUserId,
+  note,
+  updatedByUserId,
+}) {
   if (!requestId || !hotelId) throw new Error('requestId and hotelId needed to start request');
 
   const request = await requestRepo.getRequestById(requestId, hotelId);
@@ -247,6 +253,7 @@ export async function completeRequest({ requestId, hotelId, note, updatedByUserI
   const reqUpdate = await requestRepo.updateRequestStatusWithLog({
     request,
     toStatus: RequestStatus.COMPLETED,
+    assignedStaffUserId,
     timeOfFulfillment: now,
     updatedByUserId,
     note,
