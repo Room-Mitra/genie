@@ -108,7 +108,6 @@ export function RoomsGrid() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return sorted.filter((r) => {
-      console.log(r.device);
       const matches =
         !q ||
         String(r.roomId).toLocaleLowerCase().includes(q) ||
