@@ -244,7 +244,7 @@ export async function completeRequest({
   note,
   updatedByUserId,
 }) {
-  if (!requestId || !hotelId) throw new Error('requestId and hotelId needed to start request');
+  if (!requestId || !hotelId) throw new Error('requestId and hotelId needed to complete request');
 
   const request = await requestRepo.getRequestById(requestId, hotelId);
   if (!request) throw new Error(`request doesn't exist for id:  ${requestId}`);
@@ -265,6 +265,38 @@ export async function completeRequest({
       orderId: request.orderId,
       toStatus: OrderStatus.DELIVERED,
       timeOfFulfillment: now,
+    });
+  }
+
+  return reqUpdate;
+}
+
+export async function cancelRequest({
+  requestId,
+  hotelId,
+  cancellationReason,
+  note,
+  updatedByUserId,
+}) {
+  if (!requestId || !hotelId || !cancellationReason)
+    throw new Error('requestId, hotelId and cancellationReason needed to cancel request');
+
+  const request = await requestRepo.getRequestById(requestId, hotelId);
+  if (!request) throw new Error(`request doesn't exist for id:  ${requestId}`);
+
+  const reqUpdate = await requestRepo.updateRequestStatusWithLog({
+    request,
+    toStatus: RequestStatus.CANCELLED,
+    cancellationReason,
+    updatedByUserId,
+    note,
+  });
+
+  if (request.orderId) {
+    await updateOrderStatus({
+      hotelId,
+      orderId: request.orderId,
+      toStatus: OrderStatus.CANCELLED,
     });
   }
 

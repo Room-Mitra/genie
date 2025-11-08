@@ -27,6 +27,7 @@ import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
 import { ConversationModal } from "../_components/conversationModal";
 import { CheckInModal } from "../_components/checkInModal";
 import { useUser } from "@/context/UserContext";
+import { CancellationModal } from "../_components/cancellationModal";
 
 async function fetchStaff() {
   const res = await fetch("/api/staff", {
@@ -72,6 +73,9 @@ export default function Page() {
 
   const [showCheckInModal, setShowCheckInModal] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState(null);
+
+  const [showRequestCancellationModal, setShowRequestCancellationModal] =
+    useState(false);
 
   const [request, setRequest] = useState(null);
   const [assignedStaffUser, setAssignedStaffUser] = useState(null);
@@ -217,12 +221,18 @@ export default function Page() {
                 setSelectedRoom(r.room);
                 setRequest(r);
               }}
+              cancel={() => {
+                console.log("cancel");
+                setShowRequestCancellationModal(true);
+                setRequest(r);
+              }}
             />
           ),
         })),
       );
     } catch (err) {
-      console.error("Error fetching bookings:", err);
+      console.error("Error fetching requests:", err);
+      toast.error(err?.error ?? "Error fetching requests");
     }
   }, [activeRequests]);
 
@@ -416,6 +426,16 @@ export default function Page() {
           onClose={(refresh) => {
             setShowCheckInModal(false);
             setSelectedRoom(null);
+            setRequest(null);
+            if (refresh) refreshRequests({});
+          }}
+        />
+
+        <CancellationModal
+          showModal={showRequestCancellationModal}
+          request={request}
+          onClose={(refresh) => {
+            setShowRequestCancellationModal(false);
             setRequest(null);
             if (refresh) refreshRequests({});
           }}

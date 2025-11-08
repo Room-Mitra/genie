@@ -141,6 +141,7 @@ export async function updateRequestStatusWithLog({
   assignedStaffUserId,
   updatedByUserId,
   note,
+  cancellationReason,
 }) {
   if (!request || !toStatus || !updatedByUserId) {
     throw new Error('request, toStatus, updatedByUserId are required to update request status');
@@ -192,6 +193,13 @@ export async function updateRequestStatusWithLog({
     updateValues[':timeOfFulfillment'] = timeOfFulfillment; // can be a string or null
     updateExpressionFields.push('#timeOfFulfillment = :timeOfFulfillment');
   }
+
+  if (cancellationReason) {
+    updateNames['#cancellationReason'] = 'cancellationReason';
+    updateValues[':cancellationReason'] = cancellationReason;
+    updateExpressionFields.push('#cancellationReason = :cancellationReason');
+  }
+
   const transitionItem = {
     pk: request.sk,
     sk: logSk,
@@ -205,6 +213,7 @@ export async function updateRequestStatusWithLog({
     fromStatus,
     toStatus,
     note, // optional
+    cancellationReason,
     updatedByUserId,
     createdAt: nowIso,
   };
