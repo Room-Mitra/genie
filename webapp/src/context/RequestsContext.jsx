@@ -14,7 +14,7 @@ import { usePathname } from "next/navigation";
 import { isPublicPath } from "@/lib/path";
 
 const LIMIT = 500;
-const POLL_MS = 60_000; // 30 seconds
+const POLL_MS = 60_000; // 60 seconds
 
 const RequestsContext = createContext(null);
 
