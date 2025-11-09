@@ -59,8 +59,45 @@ export async function checkDelayedRequests() {
 
         if (!requests.length) continue;
 
-        // Find ACTIVE requests whose ETA has passed
-        const toDelay = requests.filter((request) => {
+        // Find NEW requests that are older than 5 mins, assigned to someone
+        const toUnacknowledged = requests.filter((req) => {
+          if (req.status !== RequestStatus.NEW) return false;
+          if (!req.createdAt) return false;
+          if (!req.assignedStaffUserId) return false; // only if assigned
+          const createdAt = new Date(req.createdAt);
+          const diffMinutes = (now - createdAt) / 1000 / 60;
+          return diffMinutes >= 5;
+        });
+
+        await Promise.all(
+          toUnacknowledged.map(async (request) => {
+            try {
+              await updateRequestStatusWithLog({
+                request,
+                fromStatus: request.status,
+                toStatus: RequestStatus.DELAYED,
+
+                note: 'Automatically marked as delayed because ETA has passed',
+                actor: {
+                  type: 'SYSTEM',
+                  userId: 'SYSTEM',
+                },
+              });
+            } catch (err) {
+              console.error(
+                `[checkDelayedRequests] Failed to update request to DELAYED`,
+                {
+                  hotelId,
+                  requestId: request.requestId,
+                },
+                err
+              );
+            }
+          })
+        );
+
+        // Find ACTIVE requests whose ETF has passed
+        const toDelayed = requests.filter((request) => {
           const eta = request.estimatedTimeOfFulfillment;
           if (!eta) return false;
 
@@ -76,14 +113,14 @@ export async function checkDelayedRequests() {
           );
         });
 
-        if (!toDelay.length) continue;
+        if (!toDelayed.length) continue;
 
         console.log(
-          `[checkDelayedRequests] Hotel ${hotelId}: marking ${toDelay.length} requests as DELAYED`
+          `[checkDelayedRequests] Hotel ${hotelId}: marking ${toDelayed.length} requests as DELAYED`
         );
 
         await Promise.all(
-          toDelay.map(async (request) => {
+          toDelayed.map(async (request) => {
             try {
               await updateRequestStatusWithLog({
                 request,
