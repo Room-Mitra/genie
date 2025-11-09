@@ -445,8 +445,8 @@ fun StatusPill(status: RequestStatus?) {
         RequestStatus.DELAYED -> Triple(Color(0xFFFFE0B2), Color(0xFFD84315), "Delayed")
         RequestStatus.COMPLETED -> Triple(Color(0xFFD0F0C0), Color(0xFF2E7D32), "Completed")
         RequestStatus.CANCELLED -> Triple(
-            Color(0xFFFFCDD2), // light red background
-            Color(0xFFC62828), // dark red text
+            Color(0xFFFFCDD2),
+            Color(0xFFC62828),
             "Cancelled"
         )
 
