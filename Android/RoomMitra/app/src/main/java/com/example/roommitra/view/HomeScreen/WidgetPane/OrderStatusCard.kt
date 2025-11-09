@@ -304,7 +304,7 @@ fun OrderDetailDialog(order: Order, onDismiss: () -> Unit) {
                     val total = req.optJSONObject("order")?.optString("total", "")
                     val items = req.optJSONObject("order")?.optJSONArray("items")
 
-                    if (department.isNotEmpty()){
+                    if (department.isNotEmpty()) {
                         val formattedDepartment = department.split('_').joinToString(" ") { word ->
                             word.replaceFirstChar { char ->
                                 if (char.isLowerCase()) char.titlecase() else char.toString()
@@ -444,6 +444,12 @@ fun StatusPill(status: RequestStatus?) {
 
         RequestStatus.DELAYED -> Triple(Color(0xFFFFE0B2), Color(0xFFD84315), "Delayed")
         RequestStatus.COMPLETED -> Triple(Color(0xFFD0F0C0), Color(0xFF2E7D32), "Completed")
+        RequestStatus.CANCELLED -> Triple(
+            Color(0xFFFFCDD2), // light red background
+            Color(0xFFC62828), // dark red text
+            "Cancelled"
+        )
+
         null -> Triple(
             MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
             MaterialTheme.colorScheme.primary,
