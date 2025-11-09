@@ -148,9 +148,7 @@ export function Sidebar() {
                                   aria-hidden="true"
                                 />
 
-                                <span >
-                                  {item.title}
-                                </span>
+                                <span>{item.title}</span>
 
                                 {/* Badge on parent only when not expanded */}
                                 {isRequestsGroup &&
@@ -168,7 +166,7 @@ export function Sidebar() {
 
                                 <ChevronUp
                                   className={cn(
-                                    "ml-1 rotate-180 transition-transform justify-end duration-200",
+                                    "ml-auto rotate-180 justify-end transition-transform duration-200",
                                     isExpanded && "rotate-0",
                                   )}
                                   aria-hidden="true"
