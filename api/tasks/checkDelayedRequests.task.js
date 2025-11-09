@@ -124,9 +124,7 @@ export async function checkDelayedRequests() {
             try {
               await updateRequestStatusWithLog({
                 request,
-                fromStatus: request.status,
                 toStatus: RequestStatus.DELAYED,
-
                 note: 'Automatically marked as delayed because ETA has passed',
                 actor: {
                   type: 'SYSTEM',
