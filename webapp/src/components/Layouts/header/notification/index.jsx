@@ -9,7 +9,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { BellIcon } from "./icons";
+import { Bell } from "lucide-react";
+import { motion } from "framer-motion";
 import { AlertTriangleIcon, CheckCircle2Icon } from "lucide-react";
 
 export function Notification({ reqsNeedAttention }) {
@@ -38,24 +39,29 @@ export function Notification({ reqsNeedAttention }) {
         aria-label="View Notifications"
       >
         <span className="relative inline-flex items-center justify-center">
-          {/* Bell with subtle animation when there's something to see */}
-          <span
-            className={cn(
-              "inline-flex items-center justify-center transition-transform",
-              hasAttention && "animate-[wiggle_0.9s_ease-in-out_infinite]",
-            )}
+          <motion.span
+            animate={
+              reqsNeedAttention
+                ? { rotate: [0, -15, 10, -10, 5, -5, 0] }
+                : { rotate: 0 }
+            }
+            transition={
+              reqsNeedAttention
+                ? { duration: 0.8, repeat: Infinity, repeatDelay: 2 }
+                : { duration: 0.2 }
+            }
+            className="inline-flex items-center justify-center"
           >
-            <BellIcon />
-          </span>
+            <Bell className="h-5 w-5" />
+          </motion.span>
 
           {isDotVisible && (
             <span
               className={cn(
-                "absolute -right-0.5 -top-0.5 z-10 size-2 rounded-full bg-red-light ring-2 ring-gray-2",
-                "dark:ring-dark-3",
+                "absolute right-0 top-0 z-1 size-2 rounded-full bg-red-light ring-2 ring-gray-2 dark:ring-dark-3",
               )}
             >
-              <span className="absolute inset-0 -z-10 animate-ping rounded-full bg-red-light opacity-75" />
+              <span className="absolute inset-0 -z-1 animate-ping rounded-full bg-red-light opacity-75" />
             </span>
           )}
         </span>
