@@ -1,6 +1,6 @@
 import express from 'express';
 import * as requestService from '#services/Request.service.js';
-import { RequestStatus } from '#Constants/statuses.constasnts.js';
+import { RequestStatus } from '#Constants/statuses.constants.js';
 
 const router = express.Router();
 

@@ -5,7 +5,7 @@ import {
   GSI_BOOKINGTYPE_NAME,
   GSI_STATUS_NAME,
 } from '#Constants/DB.constants.js';
-import { ActiveOrderStatuses, InactiveOrderStatuses } from '#Constants/statuses.constasnts.js';
+import { ActiveOrderStatuses, InactiveOrderStatuses } from '#Constants/statuses.constants.js';
 import { decodeToken, encodeToken } from './repository.helper.js';
 
 export async function createOrder({ order }) {

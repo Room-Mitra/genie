@@ -1,5 +1,5 @@
 import { toIsoString } from '#common/timestamp.helper.js';
-import { OrderStatus, RequestStatus } from '#Constants/statuses.constasnts.js';
+import { OrderStatus, RequestStatus } from '#Constants/statuses.constants.js';
 import { requestResponse } from '#presenters/request.js';
 import { getMessagesByConversationIds } from '#repositories/Message.repository.js';
 import * as requestRepo from '#repositories/Request.repository.js';
@@ -220,7 +220,8 @@ export async function startRequest({
 
   const reqUpdate = await requestRepo.updateRequestStatusWithLog({
     request,
-    toStatus: RequestStatus.IN_PROGRESS,
+    toStatus:
+      request.status === RequestStatus.DELAYED ? RequestStatus.DELAYED : RequestStatus.IN_PROGRESS, // if request is delayed, keep it in delayed
     assignedStaffUserId,
     updatedByUserId,
     note,
