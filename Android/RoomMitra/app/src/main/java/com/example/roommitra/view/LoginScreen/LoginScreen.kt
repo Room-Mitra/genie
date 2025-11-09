@@ -21,6 +21,7 @@ import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.util.*
 import java.net.*
+import com.example.roommitra.BuildConfig
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -182,8 +183,10 @@ fun LoginScreen(onBackClick: () -> Unit = {}) {
                 .padding(bottom = 16.dp, end = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Button(onClick = { showServerConfig = true }) {
-                Text("Server Config")
+            if (!BuildConfig.IS_PROD_BUILD) {
+                Button(onClick = { showServerConfig = true }) {
+                    Text("Server Config")
+                }
             }
             Button(onClick = { showDiagnostics = true }) {
                 Text("Show Diagnostics")
