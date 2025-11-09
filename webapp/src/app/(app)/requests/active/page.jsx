@@ -61,8 +61,6 @@ export default function Page() {
   const [data, setData] = useState([]);
   const [staff, setStaff] = useState([]);
 
-  const { user } = useUser();
-
   const [showStateTransitionModal, setShowStateTransitionModal] =
     useState(false);
   const [showConversationModal, setShowConversationModal] = useState(false);
@@ -188,7 +186,9 @@ export default function Page() {
             />
           ) : (
             <div className="text-center">
-              <div className="font-bold text-red-600">Unassigned</div>
+              <div className="font-bold text-red-600">
+                Waiting for assignment
+              </div>
               <div className="text-xs text-gray-600">Click Start to assign</div>
             </div>
           ),
@@ -203,6 +203,7 @@ export default function Page() {
               status={r.status}
               department={r.department}
               requestType={r.requestType}
+              assignedStaff={r.assignedStaff}
               onStart={() => {
                 setShowStateTransitionModal(true);
                 setAssignedStaffUser(r.assignedStaff);
@@ -266,9 +267,14 @@ export default function Page() {
 
       const result = await stateTransition(data);
 
-      toast.success(
-        `Request ${result.requestId.slice(0, 8)} changed status to ${toTitleCaseFromSnake(result.toStatus)}`,
-      );
+      if (result.toStatus === "delayed") {
+        toast.success(`Request ${result.requestId.slice(0, 8)} updated`);
+      } else {
+        toast.success(
+          `Request ${result.requestId.slice(0, 8)} changed status to ${toTitleCaseFromSnake(result.toStatus)}`,
+        );
+      }
+
       resetForm();
       refreshRequests({});
     } catch (err) {

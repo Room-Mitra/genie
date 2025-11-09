@@ -142,9 +142,12 @@ export async function updateRequestStatusWithLog({
   updatedByUserId,
   note,
   cancellationReason,
+  actor,
 }) {
-  if (!request || !toStatus || !updatedByUserId) {
-    throw new Error('request, toStatus, updatedByUserId are required to update request status');
+  if (!request || !toStatus || (!updatedByUserId && !actor)) {
+    throw new Error(
+      'request, toStatus, (updatedByUserId or actor) are required to update request status'
+    );
   }
 
   const fromStatus = request.status ?? 'UNKNOWN';
@@ -214,6 +217,7 @@ export async function updateRequestStatusWithLog({
     toStatus,
     note, // optional
     cancellationReason,
+    actor,
     updatedByUserId,
     createdAt: nowIso,
   };

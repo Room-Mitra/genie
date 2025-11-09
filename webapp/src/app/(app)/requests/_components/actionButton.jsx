@@ -10,6 +10,7 @@ export function ActionButton({
   onComplete,
   checkIn,
   cancel,
+  assignedStaff,
   className = "",
 }) {
   const [open, setOpen] = useState(false);
@@ -54,10 +55,17 @@ export function ActionButton({
       ];
     }
     if (status === "delayed") {
-      return [
-        { label: "Complete", intent: "success", onClick: onComplete },
-        { label: "Cancel", intent: "secondary", onClick: cancel },
-      ];
+      if (assignedStaff) {
+        return [
+          { label: "Complete", intent: "success", onClick: onComplete },
+          { label: "Cancel", intent: "secondary", onClick: cancel },
+        ];
+      } else {
+        return [
+          { label: "Start", intent: "primary", onClick: onStart },
+          { label: "Cancel", intent: "secondary", onClick: cancel },
+        ];
+      }
     }
     return []; // completed
   }, [status, onStart, onDelay, onResume, onComplete]);
