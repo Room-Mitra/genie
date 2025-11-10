@@ -47,6 +47,7 @@ export async function listHotels({ limit, nextToken }) {
   return {
     ...res,
     items: res.items.map(hotelResponse),
+    count: res.items?.length ?? 0,
   };
 }
 

@@ -25,6 +25,9 @@ import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { useRequests } from "@/context/RequestsContext";
 import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
 import { ConversationModal } from "../_components/conversationModal";
+import { CheckInModal } from "../_components/checkInModal";
+import { useUser } from "@/context/UserContext";
+import { CancellationModal } from "../_components/cancellationModal";
 
 async function fetchStaff() {
   const res = await fetch("/api/staff", {
@@ -64,6 +67,12 @@ export default function Page() {
   const [conversation, setConversation] = useState(null);
   const [isChangingStatus, setIsChangingStatus] = useState(false);
   const [requireAssignedStaffUser, setRequireAssignedStaffUser] =
+    useState(false);
+
+  const [showCheckInModal, setShowCheckInModal] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+
+  const [showRequestCancellationModal, setShowRequestCancellationModal] =
     useState(false);
 
   const [request, setRequest] = useState(null);
@@ -177,7 +186,9 @@ export default function Page() {
             />
           ) : (
             <div className="text-center">
-              <div className="font-bold text-red-600">Unassigned</div>
+              <div className="font-bold text-red-600">
+                Waiting for assignment
+              </div>
               <div className="text-xs text-gray-600">Click Start to assign</div>
             </div>
           ),
@@ -190,6 +201,9 @@ export default function Page() {
           acknowledge: (
             <ActionButton
               status={r.status}
+              department={r.department}
+              requestType={r.requestType}
+              assignedStaff={r.assignedStaff}
               onStart={() => {
                 setShowStateTransitionModal(true);
                 setAssignedStaffUser(r.assignedStaff);
@@ -203,12 +217,22 @@ export default function Page() {
                 setRequest(r);
                 setToStatus("completed");
               }}
+              checkIn={() => {
+                setShowCheckInModal(true);
+                setSelectedRoom(r.room);
+                setRequest(r);
+              }}
+              cancel={() => {
+                setShowRequestCancellationModal(true);
+                setRequest(r);
+              }}
             />
           ),
         })),
       );
     } catch (err) {
-      console.error("Error fetching bookings:", err);
+      console.error("Error fetching requests:", err);
+      toast.error(err?.error ?? "Error fetching requests");
     }
   }, [activeRequests]);
 
@@ -243,9 +267,14 @@ export default function Page() {
 
       const result = await stateTransition(data);
 
-      toast.success(
-        `Request ${result.requestId.slice(0, 8)} changed status to ${toTitleCaseFromSnake(result.toStatus)}`,
-      );
+      if (result.toStatus === "delayed") {
+        toast.success(`Request ${result.requestId.slice(0, 8)} updated`);
+      } else {
+        toast.success(
+          `Request ${result.requestId.slice(0, 8)} changed status to ${toTitleCaseFromSnake(result.toStatus)}`,
+        );
+      }
+
       resetForm();
       refreshRequests({});
     } catch (err) {
@@ -392,6 +421,28 @@ export default function Page() {
           onClose={() => {
             setConversation(null);
             setShowConversationModal(false);
+          }}
+        />
+
+        <CheckInModal
+          showModal={showCheckInModal}
+          room={selectedRoom}
+          requestId={request?.requestId}
+          onClose={(refresh) => {
+            setShowCheckInModal(false);
+            setSelectedRoom(null);
+            setRequest(null);
+            if (refresh) refreshRequests({});
+          }}
+        />
+
+        <CancellationModal
+          showModal={showRequestCancellationModal}
+          request={request}
+          onClose={(refresh) => {
+            setShowRequestCancellationModal(false);
+            setRequest(null);
+            if (refresh) refreshRequests({});
           }}
         />
       </div>

@@ -10,7 +10,8 @@
       "#Constants/*": ["./Constants/*"],
       "#libs/*": ["libs/*"],
       "#common/*": ["common/*"],
-      "#presenters/*": ["presenters/*"]
+      "#presenters/*": ["presenters/*"],
+      "#tasks/*": ["tasks/*"]
     }
   }
 }

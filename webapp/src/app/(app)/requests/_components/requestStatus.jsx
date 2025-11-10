@@ -32,7 +32,7 @@ export default function Status({ status, ulid }) {
           {label}
         </span>
       </div>
-      <div className="self-start text-center mx-auto">
+      <div className="mx-auto self-start text-center">
         <ID ulid={ulid} size="xs" withLabel={true} />
       </div>
     </div>

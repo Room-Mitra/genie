@@ -8,7 +8,7 @@ import {
 } from '#Constants/DB.constants.js';
 import { ulid } from 'ulid';
 import { decodeToken, encodeToken } from './repository.helper.js';
-import { ActiveRequestStatuses, InActiveRequestStatuses } from '#Constants/statuses.constasnts.js';
+import { ActiveRequestStatuses, InActiveRequestStatuses } from '#Constants/statuses.constants.js';
 
 export async function queryRequestsForBooking({ bookingId }) {
   if (!bookingId) {
@@ -141,9 +141,13 @@ export async function updateRequestStatusWithLog({
   assignedStaffUserId,
   updatedByUserId,
   note,
+  cancellationReason,
+  actor,
 }) {
-  if (!request || !toStatus || !updatedByUserId) {
-    throw new Error('request, toStatus, updatedByUserId are required to update request status');
+  if (!request || !toStatus || (!updatedByUserId && !actor)) {
+    throw new Error(
+      'request, toStatus, (updatedByUserId or actor) are required to update request status'
+    );
   }
 
   const fromStatus = request.status ?? 'UNKNOWN';
@@ -192,6 +196,13 @@ export async function updateRequestStatusWithLog({
     updateValues[':timeOfFulfillment'] = timeOfFulfillment; // can be a string or null
     updateExpressionFields.push('#timeOfFulfillment = :timeOfFulfillment');
   }
+
+  if (cancellationReason) {
+    updateNames['#cancellationReason'] = 'cancellationReason';
+    updateValues[':cancellationReason'] = cancellationReason;
+    updateExpressionFields.push('#cancellationReason = :cancellationReason');
+  }
+
   const transitionItem = {
     pk: request.sk,
     sk: logSk,
@@ -205,6 +216,8 @@ export async function updateRequestStatusWithLog({
     fromStatus,
     toStatus,
     note, // optional
+    cancellationReason,
+    actor,
     updatedByUserId,
     createdAt: nowIso,
   };

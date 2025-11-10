@@ -2,10 +2,15 @@ import React, { useMemo, useRef, useState, useEffect } from "react";
 
 export function ActionButton({
   status, // "unacknowledged" | "in_progress" | "delayed" | "completed"
+  department,
+  requestType,
   onStart,
   onDelay,
   onResume,
   onComplete,
+  checkIn,
+  cancel,
+  assignedStaff,
   className = "",
 }) {
   const [open, setOpen] = useState(false);
@@ -32,13 +37,35 @@ export function ActionButton({
 
   const actions = useMemo(() => {
     if (status === "unacknowledged") {
-      return [{ label: "Start", intent: "primary", onClick: onStart }];
+      if (department === "front_office" && requestType === "Check In Guest") {
+        return [
+          { label: "Check In", intent: "primary", onClick: checkIn },
+          { label: "Cancel", intent: "secondary", onClick: cancel },
+        ];
+      }
+      return [
+        { label: "Start", intent: "primary", onClick: onStart },
+        { label: "Cancel", intent: "secondary", onClick: cancel },
+      ];
     }
     if (status === "in_progress") {
-      return [{ label: "Complete", intent: "success", onClick: onComplete }];
+      return [
+        { label: "Complete", intent: "success", onClick: onComplete },
+        { label: "Cancel", intent: "secondary", onClick: cancel },
+      ];
     }
     if (status === "delayed") {
-      return [{ label: "Complete", intent: "success", onClick: onComplete }];
+      if (assignedStaff) {
+        return [
+          { label: "Complete", intent: "success", onClick: onComplete },
+          { label: "Cancel", intent: "secondary", onClick: cancel },
+        ];
+      } else {
+        return [
+          { label: "Start", intent: "primary", onClick: onStart },
+          { label: "Cancel", intent: "secondary", onClick: cancel },
+        ];
+      }
     }
     return []; // completed
   }, [status, onStart, onDelay, onResume, onComplete]);
@@ -63,7 +90,7 @@ export function ActionButton({
           className={[
             "inline-flex items-center rounded-md px-3 py-1.5 text-sm font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2",
             a.intent === "primary" &&
-              "bg-pink-600 text-white hover:bg-pink-400 focus:ring-pink-500",
+              "bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500",
             a.intent === "success" &&
               "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500",
             a.intent === "warning" &&
@@ -88,21 +115,28 @@ export function ActionButton({
 
   return (
     <div ref={menuRef} className={`relative inline-flex ${className}`}>
-      <button
-        onClick={primary.onClick}
-        className={[
-          "inline-flex items-center rounded-l-md px-3 py-1.5 text-sm font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2",
-          primary.intent === "primary" &&
-            "bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500",
-          primary.intent === "success" &&
-            "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500",
-          primary.intent === "warning" &&
-            "bg-amber-600 text-white hover:bg-amber-700 focus:ring-amber-500",
-        ].join(" ")}
-      >
-        {primary.label}
-      </button>
-
+      <div className="flex">
+        {(primary.intent === "primary" || status === "delayed") && (
+          <span className="relative -mr-2 -mt-1 flex size-3">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-pink-400 opacity-75"></span>
+            <span className="relative inline-flex size-3 rounded-full bg-pink-400"></span>
+          </span>
+        )}
+        <button
+          onClick={primary.onClick}
+          className={[
+            "inline-flex items-center rounded-l-md px-3 py-1.5 text-sm font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2",
+            primary.intent === "primary" &&
+              "bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500",
+            primary.intent === "success" &&
+              "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500",
+            primary.intent === "warning" &&
+              "bg-amber-600 text-white hover:bg-amber-700 focus:ring-amber-500",
+          ].join(" ")}
+        >
+          {primary.label}
+        </button>
+      </div>
       <button
         onClick={() => setOpen((s) => !s)}
         aria-haspopup="menu"

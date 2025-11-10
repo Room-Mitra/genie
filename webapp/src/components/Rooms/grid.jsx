@@ -115,8 +115,9 @@ export function RoomsGrid() {
         String(r.floor).toLowerCase().includes(q) ||
         String(r.type).toLowerCase().includes(q) ||
         String(r?.activeBooking?.guest?.firstName).toLowerCase().includes(q) ||
-        String(r?.activeBooking?.guest?.lastName).toLowerCase().includes(q);
-
+        String(r?.activeBooking?.guest?.lastName).toLowerCase().includes(q) ||
+        (r?.device?.online === true && String("online").includes(q)) ||
+        (r?.device?.online === false && String("offline").includes);
       return matches;
     });
   }, [sorted, query]);

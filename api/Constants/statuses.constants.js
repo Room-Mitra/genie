@@ -3,6 +3,7 @@ export const RequestStatus = {
   IN_PROGRESS: 'in_progress',
   DELAYED: 'delayed',
   COMPLETED: 'completed',
+  CANCELLED: 'cancelled',
 };
 
 export const RequestStatuses = [
@@ -10,6 +11,7 @@ export const RequestStatuses = [
   RequestStatus.IN_PROGRESS,
   RequestStatus.DELAYED,
   RequestStatus.COMPLETED,
+  RequestStatus.CANCELLED,
 ];
 
 export const ActiveRequestStatuses = [
@@ -18,7 +20,7 @@ export const ActiveRequestStatuses = [
   RequestStatus.DELAYED,
 ];
 
-export const InActiveRequestStatuses = [RequestStatus.COMPLETED];
+export const InActiveRequestStatuses = [RequestStatus.COMPLETED, RequestStatus.CANCELLED];
 
 export const OrderStatus = {
   PENDING: 'pending',

@@ -5,7 +5,6 @@ import { FacilityUploadForm } from "../_components/facility-upload";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import Image from "next/image";
-import { TrashIcon } from "@/assets/icons";
 import { Spinner } from "@material-tailwind/react";
 import { DeleteButton } from "@/components/ui/delete-button";
 import { DeleteModal } from "@/components/ui/delete-modal";

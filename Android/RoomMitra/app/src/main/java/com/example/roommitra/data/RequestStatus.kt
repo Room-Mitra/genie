@@ -4,7 +4,8 @@ enum class RequestStatus(val key: String) {
     UNACKNOWLEDGED("unacknowledged"),
     IN_PROGRESS("in_progress"),
     DELAYED("delayed"),
-    COMPLETED("completed");
+    COMPLETED("completed"),
+    CANCELLED("cancelled");
 
     companion object {
         fun fromKey(key: String): RequestStatus? {
