@@ -69,15 +69,18 @@ export async function checkDelayedRequests() {
           return diffMinutes >= 5;
         });
 
+        if (toUnacknowledged.length)
+          console.log(
+            `[checkDelayedRequests] Hotel ${hotelId}: marking ${toUnacknowledged.length} requests as UNACKNOWLEDGED`
+          );
+
         await Promise.all(
           toUnacknowledged.map(async (request) => {
             try {
               await updateRequestStatusWithLog({
                 request,
-                fromStatus: request.status,
-                toStatus: RequestStatus.DELAYED,
-
-                note: 'Automatically marked as delayed because ETA has passed',
+                toStatus: RequestStatus.UNACKNOWLEDGED,
+                note: "Automatically marked as unacknowledged because staff hasn't acknowledged",
                 actor: {
                   type: 'SYSTEM',
                   userId: 'SYSTEM',
@@ -85,7 +88,7 @@ export async function checkDelayedRequests() {
               });
             } catch (err) {
               console.error(
-                `[checkDelayedRequests] Failed to update request to DELAYED`,
+                `[checkDelayedRequests] Failed to update request to UNACKNOWLEDGED`,
                 {
                   hotelId,
                   requestId: request.requestId,
@@ -113,11 +116,10 @@ export async function checkDelayedRequests() {
           );
         });
 
-        if (!toDelayed.length) continue;
-
-        console.log(
-          `[checkDelayedRequests] Hotel ${hotelId}: marking ${toDelayed.length} requests as DELAYED`
-        );
+        if (toDelayed.length)
+          console.log(
+            `[checkDelayedRequests] Hotel ${hotelId}: marking ${toDelayed.length} requests as DELAYED`
+          );
 
         await Promise.all(
           toDelayed.map(async (request) => {
