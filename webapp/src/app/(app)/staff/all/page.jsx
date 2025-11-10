@@ -13,6 +13,9 @@ import { DeleteModal } from "@/components/ui/delete-modal";
 import { toast } from "react-toastify";
 import { useUser } from "@/context/UserContext";
 import { ResetPasswordModal } from "../_components/resetPasswordModal";
+import { EmailIcon } from "@/assets/icons";
+import { PhoneIcon } from "@heroicons/react/24/outline";
+import { ShiftSummary } from "../_components/shiftSummary";
 
 async function fetchStaff() {
   const res = await fetch("/api/staff", {
@@ -37,11 +40,10 @@ export default function Page() {
 
   const columns = useMemo(
     () => [
-      { key: "userId", label: "USER ID" },
       { key: "name", label: "NAME" },
       { key: "department", label: "DEPARTMENT" },
-      { key: "mobileNumber", label: "MOBILE" },
-      { key: "email", label: "EMAIL" },
+      { key: "contact", label: "CONTACT" },
+      { key: "shift", label: "SHIFT" },
       { key: "reportingTo", label: "REPORTS TO" },
       { key: "icons", label: "", sortable: false },
     ],
@@ -53,10 +55,24 @@ export default function Page() {
       const staff = await fetchStaff();
       setData(
         staff?.items?.map((r) => ({
-          userId: <ID ulid={r.userId} size="xs" />,
           name: <User user={r} onlyName={true} />,
-          email: r.email,
-          mobileNumber: r.mobileNumber || "-",
+          contact: (
+            <>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-start gap-1">
+                  <EmailIcon className="h-5 w-5 text-gray-500" />
+                  <span>{r.email}</span>
+                </div>
+                <div className="flex items-center justify-start gap-1">
+                  <PhoneIcon className="h-5 w-5 text-gray-500" />
+                  <span>{r.mobileNumber || "-"}</span>
+                </div>
+              </div>
+            </>
+          ),
+          shift: (
+            <ShiftSummary timezone="Asia/Kolkata" weekly={r.weeklyShifts} />
+          ),
           department: <Department department={r.department} roles={r.roles} />,
           reportingTo: r.reportingToUserId ? (
             <User

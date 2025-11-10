@@ -28,11 +28,23 @@ router.post('/', async (req, res) => {
       department,
       role,
       reportingToUserId,
+      weeklyShifts,
     } = req.body || {};
 
-    if (!firstName || !lastName || !mobileNumber || !email || !password || !department || !role) {
+    if (
+      !firstName ||
+      !lastName ||
+      !mobileNumber ||
+      !email ||
+      !password ||
+      !department ||
+      !role ||
+      !weeklyShifts ||
+      Object.keys(weeklyShifts).length == 0
+    ) {
       return res.status(400).json({
-        error: 'firstName, lastName, mobileNumber, email, password, department, role are required',
+        error:
+          'firstName, lastName, mobileNumber, email, password, department, role, weeklyShifts are required',
       });
     }
 
@@ -45,6 +57,7 @@ router.post('/', async (req, res) => {
       department,
       role,
       reportingToUserId,
+      weeklyShifts,
     };
 
     const result = await hotelService.addStaffToHotel(hotelId, staffData);
