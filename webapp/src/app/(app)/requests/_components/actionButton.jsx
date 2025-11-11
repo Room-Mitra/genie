@@ -36,6 +36,13 @@ export function ActionButton({
   }, []);
 
   const actions = useMemo(() => {
+    if (status === "new") {
+      return [
+        { label: "Start", intent: "primary", onClick: onStart },
+        { label: "Cancel", intent: "secondary", onClick: cancel },
+      ];
+    }
+
     if (status === "unacknowledged") {
       if (department === "front_office" && requestType === "Check In Guest") {
         return [
