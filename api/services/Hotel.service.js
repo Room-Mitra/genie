@@ -128,6 +128,7 @@ export async function addStaffToHotel(hotelId, userPayload) {
     role: userPayload.role,
     department: userPayload.department,
     reportingToUserId: userPayload.reportingToUserId,
+    weeklyShifts: userPayload.weeklyShifts,
   });
 
   return updated;
