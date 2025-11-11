@@ -26,8 +26,8 @@ export function Sidebar() {
     setActiveRequestsCount(activeRequests.length ?? 0);
 
     setHasDelayedOrUnacknowledged(
-      activeRequests?.filter(
-        (r) => r.status === "unacknowledged" || r.status === "delayed",
+      activeRequests?.filter((r) =>
+        ["unacknowledged", "delayed", "new"].includes(r.status),
       )?.length > 0,
     );
   }, [activeRequests]);
