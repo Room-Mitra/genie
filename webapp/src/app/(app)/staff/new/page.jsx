@@ -147,7 +147,7 @@ export default function AddStaffPage() {
   }, []);
 
   return (
-    <div className="z-10 mx-auto max-w-6xl">
+    <div className="mx-auto max-w-6xl">
       <Breadcrumb pageName="New Staff" parent="Staff" />
       <form onSubmit={handleAddStaff}>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -253,7 +253,7 @@ export default function AddStaffPage() {
             </div>
           </div>
 
-          <div className="p-6 rounded-[10px] bg-white dark:bg-gray-dark">
+          <div className="rounded-[10px] bg-white p-6 dark:bg-gray-dark">
             <StaffShiftEditor
               value={weeklyShifts}
               onChange={setWeeklyShifts}
