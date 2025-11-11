@@ -1,4 +1,4 @@
-import { listStaffForHotel } from '#services/Staff.service.js';
+import { listStaffForHotel, updateStaffById } from '#services/Staff.service.js';
 import * as hotelService from '#services/Hotel.service.js';
 import { userResponse } from '#presenters/user.js';
 

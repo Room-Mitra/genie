@@ -7,7 +7,7 @@ export default function AppLayout({ children }) {
       <div className="flex min-h-screen">
         <Sidebar />
 
-        <div className="w-full bg-gray-2 dark:bg-[#020d1a]">
+        <div className="w-full bg-gray-2 dark:bg-slate-950">
           <Header />
 
           <main className="isolate mx-auto w-full max-w-screen-2xl p-4 md:p-6 2xl:p-10">

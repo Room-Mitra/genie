@@ -18,7 +18,7 @@ export function StaffShiftEditor({
   onChange,
   timezone = "Asia/Kolkata",
 }) {
-  const weekly = value || {};
+  const weekly = useMemo(() => value || {}, [value]);
 
   const handleAddShift = (day) => {
     const current = weekly[day] ?? [];
@@ -85,12 +85,13 @@ export function StaffShiftEditor({
   };
 
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="bg-white shadow-sm dark:bg-gray-dark">
       <div className="mb-3 flex items-center justify-between gap-2">
         <div>
-          <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+          <span className="text-body-sm font-medium text-dark dark:text-white">
             Shift schedule
-          </h2>
+          </span>
+
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
             Configure shift slots per day. Times are in{" "}
             <span className="font-medium">{timezone}</span>.
@@ -113,7 +114,7 @@ export function StaffShiftEditor({
           return (
             <div
               key={key}
-              className="rounded-lg border border-zinc-100 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900/40"
+              className="rounded-lg border border-zinc-100 bg-zinc-50 p-3 dark:border-dark-3 dark:bg-dark-2"
             >
               <div className="mb-2 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
@@ -143,10 +144,10 @@ export function StaffShiftEditor({
                   {slots.map((slot) => (
                     <div
                       key={slot.id}
-                      className="flex flex-wrap items-center gap-2 rounded-md bg-white px-2 py-2 text-xs shadow-sm ring-1 ring-zinc-200 dark:bg-zinc-950 dark:ring-zinc-700"
+                      className="flex flex-wrap items-center gap-2 rounded-md bg-white px-2 py-2 text-xs shadow-sm ring-1 ring-zinc-200 dark:bg-slate-900 dark:ring-zinc-700"
                     >
                       <div className="flex items-center gap-1">
-                        <span className="text-[11px] uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                        <span className="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-200">
                           Start
                         </span>
                         <input
@@ -160,14 +161,14 @@ export function StaffShiftEditor({
                               e.target.value,
                             )
                           }
-                          className="h-8 rounded-md border border-zinc-200 bg-zinc-50 px-2 text-xs text-zinc-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                          className="h-8 rounded-md border border-zinc-200 bg-zinc-50 px-2 text-xs text-zinc-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-gray-800 dark:text-zinc-100"
                         />
                       </div>
 
-                      <span className="px-1 text-[11px] text-zinc-400">to</span>
+                      <span className="px-1 text-xs text-zinc-400">to</span>
 
                       <div className="flex items-center gap-1">
-                        <span className="text-[11px] uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                        <span className="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-200">
                           End
                         </span>
                         <input
@@ -181,7 +182,7 @@ export function StaffShiftEditor({
                               e.target.value,
                             )
                           }
-                          className="h-8 rounded-md border border-zinc-200 bg-zinc-50 px-2 text-xs text-zinc-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                          className="h-8 rounded-md border border-zinc-200 bg-zinc-50 px-2 text-xs text-zinc-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-gray-800 dark:text-zinc-100"
                         />
                       </div>
 

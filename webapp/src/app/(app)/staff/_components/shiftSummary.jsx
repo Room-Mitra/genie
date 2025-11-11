@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { Clock } from "lucide-react";
 import { DateTime } from "luxon";
 
@@ -39,11 +40,11 @@ function isNowInShift(weekly, timezone) {
 export function ShiftSummary({ weekly, timezone = "Asia/Kolkata" }) {
   if (!weekly || Object.keys(weekly).length === 0)
     return (
-      <div className="flex items-start gap-2 text-xs text-zinc-500 dark:text-zinc-400">
-        <Clock className="mt-0.5 h-3.5 w-3.5" />
+      <div className="flex items-start gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+        <Clock className="mt-0.5 h-4 w-4" />
         <div>
           <div className="font-medium">Off</div>
-          <div className="text-[11px] text-zinc-400 dark:text-zinc-500">
+          <div className="text-sm text-zinc-400 dark:text-zinc-400">
             No shifts configured
           </div>
         </div>
@@ -80,7 +81,7 @@ export function ShiftSummary({ weekly, timezone = "Asia/Kolkata" }) {
     ? "text-emerald-600 dark:text-emerald-400"
     : hasShiftToday
       ? "text-zinc-700 dark:text-zinc-200"
-      : "text-zinc-400 dark:text-zinc-500";
+      : "text-zinc-400 dark:text-zinc-400";
 
   const label = onDutyNow
     ? "On duty now"
@@ -89,11 +90,11 @@ export function ShiftSummary({ weekly, timezone = "Asia/Kolkata" }) {
       : "Off today";
 
   return (
-    <div className={`flex items-start gap-2 text-xs ${colorClass}`}>
+    <div className={cn("flex items-start gap-2 text-sm", colorClass)}>
       <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
       <div className="flex flex-col gap-1 leading-tight">
         <div className="font-medium">{label}</div>
-        <div className="flex max-w-[180px] flex-col gap-1 truncate text-[11px] opacity-80">
+        <div className="flex max-w-[180px] flex-col gap-1 truncate text-sm opacity-80">
           {summaryText.map((t, i) => (
             <div key={i}>{t}</div>
           ))}

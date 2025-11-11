@@ -4,13 +4,13 @@ import InputGroup from "@/components/FormElements/InputGroup";
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { cn, toTitleCaseFromSnake } from "@/lib/utils.ts";
-
-import { Select } from "@/components/FormElements/select";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { useRouter } from "next/navigation";
 import { Autocomplete } from "@/components/Autocomplete";
 import User from "@/components/ui/user";
 import { StaffShiftEditor } from "../_components/shiftEditor";
+import { DepartmentSelect } from "../_components/departmentSelect";
+import { RoleSelect } from "../_components/roleSelect";
 
 async function fetchStaff() {
   const res = await fetch("/api/staff", {
@@ -212,30 +212,12 @@ export default function AddStaffPage() {
               <hr className="my-2" />
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <Select
-                  label="Department"
-                  items={[
-                    { label: "House Keeping", value: "house_keeping" },
-                    { label: "Room Service", value: "room_service" },
-                    { label: "Front Office", value: "front_office" },
-                    { label: "Concierge", value: "concierge" },
-                    { label: "Facilities", value: "facilities" },
-                  ]}
-                  placeholder="Room Service"
+                <DepartmentSelect
                   handleChange={(e) => setDepartment(e.target.value)}
                   required
                 />
 
-                <Select
-                  label="Role"
-                  items={[
-                    { label: "Admin", value: "hotel_admin" },
-                    { label: "Manager", value: "hotel_manager" },
-                    { label: "Supervisor", value: "hotel_supervisor" },
-                    { label: "Associate", value: "hotel_associate" },
-                    { label: "Trainee", value: "hotel_trainee" },
-                  ]}
-                  placeholder="Associate"
+                <RoleSelect
                   handleChange={(e) => setRole(e.target.value)}
                   required
                 />
@@ -271,7 +253,7 @@ export default function AddStaffPage() {
             </div>
           </div>
 
-          <div className="pg-6 rounded-[10px] bg-white dark:bg-gray-dark">
+          <div className="p-6 rounded-[10px] bg-white dark:bg-gray-dark">
             <StaffShiftEditor
               value={weeklyShifts}
               onChange={setWeeklyShifts}

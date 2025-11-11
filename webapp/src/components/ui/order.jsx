@@ -31,7 +31,7 @@ export function Order({ items = [], instructions }) {
               {i.name}
             </div>
 
-            <div className="flex items-center gap-1 truncate text-[11px] text-gray-600 dark:text-gray-400 sm:text-xs">
+            <div className="flex items-center gap-1 truncate text-xs text-gray-600 dark:text-gray-400 sm:text-xs">
               <span>×{i.quantity}</span>
               {i.notes && (
                 <span className="truncate italic" title={i.notes}>
@@ -45,7 +45,7 @@ export function Order({ items = [], instructions }) {
 
       {instructions && (
         <div
-          className="mt-1 truncate text-[11px] italic text-gray-600 dark:text-gray-400 sm:text-xs"
+          className="mt-1 truncate text-xs italic text-gray-600 dark:text-gray-400 sm:text-xs"
           title={instructions}
         >
           “{instructions}”
