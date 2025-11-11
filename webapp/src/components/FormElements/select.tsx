@@ -44,7 +44,7 @@ export function Select({
 
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setIsOptionSelected(true);
-    if (handleChange) handleChange(e);
+    handleChange?.(e);
   };
 
   return (

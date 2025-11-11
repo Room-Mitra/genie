@@ -212,10 +212,13 @@ export function EditStaffPanel({ open, staffUser, onClose, onSave, allStaff }) {
               <div className="grid grid-cols-2 gap-3 pb-6">
                 <DepartmentSelect
                   value={department}
-                  onChange={(value) => setDepartment(value)}
+                  handleChange={(value) => setDepartment(value)}
                 />
 
-                <RoleSelect value={role} onChange={(value) => setRole(value)} />
+                <RoleSelect
+                  value={role}
+                  handleChange={(value) => setRole(value)}
+                />
               </div>
 
               <Autocomplete

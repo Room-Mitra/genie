@@ -12,7 +12,10 @@ export function RoleSelect({ value, handleChange, required }) {
         { label: "Trainee", value: "hotel_trainee" },
       ]}
       placeholder="Associate"
-      handleChange={handleChange}
+      handleChange={(e) => {
+        console.log(e.target.value);
+        handleChange(e);
+      }}
       required={required}
       value={value}
     />
