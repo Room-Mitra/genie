@@ -212,12 +212,12 @@ export function EditStaffPanel({ open, staffUser, onClose, onSave, allStaff }) {
               <div className="grid grid-cols-2 gap-3 pb-6">
                 <DepartmentSelect
                   value={department}
-                  handleChange={(value) => setDepartment(value)}
+                  handleChange={(e) => setDepartment(e.target.value)}
                 />
 
                 <RoleSelect
                   value={role}
-                  handleChange={(value) => setRole(value)}
+                  handleChange={(e) => setRole(e.target.value)}
                 />
               </div>
 
