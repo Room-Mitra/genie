@@ -71,7 +71,7 @@ export async function checkDelayedRequests() {
 
         if (toUnacknowledged.length)
           console.log(
-            `[checkDelayedRequests] Hotel ${hotelId}: marking ${toUnacknowledged.length} requests as UNACKNOWLEDGED`
+            `[checkDelayedRequests] Hotel ${hotelId}: marking ${toUnacknowledged.length} NEW requests as UNACKNOWLEDGED`
           );
 
         await Promise.all(
