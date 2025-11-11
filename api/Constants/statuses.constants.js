@@ -1,4 +1,5 @@
 export const RequestStatus = {
+  NEW: 'new',
   UNACKNOWLEDGED: 'unacknowledged',
   IN_PROGRESS: 'in_progress',
   DELAYED: 'delayed',
@@ -7,6 +8,7 @@ export const RequestStatus = {
 };
 
 export const RequestStatuses = [
+  RequestStatus.NEW,
   RequestStatus.UNACKNOWLEDGED,
   RequestStatus.IN_PROGRESS,
   RequestStatus.DELAYED,
@@ -15,6 +17,7 @@ export const RequestStatuses = [
 ];
 
 export const ActiveRequestStatuses = [
+  RequestStatus.NEW,
   RequestStatus.UNACKNOWLEDGED,
   RequestStatus.IN_PROGRESS,
   RequestStatus.DELAYED,

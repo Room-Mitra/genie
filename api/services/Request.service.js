@@ -119,7 +119,7 @@ export async function createRequest(requestData) {
     priority,
     cart,
 
-    status: RequestStatus.UNACKNOWLEDGED,
+    status: RequestStatus.NEW,
     statusType: 'ACTIVE',
 
     estimatedTimeOfFulfillment,
