@@ -146,7 +146,7 @@ export function buildHotelEntityItem(input) {
         estimatedTimeOfFulfillment: i.estimatedTimeOfFulfillment,
         status: i.status,
         statusType: i.statusType,
-        assignedToUserId: i.assignedToUserId,
+        assignedStaffUserId: i.assignedStaffUserId,
         conversationId: i.conversationId,
         guestUserId: i.guestUserId,
         createdAt: i.createdAt,

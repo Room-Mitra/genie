@@ -16,3 +16,20 @@ export const HotelRoles = [
   HotelRole.ASSOCIATE,
   HotelRole.TRAINEE,
 ];
+
+export const RolePriority = {
+  [HotelRole.ADMIN]: 5,
+  [HotelRole.MANAGER]: 4,
+  [HotelRole.SUPERVISOR]: 3,
+  [HotelRole.ASSOCIATE]: 2,
+  [HotelRole.TRAINEE]: 1,
+};
+
+// You can tweak these per hotel if you want
+export const MAX_LOAD_BY_ROLE = {
+  [HotelRole.ADMIN]: 1,
+  [HotelRole.MANAGER]: 1,
+  [HotelRole.SUPERVISOR]: 2,
+  [HotelRole.ASSOCIATE]: 2,
+  [HotelRole.TRAINEE]: 2,
+};
