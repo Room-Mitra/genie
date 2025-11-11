@@ -91,7 +91,7 @@ export function ShiftSummary({ weekly, timezone = "Asia/Kolkata" }) {
 
   return (
     <div className={cn("flex items-start gap-2 text-sm", colorClass)}>
-      <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+      <Clock className="mt-0.5 h-4 w-4 shrink-0" />
       <div className="flex flex-col gap-1 leading-tight">
         <div className="font-medium">{label}</div>
         <div className="flex max-w-[180px] flex-col gap-1 truncate text-sm opacity-80">
