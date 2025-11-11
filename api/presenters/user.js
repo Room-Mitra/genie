@@ -11,6 +11,7 @@ export function userResponse(user) {
     hotelId,
     department,
     reportingToUserId,
+    weeklyShifts,
   } = user;
   return {
     firstName,
@@ -23,5 +24,6 @@ export function userResponse(user) {
     department,
     roles,
     reportingToUserId,
+    weeklyShifts,
   };
 }

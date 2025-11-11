@@ -79,7 +79,7 @@ export default function ConversationThread({ messages = [], guest }) {
 
                 <div
                   className={cn(
-                    "mt-1 text-[11px] leading-none text-gray-500",
+                    "mt-1 text-sm leading-none text-gray-500",
                     isGuest ? "text-left" : "text-right",
                   )}
                 >

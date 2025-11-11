@@ -3,7 +3,14 @@ import { toIsoString } from '#common/timestamp.helper.js';
 import DDB from '#clients/DynamoDb.client.js';
 import { HotelRoles } from '#Constants/roles.js';
 
-export async function addStaff({ hotelId, userId, role, department, reportingToUserId }) {
+export async function addStaff({
+  hotelId,
+  userId,
+  role,
+  department,
+  reportingToUserId,
+  weeklyShifts,
+}) {
   if (!userId) throw new Error('userId is required');
   if (!hotelId) throw new Error('hotelId is required');
 
@@ -19,6 +26,7 @@ export async function addStaff({ hotelId, userId, role, department, reportingToU
     'hotelId = :hotelId',
     'updatedAt = :nowIso',
     'department = :department',
+    'weeklyShifts = :weeklyShifts',
   ];
 
   const expressionAttributeValues = {
@@ -30,6 +38,7 @@ export async function addStaff({ hotelId, userId, role, department, reportingToU
     ':emptyList': [],
     ':roleVal': role,
     ':department': department,
+    ':weeklyShifts': weeklyShifts,
   };
 
   if (reportingToUserId) {
