@@ -78,7 +78,7 @@ function statusStyles(status) {
 
 export function RoomsGrid() {
   const [rooms, setRooms] = useState([]);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(true);
 
   const [roomToDelete, setRoomToDelete] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -223,9 +223,18 @@ export function RoomsGrid() {
         </div>
 
         {/* Grid */}
-        {isRefreshing && filtered.length === 0 ? (
+        {filtered.length === 0 ? (
           <div className="flex h-40 w-full items-center justify-center text-center">
-            <Spinner />
+            {isRefreshing ? (
+              <Spinner />
+            ) : (
+              <div>
+                No rooms added yet.{" "}
+                <Link className="text-primary underline" href="/rooms/new">
+                  Add your first room
+                </Link>
+              </div>
+            )}
           </div>
         ) : (
           <div

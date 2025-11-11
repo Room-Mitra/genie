@@ -18,8 +18,10 @@ export function Header() {
   const [reqsNeedAttention, setReqsNeedAttention] = useState(false);
   useEffect(() => {
     if (
-      activeRequests?.filter((r) =>
-        ["unacknowledged", "delayed", "new"].includes(r.status),
+      activeRequests?.filter(
+        (r) =>
+          ["unacknowledged", "delayed"].includes(r.status) ||
+          (r.status === "new" && !r.assignedStaffUserId),
       )?.length
     ) {
       setReqsNeedAttention(true);
