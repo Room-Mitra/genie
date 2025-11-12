@@ -10,6 +10,10 @@ import { ulid } from 'ulid';
 import { placeOrder } from './Order.service.js';
 import { updateOrderStatus } from '#repositories/Order.repository.js';
 import { orderResponse } from '#presenters/order.js';
+import { REQUEST_DEPARTMENT_TO_STAFF_DEPARTMENTS } from '#Constants/department.constants.js';
+import { getAvailableStaff, listStaffForHotel } from './Staff.service.js';
+import { RolePriority } from '#Constants/roles.js';
+import { DateTime } from 'luxon';
 
 const minsToFulfillByDepartment = {
   house_keeping: () => {
@@ -126,6 +130,11 @@ export async function createRequest(requestData) {
 
     orderId: order?.orderId,
   };
+
+  const availableStaff = await getAvailableStaff(request);
+  if (availableStaff) {
+    request.assignedStaffUserId = availableStaff;
+  }
 
   const createdReq = await requestRepo.createRequest(request);
   createdReq.order = order;
@@ -302,4 +311,22 @@ export async function cancelRequest({
   }
 
   return reqUpdate;
+}
+
+export async function getActiveWorkloadByUser({ hotelId }) {
+  const activeRequests = await requestRepo.queryRequestsByStatusType({
+    hotelId,
+    statusType: 'ACTIVE',
+    limit: 500,
+  });
+
+  const workload = {};
+
+  for (const req of activeRequests.items || []) {
+    const assigneeId = req.assignedStaffUserId;
+    if (!assigneeId) continue;
+    workload[assigneeId] = (workload[assigneeId] || 0) + 1;
+  }
+
+  return workload;
 }

@@ -5,7 +5,7 @@ export function DepartmentSelect({ value, handleChange, required }) {
     <Select
       label="Department"
       items={[
-        { label: "House Keeping", value: "house_keeping" },
+        { label: "Housekeeping", value: "house_keeping" },
         { label: "Room Service", value: "room_service" },
         { label: "Front Office", value: "front_office" },
         { label: "Concierge", value: "concierge" },

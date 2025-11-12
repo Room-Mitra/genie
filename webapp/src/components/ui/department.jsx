@@ -10,7 +10,7 @@ import {
 import { Roles } from "./roles";
 
 export const DepartmentLabels = {
-  house_keeping: "House Keeping",
+  house_keeping: "Housekeeping",
   room_service: "Room Service",
   front_office: "Front Office",
   concierge: "Concierge",
@@ -25,23 +25,7 @@ const DepartmentIcons = {
   facilities: WrenchScrewdriverIcon,
 };
 
-const HotelRoleLabels = {
-  hotel_admin: "Admin",
-  hotel_manager: "Manager",
-  hotel_associate: "Associate",
-  hotel_trainee: "Trainee",
-  hotel_supervisor: "Supervisor",
-};
-
-const RoleColors = {
-  hotel_admin: "bg-indigo-500 text-white",
-  hotel_manager: "bg-emerald-500 text-white",
-  hotel_supervisor: "bg-amber-400 text-white/90",
-  hotel_associate: "bg-sky-500 text-white",
-  hotel_trainee: "bg-gray-400 text-white",
-};
-
-export function Department({ department, reqType, roles, size }) {
+export function Department({ department, reqType, roles, size = "md" }) {
   if (!department) return <span>-</span>;
 
   const Label = DepartmentLabels[department] || department;

@@ -127,8 +127,10 @@ export function buildHotelEntityItem(input) {
         roomType_sk: `REQUEST#${requestId}`,
 
         // booking timeline gsi (for requests per booking)
-        bookingType_pk: `BOOKING#${i.bookingId}`,
-        bookingType_sk: `REQUEST#${requestId}`,
+        ...(i.bookingId && {
+          bookingType_pk: `BOOKING#${i.bookingId}`,
+          bookingType_sk: `REQUEST#${requestId}`,
+        }),
 
         // Requests by status board
         status_pk: `REQSTATUS#${i.statusType}#HOTEL#${i.hotelId}`,
@@ -146,7 +148,7 @@ export function buildHotelEntityItem(input) {
         estimatedTimeOfFulfillment: i.estimatedTimeOfFulfillment,
         status: i.status,
         statusType: i.statusType,
-        assignedToUserId: i.assignedToUserId,
+        assignedStaffUserId: i.assignedStaffUserId,
         conversationId: i.conversationId,
         guestUserId: i.guestUserId,
         createdAt: i.createdAt,
