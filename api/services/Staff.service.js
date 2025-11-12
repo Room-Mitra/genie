@@ -142,7 +142,7 @@ export function handledInWindowByUser({
 
   // Count requests that fall within each user's active window
   for (const req of pastRequests) {
-    const uid = req.assignedToUserId;
+    const uid = req.assignedStaffUserId;
     if (!uid) continue;
 
     const win = windowByUser[uid];
