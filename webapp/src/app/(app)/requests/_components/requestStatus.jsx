@@ -4,7 +4,8 @@ import { cn, toTitleCaseFromSnake } from "@/lib/utils";
 export default function Status({ status, ulid }) {
   const colorMap = {
     //Request Status
-    unacknowledged: "bg-orange-600/90 text-white",
+    new: "bg-orange-600/90 text-white",
+    unacknowledged: "bg-red-600/90 text-white",
     delayed: "bg-red-600/90 text-white",
     in_progress: "bg-yellow-500 text-black",
     completed: "bg-green-600/90 text-white",
@@ -32,7 +33,7 @@ export default function Status({ status, ulid }) {
           {label}
         </span>
       </div>
-      <div className="self-start text-center mx-auto">
+      <div className="mx-auto self-start text-center">
         <ID ulid={ulid} size="xs" withLabel={true} />
       </div>
     </div>

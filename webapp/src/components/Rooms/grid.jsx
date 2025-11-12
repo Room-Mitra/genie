@@ -78,7 +78,7 @@ function statusStyles(status) {
 
 export function RoomsGrid() {
   const [rooms, setRooms] = useState([]);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(true);
 
   const [roomToDelete, setRoomToDelete] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -115,8 +115,9 @@ export function RoomsGrid() {
         String(r.floor).toLowerCase().includes(q) ||
         String(r.type).toLowerCase().includes(q) ||
         String(r?.activeBooking?.guest?.firstName).toLowerCase().includes(q) ||
-        String(r?.activeBooking?.guest?.lastName).toLowerCase().includes(q);
-
+        String(r?.activeBooking?.guest?.lastName).toLowerCase().includes(q) ||
+        (r?.device?.online === true && String("online").includes(q)) ||
+        (r?.device?.online === false && String("offline").includes);
       return matches;
     });
   }, [sorted, query]);
@@ -222,9 +223,18 @@ export function RoomsGrid() {
         </div>
 
         {/* Grid */}
-        {isRefreshing && filtered.length === 0 ? (
+        {filtered.length === 0 ? (
           <div className="flex h-40 w-full items-center justify-center text-center">
-            <Spinner />
+            {isRefreshing ? (
+              <Spinner />
+            ) : (
+              <div>
+                No rooms added yet.{" "}
+                <Link className="text-primary underline" href="/rooms/new">
+                  Add your first room
+                </Link>
+              </div>
+            )}
           </div>
         ) : (
           <div
@@ -286,6 +296,7 @@ function LegendSwatch({ className, label }) {
 }
 
 function RoomCard({ room, highlightAttention, onClick, onDelete }) {
+  const [hover, setHover] = useState(false);
   const styles = statusStyles(room.status);
   const lastSeenText = room.device?.online
     ? `Online · last seen ${formatRelative(room.device?.lastSeen)}`
@@ -305,6 +316,9 @@ function RoomCard({ room, highlightAttention, onClick, onDelete }) {
   return (
     <button
       onClick={onClick}
+      onFocus={() => {}}
+      onMouseOver={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
       className={cn(
         "group relative flex aspect-square w-full flex-col justify-between overflow-hidden rounded-2xl border text-left shadow-sm transition",
         "p-3 text-sm",
@@ -312,7 +326,8 @@ function RoomCard({ room, highlightAttention, onClick, onDelete }) {
         styles.border,
         "hover:ring-2",
         styles.ring,
-        highlightAttention && "animate-pulse ring-2 ring-rose-500/70",
+        highlightAttention && "ring-2 ring-rose-500/70",
+        highlightAttention && !hover && "animate-pulse",
       )}
     >
       {/* Top line: Room number + type */}
@@ -399,7 +414,7 @@ function RoomCard({ room, highlightAttention, onClick, onDelete }) {
           />
         </div>
 
-        <div className="space-y-1">
+        <div className="mt-3 space-y-1">
           <div className="font-semibold">Room {room.number}</div>
           <div>
             {room.type} • Floor {room.floor}

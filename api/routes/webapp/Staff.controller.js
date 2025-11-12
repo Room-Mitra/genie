@@ -1,4 +1,4 @@
-import { listStaffForHotel, resetStaffPassword } from '#services/Staff.service.js';
+import { listStaffForHotel, resetStaffPassword, updateStaffById } from '#services/Staff.service.js';
 import * as hotelService from '#services/Hotel.service.js';
 
 import express from 'express';
@@ -28,11 +28,23 @@ router.post('/', async (req, res) => {
       department,
       role,
       reportingToUserId,
+      weeklyShifts,
     } = req.body || {};
 
-    if (!firstName || !lastName || !mobileNumber || !email || !password || !department || !role) {
+    if (
+      !firstName ||
+      !lastName ||
+      !mobileNumber ||
+      !email ||
+      !password ||
+      !department ||
+      !role ||
+      !weeklyShifts ||
+      Object.keys(weeklyShifts).length == 0
+    ) {
       return res.status(400).json({
-        error: 'firstName, lastName, mobileNumber, email, password, department, role are required',
+        error:
+          'firstName, lastName, mobileNumber, email, password, department, role, weeklyShifts are required',
       });
     }
 
@@ -45,6 +57,7 @@ router.post('/', async (req, res) => {
       department,
       role,
       reportingToUserId,
+      weeklyShifts,
     };
 
     const result = await hotelService.addStaffToHotel(hotelId, staffData);
@@ -94,6 +107,19 @@ router.post('/password', async (req, res) => {
   } catch (err) {
     console.error('reset password error', err);
     return res.status(500).json({ error: err?.message ?? 'Failed to reset password' });
+  }
+});
+
+router.put('/:staffUserId', async (req, res) => {
+  try {
+    const { staffUserId } = req.params;
+    const payload = req.body;
+
+    const updated = await updateStaffById(staffUserId, payload);
+    res.json({ message: 'Staff updated', item: updated });
+  } catch (err) {
+    console.error('update staff error', err);
+    return res.status(400).json({ error: err?.error || 'failed to update staff' });
   }
 });
 

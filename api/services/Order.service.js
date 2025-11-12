@@ -3,7 +3,7 @@ import * as userRepo from '#repositories/User.repository.js';
 import * as orderRepo from '#repositories/Order.repository.js';
 import { orderResponse } from '#presenters/order.js';
 import { minutesAhead } from '#common/timestamp.helper.js';
-import { OrderStatus } from '#Constants/statuses.constasnts.js';
+import { OrderStatus } from '#Constants/statuses.constants.js';
 import { validateCart } from './Cart.service.js';
 import { getItemsOnMenu } from './Menu.service.js';
 

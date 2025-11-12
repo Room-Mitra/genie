@@ -1,3 +1,5 @@
+import { weeklyShiftsResponse } from './weeklyShifts.js';
+
 export function userResponse(user) {
   if (!user) return null;
   const {
@@ -11,6 +13,7 @@ export function userResponse(user) {
     hotelId,
     department,
     reportingToUserId,
+    weeklyShifts,
   } = user;
   return {
     firstName,
@@ -23,5 +26,6 @@ export function userResponse(user) {
     department,
     roles,
     reportingToUserId,
+    weeklyShifts: weeklyShiftsResponse(weeklyShifts),
   };
 }

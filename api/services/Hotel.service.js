@@ -47,6 +47,7 @@ export async function listHotels({ limit, nextToken }) {
   return {
     ...res,
     items: res.items.map(hotelResponse),
+    count: res.items?.length ?? 0,
   };
 }
 
@@ -127,6 +128,7 @@ export async function addStaffToHotel(hotelId, userPayload) {
     role: userPayload.role,
     department: userPayload.department,
     reportingToUserId: userPayload.reportingToUserId,
+    weeklyShifts: userPayload.weeklyShifts,
   });
 
   return updated;

@@ -1,5 +1,5 @@
 import { toIsoString } from '#common/timestamp.helper.js';
-import { OrderStatus, RequestStatus } from '#Constants/statuses.constasnts.js';
+import { OrderStatus, RequestStatus } from '#Constants/statuses.constants.js';
 import { requestResponse } from '#presenters/request.js';
 import { getMessagesByConversationIds } from '#repositories/Message.repository.js';
 import * as requestRepo from '#repositories/Request.repository.js';
@@ -10,6 +10,10 @@ import { ulid } from 'ulid';
 import { placeOrder } from './Order.service.js';
 import { updateOrderStatus } from '#repositories/Order.repository.js';
 import { orderResponse } from '#presenters/order.js';
+import { REQUEST_DEPARTMENT_TO_STAFF_DEPARTMENTS } from '#Constants/department.constants.js';
+import { getAvailableStaff, listStaffForHotel } from './Staff.service.js';
+import { RolePriority } from '#Constants/roles.js';
+import { DateTime } from 'luxon';
 
 const minsToFulfillByDepartment = {
   house_keeping: () => {
@@ -119,13 +123,18 @@ export async function createRequest(requestData) {
     priority,
     cart,
 
-    status: RequestStatus.UNACKNOWLEDGED,
+    status: RequestStatus.NEW,
     statusType: 'ACTIVE',
 
     estimatedTimeOfFulfillment,
 
     orderId: order?.orderId,
   };
+
+  const availableStaff = await getAvailableStaff(request);
+  if (availableStaff) {
+    request.assignedStaffUserId = availableStaff;
+  }
 
   const createdReq = await requestRepo.createRequest(request);
   createdReq.order = order;
@@ -220,7 +229,8 @@ export async function startRequest({
 
   const reqUpdate = await requestRepo.updateRequestStatusWithLog({
     request,
-    toStatus: RequestStatus.IN_PROGRESS,
+    toStatus:
+      request.status === RequestStatus.DELAYED ? RequestStatus.DELAYED : RequestStatus.IN_PROGRESS, // if request is delayed, keep it in delayed
     assignedStaffUserId,
     updatedByUserId,
     note,
@@ -237,8 +247,14 @@ export async function startRequest({
   return reqUpdate;
 }
 
-export async function completeRequest({ requestId, hotelId, note, updatedByUserId }) {
-  if (!requestId || !hotelId) throw new Error('requestId and hotelId needed to start request');
+export async function completeRequest({
+  requestId,
+  hotelId,
+  assignedStaffUserId,
+  note,
+  updatedByUserId,
+}) {
+  if (!requestId || !hotelId) throw new Error('requestId and hotelId needed to complete request');
 
   const request = await requestRepo.getRequestById(requestId, hotelId);
   if (!request) throw new Error(`request doesn't exist for id:  ${requestId}`);
@@ -247,6 +263,7 @@ export async function completeRequest({ requestId, hotelId, note, updatedByUserI
   const reqUpdate = await requestRepo.updateRequestStatusWithLog({
     request,
     toStatus: RequestStatus.COMPLETED,
+    assignedStaffUserId,
     timeOfFulfillment: now,
     updatedByUserId,
     note,
@@ -262,4 +279,54 @@ export async function completeRequest({ requestId, hotelId, note, updatedByUserI
   }
 
   return reqUpdate;
+}
+
+export async function cancelRequest({
+  requestId,
+  hotelId,
+  cancellationReason,
+  note,
+  updatedByUserId,
+}) {
+  if (!requestId || !hotelId || !cancellationReason)
+    throw new Error('requestId, hotelId and cancellationReason needed to cancel request');
+
+  const request = await requestRepo.getRequestById(requestId, hotelId);
+  if (!request) throw new Error(`request doesn't exist for id:  ${requestId}`);
+
+  const reqUpdate = await requestRepo.updateRequestStatusWithLog({
+    request,
+    toStatus: RequestStatus.CANCELLED,
+    cancellationReason,
+    updatedByUserId,
+    note,
+  });
+
+  if (request.orderId) {
+    await updateOrderStatus({
+      hotelId,
+      orderId: request.orderId,
+      toStatus: OrderStatus.CANCELLED,
+    });
+  }
+
+  return reqUpdate;
+}
+
+export async function getActiveWorkloadByUser({ hotelId }) {
+  const activeRequests = await requestRepo.queryRequestsByStatusType({
+    hotelId,
+    statusType: 'ACTIVE',
+    limit: 500,
+  });
+
+  const workload = {};
+
+  for (const req of activeRequests.items || []) {
+    const assigneeId = req.assignedStaffUserId;
+    if (!assigneeId) continue;
+    workload[assigneeId] = (workload[assigneeId] || 0) + 1;
+  }
+
+  return workload;
 }

@@ -8,7 +8,7 @@ import {
 } from '#Constants/DB.constants.js';
 import { ulid } from 'ulid';
 import { decodeToken, encodeToken } from './repository.helper.js';
-import { ActiveRequestStatuses, InActiveRequestStatuses } from '#Constants/statuses.constasnts.js';
+import { ActiveRequestStatuses, InActiveRequestStatuses } from '#Constants/statuses.constants.js';
 
 export async function queryRequestsForBooking({ bookingId }) {
   if (!bookingId) {
@@ -60,6 +60,8 @@ export async function createRequest(request) {
 export async function queryRequestsByStatusType({
   hotelId,
   statusType,
+  statuses,
+  cutOffDate,
   limit = 25,
   nextToken,
   roomId,
@@ -69,38 +71,62 @@ export async function queryRequestsByStatusType({
   if (!hotelId || !statusType)
     throw new Error('hotelId and statusType needed to query requests by status');
 
+  const filterExpressions = [];
+  const expressionAttributeNames = {
+    '#pk': 'status_pk',
+  };
+
+  const expressionAttributeValues = {
+    ':pk': `REQSTATUS#${statusType.toUpperCase()}#HOTEL#${hotelId}`,
+  };
+
+  if (roomId) {
+    filterExpressions.push('#roomId = :roomId');
+    expressionAttributeNames['#roomId'] = 'roomId';
+    expressionAttributeValues[':roomId'] = roomId;
+  }
+
+  if (bookingId) {
+    filterExpressions.push('#bookingId = :bookingId');
+    expressionAttributeNames['#bookingId'] = 'bookingId';
+    expressionAttributeValues[':bookingId'] = bookingId;
+  }
+
+  if (assignedStaffUserId) {
+    filterExpressions.push('#assignedStaffUserId = :assignedStaffUserId');
+    expressionAttributeNames['#assignedStaffUserId'] = 'assignedStaffUserId';
+    expressionAttributeValues[':assignedStaffUserId'] = assignedStaffUserId;
+  }
+
+  if (statuses && statuses.length > 0) {
+    expressionAttributeNames['#status'] = 'status';
+
+    const placeholders = statuses.map((s, i) => `:status${i}`);
+
+    statuses.forEach((s, i) => {
+      expressionAttributeValues[`:status${i}`] = s;
+    });
+
+    filterExpressions.push(`#status IN (${placeholders.join(', ')})`);
+  }
+
+  if (cutOffDate) {
+    filterExpressions.push('#createdAt >= :cutOffDate');
+    expressionAttributeNames['#createdAt'] = 'createdAt';
+    expressionAttributeValues[':cutOffDate'] = cutOffDate;
+  }
+
   const params = {
     TableName: ENTITY_TABLE_NAME,
     IndexName: GSI_STATUS_NAME,
     KeyConditionExpression: '#pk = :pk',
-    ExpressionAttributeNames: {
-      '#pk': 'status_pk',
-    },
-    ExpressionAttributeValues: {
-      ':pk': `REQSTATUS#${statusType.toUpperCase()}#HOTEL#${hotelId}`,
-    },
+    ExpressionAttributeNames: expressionAttributeNames,
+    ExpressionAttributeValues: expressionAttributeValues,
     Limit: Math.min(Number(limit) || 25, 100),
     ScanIndexForward: false,
     ExclusiveStartKey: decodeToken(nextToken),
+    FilterExpression: filterExpressions.join(' AND ') || undefined,
   };
-
-  if (roomId) {
-    params.FilterExpression = '#roomId = :roomId';
-    params.ExpressionAttributeNames['#roomId'] = 'roomId';
-    params.ExpressionAttributeValues[':roomId'] = roomId;
-  }
-
-  if (bookingId) {
-    params.FilterExpression = '#bookingId = :bookingId';
-    params.ExpressionAttributeNames['#bookingId'] = 'bookingId';
-    params.ExpressionAttributeValues[':bookingId'] = bookingId;
-  }
-
-  if (assignedStaffUserId) {
-    params.FilterExpression = '#assignedStaffUserId = :assignedStaffUserId';
-    params.ExpressionAttributeNames['#assignedStaffUserId'] = 'assignedStaffUserId';
-    params.ExpressionAttributeValues[':assignedStaffUserId'] = assignedStaffUserId;
-  }
 
   const data = await DDB.query(params).promise();
   return {
@@ -141,9 +167,13 @@ export async function updateRequestStatusWithLog({
   assignedStaffUserId,
   updatedByUserId,
   note,
+  cancellationReason,
+  actor,
 }) {
-  if (!request || !toStatus || !updatedByUserId) {
-    throw new Error('request, toStatus, updatedByUserId are required to update request status');
+  if (!request || !toStatus || (!updatedByUserId && !actor)) {
+    throw new Error(
+      'request, toStatus, (updatedByUserId or actor) are required to update request status'
+    );
   }
 
   const fromStatus = request.status ?? 'UNKNOWN';
@@ -192,6 +222,13 @@ export async function updateRequestStatusWithLog({
     updateValues[':timeOfFulfillment'] = timeOfFulfillment; // can be a string or null
     updateExpressionFields.push('#timeOfFulfillment = :timeOfFulfillment');
   }
+
+  if (cancellationReason) {
+    updateNames['#cancellationReason'] = 'cancellationReason';
+    updateValues[':cancellationReason'] = cancellationReason;
+    updateExpressionFields.push('#cancellationReason = :cancellationReason');
+  }
+
   const transitionItem = {
     pk: request.sk,
     sk: logSk,
@@ -205,6 +242,8 @@ export async function updateRequestStatusWithLog({
     fromStatus,
     toStatus,
     note, // optional
+    cancellationReason,
+    actor,
     updatedByUserId,
     createdAt: nowIso,
   };

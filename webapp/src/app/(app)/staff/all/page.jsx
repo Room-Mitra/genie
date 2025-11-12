@@ -2,7 +2,6 @@
 
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { Department } from "@/components/ui/department";
-import { ID } from "@/components/ui/id";
 import SortTable from "@/components/ui/sort-table";
 import User from "@/components/ui/user";
 import Link from "next/link";
@@ -13,6 +12,12 @@ import { DeleteModal } from "@/components/ui/delete-modal";
 import { toast } from "react-toastify";
 import { useUser } from "@/context/UserContext";
 import { ResetPasswordModal } from "../_components/resetPasswordModal";
+import { EmailIcon } from "@/assets/icons";
+import { PhoneIcon, UsersIcon } from "@heroicons/react/24/outline";
+import { ShiftSummary } from "../_components/shiftSummary";
+import { EditStaffButton } from "../_components/editStaffButton";
+import InputGroup from "@/components/FormElements/InputGroup";
+import { EditPanelPortal } from "../_components/editPanelPortal";
 
 async function fetchStaff() {
   const res = await fetch("/api/staff", {
@@ -26,6 +31,8 @@ async function fetchStaff() {
 
 export default function Page() {
   const [data, setData] = useState([]);
+  const [editingStaff, setEditingStaff] = useState(null);
+
   const [loading, setLoading] = useState(true);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -34,14 +41,16 @@ export default function Page() {
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
 
   const { user: loggedInUser } = useUser();
+  const loggedInUserId = loggedInUser?.userId;
+
+  const [query, setQuery] = useState("");
 
   const columns = useMemo(
     () => [
-      { key: "userId", label: "USER ID" },
       { key: "name", label: "NAME" },
       { key: "department", label: "DEPARTMENT" },
-      { key: "mobileNumber", label: "MOBILE" },
-      { key: "email", label: "EMAIL" },
+      { key: "contact", label: "CONTACT" },
+      { key: "shift", label: "SHIFT", sortable: false },
       { key: "reportingTo", label: "REPORTS TO" },
       { key: "icons", label: "", sortable: false },
     ],
@@ -50,46 +59,13 @@ export default function Page() {
 
   const refreshStaff = useCallback(async () => {
     try {
-      const staff = await fetchStaff();
+      const res = await fetchStaff();
       setData(
-        staff?.items?.map((r) => ({
-          userId: <ID ulid={r.userId} size="xs" />,
-          name: <User user={r} onlyName={true} />,
-          email: r.email,
-          mobileNumber: r.mobileNumber || "-",
-          department: <Department department={r.department} roles={r.roles} />,
-          reportingTo: r.reportingToUserId ? (
-            <User
-              user={
-                staff?.items?.filter(
-                  (s) => s.userId === r?.reportingToUserId,
-                )?.[0]
-              }
-              showDepartment={true}
-              showRoles={true}
-            />
-          ) : (
-            "-"
-          ),
-          icons: (
-            <div className="flex flex-col gap-2">
-              {loggedInUser?.userId !== r.userId && (
-                <DeleteButton
-                  onClick={() => {
-                    setUser(r);
-                    setShowDeleteModal(true);
-                  }}
-                />
-              )}
-
-              <ResetPasswordButton
-                onClick={() => {
-                  setUser(r);
-                  setShowResetPasswordModal(true);
-                }}
-              />
-            </div>
-          ),
+        res.items.map((i) => ({
+          ...i,
+          reportingTo: i.reportingToUserId
+            ? res?.items?.find((s) => s.userId === i.reportingToUserId)
+            : null,
         })),
       );
     } catch (err) {
@@ -101,7 +77,7 @@ export default function Page() {
 
   useEffect(() => {
     refreshStaff();
-  }, []);
+  }, [refreshStaff]);
 
   async function deleteUser(userId) {
     const res = await fetch(`/api/staff/${userId}`, {
@@ -147,25 +123,118 @@ export default function Page() {
     toast.success("Password changed");
   }
 
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return data.filter((s) => {
+      const matches =
+        !q ||
+        String(s.firstName).toLowerCase().includes(q) ||
+        String(s.lastName).toLowerCase().includes(q) ||
+        String(s.department).toLowerCase().includes(q) ||
+        s?.roles?.filter((r) => String(r).toLowerCase().includes(q))?.length ||
+        String(s.email).toLowerCase().includes(q) ||
+        String(s.mobileNumber).toLowerCase().includes(q);
+
+      return matches;
+    });
+  }, [data, query]);
+
+  const staff = useMemo(
+    () =>
+      Array.isArray(filtered)
+        ? filtered.map((r) => ({
+            name: <User user={r} onlyName={true} />,
+            contact: (
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-start gap-1">
+                  <EmailIcon className="h-5 w-5 text-gray-500" />
+                  <span>{r.email}</span>
+                </div>
+                <div className="flex items-center justify-start gap-1">
+                  <PhoneIcon className="h-5 w-5 text-gray-500" />
+                  <span>{r.mobileNumber || "-"}</span>
+                </div>
+              </div>
+            ),
+            shift: (
+              <ShiftSummary
+                timezone="Asia/Kolkata"
+                weeklyShifts={r.weeklyShifts}
+              />
+            ),
+            department: (
+              <Department department={r.department} roles={r.roles} />
+            ),
+            reportingTo: r.reportingTo ? (
+              <User
+                user={r.reportingTo}
+                showDepartment={true}
+                showRoles={true}
+              />
+            ) : (
+              "-"
+            ),
+            icons: (
+              <div className="flex flex-col gap-2">
+                <EditStaffButton onClick={() => setEditingStaff(r)} />
+
+                <ResetPasswordButton
+                  onClick={() => {
+                    setUser(r);
+                    setShowResetPasswordModal(true);
+                  }}
+                />
+
+                {loggedInUserId !== r.userId && (
+                  <DeleteButton
+                    onClick={() => {
+                      setUser(r);
+                      setShowDeleteModal(true);
+                    }}
+                  />
+                )}
+              </div>
+            ),
+          }))
+        : [],
+    [filtered, loggedInUserId],
+  );
+
   return (
     <div>
       <Breadcrumb pageName="All Staff" parent="Staff" />
-      <div className="mb-5 mt-2 flex items-center justify-end gap-3">
-        <Link
-          className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
-          href="/staff/new"
-        >
-          + New Staff
-        </Link>
-      </div>
       <div className="w-fit rounded-[10px] bg-white p-6 dark:bg-gray-dark lg:w-full">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-10">
+          <div className="flex items-center gap-2 py-6 text-sm text-zinc-600 dark:text-zinc-300">
+            <UsersIcon className="size-5" />
+            <span className="font-medium">Staff</span>
+            <span className="text-sm">
+              ({filtered.length} / {data.length})
+            </span>
+            <Link
+              className="mx-4 rounded-md bg-indigo-600 px-2 py-1 text-xs font-medium text-white hover:bg-indigo-500"
+              href="/staff/new"
+            >
+              + New Staff
+            </Link>
+          </div>
+          <InputGroup
+            type="text"
+            className="w-60 sm:w-80"
+            name="query"
+            placeholder="search name, email, phone, department, role"
+            value={query}
+            handleChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
+
         <SortTable
           columns={columns}
-          data={data}
+          data={staff}
           tableRowClassNames={[
             "text-base font-medium text-dark dark:text-white",
           ]}
-          noDataMessage="No staff added"
+          noDataMessage="No staff"
           loading={loading}
         />
 
@@ -208,6 +277,18 @@ export default function Page() {
             setUser(null);
           }}
           user={user}
+        />
+
+        <EditPanelPortal
+          open={!!editingStaff}
+          staffUser={editingStaff}
+          allStaff={data}
+          onClose={() => {
+            setEditingStaff(null);
+          }}
+          onSave={() => {
+            refreshStaff();
+          }}
         />
       </div>
     </div>

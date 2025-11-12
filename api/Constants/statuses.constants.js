@@ -1,24 +1,29 @@
 export const RequestStatus = {
+  NEW: 'new',
   UNACKNOWLEDGED: 'unacknowledged',
   IN_PROGRESS: 'in_progress',
   DELAYED: 'delayed',
   COMPLETED: 'completed',
+  CANCELLED: 'cancelled',
 };
 
 export const RequestStatuses = [
+  RequestStatus.NEW,
   RequestStatus.UNACKNOWLEDGED,
   RequestStatus.IN_PROGRESS,
   RequestStatus.DELAYED,
   RequestStatus.COMPLETED,
+  RequestStatus.CANCELLED,
 ];
 
 export const ActiveRequestStatuses = [
+  RequestStatus.NEW,
   RequestStatus.UNACKNOWLEDGED,
   RequestStatus.IN_PROGRESS,
   RequestStatus.DELAYED,
 ];
 
-export const InActiveRequestStatuses = [RequestStatus.COMPLETED];
+export const InActiveRequestStatuses = [RequestStatus.COMPLETED, RequestStatus.CANCELLED];
 
 export const OrderStatus = {
   PENDING: 'pending',

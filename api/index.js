@@ -16,6 +16,7 @@ import cors from 'cors';
 import express from 'express';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
+import cron from 'node-cron';
 
 // import swaggerUi from 'swagger-ui-express';
 // import swaggerJsdoc from 'swagger-jsdoc';
@@ -48,6 +49,8 @@ import adminAuthenticator from '#middleware/AdminAuthenticator.middleware.js';
 // Admin Routes
 import adminHotelRoutes from '#routes/admin/Hotel.controller.js';
 import adminStaffRoutes from '#routes/admin/Staff.controller.js';
+
+import { checkDelayedRequests } from '#tasks/checkDelayedRequests.task.js';
 
 const app = express();
 app.use(requestContext);
@@ -147,4 +150,8 @@ app.get('/android/health', (req, res) => {
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
   });
+});
+
+cron.schedule('*/2 * * * *', () => {
+  checkDelayedRequests();
 });
