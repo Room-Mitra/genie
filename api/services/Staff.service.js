@@ -1,6 +1,8 @@
 import { REQUEST_DEPARTMENT_TO_STAFF_DEPARTMENTS } from '#Constants/department.constants.js';
 import { MAX_LOAD_BY_ROLE, RolePriority } from '#Constants/roles.js';
+import { RequestStatus } from '#Constants/statuses.constants.js';
 import { userResponse } from '#presenters/user.js';
+import { queryRequestsByStatusType } from '#repositories/Request.repository.js';
 import * as staffRepo from '#repositories/Staff.repository.js';
 import { getUserProfileById, updateUser } from '#repositories/User.repository.js';
 import { getActiveWorkloadByUser } from './Request.service.js';
@@ -223,8 +225,17 @@ export async function getAvailableStaff(request, hotelTimezone = 'Asia/Kolkata')
   // 4. Get workload per user
   const workloadByUser = await getActiveWorkloadByUser({ hotelId });
 
-  // 5. Sort onDutyStaff:
-  const sorted = sortOnDutyStaff(onDutyStaff, workloadByUser);
+  // 5. Get request in past 48 hours
+  const pastRequests = await queryRequestsByStatusType({
+    hotelId,
+    statusType: 'INACTIVE',
+    statuses: [RequestStatus.COMPLETED],
+    cutOffDate: DateTime.now().minus({ days: 2 }).startOf('day').toISO(),
+    limit: 500,
+  });
+
+  // 6. Sort onDutyStaff:
+  const sorted = sortOnDutyStaff(onDutyStaff, workloadByUser, pastRequests.items || []);
   const chosen = sorted[0];
 
   return chosen ? chosen.userId : null;
@@ -240,12 +251,17 @@ function isUnderThreshold(user, workloadByUser) {
   return current < max;
 }
 
-function sortOnDutyStaff(onDutyStaff, workloadByUser) {
+function sortOnDutyStaff(onDutyStaff, workloadByUser, pastRequests) {
   // 1. Prefer people under their per role threshold
   const underThreshold = onDutyStaff.filter((u) => isUnderThreshold(u, workloadByUser));
 
   // If at least one person is under threshold, only pick from that pool
   const pool = underThreshold.length > 0 ? underThreshold : onDutyStaff;
+
+  const handled = handledInWindowByUser({
+    users: onDutyStaff,
+    pastRequests,
+  });
 
   // 2. Sort pool:
   //    - by role priority (lowest role first)
@@ -261,10 +277,17 @@ function sortOnDutyStaff(onDutyStaff, workloadByUser) {
       if (roleDiff !== 0) return roleDiff;
     }
 
+    // 2. Active workload
     const loadA = getCurrentLoad(workloadByUser, a.userId);
     const loadB = getCurrentLoad(workloadByUser, b.userId);
     if (loadA !== loadB) return loadA - loadB;
 
+    // 3. Handled in window (shift / day)
+    const handledA = handled[a.userId] || 0;
+    const handledB = handled[b.userId] || 0;
+    if (handledA !== handledB) return handledA - handledB;
+
+    // 4. Tie-breaker
     return a.userId.localeCompare(b.userId);
   });
 

@@ -60,6 +60,8 @@ export async function createRequest(request) {
 export async function queryRequestsByStatusType({
   hotelId,
   statusType,
+  statuses,
+  cutOffDate,
   limit = 25,
   nextToken,
   roomId,
@@ -69,38 +71,62 @@ export async function queryRequestsByStatusType({
   if (!hotelId || !statusType)
     throw new Error('hotelId and statusType needed to query requests by status');
 
+  const filterExpressions = [];
+  const expressionAttributeNames = {
+    '#pk': 'status_pk',
+  };
+
+  const expressionAttributeValues = {
+    ':pk': `REQSTATUS#${statusType.toUpperCase()}#HOTEL#${hotelId}`,
+  };
+
+  if (roomId) {
+    filterExpressions.push('#roomId = :roomId');
+    expressionAttributeNames['#roomId'] = 'roomId';
+    expressionAttributeValues[':roomId'] = roomId;
+  }
+
+  if (bookingId) {
+    filterExpressions.push('#bookingId = :bookingId');
+    expressionAttributeNames['#bookingId'] = 'bookingId';
+    expressionAttributeValues[':bookingId'] = bookingId;
+  }
+
+  if (assignedStaffUserId) {
+    filterExpressions.push('#assignedStaffUserId = :assignedStaffUserId');
+    expressionAttributeNames['#assignedStaffUserId'] = 'assignedStaffUserId';
+    expressionAttributeValues[':assignedStaffUserId'] = assignedStaffUserId;
+  }
+
+  if (statuses && statuses.length > 0) {
+    expressionAttributeNames['#status'] = 'status';
+
+    const placeholders = statuses.map((s, i) => `:status${i}`);
+
+    statuses.forEach((s, i) => {
+      expressionAttributeValues[`:status${i}`] = s;
+    });
+
+    filterExpressions.push(`#status IN (${placeholders.join(', ')})`);
+  }
+
+  if (cutOffDate) {
+    filterExpressions.push('#createdAt >= :cutOffDate');
+    expressionAttributeNames['#createdAt'] = 'createdAt';
+    expressionAttributeValues[':cutOffDate'] = cutOffDate;
+  }
+
   const params = {
     TableName: ENTITY_TABLE_NAME,
     IndexName: GSI_STATUS_NAME,
     KeyConditionExpression: '#pk = :pk',
-    ExpressionAttributeNames: {
-      '#pk': 'status_pk',
-    },
-    ExpressionAttributeValues: {
-      ':pk': `REQSTATUS#${statusType.toUpperCase()}#HOTEL#${hotelId}`,
-    },
+    ExpressionAttributeNames: expressionAttributeNames,
+    ExpressionAttributeValues: expressionAttributeValues,
     Limit: Math.min(Number(limit) || 25, 100),
     ScanIndexForward: false,
     ExclusiveStartKey: decodeToken(nextToken),
+    FilterExpression: filterExpressions.join(' AND ') || undefined,
   };
-
-  if (roomId) {
-    params.FilterExpression = '#roomId = :roomId';
-    params.ExpressionAttributeNames['#roomId'] = 'roomId';
-    params.ExpressionAttributeValues[':roomId'] = roomId;
-  }
-
-  if (bookingId) {
-    params.FilterExpression = '#bookingId = :bookingId';
-    params.ExpressionAttributeNames['#bookingId'] = 'bookingId';
-    params.ExpressionAttributeValues[':bookingId'] = bookingId;
-  }
-
-  if (assignedStaffUserId) {
-    params.FilterExpression = '#assignedStaffUserId = :assignedStaffUserId';
-    params.ExpressionAttributeNames['#assignedStaffUserId'] = 'assignedStaffUserId';
-    params.ExpressionAttributeValues[':assignedStaffUserId'] = assignedStaffUserId;
-  }
 
   const data = await DDB.query(params).promise();
   return {
