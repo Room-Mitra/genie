@@ -241,13 +241,9 @@ export async function getAvailableStaff(request, hotelTimezone = 'Asia/Kolkata')
   return chosen ? chosen.userId : null;
 }
 
-function getCurrentLoad(workloadByUser, userId) {
-  return workloadByUser[userId] || 0;
-}
-
 function isUnderThreshold(user, workloadByUser) {
   const max = MAX_LOAD_BY_ROLE[user?.roles?.[0]] ?? Infinity;
-  const current = getCurrentLoad(workloadByUser, user.userId);
+  const current = workloadByUser[user.userId] || 0;
   return current < max;
 }
 
@@ -280,8 +276,8 @@ function sortOnDutyStaff(onDutyStaff, workloadByUser, pastRequests) {
     }
 
     // 2. Active workload
-    const loadA = getCurrentLoad(workloadByUser, a.userId);
-    const loadB = getCurrentLoad(workloadByUser, b.userId);
+    const loadA = workloadByUser[a.userId] || 0;
+    const loadB = workloadByUser[b.userId] || 0;
     if (loadA !== loadB) return loadA - loadB;
 
     // 3. Previous workload handled in shift
