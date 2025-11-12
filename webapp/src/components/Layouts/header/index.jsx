@@ -18,8 +18,8 @@ export function Header() {
   const [reqsNeedAttention, setReqsNeedAttention] = useState(false);
   useEffect(() => {
     if (
-      activeRequests?.filter(
-        (r) => r.status === "unacknowledged" || r.status === "delayed",
+      activeRequests?.filter((r) =>
+        ["unacknowledged", "delayed", "new"].includes(r.status),
       )?.length
     ) {
       setReqsNeedAttention(true);
@@ -32,7 +32,7 @@ export function Header() {
     <header className="sticky top-0 z-30 flex items-center justify-between border-b border-stroke bg-white px-4 py-5 shadow-1 dark:border-stroke-dark dark:bg-gray-dark md:px-5 2xl:px-10">
       <button
         onClick={toggleSidebar}
-        className="rounded-lg border px-1.5 py-1 dark:border-stroke-dark dark:bg-[#020D1A] hover:dark:bg-[#FFFFFF1A]"
+        className="rounded-lg border px-1.5 py-1 dark:border-stroke-dark dark:bg-slate-950 hover:dark:bg-[#FFFFFF1A]"
       >
         <MenuIcon />
         <span className="sr-only">Toggle Sidebar</span>

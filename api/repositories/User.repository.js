@@ -180,6 +180,40 @@ export async function getUserProfileById(userId) {
   return Items[0];
 }
 
+export async function updateUser(userId, updates) {
+  const nowIso = new Date().toISOString();
+
+  const names = { '#ua': 'updatedAt' };
+  const values = { ':ua': nowIso };
+  const sets = ['#ua = :ua'];
+
+  let i = 0;
+  for (const [k, v] of Object.entries(updates)) {
+    i += 1;
+    const nk = `#f${i}`;
+    const vk = `:v${i}`;
+    names[nk] = k;
+    values[vk] = v;
+    sets.push(`${nk} = ${vk}`);
+  }
+
+  const params = {
+    TableName: ENTITY_TABLE_NAME,
+    Key: {
+      pk: 'CATALOG#USER',
+      sk: `USER#${userId}`,
+    },
+    UpdateExpression: `SET ${sets.join(', ')}`,
+    ExpressionAttributeNames: names,
+    ExpressionAttributeValues: values,
+    ConditionExpression: 'attribute_exists(pk) AND attribute_exists(sk)',
+    ReturnValues: 'ALL_NEW',
+  };
+
+  const data = await DDB.update(params).promise();
+  return data.Attributes;
+}
+
 /**
  * getUsersByIds
  * - Accepts >100 ids (chunks into 100)
