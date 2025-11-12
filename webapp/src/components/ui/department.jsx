@@ -10,7 +10,7 @@ import {
 import { Roles } from "./roles";
 
 export const DepartmentLabels = {
-  house_keeping: "House Keeping",
+  house_keeping: "Housekeeping",
   room_service: "Room Service",
   front_office: "Front Office",
   concierge: "Concierge",
@@ -30,8 +30,6 @@ export function Department({ department, reqType, roles, size = "md" }) {
 
   const Label = DepartmentLabels[department] || department;
   const Icon = DepartmentIcons[department] || QuestionMarkCircleIcon;
-
-  console.log(department, Label, Icon);
 
   const sizeToText = {
     xs: "text-xs",

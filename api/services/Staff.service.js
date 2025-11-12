@@ -258,14 +258,16 @@ function sortOnDutyStaff(onDutyStaff, workloadByUser, pastRequests) {
   // If at least one person is under threshold, only pick from that pool
   const pool = underThreshold.length > 0 ? underThreshold : onDutyStaff;
 
+  // 2. For even distribution of work, get previous workload of staff for current shift
   const handled = handledInWindowByUser({
     users: onDutyStaff,
     pastRequests,
   });
 
-  // 2. Sort pool:
+  // 3. Sort pool:
   //    - by role priority (lowest role first)
   //    - then by workload (fewest active tasks)
+  //    - then by previous workload
   //    - then by userId as tie breaker
   const sorted = [...pool].sort((a, b) => {
     const roleA = a?.roles?.[0];
@@ -282,7 +284,7 @@ function sortOnDutyStaff(onDutyStaff, workloadByUser, pastRequests) {
     const loadB = getCurrentLoad(workloadByUser, b.userId);
     if (loadA !== loadB) return loadA - loadB;
 
-    // 3. Handled in window (shift / day)
+    // 3. Previous workload handled in shift
     const handledA = handled[a.userId] || 0;
     const handledB = handled[b.userId] || 0;
     if (handledA !== handledB) return handledA - handledB;

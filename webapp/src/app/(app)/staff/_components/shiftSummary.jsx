@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Clock } from "lucide-react";
-import { DateTime } from "luxon";
+import React from "react";
 
 const DAY_LABELS = {
   mon: "Mon",
@@ -14,69 +14,50 @@ const DAY_LABELS = {
 
 const DAY_ORDER = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 
-function getDayKey(dt) {
-  return dt.toFormat("ccc").toLowerCase().slice(0, 3);
+const normalizeSlots = (slots) =>
+  (slots ?? []).map((s) => `${s.start} - ${s.end}`);
+
+const sameSlotKey = (slots) => normalizeSlots(slots).join("|"); // stable key for equality
+
+function buildRows(weeklyShifts) {
+  const rows = [];
+
+  let i = 0;
+  while (i < DAY_ORDER.length) {
+    const day = DAY_ORDER[i];
+    const daySlots = weeklyShifts?.[day] ?? [];
+    const key = sameSlotKey(daySlots);
+
+    if (daySlots.length === 0) {
+      i++;
+      continue; // skip empty days
+    }
+
+    // Extend group while consecutive days have identical slots
+    let j = i + 1;
+    while (j < DAY_ORDER.length) {
+      const next = DAY_ORDER[j];
+      const nextKey = sameSlotKey(weeklyShifts?.[next] ?? []);
+      if (nextKey !== key) break;
+      j++;
+    }
+
+    // Day label or range label
+    const startLabel = DAY_LABELS[DAY_ORDER[i]];
+    const endLabel = DAY_LABELS[DAY_ORDER[j - 1]];
+    const label = i === j - 1 ? startLabel : `${startLabel} - ${endLabel}`;
+
+    rows.push({ label, slots: normalizeSlots(daySlots) });
+
+    i = j; // jump to first day after this group
+  }
+
+  return rows;
 }
 
-function getTodayKey(timezone) {
-  return getDayKey(DateTime.now().setZone(timezone));
-}
-
-function parseHM(hm) {
-  const [h, m] = hm.split(":").map(Number);
-  return { h, m };
-}
-
-/**
- * True if NOW (in the given timezone) falls within any shift window, including
- * spillover from yesterday's overnight slots.
- */
-function isNowInShift(weekly, timezone = "Asia/Kolkata") {
-  const now = DateTime.now().setZone(timezone);
-  const todayStart = now.startOf("day");
-  const yesterdayStart = todayStart.minus({ days: 1 });
-
-  const todayKey = getDayKey(todayStart);
-  const yesterdayKey = getDayKey(yesterdayStart);
-
-  // 1) Check today's slots (normal or overnight starting today)
-  const todayHit = (weekly[todayKey] ?? []).some((slot) => {
-    const { h: sh, m: sm } = parseHM(slot.start);
-    const { h: eh, m: em } = parseHM(slot.end);
-
-    let start = todayStart.set({ hour: sh, minute: sm });
-    let end = todayStart.set({ hour: eh, minute: em });
-
-    // Overnight: end rolls into tomorrow
-    if (end <= start) end = end.plus({ days: 1 });
-
-    return now >= start && now <= end;
-  });
-
-  if (todayHit) return true;
-
-  // 2) Check yesterday's overnight slots that spill into today
-  const ydayHit = (weekly[yesterdayKey] ?? []).some((slot) => {
-    const { h: sh, m: sm } = parseHM(slot.start);
-    const { h: eh, m: em } = parseHM(slot.end);
-
-    const startMin = sh * 60 + sm;
-    const endMin = eh * 60 + em;
-    const isOvernight = endMin <= startMin;
-    if (!isOvernight) return false;
-
-    const start = yesterdayStart.set({ hour: sh, minute: sm });
-    const end = yesterdayStart.set({ hour: eh, minute: em }).plus({ days: 1 });
-
-    return now >= start && now <= end;
-  });
-
-  return ydayHit;
-}
-
-export function ShiftSummary({ weekly, timezone = "Asia/Kolkata" }) {
+export function ShiftSummary({ weeklyShifts, timezone = "Asia/Kolkata" }) {
   // Empty: no shifts configured
-  if (!weekly || Object.keys(weekly).length === 0) {
+  if (!weeklyShifts || Object.keys(weeklyShifts).length === 0) {
     return (
       <div className="flex items-start gap-2 text-sm text-zinc-500 dark:text-zinc-400">
         <Clock className="mt-0.5 h-4 w-4" />
@@ -90,87 +71,38 @@ export function ShiftSummary({ weekly, timezone = "Asia/Kolkata" }) {
     );
   }
 
-  const todayKey = getTodayKey(timezone);
-  const onDutyNow = isNowInShift(weekly, timezone);
+  const onDutyNow = weeklyShifts.isOnShiftNow;
 
-  const getYesterdayKey = (tz) =>
-    DateTime.now()
-      .setZone(tz)
-      .minus({ days: 1 })
-      .toFormat("ccc")
-      .toLowerCase()
-      .slice(0, 3);
-
-  const isOvernight = (start, end) => {
-    const [sh, sm] = start.split(":").map(Number);
-    const [eh, em] = end.split(":").map(Number);
-    return eh * 60 + em <= sh * 60 + sm;
-  };
-
-  // “Has shift today” if:
-  // 1) any explicit slots today, OR
-  // 2) any overnight slot yesterday that spills into today
-  const hasShiftToday = (() => {
-    const todaySlots = weekly[todayKey] ?? [];
-    if (todaySlots.length > 0) return true;
-    const yKey = getYesterdayKey(timezone);
-    const ySlots = weekly[yKey] ?? [];
-    return ySlots.some((slot) => isOvernight(slot.start, slot.end));
-  })();
-
-  // Build compact summary
-  const weekdayKeys = ["mon", "tue", "wed", "thu", "fri"];
-  const weekdaySlots = weekdayKeys
-    .map((k) =>
-      (weekly?.[k] ?? []).map((s) => `${s.start}-${s.end}`).join(", "),
-    )
-    .filter(Boolean);
-
-  const uniqueWeekdaySlot =
-    [...new Set(weekdaySlots)].length === 1 ? weekdaySlots[0] : null;
-
-  let summaryLines = [];
-  if (uniqueWeekdaySlot && weekdaySlots.length === 5) {
-    summaryLines.push(`Mon–Fri ${uniqueWeekdaySlot}`);
-    const sat = (weekly?.sat ?? [])
-      .map((s) => `${s.start}-${s.end}`)
-      .join(", ");
-    const sun = (weekly?.sun ?? [])
-      .map((s) => `${s.start}-${s.end}`)
-      .join(", ");
-    if (sat) summaryLines.push(`Sat ${sat}`);
-    if (sun) summaryLines.push(`Sun ${sun}`);
-  } else {
-    summaryLines = DAY_ORDER.flatMap((day) => {
-      const slots = weekly?.[day];
-      if (!slots || slots.length === 0) return [];
-      const s = slots.map((x) => `${x.start}-${x.end}`).join(", ");
-      return `${DAY_LABELS[day]} ${s}`;
-    });
-  }
+  const rows = buildRows(weeklyShifts);
 
   const colorClass = onDutyNow
     ? "text-emerald-600 dark:text-emerald-400"
-    : hasShiftToday
-      ? "text-zinc-700 dark:text-zinc-200"
-      : "text-zinc-400 dark:text-zinc-500";
+    : "text-zinc-700 dark:text-zinc-200";
 
-  const label = onDutyNow
-    ? "On duty now"
-    : hasShiftToday
-      ? "Off duty now"
-      : "Off today";
+  const label = onDutyNow ? "On duty now" : "Off duty now";
 
   return (
-    <div className={cn("flex items-start gap-2 text-sm", colorClass)}>
-      <Clock className="mt-0.5 h-4 w-4 shrink-0" />
-      <div className="flex flex-col gap-1 leading-tight">
+    <div>
+      <div className={cn("flex items-start gap-2 text-sm", colorClass)}>
+        <Clock className="mt-0.5 h-4 w-4 shrink-0" />
         <div className="font-medium">{label}</div>
-        <div className="flex max-w-[200px] flex-col gap-0.5 truncate text-xs opacity-80">
-          {summaryLines.map((t, i) => (
-            <div key={i}>{t}</div>
-          ))}
-        </div>
+      </div>
+
+      <div className="grid grid-cols-[max-content,1fr] items-start gap-x-3 gap-y-1 text-left">
+        {rows.map(({ label, slots }, idx) => (
+          <React.Fragment key={idx}>
+            <div className="whitespace-nowrap text-sm text-zinc-600">
+              {label}
+            </div>
+            <div className="text-sm leading-5">
+              {slots.map((t, j) => (
+                <div className="font-medium tabular-nums" key={j}>
+                  {t}
+                </div>
+              ))}
+            </div>
+          </React.Fragment>
+        ))}
       </div>
     </div>
   );
