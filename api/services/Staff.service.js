@@ -61,6 +61,109 @@ export async function updateStaffById(staffUserId, payload) {
   return updated;
 }
 
+/** Return "mon"/"tue"/... for a given DateTime (hotel-local). */
+function dayKeyOf(dt) {
+  return dt.toFormat('ccc').toLowerCase();
+}
+
+/** Materialize a shift (HH:mm → DateTime) anchored on a specific calendar day. Handles overnight by rolling end to next day if needed. */
+function materializeShift(anchor, s, zone) {
+  const start = DateTime.fromFormat(s.start, 'HH:mm', { zone }).set({
+    year: anchor.year,
+    month: anchor.month,
+    day: anchor.day,
+  });
+  let end = DateTime.fromFormat(s.end, 'HH:mm', { zone }).set({
+    year: anchor.year,
+    month: anchor.month,
+    day: anchor.day,
+  });
+  if (end <= start) end = end.plus({ days: 1 }); // overnight
+  return { start, end };
+}
+
+/**
+ * Compute the CURRENT (active) shift window [start, end) for a user at `now`.
+ * Looks at today's shifts and yesterday's overnight shifts.
+ * Returns null if the user is not currently in any shift window.
+ */
+function currentShiftWindowForUser(weeklyShifts, now, zone) {
+  if (!weeklyShifts) return null;
+
+  const localNow = now.setZone(zone);
+  const todayKey = dayKeyOf(localNow);
+  const yesterday = localNow.minus({ days: 1 });
+  const yesterdayKey = dayKeyOf(yesterday);
+
+  const todayShifts = weeklyShifts[todayKey] ?? [];
+  const yesterdayShifts = weeklyShifts[yesterdayKey] ?? [];
+
+  // 1) Check today's shifts (including those that roll past midnight)
+  for (const s of todayShifts) {
+    const { start, end } = materializeShift(localNow, s, zone);
+    if (localNow >= start && localNow < end) return { start, end };
+  }
+
+  // 2) Check yesterday's shifts that spill into today
+  for (const s of yesterdayShifts) {
+    const { start, end } = materializeShift(yesterday, s, zone);
+    // Only relevant if it crosses midnight into today
+    if (end.day !== start.day || end.diff(start, 'hours').hours > 20) {
+      if (localNow >= start && localNow < end) return { start, end };
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Build a map userId -> number of completed requests within THEIR current shift window.
+ * Pass ~48h of pastRequests to cover overnight windows safely.
+ */
+export function handledInWindowByUser({
+  users,
+  pastRequests,
+  hotelTimezone = 'Asia/Kolkata',
+  now = DateTime.now(),
+}) {
+  const localNow = now.setZone(hotelTimezone);
+
+  // Precompute each user's active window
+  const windowByUser = {};
+  for (const u of users) {
+    windowByUser[u.userId] = currentShiftWindowForUser(u.weeklyShifts, localNow, hotelTimezone);
+  }
+
+  // Initialize counts
+  const counts = {};
+  for (const u of users) counts[u.userId] = 0;
+
+  // Count requests that fall within each user's active window
+  for (const req of pastRequests) {
+    const uid = req.assignedToUserId;
+    if (!uid) continue;
+
+    const win = windowByUser[uid];
+    if (!win) continue; // user not currently in a shift
+
+    const tsRaw = req.timeOfFulfillment;
+    if (!tsRaw) continue;
+
+    const ts =
+      tsRaw instanceof Date
+        ? DateTime.fromJSDate(tsRaw, { zone: hotelTimezone })
+        : DateTime.fromISO(String(tsRaw), { zone: hotelTimezone });
+
+    if (!ts.isValid) continue;
+
+    if (ts >= win.start && ts < win.end) {
+      counts[uid] = (counts[uid] || 0) + 1;
+    }
+  }
+
+  return counts;
+}
+
 export function isOnShiftNow({
   weeklyShifts,
   now = DateTime.now(),
@@ -68,30 +171,31 @@ export function isOnShiftNow({
 }) {
   if (!weeklyShifts) return false;
 
-  // Convert "now" to hotel's local timezone
   const localNow = now.setZone(hotelTimezone);
 
-  // Get lowercase 3-letter weekday key: mon, tue, wed, etc.
-  const dayKey = localNow.toFormat('ccc').toLowerCase(); // "mon"
+  const todayKey = dayKeyOf(localNow);
+  const yesterday = localNow.minus({ days: 1 });
+  const yesterdayKey = dayKeyOf(yesterday);
 
-  const todayShifts = weeklyShifts[dayKey];
-  if (!todayShifts || todayShifts.length === 0) return false;
+  const todayShifts = weeklyShifts[todayKey] ?? [];
+  const yesterdayShifts = weeklyShifts[yesterdayKey] ?? [];
 
-  return todayShifts.some((shift) => {
-    const shiftStart = DateTime.fromFormat(shift.start, 'HH:mm', { zone: hotelTimezone }).set({
-      year: localNow.year,
-      month: localNow.month,
-      day: localNow.day,
-    });
+  // 1) Check today's shifts (including those that end after midnight)
+  for (const s of todayShifts) {
+    const { start, end } = materializeShift(localNow, s, hotelTimezone);
+    if (localNow >= start && localNow < end) return true;
+  }
 
-    const shiftEnd = DateTime.fromFormat(shift.end, 'HH:mm', { zone: hotelTimezone }).set({
-      year: localNow.year,
-      month: localNow.month,
-      day: localNow.day,
-    });
+  // 2) Check yesterday's overnight shifts that spill into today
+  for (const s of yesterdayShifts) {
+    const { start, end } = materializeShift(yesterday, s, hotelTimezone);
+    // Only matters if it actually crosses midnight into today
+    if (end > start && end.day !== start.day) {
+      if (localNow >= start && localNow < end) return true;
+    }
+  }
 
-    return localNow >= shiftStart && localNow < shiftEnd;
-  });
+  return false;
 }
 
 export async function getAvailableStaff(request, hotelTimezone = 'Asia/Kolkata') {
@@ -113,7 +217,6 @@ export async function getAvailableStaff(request, hotelTimezone = 'Asia/Kolkata')
     .filter((user) => isOnShiftNow({ weeklyShifts: user.weeklyShifts, hotelTimezone }));
 
   if (onDutyStaff.length === 0) {
-    // Optional: try escalation logic here (e.g., duty manager in front_office)
     return null;
   }
 
@@ -132,7 +235,7 @@ function getCurrentLoad(workloadByUser, userId) {
 }
 
 function isUnderThreshold(user, workloadByUser) {
-  const max = MAX_LOAD_BY_ROLE[user.operationalRole] ?? Infinity;
+  const max = MAX_LOAD_BY_ROLE[user?.roles?.[0]] ?? Infinity;
   const current = getCurrentLoad(workloadByUser, user.userId);
   return current < max;
 }
@@ -149,8 +252,14 @@ function sortOnDutyStaff(onDutyStaff, workloadByUser) {
   //    - then by workload (fewest active tasks)
   //    - then by userId as tie breaker
   const sorted = [...pool].sort((a, b) => {
-    const roleDiff = RolePriority[a.operationalRole] - RolePriority[b.operationalRole];
-    if (roleDiff !== 0) return roleDiff;
+    const roleA = a?.roles?.[0];
+    const roleB = b?.roles?.[0];
+
+    // 1. When someone is under threshold, we still care about role first
+    if (underThreshold.length > 0) {
+      const roleDiff = RolePriority[roleA] - RolePriority[roleB];
+      if (roleDiff !== 0) return roleDiff;
+    }
 
     const loadA = getCurrentLoad(workloadByUser, a.userId);
     const loadB = getCurrentLoad(workloadByUser, b.userId);

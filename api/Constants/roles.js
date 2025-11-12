@@ -25,7 +25,6 @@ export const RolePriority = {
   [HotelRole.TRAINEE]: 1,
 };
 
-// You can tweak these per hotel if you want
 export const MAX_LOAD_BY_ROLE = {
   [HotelRole.ADMIN]: 1,
   [HotelRole.MANAGER]: 1,
