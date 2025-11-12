@@ -213,11 +213,13 @@ export default function AddStaffPage() {
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <DepartmentSelect
+                  value={department}
                   handleChange={(e) => setDepartment(e.target.value)}
                   required
                 />
 
                 <RoleSelect
+                  value={role}
                   handleChange={(e) => setRole(e.target.value)}
                   required
                 />

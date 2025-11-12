@@ -91,7 +91,7 @@
       "requestId": "REQ1001",
       "status": "Open",
       "priority": "P2",
-      "assignedToUserId": "U77",
+      "assignedStaffUserId": "U77",
       "createdAtEpoch": 1730000000,
 
       "hotelType_pk": "HOTEL#H1",

@@ -157,7 +157,10 @@ export default function Page() {
               </div>
             ),
             shift: (
-              <ShiftSummary timezone="Asia/Kolkata" weekly={r.weeklyShifts} />
+              <ShiftSummary
+                timezone="Asia/Kolkata"
+                weeklyShifts={r.weeklyShifts}
+              />
             ),
             department: (
               <Department department={r.department} roles={r.roles} />
