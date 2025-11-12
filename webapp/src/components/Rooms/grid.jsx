@@ -296,6 +296,7 @@ function LegendSwatch({ className, label }) {
 }
 
 function RoomCard({ room, highlightAttention, onClick, onDelete }) {
+  const [hover, setHover] = useState(false);
   const styles = statusStyles(room.status);
   const lastSeenText = room.device?.online
     ? `Online · last seen ${formatRelative(room.device?.lastSeen)}`
@@ -315,6 +316,9 @@ function RoomCard({ room, highlightAttention, onClick, onDelete }) {
   return (
     <button
       onClick={onClick}
+      onFocus={() => {}}
+      onMouseOver={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
       className={cn(
         "group relative flex aspect-square w-full flex-col justify-between overflow-hidden rounded-2xl border text-left shadow-sm transition",
         "p-3 text-sm",
@@ -322,7 +326,8 @@ function RoomCard({ room, highlightAttention, onClick, onDelete }) {
         styles.border,
         "hover:ring-2",
         styles.ring,
-        highlightAttention && "animate-pulse ring-2 ring-rose-500/70",
+        highlightAttention && "ring-2 ring-rose-500/70",
+        highlightAttention && !hover && "animate-pulse",
       )}
     >
       {/* Top line: Room number + type */}
@@ -409,7 +414,7 @@ function RoomCard({ room, highlightAttention, onClick, onDelete }) {
           />
         </div>
 
-        <div className="space-y-1">
+        <div className="mt-3 space-y-1">
           <div className="font-semibold">Room {room.number}</div>
           <div>
             {room.type} • Floor {room.floor}
