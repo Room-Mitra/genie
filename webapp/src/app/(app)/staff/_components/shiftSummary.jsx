@@ -77,9 +77,9 @@ export function ShiftSummary({ weeklyShifts, timezone = "Asia/Kolkata" }) {
 
   const colorClass = onDutyNow
     ? "text-emerald-600 dark:text-emerald-400"
-    : "text-zinc-700 dark:text-zinc-200";
+    : "text-zinc-400 dark:text-zinc-400";
 
-  const label = onDutyNow ? "On duty now" : "Off duty now";
+  const label = onDutyNow ? "On duty now" : "Off duty";
 
   return (
     <div>
