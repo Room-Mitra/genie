@@ -41,6 +41,8 @@ import java.net.NetworkInterface
 import java.net.URL
 import kotlin.collections.component1
 import kotlin.collections.component2
+import com.example.roommitra.BuildConfig
+import com.example.roommitra.service.SessionManager
 
 
 @Composable
@@ -117,6 +119,8 @@ fun DiagnosticsDialog(onClose: () -> Unit) {
 
 /** Collect all diagnostics safely **/
 fun getDiagnostics(context: Context): Map<String, String?> {
+    val sessionManager = SessionManager(context)
+
     val hasWifiPermission =
         ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_WIFI_STATE) ==
                 PackageManager.PERMISSION_GRANTED
@@ -171,6 +175,11 @@ fun getDiagnostics(context: Context): Map<String, String?> {
     }
 
     return mapOf(
+        "Device" to "${Build.MANUFACTURER} ${Build.MODEL}",
+        "Android Version" to Build.VERSION.RELEASE,
+        "App Version" to BuildConfig.VERSION_NAME,
+        "Build Code" to BuildConfig.VERSION_CODE.toString(),
+        "Build Type" to BuildConfig.BUILD_TYPE,
         "Wi-Fi SSID" to ssid,
         "BSSID" to bssid,
         "IP Address" to (info?.ipAddress?.let { intToIp(it) } ?: "N/A"),
@@ -180,8 +189,9 @@ fun getDiagnostics(context: Context): Map<String, String?> {
         "Actual MAC (wlan0)" to realMac,
         "Battery Level" to "$batteryLevel%",
         "Battery Status" to batteryStatus,
-        "Device" to "${Build.MANUFACTURER} ${Build.MODEL}",
-        "Android Version" to Build.VERSION.RELEASE
+        "Hotel ID" to sessionManager.getHotelId(),
+        "Room ID" to sessionManager.getRoomId(),
+        "Booking ID" to sessionManager.getBookingId(),
     )
 }
 

@@ -1,7 +1,16 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+}
+
+val keystorePropertiesFile = rootProject.file("app/keystore/keystore.properties")
+val keystoreProperties = Properties()
+
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(keystorePropertiesFile.inputStream())
 }
 
 android {
@@ -9,12 +18,13 @@ android {
     compileSdk = 36 // use 34, as 36 is preview-only
 
     defaultConfig {
-        applicationId = "com.example.roommitra"
+//        applicationId = "com.example.roommitra"
+        applicationId = "com.roommitra.prod"
         minSdk = 26
         targetSdk = 36
 
-        versionCode = 38
-        versionName = "1.0.38"
+        versionCode = 48
+        versionName = "1.0.48"
 
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -24,12 +34,22 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file(keystoreProperties["KEYSTORE_FILE"] ?: "")
+            storePassword = keystoreProperties["KEYSTORE_PASSWORD"]?.toString() ?: ""
+            keyAlias = keystoreProperties["KEY_ALIAS"]?.toString() ?: ""
+            keyPassword = keystoreProperties["KEY_PASSWORD"]?.toString() ?: ""
+        }
+    }
+
     buildTypes {
         debug {
             buildConfigField("boolean", "IS_PROD_BUILD", "false")
         }
         release {
             isMinifyEnabled = true
+            signingConfig = signingConfigs.getByName("release")
             buildConfigField("boolean", "IS_PROD_BUILD", "true")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
