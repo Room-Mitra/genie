@@ -6,10 +6,9 @@ const router = express.Router();
 
 const WEBHOOK = process.env.SLACK_WEBHOOK_URL;
 
-// optional: for uploading the audio file to Slack
-const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN; // xoxb-...
-const SLACK_FEEDBACK_CHANNEL = process.env.SLACK_FEEDBACK_CHANNEL; // channel ID or name
-const slackClient = SLACK_BOT_TOKEN ? new WebClient(SLACK_BOT_TOKEN) : null;
+const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN;
+const SLACK_FEEDBACK_CHANNEL = process.env.SLACK_FEEDBACK_CHANNEL;
+const slackClient = new WebClient(SLACK_BOT_TOKEN);
 
 // store audio in memory for forwarding to Slack
 const upload = multer({
@@ -145,16 +144,6 @@ router.post('/feedback', upload.single('audio'), async (req, res) => {
       });
     }
 
-    if (audioFile) {
-      blocks.push({
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: '🎙 *Voice note attached* (uploaded as a file if a Slack bot token is configured).',
-        },
-      });
-    }
-
     blocks.push({
       type: 'context',
       elements: [
@@ -165,38 +154,29 @@ router.post('/feedback', upload.single('audio'), async (req, res) => {
       ],
     });
 
-    const slackPayload = {
+    // 1) Send main message via chat.postMessage
+    await slackClient.chat.postMessage({
+      channel: SLACK_FEEDBACK_CHANNEL,
       text: textPlain,
       blocks,
-    };
-
-    // 1) Send the main notification via webhook
-    const slackRes = await fetch(WEBHOOK, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(slackPayload),
     });
 
-    if (!slackRes.ok) {
-      const errText = await slackRes.text().catch(() => '');
-      return res
-        .status(502)
-        .json({ ok: false, error: `Slack error: ${slackRes.status} ${errText}` });
-    }
-
-    // 2) If there is an audio file and we have a Slack bot token + channel, upload audio
-    if (audioFile && slackClient && SLACK_FEEDBACK_CHANNEL) {
+    // 2) Upload audio file (if any)
+    if (audioFile) {
       try {
         await slackClient.files.uploadV2({
           channel_id: SLACK_FEEDBACK_CHANNEL,
-          filename: audioFile.originalname || 'feedback.webm',
-          file: audioFile.buffer,
-          filetype: audioFile.mimetype || 'binary',
           initial_comment: `🎧 Voice feedback from ${displayName} (Room ${displayRoom})`,
+          file_uploads: [
+            {
+              file: audioFile.buffer,
+              filename: audioFile.originalname || 'feedback.webm',
+              title: 'Guest voice feedback',
+            },
+          ],
         });
       } catch (err) {
-        console.error('Slack file upload failed', err);
-        // Don't fail the whole request; main message already went through
+        console.error('Slack file upload failed', JSON.stringify(err));
       }
     }
 

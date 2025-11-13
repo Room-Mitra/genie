@@ -6,10 +6,7 @@ export default function RequestDemoForm() {
   const [formState, setFormState] = useState('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
-  // Read from env so you can change environments without touching code
-  // eslint-disable-next-line no-undef
-  const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || '';
-  const endpoint = `${apiBase.replace(/\/+$/, '')}/website/leads`;
+  const [phone, setPhone] = useState('');
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -27,13 +24,13 @@ export default function RequestDemoForm() {
     }
 
     try {
-      const res = await fetch(endpoint, {
+      const res = await fetch('/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: data.name,
           email: data.email,
-          phone: data.phone,
+          phone: phone,
           hotel: data.hotel,
           message: data.message,
           // simple honeypot (hidden field). If filled, ignore submission server side
@@ -48,6 +45,7 @@ export default function RequestDemoForm() {
 
       setFormState('success');
       form.reset();
+      setPhone('');
     } catch (err) {
       setFormState('error');
       setErrorMsg(err?.message || 'Something went wrong. Please try again.');
@@ -93,6 +91,8 @@ export default function RequestDemoForm() {
               type="tel"
               id="phone"
               name="phone"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />

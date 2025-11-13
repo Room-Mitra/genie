@@ -3,26 +3,110 @@
 import { useState, useRef } from 'react';
 
 export default function FeedbackPage() {
-  const [name, setName] = useState('');
-  const [roomNumber, setRoomNumber] = useState('');
-  const [message, setMessage] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
+  // Voice state
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState(null);
   const [audioUrl, setAudioUrl] = useState(null);
-  const [audioSubmitting, setAudioSubmitting] = useState(false);
+  const [isVoiceSubmitting, setIsVoiceSubmitting] = useState(false);
+
+  // Text form state
+  const [name, setName] = useState('');
+  const [roomNumber, setRoomNumber] = useState('');
+  const [message, setMessage] = useState('');
+  const [isTextSubmitting, setIsTextSubmitting] = useState(false);
+
+  // Shared feedback
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
 
-  async function handleTextSubmit(e) {
-    e.preventDefault();
+  // Voice recording handlers
+  async function startRecording() {
+    try {
+      setError(null);
+      setSuccess(null);
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+
+      chunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        setAudioBlob(blob);
+        setAudioUrl(URL.createObjectURL(blob));
+        stream.getTracks().forEach((t) => t.stop());
+      };
+
+      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      console.error(err);
+      setError('Could not access microphone. Please check browser permissions.');
+    }
+  }
+
+  function stopRecording() {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  }
+
+  async function submitVoiceFeedback() {
+    if (!audioBlob) {
+      setError('Please record a message before submitting.');
+      return;
+    }
+
     setError(null);
     setSuccess(null);
-    setIsSubmitting(true);
+    setIsVoiceSubmitting(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('type', 'audio');
+      formData.append('audio', audioBlob, 'feedback.webm');
+
+      const res = await fetch('/api/feedback', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to submit voice feedback');
+      }
+
+      setSuccess('Thank you for your voice feedback.');
+      setAudioBlob(null);
+      setAudioUrl(null);
+    } catch (err) {
+      console.error(err);
+      setError(err?.message || 'Something went wrong while submitting voice feedback.');
+    } finally {
+      setIsVoiceSubmitting(false);
+    }
+  }
+
+  // Text feedback handler
+  async function submitTextFeedback(e) {
+    e.preventDefault();
+
+    if (!message.trim()) {
+      setError('Please enter your feedback before submitting.');
+      return;
+    }
+
+    setError(null);
+    setSuccess(null);
+    setIsTextSubmitting(true);
 
     try {
       const formData = new FormData();
@@ -43,216 +127,156 @@ export default function FeedbackPage() {
       setSuccess('Thank you for your feedback.');
       setMessage('');
     } catch (err) {
-      setError(err?.message || 'Something went wrong.');
+      console.error(err);
+      setError(err?.message || 'Something went wrong while submitting feedback.');
     } finally {
-      setIsSubmitting(false);
-    }
-  }
-
-  async function startRecording() {
-    try {
-      setError(null);
-      setSuccess(null);
-
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-
-      chunksRef.current = [];
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          chunksRef.current.push(event.data);
-        }
-      };
-
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        setAudioBlob(blob);
-        setAudioUrl(URL.createObjectURL(blob));
-        stream.getTracks().forEach((track) => track.stop());
-      };
-
-      mediaRecorderRef.current = mediaRecorder;
-      mediaRecorder.start();
-      setIsRecording(true);
-    } catch (err) {
-      setError('Could not access microphone. Please check permissions.');
-    }
-  }
-
-  function stopRecording() {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-    }
-  }
-
-  async function submitAudio() {
-    if (!audioBlob) return;
-
-    setError(null);
-    setSuccess(null);
-    setAudioSubmitting(true);
-
-    try {
-      const formData = new FormData();
-      formData.append('type', 'audio');
-      formData.append('name', name);
-      formData.append('roomNumber', roomNumber);
-      formData.append('audio', audioBlob, 'feedback.webm');
-
-      const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || '';
-      const endpoint = `${apiBase.replace(/\/+$/, '')}/website/feedback`;
-
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!res.ok) {
-        throw new Error('Failed to submit voice feedback');
-      }
-
-      setSuccess('Thank you for your voice feedback.');
-      setAudioBlob(null);
-      setAudioUrl(null);
-    } catch (err) {
-      setError(err?.message || 'Something went wrong while uploading audio.');
-    } finally {
-      setAudioSubmitting(false);
+      setIsTextSubmitting(false);
     }
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-2xl shadow-xl p-6 sm:p-8 space-y-6">
-        <h1 className="text-2xl sm:text-3xl font-semibold text-center">Room Mitra Feedback</h1>
-        <p className="text-center text-sm text-zinc-400">
-          Tell us how your experience was. You can type it out or leave a short voice message.
-        </p>
-
-        {/* Name and Room fields shared by both methods */}
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-zinc-200" htmlFor="name">
-              Name (optional)
-            </label>
-            <input
-              id="name"
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Your name or initials"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-zinc-200" htmlFor="roomNumber">
-              Room number
-            </label>
-            <input
-              id="roomNumber"
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Eg. 302"
-              value={roomNumber}
-              onChange={(e) => setRoomNumber(e.target.value)}
-            />
-          </div>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 py-10">
+      <div className="w-full max-w-2xl bg-white shadow-lg rounded-2xl p-8 space-y-8">
+        <div className="space-y-2 text-center">
+          <h1 className="text-3xl font-semibold text-gray-800">Guest Feedback</h1>
+          <p className="text-sm text-gray-500">
+            You can either leave a short voice message or fill in a simple form.
+          </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Text feedback card */}
-          <form
-            onSubmit={handleTextSubmit}
-            className="flex flex-col rounded-xl border border-zinc-800 bg-zinc-900/60 p-4 space-y-3"
-          >
-            <h2 className="text-base font-semibold">Text feedback</h2>
-            <textarea
-              className="min-h-[140px] w-full rounded-lg border border-zinc-700 bg-zinc-950/60 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Share your thoughts about Room Mitra or your stay."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-            />
+        {/* Section 1: Voice feedback only */}
+        <section className="bg-gray-50 border border-gray-200 rounded-xl p-5 space-y-4">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold text-gray-800">Voice feedback</h2>
+            <p className="text-sm text-gray-500">
+              Please mention your name, hotel and room number at the start of the recording.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-4">
+            {!isRecording ? (
+              <button
+                type="button"
+                onClick={startRecording}
+                className="bg-red-500 text-white text-sm px-4 py-2 rounded-lg hover:bg-red-400"
+              >
+                Start recording
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={stopRecording}
+                className="bg-gray-800 text-white text-sm px-4 py-2 rounded-lg hover:bg-gray-700"
+              >
+                Stop recording
+              </button>
+            )}
+
+            <span className="text-xs text-gray-500">
+              {isRecording ? 'Recording in progress...' : 'Tap to start a short message.'}
+            </span>
+          </div>
+
+          {audioUrl && (
+            <div className="space-y-3">
+              {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+              <audio controls src={audioUrl} className="w-full" />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={submitVoiceFeedback}
+                  disabled={isVoiceSubmitting}
+                  className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-500 disabled:bg-blue-300"
+                >
+                  {isVoiceSubmitting ? 'Submitting...' : 'Submit voice feedback'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAudioBlob(null);
+                    setAudioUrl(null);
+                  }}
+                  className="border border-gray-300 text-gray-700 text-sm px-4 py-2 rounded-lg hover:bg-gray-100"
+                >
+                  Discard
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
+
+        <div className="text-center font-bold text-gray-600"> OR </div>
+
+        {/* Section 2: Text feedback with name and room */}
+        <section className="bg-gray-50 border border-gray-200 rounded-xl p-5 space-y-4">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold text-gray-800">Text feedback</h2>
+            <p className="text-sm text-gray-500">
+              If you prefer typing, you can share your feedback here.
+            </p>
+          </div>
+
+          <form onSubmit={submitTextFeedback} className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700" htmlFor="name">
+                  Name (optional)
+                </label>
+                <input
+                  name="name"
+                  className="mt-1 w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Your name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700" htmlFor="roomNumber">
+                  Hotel & Room number
+                </label>
+                <input
+                  name="roomNumber"
+                  className="mt-1 w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Eg. Woodlands, 104"
+                  value={roomNumber}
+                  onChange={(e) => setRoomNumber(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700" htmlFor="feedback">
+                Your feedback
+              </label>
+              <textarea
+                name="feedback"
+                className="mt-1 w-full min-h-[140px] border border-gray-300 bg-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Tell us what you liked, or what we could improve."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+              />
+            </div>
 
             <button
               type="submit"
-              disabled={isSubmitting || !message.trim()}
-              className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-3 py-2 text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-indigo-400 transition"
+              disabled={isTextSubmitting || !message.trim()}
+              className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-500 disabled:bg-blue-300"
             >
-              {isSubmitting ? 'Sending...' : 'Submit text feedback'}
+              {isTextSubmitting ? 'Submitting...' : 'Submit text feedback'}
             </button>
           </form>
-
-          {/* Voice feedback card */}
-          <div className="flex flex-col rounded-xl border border-zinc-800 bg-zinc-900/60 p-4 space-y-3">
-            <h2 className="text-base font-semibold">Voice feedback</h2>
-            <p className="text-xs text-zinc-400">
-              Hold your device close and speak clearly. We recommend a short message under one
-              minute.
-            </p>
-
-            <div className="flex items-center gap-3">
-              {!isRecording ? (
-                <button
-                  type="button"
-                  onClick={startRecording}
-                  className="inline-flex items-center justify-center rounded-full bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-400 transition"
-                >
-                  Start recording
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={stopRecording}
-                  className="inline-flex items-center justify-center rounded-full bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-200 transition"
-                >
-                  Stop recording
-                </button>
-              )}
-
-              <span className="text-xs text-zinc-400">
-                {isRecording ? 'Recording in progress...' : 'Tap to start.'}
-              </span>
-            </div>
-
-            {audioUrl && (
-              <div className="space-y-2">
-                <p className="text-xs text-zinc-300">Preview your message:</p>
-                <audio controls src={audioUrl} className="w-full" />
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={submitAudio}
-                    disabled={audioSubmitting}
-                    className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-3 py-2 text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-indigo-400 transition"
-                  >
-                    {audioSubmitting ? 'Uploading...' : 'Submit voice feedback'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAudioBlob(null);
-                      setAudioUrl(null);
-                    }}
-                    className="inline-flex items-center justify-center rounded-lg border border-zinc-700 px-3 py-2 text-sm font-medium text-zinc-200 hover:bg-zinc-800 transition"
-                  >
-                    Discard
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        </section>
 
         {(error || success) && (
           <div className="text-sm">
-            {error && <p className="text-red-400">{error}</p>}
-            {success && <p className="text-emerald-400">{success}</p>}
+            {error && <p className="text-red-600">{error}</p>}
+            {success && <p className="text-green-600">{success}</p>}
           </div>
         )}
 
-        <p className="text-[11px] text-center text-zinc-500">
-          Your feedback helps us improve Room Mitra for future guests.
+        <p className="text-center text-xs text-gray-400">
+          Thank you for helping us improve Room Mitra.
         </p>
       </div>
     </div>
