@@ -159,7 +159,7 @@ router.post('/feedback', upload.single('audio'), async (req, res) => {
           file_uploads: [
             {
               file: audioFile.buffer,
-              filename: audioFile.originalname || 'feedback.webm',
+              filename: audioFile.originalname || 'feedback.ogg',
               title: 'Guest voice feedback',
             },
           ],
