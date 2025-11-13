@@ -4,10 +4,9 @@ import { WebClient } from '@slack/web-api';
 
 const router = express.Router();
 
-const WEBHOOK = process.env.SLACK_WEBHOOK_URL;
-
 const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN;
 const SLACK_FEEDBACK_CHANNEL = process.env.SLACK_FEEDBACK_CHANNEL;
+const SLACK_SALES_CHANNEL = process.env.SLACK_SALES_CHANNEL;
 const slackClient = new WebClient(SLACK_BOT_TOKEN);
 
 // store audio in memory for forwarding to Slack
@@ -18,8 +17,8 @@ const upload = multer({
 
 // register lead
 router.post('/leads', async (req, res) => {
-  if (!WEBHOOK) {
-    return res.status(200).json({ ok: false, message: 'SLACK_WEBHOOK_URL not set' });
+  if (!SLACK_BOT_TOKEN) {
+    return res.status(200).json({ ok: false, message: 'SLACK_BOT_TOKEN not set' });
   }
 
   try {
@@ -32,50 +31,40 @@ router.post('/leads', async (req, res) => {
 
     // Slack payload - Blocks for neat formatting
     const textPlain = `New Room Mitra demo request from ${name}`;
-    const slackPayload = {
+    const blocks = [
+      {
+        type: 'header',
+        text: { type: 'plain_text', text: '🛎️ New Demo Request', emoji: true },
+      },
+      { type: 'divider' },
+      {
+        type: 'section',
+        fields: [
+          { type: 'mrkdwn', text: `*Name*\n${name}` },
+          { type: 'mrkdwn', text: `*Email*\n${email}` },
+          { type: 'mrkdwn', text: `*Phone*\n${phone || '—'}` },
+          { type: 'mrkdwn', text: `*Hotel*\n${hotel || '—'}` },
+        ],
+      },
+      ...(message
+        ? [
+            {
+              type: 'section',
+              text: { type: 'mrkdwn', text: `*Message*\n${message}` },
+            },
+          ]
+        : []),
+      {
+        type: 'context',
+        elements: [{ type: 'mrkdwn', text: `Received: ${new Date().toLocaleString()}` }],
+      },
+    ];
+
+    await slackClient.chat.postMessage({
+      channel: SLACK_SALES_CHANNEL,
       text: textPlain,
-      blocks: [
-        {
-          type: 'header',
-          text: { type: 'plain_text', text: '🛎️ New Demo Request', emoji: true },
-        },
-        { type: 'divider' },
-        {
-          type: 'section',
-          fields: [
-            { type: 'mrkdwn', text: `*Name*\n${name}` },
-            { type: 'mrkdwn', text: `*Email*\n${email}` },
-            { type: 'mrkdwn', text: `*Phone*\n${phone || '—'}` },
-            { type: 'mrkdwn', text: `*Hotel*\n${hotel || '—'}` },
-          ],
-        },
-        ...(message
-          ? [
-              {
-                type: 'section',
-                text: { type: 'mrkdwn', text: `*Message*\n${message}` },
-              },
-            ]
-          : []),
-        {
-          type: 'context',
-          elements: [{ type: 'mrkdwn', text: `Received: ${new Date().toLocaleString()}` }],
-        },
-      ],
-    };
-
-    const slackRes = await fetch(WEBHOOK, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(slackPayload),
+      blocks,
     });
-
-    if (!slackRes.ok) {
-      const errText = await slackRes.text().catch(() => '');
-      return res
-        .status(502)
-        .json({ ok: false, error: `Slack error: ${slackRes.status} ${errText}` });
-    }
 
     return res.json({ ok: true, message: 'Lead captured and sent to Slack' });
   } catch (err) {
@@ -85,8 +74,8 @@ router.post('/leads', async (req, res) => {
 });
 
 router.post('/feedback', upload.single('audio'), async (req, res) => {
-  if (!WEBHOOK) {
-    return res.status(200).json({ ok: false, message: 'SLACK_WEBHOOK_URL not set' });
+  if (!SLACK_BOT_TOKEN) {
+    return res.status(200).json({ ok: false, message: 'SLACK_BOT_TOKEN not set' });
   }
 
   try {
