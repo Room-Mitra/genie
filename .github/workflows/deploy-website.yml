@@ -87,7 +87,6 @@ jobs:
           provenance: false
           build-args: |
             NODE_ENV=production
-            NEXT_PUBLIC_API_BASE_URL=https://api.roommitra.com
             NEXT_PUBLIC_SITE_URL=https://roommitra.com
           tags: |
             public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:${{ env.IMAGE_TAG }}
