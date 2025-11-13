@@ -1,5 +1,3 @@
-"use client";
-import { useEffect } from "react";
 import "@/css/satoshi.css";
 import "@/css/style.css";
 import "flatpickr/dist/flatpickr.min.css";
@@ -8,6 +6,7 @@ import "jsvectormap/dist/jsvectormap.css";
 import NextTopLoader from "nextjs-toploader";
 import { Providers } from "./providers";
 import { ToastContainer } from "react-toastify";
+import ServiceWorkerInit from "./ServiceWorkerInit";
 
 export const metadata = {
   title: {
@@ -24,15 +23,6 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  useEffect(() => {
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("/sw.js")
-        .then((reg) => console.log("Service Worker registered:", reg))
-        .catch((err) => console.error("Service Worker registration failed:", err));
-    }
-  }, []);
-
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
@@ -41,6 +31,7 @@ export default function RootLayout({ children }) {
           {children}
         </Providers>
         <ToastContainer />
+        <ServiceWorkerInit />
       </body>
     </html>
   );

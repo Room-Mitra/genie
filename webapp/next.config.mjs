@@ -10,9 +10,6 @@ const withPWA = withPWAInit({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "standalone",
-  experimental: {
-    appDir: true, // ensures compatibility with the App Router
-  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "cdn.sanity.io" },
