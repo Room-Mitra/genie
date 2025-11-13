@@ -9,7 +9,7 @@ export default function RequestDemoForm() {
   // Read from env so you can change environments without touching code
   // eslint-disable-next-line no-undef
   const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || '';
-  const endpoint = `${apiBase.replace(/\/+$/, '')}/leads`;
+  const endpoint = `${apiBase.replace(/\/+$/, '')}/website/leads`;
 
   async function onSubmit(e) {
     e.preventDefault();

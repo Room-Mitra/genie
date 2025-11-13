@@ -26,7 +26,7 @@ import bookingRoutes from '#routes/webapp/Booking.controller.js';
 import staffRoutes from '#routes/webapp/Staff.controller.js';
 import loginRoutes from '#routes/webapp/Login.controller.js';
 import userRoutes from '#routes/webapp/User.controller.js';
-import landingPageRoutes from '#routes/webapp/leads.route.js';
+import websiteRoutes from '#routes/webapp/Website.route.js';
 import roomRoutes from '#routes/webapp/Room.controller.js';
 import requestRoutes from '#routes/webapp/Request.controller.js';
 import hotelRoutes from '#routes/webapp/Hotel.controller.js';
@@ -105,7 +105,7 @@ app.use('/android/conversations', androidAuthenticator, androidConversationRoute
 // routes which dont need auth
 app.use('/user', userRoutes);
 app.use('/login', loginRoutes);
-app.use('/leads', landingPageRoutes);
+app.use('/website', websiteRoutes);
 
 // -------------------------
 // Admin Routes
