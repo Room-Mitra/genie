@@ -8,6 +8,7 @@ export default function FeedbackPage() {
   const [audioBlob, setAudioBlob] = useState(null);
   const [audioUrl, setAudioUrl] = useState(null);
   const [isVoiceSubmitting, setIsVoiceSubmitting] = useState(false);
+  const [feedbackType, setFeedbackType] = useState('');
 
   // Text form state
   const [name, setName] = useState('');
@@ -66,6 +67,7 @@ export default function FeedbackPage() {
       return;
     }
 
+    setFeedbackType('voice');
     setError(null);
     setSuccess(null);
     setIsVoiceSubmitting(true);
@@ -104,6 +106,7 @@ export default function FeedbackPage() {
       return;
     }
 
+    setFeedbackType('text');
     setError(null);
     setSuccess(null);
     setIsTextSubmitting(true);
@@ -205,6 +208,13 @@ export default function FeedbackPage() {
           )}
         </section>
 
+        {(error || success) && feedbackType === 'voice' && (
+          <div className="text-sm">
+            {error && <p className="text-red-600">{error}</p>}
+            {success && <p className="text-green-600">{success}</p>}
+          </div>
+        )}
+
         <div className="text-center font-bold text-gray-600"> OR </div>
 
         {/* Section 2: Text feedback with name and room */}
@@ -268,7 +278,7 @@ export default function FeedbackPage() {
           </form>
         </section>
 
-        {(error || success) && (
+        {(error || success) && feedbackType === 'text' && (
           <div className="text-sm">
             {error && <p className="text-red-600">{error}</p>}
             {success && <p className="text-green-600">{success}</p>}
