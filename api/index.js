@@ -79,7 +79,7 @@ app.use(
   cors({
     origin: [
       'http://localhost:3000',
-      'https://roommitra-.com',
+      'https://roommitra.com',
       'https://app.roommitra.com',
       'https://app-stage.roommitra.com',
     ],
