@@ -1,15 +1,18 @@
-import withPWA from "next-pwa";
+import withPWAInit from "next-pwa";
 
-const withPWAConfig = withPWA({
+const withPWA = withPWAInit({
   dest: "public",
   register: true,
   skipWaiting: true,
-  swDest: "service-worker.js",
+  disable: process.env.NODE_ENV === "development",
 });
 
-/** @type {import("next").NextConfig} */
+/** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "standalone",
+  experimental: {
+    appDir: true, // ensures compatibility with the App Router
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "cdn.sanity.io" },
@@ -22,5 +25,5 @@ const nextConfig = {
   },
 };
 
-// Merge both configs safely
-export default withPWAConfig(nextConfig);
+// Wrap the config with PWA
+export default withPWA(nextConfig);

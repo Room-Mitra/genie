@@ -1,6 +1,7 @@
+"use client";
+import { useEffect } from "react";
 import "@/css/satoshi.css";
 import "@/css/style.css";
-
 import "flatpickr/dist/flatpickr.min.css";
 import "jsvectormap/dist/jsvectormap.css";
 
@@ -23,12 +24,20 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register("/sw.js")
+        .then((reg) => console.log("Service Worker registered:", reg))
+        .catch((err) => console.error("Service Worker registration failed:", err));
+    }
+  }, []);
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
         <Providers>
           <NextTopLoader color="#5750F1" showSpinner={false} />
-
           {children}
         </Providers>
         <ToastContainer />
