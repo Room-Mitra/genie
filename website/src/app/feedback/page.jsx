@@ -1,5 +1,6 @@
 'use client';
 
+import { useSearchParams } from 'next/navigation';
 import { useState, useRef } from 'react';
 
 export default function FeedbackPage() {
@@ -8,6 +9,7 @@ export default function FeedbackPage() {
   const [audioBlob, setAudioBlob] = useState(null);
   const [audioUrl, setAudioUrl] = useState(null);
   const [isVoiceSubmitting, setIsVoiceSubmitting] = useState(false);
+  const [feedbackType, setFeedbackType] = useState('');
 
   // Text form state
   const [name, setName] = useState('');
@@ -21,6 +23,9 @@ export default function FeedbackPage() {
 
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
+
+  const searchParams = useSearchParams();
+  const hotel = searchParams.get('h');
 
   // Voice recording handlers
   async function startRecording() {
@@ -66,6 +71,7 @@ export default function FeedbackPage() {
       return;
     }
 
+    setFeedbackType('voice');
     setError(null);
     setSuccess(null);
     setIsVoiceSubmitting(true);
@@ -74,6 +80,7 @@ export default function FeedbackPage() {
       const formData = new FormData();
       formData.append('type', 'audio');
       formData.append('audio', audioBlob, 'feedback.webm');
+      formData.append('roomNumber', hotel);
 
       const res = await fetch('/api/feedback', {
         method: 'POST',
@@ -104,6 +111,7 @@ export default function FeedbackPage() {
       return;
     }
 
+    setFeedbackType('text');
     setError(null);
     setSuccess(null);
     setIsTextSubmitting(true);
@@ -112,7 +120,7 @@ export default function FeedbackPage() {
       const formData = new FormData();
       formData.append('type', 'text');
       formData.append('name', name);
-      formData.append('roomNumber', roomNumber);
+      formData.append('roomNumber', [hotel, roomNumber].filter(Boolean).join(','));
       formData.append('message', message);
 
       const res = await fetch('/api/feedback', {
@@ -135,8 +143,8 @@ export default function FeedbackPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-2xl bg-white shadow-lg rounded-2xl p-8 space-y-8">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-2xl bg-white shadow-lg rounded-2xl p-8 space-y-8 mt-10 lg:mt-0">
         <div className="space-y-2 text-center">
           <h1 className="text-3xl font-semibold text-gray-800">Guest Feedback</h1>
           <p className="text-sm text-gray-500">
@@ -205,6 +213,13 @@ export default function FeedbackPage() {
           )}
         </section>
 
+        {(error || success) && feedbackType === 'voice' && (
+          <div className="text-sm">
+            {error && <p className="text-red-600">{error}</p>}
+            {success && <p className="text-green-600">{success}</p>}
+          </div>
+        )}
+
         <div className="text-center font-bold text-gray-600"> OR </div>
 
         {/* Section 2: Text feedback with name and room */}
@@ -268,7 +283,7 @@ export default function FeedbackPage() {
           </form>
         </section>
 
-        {(error || success) && (
+        {(error || success) && feedbackType === 'text' && (
           <div className="text-sm">
             {error && <p className="text-red-600">{error}</p>}
             {success && <p className="text-green-600">{success}</p>}
