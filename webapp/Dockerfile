@@ -32,11 +32,13 @@ RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
 
 # copy only what the server needs
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
+# COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next ./.next
+COPY package*.json ./
+# COPY --from=builder /app/.next/static ./.next/static
 
 # fix cache permissions
-RUN mkdir -p /app/.next/cache && chown -R nextjs:nodejs /app
+# RUN mkdir -p /app/.next/cache && chown -R nextjs:nodejs /app
 
 USER nextjs
 
