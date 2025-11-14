@@ -6,7 +6,6 @@ import DatePickerOne from "@/components/FormElements/DatePicker/DatePickerOne";
 import DatePickerTwo from "@/components/FormElements/DatePicker/DatePickerTwo";
 import InputGroup from "@/components/FormElements/InputGroup";
 import { TextAreaGroup } from "@/components/FormElements/InputGroup/text-area";
-import MultiSelect from "@/components/FormElements/MultiSelect";
 import { Checkbox } from "@/components/FormElements/checkbox";
 import { RadioInput } from "@/components/FormElements/radio";
 import { Select } from "@/components/FormElements/select";
@@ -109,7 +108,6 @@ export default function FormElementsPage() {
               defaultValue="USA"
               prefixIcon={<GlobeIcon />}
             />
-            <MultiSelect id="multiSelect" />
           </ShowcaseSection>
 
           <ShowcaseSection
