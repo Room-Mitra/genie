@@ -6,7 +6,7 @@ const runtimeCaching = [
   //  Static assets: images, fonts, etc.
   {
     urlPattern: /^https:\/\/(cdn\.sanity\.io|lh3\.googleusercontent\.com|avatars\.githubusercontent\.com|pub-b7fd9c30cdbf439183b75041f5f71b92\.r2\.dev|roommitra-assets-bucket\.s3\.ap-south-1\.amazonaws\.com|app\.roommitra\.com|app-stage\.roommitra\.com)\/.*$/i,
-    handler: CacheFirst,
+    handler: "CacheFirst",
     options: {
       cacheName: "assets-cache-v" + version,
       expiration: {
@@ -19,7 +19,7 @@ const runtimeCaching = [
   // ⚙️ API responses (Room Mitra)
   {
     urlPattern: /^https:\/\/(app(-stage)?\.roommitra\.com)\/api\/.*$/i,
-    handler: NetworkFirst,
+    handler: "NetworkFirst",
     options: {
       cacheName: "api-cache-v" + version,
       networkTimeoutSeconds: 5,
@@ -36,7 +36,7 @@ const runtimeCaching = [
   // 🌐 HTML navigation pages
   {
     urlPattern: ({ request }) => request.mode === "navigate",
-    handler: NetworkFirst,
+    handler: "NetworkFirst",
     options: {
       cacheName: "pages-cache-v" + version,
       networkTimeoutSeconds: 5,
