@@ -1,13 +1,14 @@
 import withPWA from "next-pwa";
 import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from "workbox-strategies";
 
+const version = Date.now();
 const runtimeCaching = [
   //  Static assets: images, fonts, etc.
   {
     urlPattern: /^https:\/\/(cdn\.sanity\.io|lh3\.googleusercontent\.com|avatars\.githubusercontent\.com|pub-b7fd9c30cdbf439183b75041f5f71b92\.r2\.dev|roommitra-assets-bucket\.s3\.ap-south-1\.amazonaws\.com|app\.roommitra\.com|app-stage\.roommitra\.com)\/.*$/i,
     handler: CacheFirst,
     options: {
-      cacheName: "assets-cache",
+      cacheName: "assets-cache-v" + version,
       expiration: {
         maxEntries: 100,
         maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
@@ -20,7 +21,7 @@ const runtimeCaching = [
     urlPattern: /^https:\/\/(app(-stage)?\.roommitra\.com)\/api\/.*$/i,
     handler: NetworkFirst,
     options: {
-      cacheName: "api-cache",
+      cacheName: "api-cache-v" + version,
       networkTimeoutSeconds: 5,
       expiration: {
         maxEntries: 50,
@@ -37,7 +38,7 @@ const runtimeCaching = [
     urlPattern: ({ request }) => request.mode === "navigate",
     handler: NetworkFirst,
     options: {
-      cacheName: "pages-cache",
+      cacheName: "pages-cache-v" + version,
       networkTimeoutSeconds: 5,
     },
   },
