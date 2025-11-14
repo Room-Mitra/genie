@@ -1,5 +1,6 @@
 'use client';
 
+import { useSearchParams } from 'next/navigation';
 import { useState, useRef } from 'react';
 
 export default function FeedbackPage() {
@@ -22,6 +23,9 @@ export default function FeedbackPage() {
 
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
+
+  const searchParams = useSearchParams();
+  const hotel = searchParams.get('h');
 
   // Voice recording handlers
   async function startRecording() {
@@ -76,6 +80,7 @@ export default function FeedbackPage() {
       const formData = new FormData();
       formData.append('type', 'audio');
       formData.append('audio', audioBlob, 'feedback.webm');
+      formData.append('roomNumber', hotel);
 
       const res = await fetch('/api/feedback', {
         method: 'POST',
@@ -115,7 +120,7 @@ export default function FeedbackPage() {
       const formData = new FormData();
       formData.append('type', 'text');
       formData.append('name', name);
-      formData.append('roomNumber', roomNumber);
+      formData.append('roomNumber', [hotel, roomNumber].filter(Boolean).join(','));
       formData.append('message', message);
 
       const res = await fetch('/api/feedback', {
