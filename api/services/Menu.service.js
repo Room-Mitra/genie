@@ -1,129 +1,182 @@
 import { queryMenuByHotel } from '#repositories/Menu.repository.js';
 
-// type FetchArgs = {
-//   hotelId: string;
-//   sections?: string[];
-//   query?: string;
-//   topK?: number;
-//   withSectionsSummary?: boolean;
-// };
+function normalizeText(input) {
+  if (!input) return '';
+  return input
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '') // strip accents
+    .replace(/[^a-z0-9\s]/g, ' ') // remove punctuation
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
-// Given: availableSectionNames from DB, and modelSections from tool args
-export function pickValidSections(availableSectionNames, modelSections) {
-  if (!modelSections?.length) return [];
+function tokenize(input) {
+  if (!input) return [];
+  return input.split(' ').filter(Boolean);
+}
 
-  // 1) Build normalization helpers
-  const norm = (s) => s.trim().toLowerCase();
+/**
+ * Very simple relevance score.
+ * Higher is better.
+ */
+function computeRelevanceScore(query, text) {
+  const q = normalizeText(query);
+  const t = normalizeText(text);
+  if (!q || !t) return 0;
 
-  // Optional: small alias map for common variants
-  const aliases = new Map([
-    ['soup', 'soups'],
-    ['starter', 'starters'], // if you have "Starters"
-    ['dessert', 'desserts'],
-    ['drink', 'beverages'], // if your section is "Beverages"
-  ]);
+  if (t === q) return 10;
+  if (t.startsWith(q)) return 8;
+  if (t.includes(q)) return 6;
 
-  const availNorm = new Map(); // norm -> canonical
-  for (const sec of availableSectionNames) {
-    availNorm.set(norm(sec), sec);
+  const qTokens = tokenize(q);
+  const tTokens = tokenize(t);
+
+  if (!qTokens.length || !tTokens.length) return 0;
+
+  const tSet = new Set(tTokens);
+  const intersection = qTokens.filter((token) => tSet.has(token));
+  if (!intersection.length) return 0;
+
+  const unionSize = new Set([...qTokens, ...tTokens]).size;
+  const jaccard = intersection.length / unionSize; // between 0 and 1
+
+  return jaccard * 5; // scale up a bit
+}
+
+export async function handleFetchMenuItems({ hotelId, args }) {
+  const {
+    searchText,
+    cuisines,
+    categories,
+    veganOnly,
+    vegOnly,
+    glutenFree,
+    excludeAllergens,
+    includeUnavailable,
+    maxItems = 50,
+  } = args;
+
+  const menu = await queryMenuByHotel({ hotelId });
+  if (!menu || !menu.sections || menu.sections.length === 0) {
+    return { items: [] };
   }
 
-  const resolved = [];
-  for (const raw of modelSections) {
-    const n = norm(raw);
-    // exact normalized
-    if (availNorm.has(n)) {
-      resolved.push(availNorm.get(n));
-      continue;
+  // 1. Flatten sections + items into a list with section context
+  const flattened = [];
+  for (const section of menu.sections) {
+    for (const item of section.items || []) {
+      flattened.push({ item, section });
     }
-    // alias normalized
-    if (aliases.has(n)) {
-      const aliasNorm = aliases.get(n);
-      if (availNorm.has(aliasNorm)) {
-        resolved.push(availNorm.get(aliasNorm));
+  }
+
+  // 2. Apply basic filters (cuisines, categories, vegOnly, availability)
+  let filtered = flattened.filter(({ item }) => {
+    // vegOnly filter
+    if (veganOnly) {
+      return item.vegan;
+    }
+
+    if (vegOnly) {
+      return item.veg;
+    }
+
+    if (glutenFree) {
+      return item.glutenFree;
+    }
+
+    if (excludeAllergens && excludeAllergens.length > 0) {
+      const itemAllergens = (item.allergens || []).map((a) => a.toLowerCase());
+      const notWanted = excludeAllergens.map((a) => a.toLowerCase());
+      const hasOverlap = notWanted.some((a) => itemAllergens.includes(a));
+      if (hasOverlap) return false;
+    }
+
+    // cuisines filter
+    if (cuisines && cuisines.length > 0) {
+      const itemCuisines = (item.cuisines || []).map((c) => c.toLowerCase());
+      const wanted = cuisines.map((c) => c.toLowerCase());
+      const hasOverlap = wanted.some((c) => itemCuisines.includes(c));
+      if (!hasOverlap) return false;
+    }
+
+    // // categories filter
+    if (categories && categories.length > 0) {
+      const itemCategory = item.category?.toLowerCase();
+      const sectionCategory = itemCategory;
+
+      const wanted = categories.map((c) => c.toLowerCase());
+      const matchesItemCategory = itemCategory && wanted.includes(itemCategory);
+      const matchesSectionCategory = sectionCategory && wanted.includes(sectionCategory);
+
+      if (!matchesItemCategory && !matchesSectionCategory) {
+        return false;
       }
     }
-    // otherwise: ignore silently; the model may ask for a non-existent section
+
+    // availability filter
+    if (!includeUnavailable) {
+      if (item?.available === false) return false;
+    }
+
+    return true;
+  });
+
+  // 3. If no searchText, just return filtered items truncated
+  if (!searchText || !searchText.trim()) {
+    const limited = filtered.slice(0, maxItems);
+    return limited.map(toDTO);
   }
 
-  // De-dup while preserving order
-  return [...new Set(resolved)];
+  // 4. Apply fuzzy-ish search over item + section
+  const scored = [];
+
+  for (const entry of filtered) {
+    const { item, section } = entry;
+    let score = 0;
+
+    score += computeRelevanceScore(searchText, item.name);
+    if (item.description) {
+      score += computeRelevanceScore(searchText, item.description) * 0.8;
+    }
+    if (section.name) {
+      score += computeRelevanceScore(searchText, section.name) * 0.7;
+    }
+    if (section.description) {
+      score += computeRelevanceScore(searchText, section.description) * 0.5;
+    }
+
+    if (score > 0) {
+      scored.push({ entry, score });
+    }
+  }
+
+  // If no matches from fuzzy search, fall back to filtered with no search
+  if (scored.length === 0) {
+    const limited = filtered.slice(0, maxItems);
+    return limited.map(toDTO);
+  }
+
+  scored.sort((a, b) => b.score - a.score);
+
+  const limited = scored.slice(0, maxItems).map((s) => s.entry);
+  return limited.map(toDTO);
 }
 
-export async function handleFetchMenu({ hotelId, args }) {
-  const { mode, sections } = args;
-  const topK = Math.min(Math.max(args.topK ?? 20, 1), 50);
-
-  const availableSections = await getAvailableSections({ hotelId, withSamples: true });
-  const availableSectionNames = availableSections.map((s) => s.name);
-  const menuVersion = await getMenuVersion({ hotelId });
-
-  function getSummary() {
-    // counts + tiny sample to keep tokens low
-    const perSectionCounts = new Map(availableSections.map((s) => [s.name, s.count]));
-    const samples = new Map(
-      availableSections.map((s) => [s.name, s.items.map((i) => i.name)].slice(0, 3))
-    );
-
-    return {
-      type: 'summary',
-      menuVersion: menuVersion,
-      available_sections: availableSectionNames,
-      counts: Object.fromEntries(perSectionCounts),
-      sample: Object.fromEntries(samples),
-    };
-  }
-
-  // 1) Sections-only response by default
-  if (mode === 'sections' && !sections?.length) {
-    return getSummary();
-  }
-
-  // 2) Items mode with sections or query
-  let items = [];
-  const menu = await queryMenuByHotel({});
-  if (sections?.length) {
-    // Normalize helper (optional)
-    const norm = (s) => (s ?? '').trim().toLowerCase();
-
-    const chosenNames = new Set(
-      (pickValidSections(availableSectionNames, sections) || []).map(norm)
-    );
-
-    items = (menu?.sections ?? [])
-      .filter((s) => chosenNames.has(norm(s?.name)) && Array.isArray(s?.items))
-      .flatMap((s) => {
-        const randomItems = sample(s.items, Math.min(topK, s.items.length));
-        return randomItems.map((i) => ({
-          itemId: i.itemId,
-          description: i.description,
-          name: i.name,
-          section: s.name,
-        }));
-      });
-  } else {
-    // Safety: if model asked mode=items without sections or query, do NOT send all items
-    // Fall back to sections summary
-    return getSummary();
-  }
-
+function toDTO({ item }) {
   return {
-    type: 'results',
-    menuVersion: menuVersion,
-    available_sections: availableSectionNames,
-    items: items,
+    itemId: item.itemId,
+    name: item.name,
+    unitPrice: item.unitPrice,
+    description: item.description,
+    category: item.category,
+    cuisines: item.cuisines,
+    veg: item.veg,
+    vegan: item.vegan,
+    glutenFree: item.glutenFree,
+    price: item.price,
+    available: item.available !== false,
   };
-}
-
-export async function getAvailableSections({ hotelId, withSamples = false }) {
-  const menu = await queryMenuByHotel({ hotelId });
-  return menu?.sections?.map((s) => ({
-    name: s.name,
-    description: s.description,
-    count: s.items.length,
-    available: true,
-    items: withSamples ? sample(s.items, 5) : [],
-  }));
 }
 
 export async function getItemsOnMenu({ hotelId }) {
@@ -143,8 +196,16 @@ export async function getItemsOnMenu({ hotelId }) {
     });
 }
 
-function getMenuVersion({ hotelId }) {
-  return 'v1';
+export async function handleFetchMenuSections({ hotelId, args }) {
+  const menu = await queryMenuByHotel({ hotelId });
+  return menu?.sections
+    ?.map((s) => ({
+      name: s.name,
+      description: s.description,
+      count: s.items.length,
+      items: sample(s.items, Math.min(s.items.length, args.itemsPerSection)),
+    }))
+    .sort(() => 0.5 - Math.random());
 }
 
 /**

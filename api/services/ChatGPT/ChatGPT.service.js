@@ -2,11 +2,12 @@ import OpenAIClient from '#clients/OpenAI.client.js';
 import { queryHotelMeta } from '#repositories/Hotel.repository.js';
 import { getBookingById } from '#services/Booking.service.js';
 import { getHotelById } from '#services/Hotel.service.js';
-import { getAvailableSections, handleFetchMenu } from '#services/Menu.service.js';
+import { handleFetchMenuItems, handleFetchMenuSections } from '#services/Menu.service.js';
 import { createRequest, listRequestsByBooking } from '#services/Request.service.js';
 import { summarizeRequests } from './summarizers/request.summarizer.js';
 import { create_hotel_requests } from './tools/create_hotel_requests.tool.js';
-import { fetch_menu } from './tools/fetch_menu.tool.js';
+import { fetch_menu_items } from './tools/fetch_menu_items.tool.js';
+import { fetch_menu_sections } from './tools/fetch_menu_sections.tool.js';
 import { get_amenities } from './tools/get_amenities.tool.js';
 import { get_booking_details } from './tools/get_booking_details.tool.js';
 import { get_concierge_services } from './tools/get_concierge_services.tool.js';
@@ -14,34 +15,55 @@ import { get_hotel_details } from './tools/get_hotel_details.tool.js';
 import { get_previous_requests } from './tools/get_previous_requests.tool.js';
 import { order_food } from './tools/order_food.tool.js';
 
-const system = `
-  You are Room Mitra, an intelligent hotel in-room guest assistant that interprets guest request.
-  When a guest message includes multiple intents, identify and handle each appropriately:
-  If any part of the message requires an action via a tool (e.g., house_keeping, facilities, room_service), 
-  call the matching tool with clear arguments.
-  For other parts that need guest confirmation (e.g., ordering food or drinks), respond naturally 
-  with a short confirmation question before placing the order.
+const GPT_MODEL = 'gpt-4.1-mini';
 
-  Call tools only when needed.
-  
-  Keep replies conversational and TTS-friendly (avoid brackets, acronyms, 
-  non-conversational punctuation or meta-text in the reply). If the user 
-  asks something unrelated to hotel services, give a very short answer and do not 
-  ask follow-up questions unless explicitly needed.
+const BASE_SYSTEM = `
+YOU ARE ROOM MITRA.
+Interpret guest messages and respond as a hotel in-room assistant.
 
-  Always be polite, concise, and TTS-friendly.
+INTENTS
 
-  After every assistant message, always include a small JSON metadata block with a 
-  boolean field "isUserResponseNeeded" indicating whether the assistant is expecting 
-  a reply or confirmation from the guest. Use this logic:
-  - If the assistant has asked a question, offered a choice, or is waiting for 
-    confirmation → "isUserResponseNeeded": true
-  - Otherwise → "isUserResponseNeeded": false
-    Output this metadata block immediately after the message in JSON format, 
-    clearly separated, like: {"isUserResponseNeeded": true} 
-  - After the assistant’s message, output a single line in 
-    the form <META>{...}</META> that contains JSON. Do not include anything else on that line.
-    For example: <META>{"isUserResponseNeeded": true}</META>
+Detect ALL intents.
+
+If any part needs an action, you MUST call the correct tool 
+(house_keeping, facilities, room_service, etc.).
+
+For food or drink orders, you MUST ask a short confirmation question 
+BEFORE calling room_service.
+
+TOOL USE
+
+Call tools ONLY when needed.
+Use ONLY valid items and arguments.
+DO NOT invent item IDs.
+DO NOT call tools for casual questions.
+
+REPLY STYLE
+
+MUST be conversational, polite, concise, and TTS-friendly.
+DO NOT use brackets, emojis, acronyms, or meta-text.
+If the guest asks something unrelated to hotel services, give a very short 
+answer and DO NOT ask follow-ups unless required.
+
+
+If message has mixed intents: Call tools for actionable parts
+
+If simple info request: Short answer, no tool call.
+`;
+
+const METADATA_REQUIREMENT = `
+METADATA REQUIREMENT
+
+After EVERY reply, output:
+<META>{"isUserResponseNeeded": true}</META> OR 
+<META>{"isUserResponseNeeded": false}</META>
+
+You MUST NOT OMIT THIS METADATA AT ANY COST!
+
+Rules:
+
+If you asked a question or need confirmation → MUST be true
+Otherwise → MUST be false
 
 `;
 
@@ -56,11 +78,11 @@ const callFunction = async ({
   guestUserId,
 }) => {
   switch (name) {
-    case 'fetch_menu':
-      return await handleFetchMenu({ hotelId, args });
+    case 'fetch_menu_items':
+      return await handleFetchMenuItems({ hotelId, args });
 
-    case 'fetch_available_menu_sections':
-      return await getAvailableSections({ hotelId });
+    case 'fetch_menu_sections':
+      return await handleFetchMenuSections({ hotelId, args });
 
     case 'get_amenities':
       return await queryHotelMeta({ hotelId, entityType: 'AMENITY' });
@@ -114,9 +136,11 @@ const callFunction = async ({
 };
 
 function collectReplyTexts(resp) {
+  console.log(JSON.stringify(resp, null, 2));
+
   if (!resp?.output) return;
 
-  let isUserResponseNeeded = false;
+  let isUserResponseNeeded = null;
   let agents = [];
   const replyParts = [];
 
@@ -185,11 +209,18 @@ function collectReplyTexts(resp) {
     replyParts.push(combined);
   }
 
+  // If META didn’t say anything, infer from punctuation
+  if (isUserResponseNeeded === null) {
+    const endsWithQuestion = /[?]\s*$/.test(combined);
+    isUserResponseNeeded = endsWithQuestion;
+  }
+
   return { parts: replyParts, agents, isUserResponseNeeded };
 }
+
 export async function discoverIntents({ userText, messagesInConversation }) {
   const resp = await OpenAIClient.responses.create({
-    model: 'gpt-5-nano',
+    model: GPT_MODEL,
     text: {
       format: {
         name: 'intent',
@@ -208,7 +239,8 @@ export async function discoverIntents({ userText, messagesInConversation }) {
                   'create_hotel_request',
                   'order_food',
                   'menu_enquiry',
-                  'fetch_menu',
+                  'fetch_menu_items',
+                  'fetch_menu_sections',
                   'get_amenities',
                   'get_concierge',
                   'get_hotel_details',
@@ -278,68 +310,140 @@ export async function discoverIntents({ userText, messagesInConversation }) {
 }
 
 const MENU_ENQUIRY_PROMPT = `
-  Only mention menu sections that actually exist for this hotel. Do not mention
-  anything that isn't in available_sections. When listing sections, start with 
-  2 - 3 sections and ask the user if they'd like to hear more.
-  Never ask about “mains, snacks, desserts, or drinks” unless they are present 
-  in the available_sections returned by fetch_menu tool. If only one section 
-  exists (e.g., Soups), say so and proceed with that.
+MENU RULES
 
-  If a guest asks for a dish not on the menu, politely inform the guest that 
-  the dish is not available and suggest a similar dish from the menu. If 
-  no similar dish exists on the menu, let the guest know and do nothing.
+You MUST mention ONLY the menu sections that exist in the response from the
+latest fetch_menu_sections tool result.
 
-  Menu sections are dynamic per hotel.
-  Only mention sections that exist in the latest tool result's available_sections.
-  When calling fetch_menu, if you include sections, they MUST be values from 
-  available_sections (case-insensitive match allowed). If the guest asks for a 
-  non-existent section, politely say it isn’t available and offer only the sections 
-  from available_sections. 
+You MUST NOT mention any section that is not in fetch_menu_sections response.
+You MUST NOT ask about “mains”, “snacks”, “desserts”, “drinks”, or any other
+section unless they exist in available_sections.
 
-  Narrate items and sections conversationally as if you're a waiter speaker to a 
-  customer at a restaurant.
+When listing sections, you SHOULD start with 4 to 6 sections and then ask if the
+guest wants to hear more.
+
+DO NOT include the section descriptions when listing the sections.
+
+If only one section exists, you MUST say so and proceed with that section.
+
+DISH AVAILABILITY
+
+You MUST mention ONLY the items that exist in response of fetch_menu_sections under
+each section OR you MUST mention ONLY the menu items that exist in the response 
+from the latest fetch_menu_items tool result.
+
+You MUST NOT list more than 10 items at a time when the guest wants to explore dishes.
+You MUST narrow down the menu exploring by passing in maxItems to 
+fetch_menu_items tool call.
+
+You MUST ask the guest if they would like to hear more after the initial 10.
+
+DO NOT include item descriptions when listing items.
+
+ONLY get the description of the item if the guest askes for it specifically.
+
+If the guest asks for a dish that is not on the menu:
+
+You MUST politely say it is not available.
+
+You SHOULD suggest a similar dish if one exists.
+
+If no similar dish exists, you MUST say so and take no further action.
+
+SECTION VALIDATION
+
+Menu sections are dynamic per hotel.
+
+If the guest asks for a section that does not exist, you MUST politely say it 
+isn’t available and mention only the valid sections.
+
+TONE
+
+You MUST describe sections and dishes in a warm, conversational waiter style.
 `;
 
 const ORDER_FOOD_PROMPT = `
-  Before confirming any food or drink order, always check if the requested items 
-  exist in the provided menu data.
-  If an item is found on the menu, confirm it politely with the guest before 
-  placing the order.
-  If an item is NOT on the menu, inform the guest that it’s currently unavailable 
-  and suggest similar available items instead.
-  Never confirm or offer to place an order for items that are not listed in the menu.
+ORDER VALIDATION
 
-  For Room Service orders, when the user requests food, ask the user to confirm the order 
-  before making the tool call to create a hotel request for room service. 
-  For example, "You asked for two Pumpkin Soups and a black coffee. Shall I place 
-  the order?". Only when the guest confirms, make the tool call to create the
-  hotel request for room service.
+You MUST check if every requested food or drink item exists in the items of fetch_menu_items
+before confirming anything.
 
-  Only send the item notes as specified by the guest. Do not include anything and 
-  proceed with blank item notes if the guest hasn't specified anything. Only send
-  cart or order mentioned by the guest. Do not include any order or cart instrutions 
-  if the guest hasn't specified anything.
+If an item exists, you MUST ask the guest for a short confirmation BEFORE placing
+the order.
+
+If an item does NOT exist, you MUST politely say it is unavailable and suggest 
+similar items.
+
+You MUST NOT confirm or offer items that are not listed in the menu.
+
+CREATE HOTEL REQUESTS TOOL CALL
+
+For food or drink requests, you MUST ask for confirmation first.
+
+You MUST call the create_hotel_requests tool ONLY after the guest confirms.
+
+
+Example confirmation pattern:
+“You asked for two pumpkin soups and one black coffee. Shall I place the order?”
+
+NOTES AND CART RULES
+
+You MUST provide the itemId as given by the fetch_menu_items tool call for items 
+in the cart.
+
+You MUST NOT make up random itemIds. You MUST fall back to item name only if you
+cannot figure out the itemId.
+
+You MUST send item notes ONLY if the guest explicitly gives them.
+
+If the guest gives no notes, you MUST send blank notes.
+
+You MUST include ONLY the items the guest clearly requested.
+
+You MUST NOT add any extra cart items or extra instructions that the guest did 
+not state.
 `;
 
 const MUSIC_PROMPT = `
-  The app has a music player that must be invoked with a specific song list. When the 
-  guest asks to play music, do NOT create a hotel service request or call any tools, 
-  instead include a small JSON metadata block with array field "agents" that instructs 
-  the local app to play music. After the assistant’s message, output a single line in 
-  the form <META>{...}</META> that contains JSON. Do not include anything else on that line.
-  Format for music invocation:
-  <META>{"agents": [{"type": "Music","parameters": ["Song 1", "Song 2", "Song 3"]}]}</META>
-  
-  Provide specific song titles (not vague phrases) in the parameters array. If the guest 
-  asks for a specific track by name, include 10 - 15 song suggestions similar to that
-  track. If the guest asks for an artist or playlist (e.g., "play A. R. Rahman songs"), 
-  return a short 10 - 15 suggested list of representative song titles by that artist 
-  in parameters. If the guest says "stop" or "stop the music", return:
-  <META>{"agents": [{"type": "Music","parameters": []}]}</META>
+MUSIC PLAYER RULES
 
-  Music agent actions are app-internal and should not invoke any tools. When a music 
-  request is made (including artist, playlist, or specific song requests), do not end 
-  your reply with a question. "isUserResponseNeeded" should be false in these cases.
+If the guest asks to play music, you MUST NOT call any hotel service tools.
+
+You MUST instruct the local app using a JSON metadata block with an "agents" 
+array.
+
+You MUST output the metadata on a single line as:
+<META>{"agents": [{"type": "Music","parameters": [...] }]}</META>
+
+INvOCATION FORMAT
+
+You MUST provide specific song titles in the "parameters" array.
+
+If the guest requests a specific song, you MUST provide 10–15 similar songs.
+
+If the guest requests an artist or playlist (e.g., “play A. R. Rahman songs”), 
+you MUST return 10–15 representative songs by that artist.
+
+Example:
+<META>{"agents": [{"type": "Music","parameters": ["Song 1","Song 2","Song 3"]}]}</META>
+
+STOP MUSIC
+
+If the guest says “stop” or “stop the music”, you MUST return:
+<META>{"agents": [{"type": "Music","parameters": []}]}</META>
+
+NO TOOL CALLS
+
+Music actions MUST be handled ONLY through "agents" metadata.
+
+You MUST NOT trigger hotel requests or create_hotel_requests tool calls.
+
+NO FOLLOW-UP QUESTION
+
+When handling music requests (including artist or playlist requests), you 
+MUST NOT end with a question.
+
+"isUserResponseNeeded" MUST be false for all music actions.
 `;
 
 function getPromptAndToolsForIntents({ intents }) {
@@ -356,7 +460,7 @@ function getPromptAndToolsForIntents({ intents }) {
         continue;
       }
       case 'order_food': {
-        toolSet.add(fetch_menu);
+        toolSet.add(fetch_menu_items);
         toolSet.add(order_food);
 
         promptSet.add(MENU_ENQUIRY_PROMPT);
@@ -366,20 +470,31 @@ function getPromptAndToolsForIntents({ intents }) {
       }
 
       case 'menu_enquiry': {
-        toolSet.add(fetch_menu);
+        toolSet.add(fetch_menu_items);
 
         promptSet.add(MENU_ENQUIRY_PROMPT);
 
         continue;
       }
 
-      case 'fetch_menu': {
-        toolSet.add(fetch_menu);
+      case 'fetch_menu_items': {
+        toolSet.add(fetch_menu_items);
+        toolSet.add(fetch_menu_sections);
 
         promptSet.add(MENU_ENQUIRY_PROMPT);
 
         continue;
       }
+
+      case 'fetch_menu_sections': {
+        toolSet.add(fetch_menu_items);
+        toolSet.add(fetch_menu_sections);
+
+        promptSet.add(MENU_ENQUIRY_PROMPT);
+
+        continue;
+      }
+
       case 'get_amenities': {
         toolSet.add(get_amenities);
         continue;
@@ -497,12 +612,28 @@ export async function askChatGpt({
   bookingId,
   conversationId,
   guestUserId,
+  conversationState,
 }) {
+  if (!conversationState) {
+    conversationState = {
+      menu_items: [],
+    };
+  }
+
   const intentResp = await discoverIntents({ userText, messagesInConversation });
   const { tools, prompts } = getPromptAndToolsForIntents({ intents: intentResp.intents });
 
   const baseInput = [
-    { role: 'system', content: [system, ...prompts].join('\n\n') },
+    {
+      role: 'system',
+      content: [
+        BASE_SYSTEM,
+        METADATA_REQUIREMENT,
+        ...prompts,
+        JSON.stringify(conversationState),
+        METADATA_REQUIREMENT,
+      ].join('\n\n'),
+    },
     ...messagesInConversation,
     { role: 'user', content: userText },
   ];
@@ -511,7 +642,7 @@ export async function askChatGpt({
   let previousResponseId = null;
 
   async function step({ input, instructions }) {
-    const args = { model: 'gpt-5-mini', tools };
+    const args = { model: GPT_MODEL, tools };
     if (previousResponseId) args.previous_response_id = previousResponseId;
     if (!previousResponseId) args.input = baseInput;
     if (input) args.input = input;
@@ -563,6 +694,16 @@ export async function askChatGpt({
           conversationId,
           guestUserId,
         });
+
+        if (tc.name === 'fetch_menu_items') {
+          const existingItems = conversationState.menu_items || [];
+          const existingItemsSet = new Set([...existingItems.map((i) => i.itemId)]);
+          conversationState.menu_items = [
+            ...existingItems,
+            ...output.filter((i) => !existingItemsSet.has(i.itemId)),
+          ];
+        }
+
         return {
           type: 'function_call_output',
           call_id: tc.call_id,
@@ -585,6 +726,7 @@ export async function askChatGpt({
     reply: replyText || 'Something went wrong, could you please try that again?',
     isUserResponseNeeded,
     agents,
+    conversationState,
   };
 }
 
