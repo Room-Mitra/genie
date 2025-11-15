@@ -31,17 +31,17 @@ export const fetch_menu_items = {
           "Filter by menu categories like 'starter', 'main_course', 'dessert', 'bread', 'beverage'.",
       },
       vegOnly: {
-        type: 'boolean',
+        type: ['boolean', 'null'],
         description:
-          'If true, only return vegetarian dishes. Use when guest explicitly asks for veg/vegetarian items.',
+          'If true, only return vegetarian dishes. Use when guest explicitly asks for veg/veggie/vegetarian items.',
       },
       veganOnly: {
-        type: 'boolean',
+        type: ['boolean', 'null'],
         description:
           'If true, only return vegan dishes. Use when guest explicitly asks for vegan items.',
       },
       glutenFree: {
-        type: 'boolean',
+        type: ['boolean', 'null'],
         description:
           'If true, only return gluten free dishes. Use when guest explicitly asks for gluten free items.',
       },

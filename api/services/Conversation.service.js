@@ -61,6 +61,12 @@ export async function handleConversation({
       entityType: 'CONVERSATION_STATE',
       conversationId,
       createdAt: toIsoString(),
+      vegOnly: false,
+      veganOnly: false,
+      glutenFree: false,
+      excludeAllergens: [],
+      hotel_requests: [],
+      order_requests: [],
       menu_items: [],
     };
   }
