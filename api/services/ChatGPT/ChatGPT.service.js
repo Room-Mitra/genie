@@ -369,18 +369,20 @@ You MUST check if every requested food or drink item exists in the items of fetc
 before confirming anything.
 
 If an item exists, you MUST ask the guest for a short confirmation BEFORE placing
-the order.
+the order with the order_food tool call.
+
+DO NOT call order_food unless the guest has confirmed their order
 
 If an item does NOT exist, you MUST politely say it is unavailable and suggest 
 similar items.
 
 You MUST NOT confirm or offer items that are not listed in the menu.
 
-CREATE HOTEL REQUESTS TOOL CALL
+ORDER_FOOD TOOL CALL
 
 For food or drink requests, you MUST ask for confirmation first.
 
-You MUST call the create_hotel_requests tool ONLY after the guest confirms.
+You MUST call the order_food tool ONLY after he guest confirms.
 
 
 Example confirmation pattern:
@@ -388,8 +390,8 @@ Example confirmation pattern:
 
 NOTES AND CART RULES
 
-You MUST provide the itemId as given by the fetch_menu_items tool call for items 
-in the cart.
+You MUST provide the itemId when constructing the cart with items. ItemIds are
+available in menu_items under state, or get them with the fetch_menu_items tool call.
 
 You MUST NOT make up random itemIds. You MUST fall back to item name only if you
 cannot figure out the itemId.
@@ -630,7 +632,7 @@ export async function askChatGpt({
         BASE_SYSTEM,
         METADATA_REQUIREMENT,
         ...prompts,
-        JSON.stringify(conversationState),
+        JSON.stringify({ state: conversationState }),
         METADATA_REQUIREMENT,
       ].join('\n\n'),
     },

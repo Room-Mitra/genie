@@ -68,6 +68,7 @@ export const fetch_menu_items = {
     },
     required: [
       'searchText',
+      'sections',
       'cuisines',
       'categories',
       'vegOnly',
