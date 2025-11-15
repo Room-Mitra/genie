@@ -108,7 +108,7 @@ function toDTO({ item }) {
     veg: item.veg,
     vegan: item.vegan,
     glutenFree: item.glutenFree,
-    allerges: item.allergens,
+    allergens: item.allergens,
     available: item.available !== false,
   };
 }
