@@ -51,15 +51,6 @@ import adminHotelRoutes from '#routes/admin/Hotel.controller.js';
 import adminStaffRoutes from '#routes/admin/Staff.controller.js';
 
 import { checkDelayedRequests } from '#tasks/checkDelayedRequests.task.js';
-import { create_hotel_requests } from '#services/ChatGPT/tools/create_hotel_requests.tool.js';
-import { fetch_menu_items } from '#services/ChatGPT/tools/fetch_menu_items.tool.js';
-import { get_amenities } from '#services/ChatGPT/tools/get_amenities.tool.js';
-import { get_booking_details } from '#services/ChatGPT/tools/get_booking_details.tool.js';
-import { get_concierge_services } from '#services/ChatGPT/tools/get_concierge_services.tool.js';
-import { get_hotel_details } from '#services/ChatGPT/tools/get_hotel_details.tool.js';
-import { get_previous_requests } from '#services/ChatGPT/tools/get_previous_requests.tool.js';
-import { order_food } from '#services/ChatGPT/tools/order_food.tool.js';
-import { handleFetchMenuItems } from '#services/Menu.service.js';
 
 const app = express();
 app.use(requestContext);
@@ -165,26 +156,4 @@ app.get('/android/health', (req, res) => {
 
 cron.schedule('*/2 * * * *', () => {
   checkDelayedRequests();
-});
-
-app.get('/chatgpt', async (req, res) => {
-  // console.log(JSON.stringify(create_hotel_requests));
-  // console.log(JSON.stringify(fetch_menu));
-  // console.log(JSON.stringify(get_amenities));
-  // console.log(JSON.stringify(get_booking_details));
-  // console.log(JSON.stringify(get_concierge_services));
-  // console.log(JSON.stringify(get_hotel_details));
-  // console.log(JSON.stringify(get_previous_requests));
-  // console.log(JSON.stringify(order_food));
-
-  const m = await handleFetchMenuItems({
-    hotelId: 'id-1',
-    args: {
-      mode: 'sections',
-      sections: [],
-      topK: 3,
-    },
-  });
-
-  return res.status(200).json({ m });
 });
