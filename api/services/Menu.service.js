@@ -100,16 +100,22 @@ export async function handleFetchMenuItems({ hotelId, args }) {
       if (!hasOverlap) return false;
     }
 
-    // // categories filter
+    // categories filter
     if (categories && categories.length > 0) {
-      const itemCategory = item.category?.toLowerCase();
-      const sectionCategory = itemCategory;
-
+      // normalize requested categories
       const wanted = categories.map((c) => c.toLowerCase());
-      const matchesItemCategory = itemCategory && wanted.includes(itemCategory);
-      const matchesSectionCategory = sectionCategory && wanted.includes(sectionCategory);
 
-      if (!matchesItemCategory && !matchesSectionCategory) {
+      // normalize item categories
+      let itemCategories = [];
+
+      if (Array.isArray(item.categories)) {
+        itemCategories = item.categories.map((c) => c.toLowerCase());
+      }
+
+      // check if ANY category matches
+      const matches = itemCategories.some((cat) => wanted.includes(cat));
+
+      if (!matches) {
         return false;
       }
     }

@@ -142,26 +142,26 @@ function collectReplyTexts(resp) {
 
   let isUserResponseNeeded = null;
   let agents = [];
-  const replyParts = [];
 
-  // Gather all assistant text chunks for this turn
-  const textBlobs = [];
-  const msgs = resp.output.filter((o) => o.type === 'message');
-  for (const m of msgs) {
-    for (const c of m.content || []) {
-      if (c.type === 'output_text' && typeof c.text === 'string') {
-        textBlobs.push(c.text);
-      }
-    }
-  }
+  // 1) Keep only assistant messages
+  const assistantMsgs = resp.output.filter((o) => o.type === 'message' && o.role === 'assistant');
 
-  // Combine for easier parsing
-  let combined = textBlobs.join('\n').trim();
-  if (!combined) return;
+  if (assistantMsgs.length === 0) return null;
+
+  // 2) Take the last assistant message in this response
+  const lastMsg = assistantMsgs[assistantMsgs.length - 1];
+
+  // 3) Collect all text blocks from that one message
+  let finalText = (lastMsg.content || [])
+    .filter((c) => c.type === 'output_text' && typeof c.text === 'string')
+    .map((c) => c.text)
+    .join('');
+
+  if (!finalText) return null;
 
   // 1) Prefer META-wrapped JSON blocks: <META>{...}</META>
   const META_RE = /<META>\s*({[\s\S]*?})\s*<\/META>/g;
-  combined = combined
+  finalText = finalText
     .replace(META_RE, (full, jsonStr) => {
       try {
         const meta = JSON.parse(jsonStr);
@@ -179,8 +179,8 @@ function collectReplyTexts(resp) {
     .trim();
 
   // 2) Fallback: scan lines for standalone JSON blocks (if no META markers)
-  if (!/<META>/.test(combined)) {
-    const lines = combined.split('\n');
+  if (!/<META>/.test(finalText)) {
+    const lines = finalText.split('\n');
     const kept = [];
     for (const line of lines) {
       const trimmed = line.trim();
@@ -201,21 +201,16 @@ function collectReplyTexts(resp) {
       }
       kept.push(line);
     }
-    combined = kept.join('\n').trim();
-  }
-
-  // 3) Accumulate final human-facing reply (avoid duplicate trailing pushes)
-  if (combined && replyParts[replyParts.length - 1] !== combined) {
-    replyParts.push(combined);
+    finalText = kept.join('\n').trim();
   }
 
   // If META didn’t say anything, infer from punctuation
   if (isUserResponseNeeded === null) {
-    const endsWithQuestion = /[?]\s*$/.test(combined);
+    const endsWithQuestion = /[?]\s*$/.test(finalText);
     isUserResponseNeeded = endsWithQuestion;
   }
 
-  return { parts: replyParts, agents, isUserResponseNeeded };
+  return { replyText: finalText, agents, isUserResponseNeeded };
 }
 
 export async function discoverIntents({ userText, messagesInConversation }) {
@@ -365,45 +360,47 @@ You MUST describe sections and dishes in a warm, conversational waiter style.
 const ORDER_FOOD_PROMPT = `
 ORDER VALIDATION
 
-You MUST check if every requested food or drink item exists in the items of fetch_menu_items
-before confirming anything.
+You MUST verify every requested food or drink item against state.menu_items.
 
-If an item exists, you MUST ask the guest for a short confirmation BEFORE placing
-the order with the order_food tool call.
+If state.menu_items is missing or does not contain the item, you MUST check items from the fetch_menu_items tool result.
 
-DO NOT call order_food unless the guest has confirmed their order
+If an item is NOT found in either source, you MUST politely say it is unavailable and suggest similar items.
 
-If an item does NOT exist, you MUST politely say it is unavailable and suggest 
-similar items.
+You MUST NOT confirm, mention, or offer any item that is not in the menu.
 
-You MUST NOT confirm or offer items that are not listed in the menu.
+CONFIRMATION RULES
 
-ORDER_FOOD TOOL CALL
+You MUST ask for a short confirmation before placing any food or drink order.
 
-For food or drink requests, you MUST ask for confirmation first.
+DO NOT send the confirmation question and the order_food tool call in the same assistant message.
 
-You MUST call the order_food tool ONLY after he guest confirms.
+You MUST wait for the guest’s reply.
 
+You MUST call order_food only after the guest confirms.
+
+DO NOT call order_food without explicit confirmation.
 
 Example confirmation pattern:
 “You asked for two pumpkin soups and one black coffee. Shall I place the order?”
 
 NOTES AND CART RULES
 
-You MUST provide the itemId when constructing the cart with items. ItemIds are
-available in menu_items under state, or get them with the fetch_menu_items tool call.
+When constructing the cart, you MUST provide the correct itemId from state.menu_items.
 
-You MUST NOT make up random itemIds. You MUST fall back to item name only if you
-cannot figure out the itemId.
+If itemId is not in state, you MUST obtain it from fetch_menu_items.
 
-You MUST send item notes ONLY if the guest explicitly gives them.
+You MUST NOT invent or guess itemId values.
+
+If the true itemId cannot be found, you MUST fall back to the item name only.
+
+You MUST include item notes ONLY if the guest explicitly provides them.
 
 If the guest gives no notes, you MUST send blank notes.
 
 You MUST include ONLY the items the guest clearly requested.
 
-You MUST NOT add any extra cart items or extra instructions that the guest did 
-not state.
+You MUST NOT add extra items, extra notes, or any instructions not stated by the guest.
+
 `;
 
 const MUSIC_PROMPT = `
@@ -639,9 +636,10 @@ export async function askChatGpt({
     ...messagesInConversation,
     { role: 'user', content: userText },
   ];
-
   const MAX_LOOPS = 6;
   let previousResponseId = null;
+
+  let lastReplyMeta = null;
 
   async function step({ input, instructions }) {
     const args = { model: GPT_MODEL, tools };
@@ -655,29 +653,25 @@ export async function askChatGpt({
     return resp;
   }
 
-  let replyParts = [];
-  let isUserResponseNeeded = false;
-  let agents = [];
-
   // First turn
   let resp = await step({});
 
-  for (let i = 0; i < MAX_LOOPS; i++) {
-    // 0) Capture any assistant message(s) from this turn, even if tool calls exist
+  // capture any text from the first response
+  {
     const reply = collectReplyTexts(resp);
-    if (reply) {
-      isUserResponseNeeded = reply.isUserResponseNeeded;
-      agents = [...agents, ...reply.agents];
-      replyParts = [...replyParts, ...reply.parts];
+    if (reply && reply.replyText) {
+      lastReplyMeta = reply;
     }
+  }
 
-    // 1) Gather tool calls
+  for (let i = 0; i < MAX_LOOPS; i++) {
+    console.log(`loop: ${i}`);
+
     const toolCalls = (resp.output || []).filter((o) => o.type === 'function_call');
 
-    // 2) If no more tool calls, we’re done (we already collected messages above)
     if (!toolCalls.length) break;
 
-    // 3) Resolve all tool calls in parallel
+    // resolve tool calls...
     const toolResults = await Promise.all(
       toolCalls.map(async (tc) => {
         let args = {};
@@ -686,6 +680,7 @@ export async function askChatGpt({
         } catch (e) {
           console.error('error parsing tool call args', e);
         }
+
         const output = await callFunction({
           name: tc.name,
           args,
@@ -699,7 +694,7 @@ export async function askChatGpt({
 
         if (tc.name === 'fetch_menu_items') {
           const existingItems = conversationState.menu_items || [];
-          const existingItemsSet = new Set([...existingItems.map((i) => i.itemId)]);
+          const existingItemsSet = new Set(existingItems.map((i) => i.itemId));
           conversationState.menu_items = [
             ...existingItems,
             ...output.filter((i) => !existingItemsSet.has(i.itemId)),
@@ -720,9 +715,25 @@ export async function askChatGpt({
       instructions:
         "Give TTS friendly responses without any characters that can't be conveyed in speech",
     });
+
+    // 👇 capture any new text from this step
+    {
+      const reply = collectReplyTexts(resp);
+      if (reply && reply.replyText) {
+        lastReplyMeta = reply;
+      }
+    }
   }
 
-  const replyText = replyParts.join('\n\n'); // or " " if you prefer single-line TTS
+  let replyText = '';
+  let isUserResponseNeeded = false;
+  let agents = [];
+
+  if (lastReplyMeta) {
+    replyText = lastReplyMeta.replyText;
+    isUserResponseNeeded = lastReplyMeta.isUserResponseNeeded;
+    agents = lastReplyMeta.agents;
+  }
 
   return {
     reply: replyText || 'Something went wrong, could you please try that again?',
