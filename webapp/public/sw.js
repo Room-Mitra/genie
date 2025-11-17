@@ -54,6 +54,7 @@ self.addEventListener('push', event => {
 
   event.waitUntil(
     self.registration.showNotification(title, options)
+      .catch(err => console.error("showNotification ERROR:", err))
   );
 });
 
@@ -80,3 +81,5 @@ self.addEventListener('notificationclick', event => {
     })
   );
 });
+
+// click on inspect in chrome://inspect/#service-workers to see sw logs
