@@ -1,11 +1,4 @@
 
-import { withSerwist } from "@serwist/next";
-
-const serwistConfig = {
-  swSrc: "src/sw.js",
-  swDest: "public/sw.js",
-};
-
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   output: "standalone",
@@ -45,5 +38,5 @@ const nextConfig = {
   },
 };
 
-// export default nextConfig;
-export default withSerwist(nextConfig, serwistConfig);
+export default nextConfig;
+// export default withSerwist(nextConfig, serwistConfig);

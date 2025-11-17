@@ -20,7 +20,7 @@ messaging.onBackgroundMessage(function (payload) {
   const notificationTitle = payload?.notification?.title || 'RoomMitra';
   const notificationOptions = {
     body: payload?.notification?.body || '',
-    icon: '/icons/icon-192x192.png',
+    icon: '/images/room-mitra-square-logo.png',
     // you may pass data to handle clicks
     data: payload?.data || {}
   };
