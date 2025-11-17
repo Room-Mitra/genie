@@ -4,6 +4,7 @@
 api/node_modules/
 api/.env*
 api/config/*.pem
+api/config/*.json
 
 webapp/node_modules/
 

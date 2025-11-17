@@ -39,9 +39,11 @@ export default function RootLayout({ children }) {
 
         <script dangerouslySetInnerHTML={{
           __html: `
-            if ("serviceWorker" in navigator) {
-              navigator.serviceWorker.register("/service-workers/sw.js").catch(console.error);
-            }
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+             .then(reg => console.log('SW registered', reg.scope))
+             .catch(err => console.error('SW reg failed', err));
+          }
           `
         }} />
       </body>

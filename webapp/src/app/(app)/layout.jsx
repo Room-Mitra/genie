@@ -1,7 +1,29 @@
 import { Sidebar } from "@/components/Layouts/sidebar";
 import { Header } from "@/components/Layouts/header";
+import { useEffect } from "react";
+import { requestFcmToken, onForegroundMessage } from "@/lib/firebaseClient";
 
 export default function AppLayout({ children }) {
+
+  useEffect(() => {
+    (async () => {
+      const token = await requestFcmToken();
+      if (token) {
+        // send token to your backend: associate token with staff id
+        await fetch("/pushNotification", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: { token, staffId: "YOUR_STAFF_ID" },
+        });
+      }
+    })();
+
+    onForegroundMessage((payload) => {
+      console.log("Foreground message:", payload);
+      // optionally show custom UI in the app
+    });
+  }, []);
+
   return (
     <>
       <div className="flex min-h-screen">

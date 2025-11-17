@@ -2,8 +2,8 @@
 import { withSerwist } from "@serwist/next";
 
 const serwistConfig = {
-  swSrc: "src/service-workers/sw.js", // the service worker file you will create
-  swDest: "public/service-workers/sw.js",
+  swSrc: "src/sw.js",
+  swDest: "public/sw.js",
 };
 
 /** @type {import("next").NextConfig} */

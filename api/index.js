@@ -33,6 +33,8 @@ import hotelRoutes from '#routes/webapp/Hotel.controller.js';
 import imageRoutes from '#routes/webapp/Image.controller.js';
 import orderRoutes from '#routes/webapp/Order.controller.js';
 
+import notifyRoutes from '#routes/webapp/Notify.controller.js';
+
 //Android Routes
 import androidLoginRoutes from '#routes/android/Login.controller.js';
 import androidRequestRoutes from '#routes/android/Request.controller.js';
@@ -95,6 +97,8 @@ app.use('/staff', authenticator, staffRoutes);
 app.use('/hotel', authenticator, hotelRoutes);
 app.use('/image', authenticator, imageRoutes);
 app.use('/orders', authenticator, orderRoutes);
+
+app.use("/pushNotification", notifyRoutes)
 
 // Android Routes
 app.use('/android/login', androidLoginRoutes);

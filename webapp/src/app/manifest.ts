@@ -11,14 +11,14 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: '#000000',
     icons: [
       {
-        src: '/images/logo/logo.svg',
+        src: '/images/room-mitra-square-logo.png',
         sizes: '192x192',
-        type: 'image/svg',
+        type: 'image/png',
       },
       {
-        src: '/images/logo/logo.svg',
+        src: '/images/room-mitra-square-logo.png',
         sizes: '512x512',
-        type: 'image/svg',
+        type: 'image/png',
       },
     ],
   }
