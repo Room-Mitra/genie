@@ -3,7 +3,7 @@ import "@/css/style.css";
 
 import "flatpickr/dist/flatpickr.min.css";
 import "jsvectormap/dist/jsvectormap.css";
-
+import SWSetup from "./sw-setup";
 import NextTopLoader from "nextjs-toploader";
 import { Providers } from "./providers";
 import { ToastContainer } from "react-toastify";
@@ -23,7 +23,7 @@ export default function RootLayout({ children }) {
       <body>
         <Providers>
           <NextTopLoader color="#5750F1" showSpinner={false} />
-
+          <SWSetup />
           {children}
         </Providers>
         <ToastContainer />
