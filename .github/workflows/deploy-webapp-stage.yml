@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - adi/pwa-3
     paths:
       - 'webapp/**'
       - '.github/workflows/deploy-webapp-stage.yml'
