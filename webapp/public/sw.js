@@ -2,7 +2,7 @@
 // Minimal service worker for RoomMitra PWA
 // Purpose: lifecycle logs + simple push/notification handler for testing.
 
-const SW_VERSION = 'roommitra-sw-v1';
+const SW_VERSION = 'roommitra-sw-v2';
 
 self.addEventListener('install', event => {
   // Skip waiting is optional. For now we won't force activation across tabs.
