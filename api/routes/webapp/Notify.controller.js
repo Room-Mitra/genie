@@ -1,6 +1,6 @@
 import express from 'express';
 import admin from 'firebase-admin';
-import serviceAccount from '../../config/roommitra-staff-notifications-firebase-adminsdk-fbsvc-fe5a9df8bd.json' assert { type: 'json' };
+// import serviceAccount from '../../config/roommitra-staff-notifications-firebase-adminsdk-fbsvc-fe5a9df8bd.json' assert { type: 'json' };
 
 const router = express.Router();
 
@@ -27,7 +27,7 @@ router.post('/save-token', async (req, res) => {
 
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+  credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_CERTIFICATE)),
 });
 
 async function sendToToken(token, title, body, data = {}) {
