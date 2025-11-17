@@ -17,6 +17,16 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js")
+        .then(() => console.log("Service Worker registered"))
+        .catch((err) => console.log("SW registration failed", err));
+    }
+  }, []);
+
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
@@ -26,6 +36,14 @@ export default function RootLayout({ children }) {
           {children}
         </Providers>
         <ToastContainer />
+
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            if ("serviceWorker" in navigator) {
+              navigator.serviceWorker.register("/service-workers/sw.js").catch(console.error);
+            }
+          `
+        }} />
       </body>
     </html>
   );

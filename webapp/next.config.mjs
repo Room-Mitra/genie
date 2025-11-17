@@ -1,3 +1,11 @@
+
+import { withSerwist } from "@serwist/next";
+
+const serwistConfig = {
+  swSrc: "src/service-workers/sw.js", // the service worker file you will create
+  swDest: "public/service-workers/sw.js",
+};
+
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   output: "standalone",
@@ -37,4 +45,5 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+// export default nextConfig;
+export default withSerwist(nextConfig, serwistConfig);
