@@ -1,0 +1,25 @@
+{
+  "name": "RoomMitra Staff",
+  "short_name": "RoomMitra",
+  "description": "Task dashboard for RoomMitra staff",
+  "start_url": "/?source=web_app",
+  "display": "standalone",
+  "scope": "/",
+  "background_color": "#ffffff",
+  "theme_color": "#0b5fff",
+  "icons": [
+    {
+      "src": "/images/room-mitra-square-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/room-mitra-square-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "orientation": "portrait-primary"
+}
