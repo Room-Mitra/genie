@@ -524,7 +524,7 @@ export default function AddBookingPage() {
                                 ? "bg-gray-700 text-gray-400"
                                 : "bg-indigo-600 text-white hover:bg-indigo-500",
                             )}
-                            disabled={savingRoom}
+                            disabled={!canSubmitRoom}
                           >
                             {savingRoom ? "Saving..." : "Save room"}
                           </button>

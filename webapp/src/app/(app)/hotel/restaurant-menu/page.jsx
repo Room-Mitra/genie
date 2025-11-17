@@ -1,4 +1,5 @@
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
+import MenuManager from "@/components/Menu/menu";
 
 export const metadata = {
   title: "Hotel Info",
@@ -6,8 +7,9 @@ export const metadata = {
 
 export default function Page() {
   return (
-    <div className="mx-auto max-w-3xl">
+    <div>
       <Breadcrumb pageName="Restaurant Menu" parent="Hotel" />
+      <MenuManager />
     </div>
   );
 }
