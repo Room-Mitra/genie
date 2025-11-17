@@ -13,7 +13,7 @@ export default function AppLayout({ children }) {
         await fetch("/pushNotification", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: { token, staffId: "YOUR_STAFF_ID" },
+          body: { token, staffId: "YOUR_STAFF-ID" },
         });
       }
     })();
