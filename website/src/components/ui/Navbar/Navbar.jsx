@@ -16,6 +16,7 @@ const Navbar = () => {
     { name: 'AI Front Desk', href: '/#ai-front-desk' },
     { name: 'Why?', href: '/#why' },
     { name: 'Pricing', href: '/#pricing' },
+    { name: 'Blog', href: '/blog' },
   ];
 
   useEffect(() => {

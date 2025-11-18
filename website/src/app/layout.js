@@ -1,6 +1,7 @@
 import Navbar from '@/src/components/ui/Navbar';
 import './globals.css';
 import GoogleAnalytics from '@/src/components/GoogleAnalytics';
+import Footer from '../components/ui/Footer';
 
 export const metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://roommitra.com'),
@@ -21,7 +22,8 @@ export default function RootLayout({ children }) {
       <body className={` bg-gray-900`}>
         <GoogleAnalytics />
         <Navbar />
-        {children}
+        <main>{children}</main>
+        <Footer />
       </body>
     </html>
   );

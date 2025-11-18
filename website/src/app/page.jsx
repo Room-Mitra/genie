@@ -7,13 +7,11 @@ import VisualFeatures from '../components/ui/UseCases';
 export default function Page() {
   return (
     <>
-      <main>
-        <Hero />
-        <VisualFeatures />
-        <CTA />
-        <Features />
-        <Pricing />
-      </main>
+      <Hero />
+      <VisualFeatures />
+      <CTA />
+      <Features />
+      <Pricing />
     </>
   );
 }
