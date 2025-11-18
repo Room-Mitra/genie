@@ -139,8 +139,8 @@ export default function FeedbackPage({ hotel }) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-2xl bg-white shadow-lg rounded-2xl p-8 space-y-8 mt-10 lg:mt-0">
+    <div className="min-h-screen  flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-2xl bg-gray-800 shadow-lg rounded-2xl p-8 space-y-8 mt-10 lg:mt-0">
         <div className="space-y-2 text-center">
           <h1 className="text-3xl font-semibold text-gray-800">Guest Feedback</h1>
           <p className="text-sm text-gray-500">
