@@ -22,7 +22,14 @@ router.post('/leads', async (req, res) => {
   }
 
   try {
-    const { name = '', email = '', phone = '', hotel = '', message = '' } = req.body || {};
+    const {
+      name = '',
+      email = '',
+      phone = '',
+      hotel = '',
+      message = '',
+      plan = '',
+    } = req.body || {};
 
     // minimal validation
     if (!name.trim() || !email.trim()) {
@@ -44,6 +51,7 @@ router.post('/leads', async (req, res) => {
           { type: 'mrkdwn', text: `*Email*\n${email}` },
           { type: 'mrkdwn', text: `*Phone*\n${phone || '—'}` },
           { type: 'mrkdwn', text: `*Hotel*\n${hotel || '—'}` },
+          ...(plan ? [{ type: 'mrkdwn', text: `*Plan*\n${plan || '—'}` }] : []),
         ],
       },
       ...(message
