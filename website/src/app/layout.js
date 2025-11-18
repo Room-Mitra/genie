@@ -6,7 +6,8 @@ import Footer from '../components/ui/Footer';
 export const metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://roommitra.com'),
   title: 'Room Mitra',
-  description: 'In-room voice assistant for hotel rooms',
+  description:
+    "Hotel's AI Voice Agent, Available 24/7. Handle phone bookings, guest queries, and in-room service requests with a single intelligent voice agent. No hold times, no missed calls, no operational chaos.",
   favicon: '/favicon.ico',
   openGraph: {
     images: ['/room-mitra-logo.png'],
