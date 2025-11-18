@@ -96,10 +96,10 @@ const FrontDesk = () => (
 
             <div className="mt-5 flex justify-center font-medium text-sm">
               <NavLink
-                href="/#pricing"
+                href="/contact-us"
                 className="flex items-center text-white cta-btn active:bg-purple-700 "
               >
-                Start now
+                Book a Demo
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"

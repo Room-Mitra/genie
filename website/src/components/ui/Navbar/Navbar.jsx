@@ -75,10 +75,10 @@ const Navbar = () => {
                 Sign in
               </Link>
               <NavLink
-                href="/#pricing"
+                href="/contact-us"
                 className="cta-btn flex items-center justify-center gap-x-1 text-sm text-white font-medium border border-gray-500 active:bg-gray-900 md:inline-flex"
               >
-                Start now
+                Book a Demo
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"
