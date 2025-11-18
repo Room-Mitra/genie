@@ -1,19 +1,20 @@
 import SectionWrapper from '@/src/components/SectionWrapper';
-import ActiveRequests from '@/public/images/active-requests.png';
+import ActiveRequests from '@/public/images/active-requests-concise.png';
+import BookingConverastion from '@/public/images/book-room-conversation.png';
 import InRoomTablet from '@/public/images/in-room-tablet.png';
-import Image from 'next/image';
+import EnlargeableImage from '../EnlargeableImage';
 
-const VisualFeatures = () => {
+const UseCases = () => {
   const features = [
     {
-      title: 'Phone Bookings & Front Desk Overview',
-      desc: 'Room Mitra answers phone calls instantly, handles bookings, shares availability, and routes calls when needed.',
+      title: 'Front Desk Overview',
+      desc: 'One unified dashboard for all guest queries — staying or non-staying — and every operational request, from housekeeping and room service to maintenance and facilities. ',
       img: ActiveRequests,
     },
     {
       title: 'Guest Support for Non-Staying Guests',
-      desc: 'Handles queries about amenities, membership, spa, restaurant timings, directions, events, and more.',
-      img: InRoomTablet,
+      desc: 'Room Mitra answers phone calls instantly, handles queries about availability, pricing, and routes calls when needed.',
+      img: BookingConverastion,
     },
     {
       title: 'In-Room Service for Staying Guests',
@@ -45,7 +46,11 @@ const VisualFeatures = () => {
                   <p className="mt-3 sm:text-sm md:text-base text-gray-300">{item.desc}</p>
                 </div>
                 <div className="pl-8">
-                  <Image src={item.img} className="w-full ml-auto rounded-sm" alt={item.title} />
+                  <EnlargeableImage
+                    src={item.img}
+                    className="w-full ml-auto rounded-md"
+                    alt={item.title}
+                  />
                 </div>
               </li>
             ))}
@@ -56,4 +61,4 @@ const VisualFeatures = () => {
   );
 };
 
-export default VisualFeatures;
+export default UseCases;

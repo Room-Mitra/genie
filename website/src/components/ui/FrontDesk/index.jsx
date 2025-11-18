@@ -3,9 +3,10 @@ import Image from 'next/image';
 import NavLink from '../NavLink';
 import LayoutEffect from '@/src/components/LayoutEffect';
 import bgPattern from '@/public/images/bg-pattern.webp';
-import conversation from '@/public/images/conversation.png';
+import conversation from '@/public/images/room-service-conversation.png';
+import EnlargeableImage from '../EnlargeableImage';
 
-const CTA = () => (
+const FrontDesk = () => (
   <section id="ai-front-desk">
     <GradientWrapper wrapperclassname="max-w-xs h-[13rem] top-12 inset-0">
       <div className="custom-screen py-28 relative">
@@ -82,7 +83,7 @@ const CTA = () => (
                 </div>
               </div>
               <div className="grid items-end mx-auto justify-items-end text-right">
-                <Image
+                <EnlargeableImage
                   className=" rounded-lg border border-0"
                   src={conversation}
                   alt="conversation log"
@@ -125,4 +126,4 @@ const CTA = () => (
   </section>
 );
 
-export default CTA;
+export default FrontDesk;

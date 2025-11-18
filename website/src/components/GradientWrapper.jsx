@@ -3,7 +3,7 @@ const GradientWrapper = ({ children, ...props }) => (
     <div
       className={`absolute m-auto blur-[160px] ${props.wrapperclassname || ''}`}
       style={{
-        background: 'linear-gradient(180deg, #161032 0%, #161032 30%, #E2c044 100%)',
+        background: 'linear-gradient(180deg, #161032 0%, #161032 10%, #E2c044 100%)',
       }}
     ></div>
     <div className="relative">{children}</div>

@@ -43,7 +43,7 @@ const Pricing = () => {
     {
       name: 'Enterprise',
       desc: 'All Features + Custom Integrations',
-      price: 1250,
+      price: '1,250',
       isMostPop: false,
       features: [
         'Custom PMS, POS, and CRM integrations',
@@ -87,7 +87,7 @@ const Pricing = () => {
               <div className="p-8 space-y-4 border-b border-gray-800 text-center">
                 <span className="text-purple-600 font-medium">{item.name}</span>
                 <div className="text-gray-50 text-3xl font-semibold">
-                  ₹{item.price}{' '}
+                  ₹ {item.price}{' '}
                   <span className="text-xl text-gray-400 font-normal">/ room / mo</span>
                 </div>
                 <div className="text-gray-200">{item.desc}</div>

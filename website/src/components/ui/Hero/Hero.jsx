@@ -1,8 +1,8 @@
 import GradientWrapper from '@/src/components/GradientWrapper';
-import Image from 'next/image';
 import NavLink from '../NavLink';
 import HeroImg from '@/public/images/active-requests.png';
 import LayoutEffect from '@/src/components/LayoutEffect';
+import EnlargeableImage from '../EnlargeableImage';
 
 const Hero = () => (
   <section>
@@ -32,7 +32,7 @@ const Hero = () => (
               </p>
               <div className="flex justify-center font-medium text-sm py-10">
                 <NavLink
-                  href="/#pricing"
+                  href="/contact-us"
                   className="flex items-center text-white cta-btn  active:bg-purple-700 "
                 >
                   Try the Voice Agent
@@ -59,17 +59,19 @@ const Hero = () => (
                 falseState: 'opacity-0 translate-y-6',
               }}
             >
-              <Image
-                alt="active-requests"
-                src={HeroImg}
-                className="rounded-lg border border-0 shadow-lg"
-              />
+              <div className="pt-6">
+                <EnlargeableImage
+                  alt="active-requests"
+                  src={HeroImg}
+                  className="rounded-lg border border-0 shadow-lg"
+                />
+              </div>
             </LayoutEffect>
           </GradientWrapper>
         </div>
       </LayoutEffect>
     </div>
-    <hr className="w-[75%] mx-auto border-gray-700" />
+    <hr className="w-[75%] mx-auto border-gray-700 mt-10" />
   </section>
 );
 
