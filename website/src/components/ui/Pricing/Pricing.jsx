@@ -1,9 +1,6 @@
-'use client';
-
 import LayoutEffect from '@/src/components/LayoutEffect';
 import SectionWrapper from '@/src/components/SectionWrapper';
-import Button from '../Button';
-import { useRouter } from 'next/navigation';
+import NavLink from '../NavLink';
 
 const Pricing = () => {
   const plans = [
@@ -59,8 +56,6 @@ const Pricing = () => {
   const mostPopPricingBg =
     'radial-gradient(130.39% 130.39% at 51.31% -0.71%, #1F2937 0%, rgba(31, 41, 55, 0) 100%)';
 
-  const router = useRouter();
-
   return (
     <SectionWrapper id="pricing" className="custom-screen">
       <div className="relative max-w-xl mx-auto text-center">
@@ -112,13 +107,13 @@ const Pricing = () => {
                     </li>
                   ))}
                 </ul>
-                <div className="pt-8  bottom-0 inset-0">
-                  <Button
-                    className={`w-full rounded-full text-white ring-offset-2 focus:ring ${item.isMostPop ? 'cta-btn' : 'bg-gray-800 hover:bg-gray-700 ring-gray-800'}`}
-                    onClick={() => router.replace(`/contact-us?plan=${item.name}`)}
+                <div className="pt-8  bottom-0 inset-0 items-center flex">
+                  <NavLink
+                    href={`/contact-us?plan=${item.name}`}
+                    className={`w-full text-sm rounded-full text-white ring-offset-2 focus:ring ${item.isMostPop ? 'cta-btn' : 'bg-gray-800 hover:bg-gray-700 ring-gray-800'}`}
                   >
                     Get Started
-                  </Button>
+                  </NavLink>
                 </div>
               </div>
             </div>
