@@ -42,13 +42,13 @@ const Navbar = () => {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 ${scrolled ? 'bg-[#161032]/50 backdrop-blur-md' : 'bg-transparent'}`}
+      className={`fixed top-0 left-0 right-0 z-50 ${scrolled ? 'bg-[#161032]/40 backdrop-blur-md' : 'bg-transparent'}`}
     >
       <div className="custom-screen md:hidden">
         <NavHeader menuBtnEl={menuBtnEl} state={state} onClick={() => setState(!state)} />
       </div>
       <nav
-        className={`pb-5 md:text-sm md:block ${state ? 'bg-gray-900 absolute z-20 top-0 inset-x-0 rounded-b-2xl shadow-xl md:bg-gray-900' : 'hidden'}`}
+        className={`pb-5 md:text-md md:block ${state ? 'bg-gray-900 absolute z-20 top-0 inset-x-0 rounded-b-2xl shadow-xl md:bg-gray-900' : 'hidden'}`}
       >
         <div className="custom-screen items-center md:flex">
           <NavHeader state={state} onClick={() => setState(!state)} />
@@ -75,7 +75,7 @@ const Navbar = () => {
                 Sign in
               </Link>
               <NavLink
-                href="/contact-us"
+                href="/#pricing"
                 className="cta-btn flex items-center justify-center gap-x-1 text-sm text-white font-medium border border-gray-500 active:bg-gray-900 md:inline-flex"
               >
                 Start now

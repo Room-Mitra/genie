@@ -1,8 +1,11 @@
 import GradientWrapper from '@/src/components/GradientWrapper';
 import LayoutEffect from '@/src/components/LayoutEffect';
-import RequestDemoForm from '@/src/components/RequestDemoForm';
+import ContactUsForm from '@/src/components/ContactUsForm';
 
-export default function Page() {
+export default async function Page({ searchParams }) {
+  const sp = await searchParams;
+  const plan = typeof sp?.plan === 'string' ? sp.plan : '';
+
   return (
     <>
       <div className="custom-screen pt-28 pb-8">
@@ -18,7 +21,7 @@ export default function Page() {
               className="mt-16 sm:mt-28"
               wrapperclassname="max-w-3xl h-[250px] top-12 inset-0 sm:h-[300px] lg:h-[300px]"
             >
-              <RequestDemoForm />
+              <ContactUsForm plan={plan} />
             </GradientWrapper>
           </div>
         </LayoutEffect>

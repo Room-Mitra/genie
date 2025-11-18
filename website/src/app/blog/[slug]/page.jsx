@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { getAllPostSlugs, getPostBySlug } from '@/src/lib/blog';
-import RequestDemoForm from '@/src/components/RequestDemoForm';
+import ContactUsForm from '@/src/components/ContactUsForm';
 import { absoluteUrl } from '@/src/lib/urls';
 import LayoutEffect from '@/src/components/LayoutEffect';
 import GradientWrapper from '@/src/components/GradientWrapper';
@@ -137,7 +137,7 @@ export default async function BlogPostPage({ params }) {
             </div>
 
             <hr className="border-gray-300 max-w-3xl mx-auto my-20" />
-            <RequestDemoForm />
+            <ContactUsForm />
           </GradientWrapper>
         </div>
       </LayoutEffect>

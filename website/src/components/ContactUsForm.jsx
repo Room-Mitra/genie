@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-export default function RequestDemoForm() {
+export default function ContactUsForm({ plan }) {
   const [formState, setFormState] = useState('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -33,6 +33,7 @@ export default function RequestDemoForm() {
           phone: phone,
           hotel: data.hotel,
           message: data.message,
+          plan,
           // simple honeypot (hidden field). If filled, ignore submission server side
           hp: data.hp,
         }),
@@ -54,7 +55,7 @@ export default function RequestDemoForm() {
 
   return (
     <section id="request-a-demo" className="text-center text-white">
-      <h2 className="text-3xl font-bold">Request a Demo</h2>
+      <h2 className="text-4xl font-bold">Contact Us</h2>
 
       <form onSubmit={onSubmit} className="mt-8 max-w-xl mx-auto p-6 rounded-lg">
         <div className="grid gap-4 sm:grid-cols-2">
@@ -127,7 +128,7 @@ export default function RequestDemoForm() {
 
         <button
           type="submit"
-          className="cta-btn px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+          className="cta-btn px-6 py-2 mt-7 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
           disabled={formState === 'submitting'}
         >
           {formState === 'submitting' ? 'Submitting…' : 'Submit'}
@@ -139,7 +140,7 @@ export default function RequestDemoForm() {
           </p>
         )}
 
-        {formState === 'error' && <p className="text-red-500 text-sm">{errorMsg}</p>}
+        {formState === 'error' && <p className="text-red-500 text-sm py-4">{errorMsg}</p>}
       </form>
     </section>
   );

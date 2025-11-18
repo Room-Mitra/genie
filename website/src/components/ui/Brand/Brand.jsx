@@ -5,8 +5,8 @@ const Brand = ({ ...props }) => (
     src="/images/roommitra-logo.svg"
     alt="Room Mitra logo"
     {...props}
-    width={110}
-    height={50}
+    width={130}
+    height={38}
     priority
   />
 );

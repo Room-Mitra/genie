@@ -130,6 +130,8 @@ export default function FeedbackPage({ hotel }) {
 
       setSuccess('Thank you for your feedback.');
       setMessage('');
+      setName('');
+      setRoomNumber('');
     } catch (err) {
       console.error(err);
       setError(err?.message || 'Something went wrong while submitting feedback.');
@@ -139,20 +141,20 @@ export default function FeedbackPage({ hotel }) {
   }
 
   return (
-    <div className="min-h-screen  flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-2xl bg-gray-800 shadow-lg rounded-2xl p-8 space-y-8 mt-10 lg:mt-0">
+    <div className=" flex justify-center px-4 ">
+      <div className="w-full max-w-2xl space-y-8 ">
         <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-semibold text-gray-800">Guest Feedback</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-4xl font-semibold text-white">Guest Feedback</h1>
+          <p className="text-sm text-gray-300">
             You can either leave a short voice message or fill in a simple form.
           </p>
         </div>
 
         {/* Section 1: Voice feedback only */}
-        <section className="bg-gray-50 border border-gray-200 rounded-xl p-5 space-y-4">
+        <section className="bg-gray-800/20 border border-gray-800/20 shadow rounded-xl p-5 space-y-4">
           <div className="space-y-1">
-            <h2 className="text-lg font-semibold text-gray-800">Voice feedback</h2>
-            <p className="text-sm text-gray-500">
+            <h2 className="text-lg font-semibold text-gray-200">Voice feedback</h2>
+            <p className="text-sm text-gray-200">
               Please mention your name, hotel and room number at the start of the recording.
             </p>
           </div>
@@ -162,7 +164,7 @@ export default function FeedbackPage({ hotel }) {
               <button
                 type="button"
                 onClick={startRecording}
-                className="bg-red-500 text-white text-sm px-4 py-2 rounded-lg hover:bg-red-400"
+                className="bg-red-500 text-white font-bold text-sm px-4 py-2 rounded-lg hover:bg-red-400"
               >
                 Start recording
               </button>
@@ -170,13 +172,13 @@ export default function FeedbackPage({ hotel }) {
               <button
                 type="button"
                 onClick={stopRecording}
-                className="bg-gray-800 text-white text-sm px-4 py-2 rounded-lg hover:bg-gray-700"
+                className="bg-gray-800 text-white font-bold  text-sm px-4 py-2 rounded-lg hover:bg-gray-700"
               >
                 Stop recording
               </button>
             )}
 
-            <span className="text-xs text-gray-500">
+            <span className="text-sm text-gray-300">
               {isRecording ? 'Recording in progress...' : 'Tap to start a short message.'}
             </span>
           </div>
@@ -211,18 +213,18 @@ export default function FeedbackPage({ hotel }) {
 
         {(error || success) && feedbackType === 'voice' && (
           <div className="text-sm">
-            {error && <p className="text-red-600">{error}</p>}
-            {success && <p className="text-green-600">{success}</p>}
+            {error && <p className="text-red-500">{error}</p>}
+            {success && <p className="text-green-400">{success}</p>}
           </div>
         )}
 
-        <div className="text-center font-bold text-gray-600"> OR </div>
+        <div className="text-center font-bold text-gray-400"> OR </div>
 
         {/* Section 2: Text feedback with name and room */}
-        <section className="bg-gray-50 border border-gray-200 rounded-xl p-5 space-y-4">
+        <section className="bg-gray-800/20 border border-gray-800/20 shadow rounded-xl p-5 space-y-4">
           <div className="space-y-1">
-            <h2 className="text-lg font-semibold text-gray-800">Text feedback</h2>
-            <p className="text-sm text-gray-500">
+            <h2 className="text-lg font-semibold text-gray-200">Text feedback</h2>
+            <p className="text-sm text-gray-200">
               If you prefer typing, you can share your feedback here.
             </p>
           </div>
@@ -230,12 +232,12 @@ export default function FeedbackPage({ hotel }) {
           <form onSubmit={submitTextFeedback} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700" htmlFor="name">
+                <label className="block text-sm font-medium text-gray-300" htmlFor="name">
                   Name (optional)
                 </label>
                 <input
                   name="name"
-                  className="mt-1 w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="mt-1 w-full bg-gray-600/80 text-white rounded-lg px-3 py-2 text-sm   "
                   placeholder="Your name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -243,12 +245,12 @@ export default function FeedbackPage({ hotel }) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700" htmlFor="roomNumber">
+                <label className="block text-sm font-medium text-gray-300" htmlFor="roomNumber">
                   Hotel & Room number
                 </label>
                 <input
                   name="roomNumber"
-                  className="mt-1 w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="mt-1 w-full bg-gray-600/80 text-white rounded-lg px-3 py-2 text-sm   "
                   placeholder="Eg. Woodlands, 104"
                   value={roomNumber}
                   onChange={(e) => setRoomNumber(e.target.value)}
@@ -257,12 +259,12 @@ export default function FeedbackPage({ hotel }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700" htmlFor="feedback">
+              <label className="block text-sm font-medium text-gray-300" htmlFor="feedback">
                 Your feedback
               </label>
               <textarea
                 name="feedback"
-                className="mt-1 w-full min-h-[140px] border border-gray-300 bg-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 w-full  min-h-[140px]  bg-gray-600/80 text-white rounded-lg p-3 text-sm   "
                 placeholder="Tell us what you liked, or what we could improve."
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
@@ -272,7 +274,7 @@ export default function FeedbackPage({ hotel }) {
             <button
               type="submit"
               disabled={isTextSubmitting || !message.trim()}
-              className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-500 disabled:bg-blue-300"
+              className="bg-indigo-600 text-white font-bold text-sm px-4 py-2 rounded-lg hover:bg-blue-500 disabled:bg-gray-900"
             >
               {isTextSubmitting ? 'Submitting...' : 'Submit text feedback'}
             </button>
@@ -281,8 +283,8 @@ export default function FeedbackPage({ hotel }) {
 
         {(error || success) && feedbackType === 'text' && (
           <div className="text-sm">
-            {error && <p className="text-red-600">{error}</p>}
-            {success && <p className="text-green-600">{success}</p>}
+            {error && <p className="text-red-500">{error}</p>}
+            {success && <p className="text-green-400">{success}</p>}
           </div>
         )}
 
