@@ -15,32 +15,32 @@ const Features = () => {
     {
       icon: <PhoneIcon className="h-6 w-6" />,
       title: 'Stop missing phone calls and bookings',
-      desc: 'Hotels lose bookings because calls go unanswered during peak hours or staff shortages.',
+      desc: 'Room Mitra answers instantly during peak hours or staff shortages, ensuring no enquiry or booking is lost.',
+    },
+    {
+      icon: <ChartBarIcon className="h-6 w-6" />,
+      title: 'Increase onsite revenue through smart upsells',
+      desc: 'Promote spa, dining, upgrades, activities and services at the right moment, boosting guest spend without staff involvement.',
     },
     {
       icon: <LinkSlashIcon className="h-6 w-6" />,
       title: 'Reduce dependency on WhatsApp and fragmented workflows',
-      desc: 'Front desk teams juggle calls, WhatsApp messages, guest DMs, and manual logs.',
+      desc: 'Unify calls, requests, and messages into one system instead of juggling WhatsApp chats, phone calls and manual notes.',
     },
     {
       icon: <UsersIcon className="h-6 w-6" />,
       title: 'Short-staffed teams can run efficiently',
-      desc: 'Even with limited manpower, the AI agent handles repetitive queries, routing, and request logging.',
+      desc: 'The AI assistant handles repetitive queries, logs requests, routes tasks, and frees staff for high-touch guest service.',
     },
     {
       icon: <BellAlertIcon className="h-6 w-6" />,
-      title: 'Centralized request tracking reduces delays and guest complaints',
-      desc: 'All housekeeping, F&B, and maintenance requests are tracked automatically with timestamps and assignment.',
+      title: 'Centralized request tracking improves service speed',
+      desc: 'Every request — housekeeping, F&B, maintenance or concierge — is assigned, timestamped, and tracked end-to-end.',
     },
     {
       icon: <ClockIcon className="h-6 w-6" />,
       title: '24/7 consistent guest experience',
-      desc: 'Unlike humans, AI doesn’t have shift changes, fatigue, or off days. Guests get the same helpful, accurate response at any hour.',
-    },
-    {
-      icon: <ChartBarIcon className="h-6 w-6" />,
-      title: 'Analytics that make your operations smarter',
-      desc: 'Hotels lack insights into peak call hours, request bottlenecks, staff performance, common guest issues, and SLA adherence.',
+      desc: 'AI never takes breaks or misses calls. Guests receive accurate, instant support day and night.',
     },
   ];
 

@@ -12,7 +12,7 @@ const UseCases = () => {
       img: ActiveRequests,
     },
     {
-      title: 'Guest Support for Non-Staying Guests',
+      title: 'Hotel Enquiries and Call Handling',
       desc: 'Room Mitra answers phone calls instantly, handles queries about availability, pricing, and routes calls when needed.',
       img: BookingConverastion,
     },
