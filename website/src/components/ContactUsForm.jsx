@@ -2,7 +2,15 @@
 
 import { useState } from 'react';
 
-export default function RequestDemoForm() {
+export default function ContactUsForm({
+  plan,
+  monthlySalary,
+  staffCount,
+  automationPercent,
+  dailyRoomRevenue,
+  upsellPercent,
+  market,
+}) {
   const [formState, setFormState] = useState('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -33,6 +41,13 @@ export default function RequestDemoForm() {
           phone: phone,
           hotel: data.hotel,
           message: data.message,
+          plan,
+          monthlySalary,
+          staffCount,
+          automationPercent,
+          dailyRoomRevenue,
+          upsellPercent,
+          market,
           // simple honeypot (hidden field). If filled, ignore submission server side
           hp: data.hp,
         }),
@@ -53,13 +68,13 @@ export default function RequestDemoForm() {
   }
 
   return (
-    <section id="request-a-demo" className="py-16 bg-gray-100 text-center">
-      <h2 className="text-3xl font-bold">Request a Demo</h2>
+    <section id="request-a-demo" className="text-center text-white">
+      <h2 className="text-4xl font-bold">Contact Us</h2>
 
-      <form onSubmit={onSubmit} className="mt-8 max-w-xl mx-auto bg-white p-6 rounded-lg shadow">
+      <form onSubmit={onSubmit} className="mt-8 max-w-xl mx-auto p-6 rounded-lg">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="flex flex-col text-left">
-            <label htmlFor="name" className="block text-gray-700 font-semibold mb-2">
+            <label htmlFor="name" className="block text-gray-200 font-semibold mb-2">
               Name <span className="text-red-500">*</span>
             </label>
             <input
@@ -72,7 +87,7 @@ export default function RequestDemoForm() {
           </div>
 
           <div className="flex flex-col text-left">
-            <label htmlFor="email" className="block text-gray-700 font-semibold mb-2">
+            <label htmlFor="email" className="block text-gray-200 font-semibold mb-2">
               Email <span className="text-red-500">*</span>
             </label>
             <input
@@ -84,7 +99,7 @@ export default function RequestDemoForm() {
             />
           </div>
           <div className="flex flex-col text-left">
-            <label htmlFor="phone" className="block text-gray-700 font-semibold mb-2">
+            <label htmlFor="phone" className="block ttext-gray-200 font-semibold mb-2">
               Phone Number <span className="text-red-500">*</span>
             </label>
             <input
@@ -98,7 +113,7 @@ export default function RequestDemoForm() {
             />
           </div>
           <div className="flex flex-col text-left">
-            <label htmlFor="hotel" className="block text-gray-700 font-semibold mb-2">
+            <label htmlFor="hotel" className="block text-gray-200 font-semibold mb-2">
               Hotel <span className="text-red-500">*</span>
             </label>
             <input
@@ -111,14 +126,14 @@ export default function RequestDemoForm() {
           </div>
         </div>
         <div className="flex flex-col text-left py-3">
-          <label htmlFor="message" className="block text-gray-700 font-semibold mb-2">
+          <label htmlFor="message" className="block text-gray-200 font-semibold mb-2">
             Message
           </label>
           <textarea
             id="message"
             name="message"
             rows="4"
-            className="border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 p-3"
           ></textarea>
         </div>
 
@@ -127,19 +142,19 @@ export default function RequestDemoForm() {
 
         <button
           type="submit"
-          className="cta-btn px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+          className="cta-btn px-6 py-2 mt-7 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
           disabled={formState === 'submitting'}
         >
           {formState === 'submitting' ? 'Submitting…' : 'Submit'}
         </button>
 
         {formState === 'success' && (
-          <p className="text-green-700 text-sm py-4">
+          <p className="text-green-400 text-sm py-4">
             Thanks. Your request has been submitted. We will get in touch shortly.
           </p>
         )}
 
-        {formState === 'error' && <p className="text-red-700 text-sm">{errorMsg}</p>}
+        {formState === 'error' && <p className="text-red-500 text-sm py-4">{errorMsg}</p>}
       </form>
     </section>
   );

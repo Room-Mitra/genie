@@ -22,7 +22,20 @@ router.post('/leads', async (req, res) => {
   }
 
   try {
-    const { name = '', email = '', phone = '', hotel = '', message = '' } = req.body || {};
+    const {
+      name = '',
+      email = '',
+      phone = '',
+      hotel = '',
+      message = '',
+      plan = '',
+      monthlySalary = '',
+      staffCount = '',
+      automationPercent = '',
+      dailyRoomRevenue = '',
+      upsellPercent = '',
+      market = '',
+    } = req.body || {};
 
     // minimal validation
     if (!name.trim() || !email.trim()) {
@@ -44,16 +57,23 @@ router.post('/leads', async (req, res) => {
           { type: 'mrkdwn', text: `*Email*\n${email}` },
           { type: 'mrkdwn', text: `*Phone*\n${phone || '—'}` },
           { type: 'mrkdwn', text: `*Hotel*\n${hotel || '—'}` },
+          ...(plan ? [{ type: 'mrkdwn', text: `*Plan*\n${plan || '—'}` }] : []),
+          ...(monthlySalary
+            ? [{ type: 'mrkdwn', text: `*Monthly Salary*\n${monthlySalary || '—'}` }]
+            : []),
+          ...(staffCount ? [{ type: 'mrkdwn', text: `*Staff Count*\n${staffCount || '—'}` }] : []),
+          ...(automationPercent
+            ? [{ type: 'mrkdwn', text: `*Automation Percent*\n${automationPercent || '—'}` }]
+            : []),
+          ...(dailyRoomRevenue
+            ? [{ type: 'mrkdwn', text: `*Daily Room Revenue*\n${dailyRoomRevenue || '—'}` }]
+            : []),
+          ...(upsellPercent
+            ? [{ type: 'mrkdwn', text: `*Upsell Percent*\n${upsellPercent || '—'}` }]
+            : []),
+          ...(market ? [{ type: 'mrkdwn', text: `*Market*\n${market || '—'}` }] : []),
         ],
       },
-      ...(message
-        ? [
-            {
-              type: 'section',
-              text: { type: 'mrkdwn', text: `*Message*\n${message}` },
-            },
-          ]
-        : []),
       {
         type: 'context',
         elements: [{ type: 'mrkdwn', text: `Received: ${new Date().toLocaleString()}` }],
