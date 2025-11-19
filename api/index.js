@@ -51,6 +51,7 @@ import adminHotelRoutes from '#routes/admin/Hotel.controller.js';
 import adminStaffRoutes from '#routes/admin/Staff.controller.js';
 
 import { checkDelayedRequests } from '#tasks/checkDelayedRequests.task.js';
+import { sendVerificationEmail } from '#services/Email/Email.service.js';
 
 const app = express();
 app.use(requestContext);
@@ -152,6 +153,23 @@ app.get('/android/health', (req, res) => {
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
   });
+});
+
+app.post('/api/send-verification-code', async (req, res) => {
+  try {
+    const { email, name, code } = req.body;
+
+    await sendVerificationEmail({
+      to: email,
+      name,
+      code,
+    });
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Error sending verification email:', err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
 });
 
 cron.schedule('*/2 * * * *', () => {
