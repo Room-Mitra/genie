@@ -2,7 +2,15 @@
 
 import { useState } from 'react';
 
-export default function ContactUsForm({ plan }) {
+export default function ContactUsForm({
+  plan,
+  monthlySalary,
+  staffCount,
+  automationPercent,
+  dailyRoomRevenue,
+  upsellPercent,
+  market,
+}) {
   const [formState, setFormState] = useState('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -34,6 +42,12 @@ export default function ContactUsForm({ plan }) {
           hotel: data.hotel,
           message: data.message,
           plan,
+          monthlySalary,
+          staffCount,
+          automationPercent,
+          dailyRoomRevenue,
+          upsellPercent,
+          market,
           // simple honeypot (hidden field). If filled, ignore submission server side
           hp: data.hp,
         }),
