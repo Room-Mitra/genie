@@ -3,10 +3,6 @@ const CARD_BG = '#1b1d24'; // dark card background
 const PAGE_BG = '#eeeeeeff'; // outer background
 const TEXT_COLOR = '#f5f5f5';
 
-/**
- * Helper to build a text only version.
- * You can keep it super simple for transactional emails.
- */
 export function stripHtml(text) {
   return text
     .replace(/<[^>]+>/g, '')
