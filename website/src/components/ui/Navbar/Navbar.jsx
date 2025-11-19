@@ -14,6 +14,7 @@ const Navbar = () => {
   const navigation = [
     { name: 'Use Cases', href: '/#use-cases' },
     { name: 'AI Front Desk', href: '/#ai-front-desk' },
+    { name: 'Savings Calculator', href: '/#savings-calculator' },
     { name: 'Why?', href: '/#why' },
     { name: 'Pricing', href: '/#pricing' },
     { name: 'Blog', href: '/blog' },

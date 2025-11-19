@@ -4,7 +4,7 @@ import CostSavingsCalculator from './calculator';
 
 export default function CostSavingsCalculatorSection() {
   return (
-    <SectionWrapper id="cost-savings-calculator">
+    <SectionWrapper id="savings-calculator">
       <div className="custom-screen text-gray-300">
         <LayoutEffect
           className="duration-1000 delay-300"
