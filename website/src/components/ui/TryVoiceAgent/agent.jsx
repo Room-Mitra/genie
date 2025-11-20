@@ -1,11 +1,11 @@
-import { ChatBubbleLeftIcon, SparklesIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import { ChatBubbleLeftIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { MicVAD } from '@ricky0123/vad-web';
 
 const SERVER_URL = 'ws://localhost:3001';
 
 // Must match server
 const SAMPLE_RATE = 16000;
-const BUFFER_SIZE = 4096;
 
 export const Agent = ({ onClose, onSuccess }) => {
   const [isConnected, setIsConnected] = useState(false);
@@ -24,20 +24,14 @@ export const Agent = ({ onClose, onSuccess }) => {
   ]);
 
   const wsRef = useRef(null);
-  const audioContextRef = useRef(null);
-  const processorRef = useRef(null);
-  const streamRef = useRef(null);
+  const vadRef = useRef(null);
 
   const isRecordingRef = useRef(false);
-  const lastSpeechTimeRef = useRef(Date.now());
-  const hasSentEndForThisUtteranceRef = useRef(false);
-  const isAgentSpeakingRef = useRef(false);
   const manualCloseRef = useRef(false); // true when user explicitly ends conversation or closes UI
-  // Prevent the user's mic from triggering END_UTTERANCE immediately after TTS ends
-  const agentLastSpeechEndTimeRef = useRef(0);
 
-  // When did this utterance start (first non-silent chunk)?
-  const currentUtteranceStartRef = useRef(null);
+  // Used to avoid reacting to our own TTS
+  const isAgentSpeakingRef = useRef(false);
+  const agentLastSpeechEndTimeRef = useRef(0);
 
   useEffect(() => {
     isRecordingRef.current = isRecording;
@@ -45,6 +39,7 @@ export const Agent = ({ onClose, onSuccess }) => {
 
   // Utility to append a message
   const pushMessage = useCallback((role, text) => {
+    if (!text) return;
     setMessages((prev) => [
       ...prev,
       {
@@ -55,7 +50,7 @@ export const Agent = ({ onClose, onSuccess }) => {
     ]);
   }, []);
 
-  // Convert Float32 PCM to Int16 for server
+  // Convert Float32 PCM ([-1,1]) to Int16 for server
   function float32ToInt16(float32Array) {
     const int16Array = new Int16Array(float32Array.length);
     for (let i = 0; i < float32Array.length; i++) {
@@ -67,43 +62,28 @@ export const Agent = ({ onClose, onSuccess }) => {
     return int16Array;
   }
 
-  // Core cleanup for mic + audio + socket
+  // Core cleanup for VAD + socket
   const cleanupResources = useCallback(() => {
     manualCloseRef.current = true; // avoid auto reconnect on purpose
+
+    // Stop VAD if active
+    if (vadRef.current) {
+      try {
+        // Different versions expose pause/stop; guard with typeof
+        if (typeof vadRef.current.pause === 'function') {
+          vadRef.current.pause();
+        } else if (typeof vadRef.current.stop === 'function') {
+          vadRef.current.stop();
+        }
+      } catch (e) {
+        console.warn('[VAD] Error stopping VAD instance', e);
+      }
+      vadRef.current = null;
+    }
 
     // Stop recording flag
     isRecordingRef.current = false;
     setIsRecording(false);
-
-    // Stop ScriptProcessor
-    if (processorRef.current) {
-      try {
-        processorRef.current.disconnect();
-      } catch (e) {
-        console.warn('Error disconnecting processor', e);
-      }
-      processorRef.current = null;
-    }
-
-    // Stop audio tracks
-    if (streamRef.current) {
-      try {
-        streamRef.current.getTracks().forEach((t) => t.stop());
-      } catch (e) {
-        console.warn('Error stopping media tracks', e);
-      }
-      streamRef.current = null;
-    }
-
-    // Close audio context
-    if (audioContextRef.current) {
-      try {
-        audioContextRef.current.close();
-      } catch (e) {
-        console.warn('Error closing AudioContext', e);
-      }
-      audioContextRef.current = null;
-    }
 
     // Close socket
     if (wsRef.current) {
@@ -119,7 +99,7 @@ export const Agent = ({ onClose, onSuccess }) => {
     setIsThinking(false);
   }, []);
 
-  // Start mic streaming to server continuously
+  // Start MicVAD: WebRTC-style VAD, no manual silence detection
   const startRecording = useCallback(async () => {
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
       setError('Not connected to the server. Cannot start listening.');
@@ -129,145 +109,77 @@ export const Agent = ({ onClose, onSuccess }) => {
     try {
       setError(null);
 
-      if (!audioContextRef.current) {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)({
-          sampleRate: SAMPLE_RATE,
-        });
-        audioContextRef.current = audioContext;
-
-        // Optional: add a high-pass filter for hum/rumble removal
-        const highpass = audioContext.createBiquadFilter();
-        highpass.type = 'highpass';
-        highpass.frequency.value = 120; // Remove low rumble from fans/AC
-
-        // Save it so we can connect through it
-        audioContextRef.current.highpassFilter = highpass;
-
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            sampleRate: SAMPLE_RATE,
-            channelCount: 1,
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
-
-            // These new constraints help the browser AGC behave properly
-            voiceIsolation: true, // If the browser supports it (Safari/Chrome)
-            googEchoCancellation: true,
-            googNoiseSuppression: true,
-            googAutoGainControl: true,
+      // Only create VAD once
+      if (!vadRef.current) {
+        const vad = await MicVAD.new({
+          onSpeechStart: () => {
+            // Speech started (user likely talking)
+            // You could set some UI indicator here if desired
           },
+          onSpeechEnd: (audio) => {
+            // audio is a Float32Array at 16kHz containing JUST the speech segment
+            const now = Date.now();
+
+            // Ignore segments that are clearly from our own TTS
+            if (isAgentSpeakingRef.current || now - agentLastSpeechEndTimeRef.current < 500) {
+              return;
+            }
+
+            if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+              return;
+            }
+
+            if (!audio || !audio.length) return;
+
+            // --- Tiny filter for coughs, "uh", throat clearing etc. ---
+
+            // 1) Duration check
+            const durationSec = audio.length / SAMPLE_RATE;
+            const MIN_DURATION_SEC = 0.35; // 350 ms, tweak as needed
+
+            // 2) Loudness check (RMS)
+            let sumSquares = 0;
+            for (let i = 0; i < audio.length; i++) {
+              const s = audio[i];
+              sumSquares += s * s;
+            }
+            const rms = Math.sqrt(sumSquares / audio.length);
+            const MIN_RMS = 0.02; // tweak if needed
+
+            // Drop tiny or very quiet segments
+            if (durationSec < MIN_DURATION_SEC || rms < MIN_RMS) {
+              // You can console.log here for debugging if you want
+              // console.log('[VAD] Dropped short/quiet segment', { durationSec, rms });
+              return;
+            }
+
+            // --- If we got here, this is a "real" utterance. Send it. ---
+            const pcm16 = float32ToInt16(audio);
+
+            try {
+              wsRef.current.send(pcm16);
+              wsRef.current.send(JSON.stringify({ type: 'END_UTTERANCE' }));
+            } catch (err) {
+              console.error('[CLIENT] Failed to send utterance audio:', err);
+            }
+          },
+
+          // Load WASM and model from CDN, as recommended in the README
+          // (this avoids bundling ONNX manually)
+          onnxWASMBasePath: 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/',
+          baseAssetPath: 'https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.29/dist/',
         });
 
-        streamRef.current = stream;
+        vadRef.current = vad;
+        await vad.start();
 
-        const source = audioContext.createMediaStreamSource(stream);
-        const processor = audioContext.createScriptProcessor(BUFFER_SIZE, 1, 1);
-        processorRef.current = processor;
-
-        processor.onaudioprocess = (e) => {
-          const now = Date.now();
-
-          // Ignore mic input if agent is speaking OR still in cooldown window
-          if (
-            isAgentSpeakingRef.current ||
-            now - agentLastSpeechEndTimeRef.current < 1000 // 1 second suppression after TTS
-          ) {
-            return;
-          }
-
-          // Only stream while recording and WebSocket is open
-          if (
-            !isRecordingRef.current ||
-            !wsRef.current ||
-            wsRef.current.readyState !== WebSocket.OPEN
-          ) {
-            return;
-          }
-
-          const input = e.inputBuffer.getChannelData(0); // Float32Array
-          if (!input || input.length === 0) return;
-
-          const pcm16 = float32ToInt16(input); // Int16Array
-
-          // --- Basic silence detection to decide when an utterance has ended ---
-          // Compute RMS volume of this chunk
-          let sumSquares = 0;
-          for (let i = 0; i < input.length; i++) {
-            const sample = input[i];
-            sumSquares += sample * sample;
-          }
-          const rms = Math.sqrt(sumSquares / input.length);
-
-          // Tunables
-          const SILENCE_THRESHOLD = 0.01; // how loud is "speech" vs "silence"
-          const SILENCE_DURATION_MS = 1500; // wait 1.5s of silence before END_UTTERANCE
-          const MIN_UTTERANCE_MS = 400; // require at least 0.4s of speech
-
-          if (rms > SILENCE_THRESHOLD) {
-            // We have speech in this chunk
-            lastSpeechTimeRef.current = now;
-            hasSentEndForThisUtteranceRef.current = false;
-
-            // If this is the first speech after silence, mark utterance start
-            if (currentUtteranceStartRef.current === null) {
-              currentUtteranceStartRef.current = now;
-            }
-          } else {
-            // Chunk is "silent" -> check how long we have been silent
-            const silenceFor = now - lastSpeechTimeRef.current;
-
-            if (
-              !hasSentEndForThisUtteranceRef.current &&
-              silenceFor > SILENCE_DURATION_MS &&
-              currentUtteranceStartRef.current !== null &&
-              wsRef.current &&
-              wsRef.current.readyState === WebSocket.OPEN
-            ) {
-              const utteranceDuration =
-                lastSpeechTimeRef.current - currentUtteranceStartRef.current;
-
-              // Only treat it as an utterance if we had enough speech
-              if (utteranceDuration >= MIN_UTTERANCE_MS) {
-                try {
-                  wsRef.current.send(JSON.stringify({ type: 'END_UTTERANCE' }));
-                  hasSentEndForThisUtteranceRef.current = true;
-                } catch (err) {
-                  console.error('[CLIENT] Failed to send END_UTTERANCE:', err);
-                }
-              }
-
-              // Reset for next utterance (whether or not we sent END_UTTERANCE)
-              currentUtteranceStartRef.current = null;
-            }
-          }
-
-          try {
-            // Send audio to server
-            wsRef.current.send(pcm16);
-          } catch (err) {
-            console.error('[CLIENT] Failed to send audio chunk:', err);
-          }
-        };
-
-        // Route: mic → highpassFilter → processor → (silent) destination
-        if (audioContextRef.current.highpassFilter) {
-          source.connect(audioContextRef.current.highpassFilter);
-          audioContextRef.current.highpassFilter.connect(processor);
-        } else {
-          source.connect(processor);
-        }
-
-        processor.connect(audioContext.destination);
-      } else if (audioContextRef.current.state === 'suspended') {
-        await audioContextRef.current.resume();
+        pushMessage('system', 'Listening. You can start speaking at any time.');
       }
 
       setIsRecording(true);
       isRecordingRef.current = true;
-      pushMessage('system', 'Listening. You can start speaking at any time.');
     } catch (err) {
-      console.error('Error accessing microphone:', err);
+      console.error('Error starting VAD/mic:', err);
       setError(
         'Could not access microphone. Check permissions or ensure the app is served over HTTPS or localhost.'
       );
@@ -305,13 +217,15 @@ export const Agent = ({ onClose, onSuccess }) => {
         console.error('Failed to send START_CALL:', e);
       }
 
-      // Start microphone streaming automatically
+      // Start microphone + VAD pipeline automatically
       startRecording();
     };
 
     ws.onclose = (event) => {
       setIsConnected(false);
-      const reason = `Code: ${event.code}, Reason: ${event.reason || 'No specific reason provided'}`;
+      const reason = `Code: ${event.code}, Reason: ${
+        event.reason || 'No specific reason provided'
+      }`;
 
       if (!manualCloseRef.current) {
         // Unplanned disconnect: show error and attempt reconnect
@@ -368,7 +282,6 @@ export const Agent = ({ onClose, onSuccess }) => {
           ttsAudioChunks = [];
           isReceivingAudio = true;
         } else if (message.type === 'audio_end') {
-          // console.log('Finished receiving TTS audio. Chunks:', ttsAudioChunks.length);
           isReceivingAudio = false;
           setIsThinking(false);
 
@@ -381,7 +294,7 @@ export const Agent = ({ onClose, onSuccess }) => {
           const audioUrl = URL.createObjectURL(audioBlob);
           const audio = new Audio(audioUrl);
 
-          // Mark that agent is speaking so we ignore mic input
+          // Mark that agent is speaking so we ignore its voice in VAD onSpeechEnd
           isAgentSpeakingRef.current = true;
 
           audio.play().catch((e) => {
@@ -392,29 +305,11 @@ export const Agent = ({ onClose, onSuccess }) => {
           });
 
           audio.onended = () => {
-            // Reset AGC baseline after TTS, prevents "rebound" pumping
-            if (audioContextRef.current && audioContextRef.current.highpassFilter) {
-              try {
-                audioContextRef.current.highpassFilter.frequency.setValueAtTime(
-                  120,
-                  audioContextRef.current.currentTime
-                );
-              } catch (e) {
-                console.warn('AGC reset skipped:', e);
-              }
-            }
-
             URL.revokeObjectURL(audioUrl);
-
-            // Agent finished speaking
             isAgentSpeakingRef.current = false;
 
-            // Start a cooldown window (mute the mic for 1 second)
+            // Short cooldown window so any trailing echo doesn't create segments
             agentLastSpeechEndTimeRef.current = Date.now();
-
-            // Reset silence detection state
-            lastSpeechTimeRef.current = Date.now();
-            hasSentEndForThisUtteranceRef.current = false;
           };
         } else if (message.type === 'error') {
           setError(`Server Error: ${message.message}`);

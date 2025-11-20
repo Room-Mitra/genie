@@ -10,8 +10,8 @@ const AUDIO_CONFIG = {
 };
 
 const TTS_VOICE = {
-  languageCode: 'en-US',
-  name: 'en-US-Standard-C',
+  languageCode: 'en-IN',
+  name: 'en-IN-Neural2-D',
 };
 
 // --- Helpers ---
@@ -69,7 +69,10 @@ async function synthesizeSpeech(text) {
   const request = {
     input: { text },
     voice: TTS_VOICE,
-    audioConfig: { audioEncoding: 'MP3' },
+    audioConfig: {
+      audioEncoding: 'MP3',
+      speakingRate: 1.1,
+    },
   };
 
   try {
