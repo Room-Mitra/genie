@@ -29,9 +29,12 @@ export const Agent = ({ onClose, onSuccess }) => {
   const streamRef = useRef(null);
 
   const isRecordingRef = useRef(false);
-  const manualCloseRef = useRef(false); // true when user explicitly ends conversation or closes UI
   const lastSpeechTimeRef = useRef(Date.now());
   const hasSentEndForThisUtteranceRef = useRef(false);
+  const isAgentSpeakingRef = useRef(false);
+  const manualCloseRef = useRef(false); // true when user explicitly ends conversation or closes UI
+  // Prevent the user's mic from triggering END_UTTERANCE immediately after TTS ends
+  const agentLastSpeechEndTimeRef = useRef(0);
 
   useEffect(() => {
     isRecordingRef.current = isRecording;
@@ -139,6 +142,15 @@ export const Agent = ({ onClose, onSuccess }) => {
         processorRef.current = processor;
 
         processor.onaudioprocess = (e) => {
+          // Ignore mic input if agent is speaking OR within cooldown window
+          const now = Date.now();
+          if (
+            isAgentSpeakingRef.current ||
+            now - agentLastSpeechEndTimeRef.current < 1000 // 1 second suppression
+          ) {
+            return;
+          }
+
           // Only stream while recording and WebSocket is open
           if (
             !isRecordingRef.current ||
@@ -165,8 +177,6 @@ export const Agent = ({ onClose, onSuccess }) => {
           const SILENCE_THRESHOLD = 0.01; // tweak as needed
           const SILENCE_DURATION_MS = 1000; // 1 second of silence
 
-          const now = Date.now();
-
           if (rms > SILENCE_THRESHOLD) {
             // We have speech in this chunk
             lastSpeechTimeRef.current = now;
@@ -189,11 +199,8 @@ export const Agent = ({ onClose, onSuccess }) => {
             }
           }
 
-          // For debugging: log a small sample of values
-          // console.log('[CLIENT] PCM16 slice:', pcm16.slice(0, 10));
-
           try {
-            // TypedArray is fine; browser will send underlying ArrayBuffer
+            // Send audio to server
             wsRef.current.send(pcm16);
           } catch (err) {
             console.error('[CLIENT] Failed to send audio chunk:', err);
@@ -312,6 +319,7 @@ export const Agent = ({ onClose, onSuccess }) => {
           ttsAudioChunks = [];
           isReceivingAudio = true;
         } else if (message.type === 'audio_end') {
+          // console.log('Finished receiving TTS audio. Chunks:', ttsAudioChunks.length);
           isReceivingAudio = false;
           setIsThinking(false);
 
@@ -324,8 +332,29 @@ export const Agent = ({ onClose, onSuccess }) => {
           const audioUrl = URL.createObjectURL(audioBlob);
           const audio = new Audio(audioUrl);
 
-          audio.play().catch((e) => console.error('Audio playback error:', e));
-          audio.onended = () => URL.revokeObjectURL(audioUrl);
+          // Mark that agent is speaking so we ignore mic input
+          isAgentSpeakingRef.current = true;
+
+          audio.play().catch((e) => {
+            console.error('Audio playback error:', e);
+            // If playback fails, clear the flag so mic works again
+            isAgentSpeakingRef.current = false;
+            URL.revokeObjectURL(audioUrl);
+          });
+
+          audio.onended = () => {
+            URL.revokeObjectURL(audioUrl);
+
+            // Agent finished speaking
+            isAgentSpeakingRef.current = false;
+
+            // Start a cooldown window (mute the mic for 1 second)
+            agentLastSpeechEndTimeRef.current = Date.now();
+
+            // Reset silence detection state
+            lastSpeechTimeRef.current = Date.now();
+            hasSentEndForThisUtteranceRef.current = false;
+          };
         } else if (message.type === 'error') {
           setError(`Server Error: ${message.message}`);
           setIsThinking(false);
