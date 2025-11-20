@@ -1,6 +1,6 @@
 // RoomMitra minimal service worker - versioned for easy updates
-const SW_VERSION = "roommitra-sw-v4"; // bump this when you update the file
-
+const SW_VERSION = "roommitra-sw-v5"; // bump this when you update the file
+console.log(`[${SW_VERSION}] service worker version`);
 self.addEventListener("install", (event) => {
   // Skip waiting only if you plan to immediately activate on install
   // For now we will not call skipWaiting to avoid surprises on clients.
