@@ -36,6 +36,9 @@ export const Agent = ({ onClose, onSuccess }) => {
   // Prevent the user's mic from triggering END_UTTERANCE immediately after TTS ends
   const agentLastSpeechEndTimeRef = useRef(0);
 
+  // When did this utterance start (first non-silent chunk)?
+  const currentUtteranceStartRef = useRef(null);
+
   useEffect(() => {
     isRecordingRef.current = isRecording;
   }, [isRecording]);
@@ -132,9 +135,30 @@ export const Agent = ({ onClose, onSuccess }) => {
         });
         audioContextRef.current = audioContext;
 
+        // Optional: add a high-pass filter for hum/rumble removal
+        const highpass = audioContext.createBiquadFilter();
+        highpass.type = 'highpass';
+        highpass.frequency.value = 120; // Remove low rumble from fans/AC
+
+        // Save it so we can connect through it
+        audioContextRef.current.highpassFilter = highpass;
+
         const stream = await navigator.mediaDevices.getUserMedia({
-          audio: { sampleRate: SAMPLE_RATE, channelCount: 1 },
+          audio: {
+            sampleRate: SAMPLE_RATE,
+            channelCount: 1,
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+
+            // These new constraints help the browser AGC behave properly
+            voiceIsolation: true, // If the browser supports it (Safari/Chrome)
+            googEchoCancellation: true,
+            googNoiseSuppression: true,
+            googAutoGainControl: true,
+          },
         });
+
         streamRef.current = stream;
 
         const source = audioContext.createMediaStreamSource(stream);
@@ -142,11 +166,12 @@ export const Agent = ({ onClose, onSuccess }) => {
         processorRef.current = processor;
 
         processor.onaudioprocess = (e) => {
-          // Ignore mic input if agent is speaking OR within cooldown window
           const now = Date.now();
+
+          // Ignore mic input if agent is speaking OR still in cooldown window
           if (
             isAgentSpeakingRef.current ||
-            now - agentLastSpeechEndTimeRef.current < 1000 // 1 second suppression
+            now - agentLastSpeechEndTimeRef.current < 1000 // 1 second suppression after TTS
           ) {
             return;
           }
@@ -174,28 +199,46 @@ export const Agent = ({ onClose, onSuccess }) => {
           }
           const rms = Math.sqrt(sumSquares / input.length);
 
-          const SILENCE_THRESHOLD = 0.01; // tweak as needed
-          const SILENCE_DURATION_MS = 1000; // 1 second of silence
+          // Tunables
+          const SILENCE_THRESHOLD = 0.01; // how loud is "speech" vs "silence"
+          const SILENCE_DURATION_MS = 1500; // wait 1.5s of silence before END_UTTERANCE
+          const MIN_UTTERANCE_MS = 400; // require at least 0.4s of speech
 
           if (rms > SILENCE_THRESHOLD) {
             // We have speech in this chunk
             lastSpeechTimeRef.current = now;
             hasSentEndForThisUtteranceRef.current = false;
+
+            // If this is the first speech after silence, mark utterance start
+            if (currentUtteranceStartRef.current === null) {
+              currentUtteranceStartRef.current = now;
+            }
           } else {
             // Chunk is "silent" -> check how long we have been silent
             const silenceFor = now - lastSpeechTimeRef.current;
+
             if (
               !hasSentEndForThisUtteranceRef.current &&
               silenceFor > SILENCE_DURATION_MS &&
+              currentUtteranceStartRef.current !== null &&
               wsRef.current &&
               wsRef.current.readyState === WebSocket.OPEN
             ) {
-              try {
-                wsRef.current.send(JSON.stringify({ type: 'END_UTTERANCE' }));
-                hasSentEndForThisUtteranceRef.current = true;
-              } catch (err) {
-                console.error('[CLIENT] Failed to send END_UTTERANCE:', err);
+              const utteranceDuration =
+                lastSpeechTimeRef.current - currentUtteranceStartRef.current;
+
+              // Only treat it as an utterance if we had enough speech
+              if (utteranceDuration >= MIN_UTTERANCE_MS) {
+                try {
+                  wsRef.current.send(JSON.stringify({ type: 'END_UTTERANCE' }));
+                  hasSentEndForThisUtteranceRef.current = true;
+                } catch (err) {
+                  console.error('[CLIENT] Failed to send END_UTTERANCE:', err);
+                }
               }
+
+              // Reset for next utterance (whether or not we sent END_UTTERANCE)
+              currentUtteranceStartRef.current = null;
             }
           }
 
@@ -207,8 +250,14 @@ export const Agent = ({ onClose, onSuccess }) => {
           }
         };
 
-        // Need to connect to destination for onaudioprocess to fire
-        source.connect(processor);
+        // Route: mic → highpassFilter → processor → (silent) destination
+        if (audioContextRef.current.highpassFilter) {
+          source.connect(audioContextRef.current.highpassFilter);
+          audioContextRef.current.highpassFilter.connect(processor);
+        } else {
+          source.connect(processor);
+        }
+
         processor.connect(audioContext.destination);
       } else if (audioContextRef.current.state === 'suspended') {
         await audioContextRef.current.resume();
@@ -343,6 +392,18 @@ export const Agent = ({ onClose, onSuccess }) => {
           });
 
           audio.onended = () => {
+            // Reset AGC baseline after TTS, prevents "rebound" pumping
+            if (audioContextRef.current && audioContextRef.current.highpassFilter) {
+              try {
+                audioContextRef.current.highpassFilter.frequency.setValueAtTime(
+                  120,
+                  audioContextRef.current.currentTime
+                );
+              } catch (e) {
+                console.warn('AGC reset skipped:', e);
+              }
+            }
+
             URL.revokeObjectURL(audioUrl);
 
             // Agent finished speaking

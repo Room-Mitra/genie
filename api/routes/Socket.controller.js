@@ -51,15 +51,18 @@ async function transcribeAudio(audioBuffer) {
 }
 
 function generateAgentReply(userText) {
-  if (!userText || !userText.trim()) {
-    return "I'm sorry, I couldn't quite hear that. Could you please repeat that?";
+  const text = (userText || '').trim();
+
+  if (!text) {
+    // We really shouldn’t get here anymore, but just in case:
+    return 'How can I help you?';
   }
 
-  if (userText.toLowerCase().includes('weather')) {
+  if (text.toLowerCase().includes('weather')) {
     return 'The current weather is sunny with a high of 75 degrees Fahrenheit. Is there anything else I can help you with?';
   }
 
-  return `Thank you for saying, "${userText}". I am now processing your request. Please wait one moment.`;
+  return `Thank you for saying, "${text}". I am now processing your request. Please wait one moment.`;
 }
 
 async function synthesizeSpeech(text) {
@@ -112,14 +115,16 @@ async function sendTTSReply(ws, replyText) {
 async function processUtterance(ws, audioBufferRef) {
   const audioBuffer = audioBufferRef.current;
 
-  if (!audioBuffer || !audioBuffer.length) {
-    console.warn('[WS] END_UTTERANCE received but audioBuffer is empty');
-    ws.send(
-      JSON.stringify({
-        type: 'error',
-        message: 'No audio data received for this utterance.',
-      })
+  // 1) Skip if the audio is too short (e.g. < 200 ms)
+  // 16000 samples/sec * 2 bytes/sample ≈ 32000 bytes/sec
+  const MIN_AUDIO_BYTES = 32000 * 0.2; // ~0.2 seconds
+  if (!audioBuffer || audioBuffer.length < MIN_AUDIO_BYTES) {
+    console.log(
+      '[WS] END_UTTERANCE: audio too short (',
+      audioBuffer?.length || 0,
+      'bytes). Skipping STT.'
     );
+    audioBufferRef.current = Buffer.alloc(0);
     return;
   }
 
@@ -140,15 +145,39 @@ async function processUtterance(ws, audioBufferRef) {
     return;
   }
 
-  // Send transcript text (user side)
+  const cleaned = (userText || '').trim();
+
+  // 2) If STT returned nothing or almost nothing, don't reply.
+  //    We also skip the "sorry, I couldn’t hear that" in this case.
+  const MIN_TRANSCRIPT_CHARS = 5;
+  if (!cleaned || cleaned.length < MIN_TRANSCRIPT_CHARS) {
+    console.log(
+      '[WS] Empty/short transcription, skipping reply. Transcript:',
+      JSON.stringify(cleaned)
+    );
+
+    // Optional: you can send a transcript back if you want to debug, but
+    // the client ignores empty text anyway.
+    ws.send(
+      JSON.stringify({
+        type: 'transcript',
+        text: cleaned,
+      })
+    );
+
+    return;
+  }
+
+  // 3) Send transcript text (user side)
   ws.send(
     JSON.stringify({
       type: 'transcript',
-      text: userText,
+      text: cleaned,
     })
   );
 
-  const replyText = generateAgentReply(userText);
+  // 4) Generate and speak reply
+  const replyText = generateAgentReply(cleaned);
   await sendTTSReply(ws, replyText);
 }
 
