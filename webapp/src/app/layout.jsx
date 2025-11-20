@@ -7,7 +7,7 @@ import "jsvectormap/dist/jsvectormap.css";
 import NextTopLoader from "nextjs-toploader";
 import { Providers } from "./providers";
 import { ToastContainer } from "react-toastify";
-
+import ServiceWorkerRegister from "../components/ServiceWorker/ServiceWorkerRegister";
 export const metadata = {
   title: {
     template: "%s | Room Mitra Dashboard",
@@ -23,7 +23,7 @@ export default function RootLayout({ children }) {
       <body>
         <Providers>
           <NextTopLoader color="#5750F1" showSpinner={false} />
-
+          <ServiceWorkerRegister />
           {children}
         </Providers>
         <ToastContainer />
