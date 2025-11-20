@@ -1,4 +1,3 @@
-
 import { getReqId, requestContext } from './middleware/requestContext.js';
 
 // Patch console methods to include request ID if available
@@ -15,6 +14,8 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
 import cron from 'node-cron';
+import { WebSocketServer } from 'ws';
+import http from 'http';
 
 // import swaggerUi from 'swagger-ui-express';
 // import swaggerJsdoc from 'swagger-jsdoc';
@@ -48,9 +49,18 @@ import adminAuthenticator from '#middleware/AdminAuthenticator.middleware.js';
 import adminHotelRoutes from '#routes/admin/Hotel.controller.js';
 import adminStaffRoutes from '#routes/admin/Staff.controller.js';
 
+// Socket controller
+import { connection } from '#routes/Socket.controller.js';
+
+// Cron jobs
 import { checkDelayedRequests } from '#tasks/checkDelayedRequests.task.js';
 
 const app = express();
+const server = http.createServer(app);
+
+// WebSocket server setup
+const wss = new WebSocketServer({ noServer: true });
+
 app.use(requestContext);
 
 app.use(
@@ -113,27 +123,6 @@ app.use('/website', websiteRoutes);
 app.use('/admin/hotels', adminAuthenticator, adminHotelRoutes);
 app.use('/admin/staff', adminAuthenticator, adminStaffRoutes);
 
-app.listen(PORT, () => console.log(`Server running on port: http://localhost:${PORT}`));
-
-// swagger setup
-// const swaggerOptions = {
-//   definition: {
-//     openapi: '3.0.0',
-//     info: {
-//       title: 'Room Mitra API',
-//       version: '1.0.0',
-//       description: 'API documentation for Room Mitra (Android + UI)',
-//     },
-//     servers: [
-//       { url: `Android`, description: 'Android APIs' },
-//       { url: `UI`, description: 'UI APIs' },
-//     ],
-//   },
-//   apis: ['./routes/**/*.js'], // Path to your route files
-// };
-// const swaggerSpec = swaggerJsdoc(swaggerOptions);
-// app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
 // --- Health check endpoint ---
 app.get('/health', (req, res) => {
   res.status(200).json({
@@ -152,6 +141,24 @@ app.get('/android/health', (req, res) => {
   });
 });
 
+server.on('upgrade', function upgrade(request, socket, head) {
+  // Check if the request is destined for the root WebSocket path
+  if (request.url === '/') {
+    // Use the handleUpgrade function to pass control to the ws server
+    wss.handleUpgrade(request, socket, head, function done(ws) {
+      wss.emit('connection', ws, request);
+    });
+  } else {
+    // If the path is wrong, close the socket and return a 404 (though the client often sees a connection failure first)
+    socket.destroy();
+  }
+});
+
+// --- WebSocket Handler ---
+wss.on('connection', connection);
+
 cron.schedule('*/2 * * * *', () => {
   checkDelayedRequests();
 });
+
+server.listen(PORT, () => console.log(`Server running on port: http://localhost:${PORT}`));

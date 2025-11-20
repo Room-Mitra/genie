@@ -2,7 +2,7 @@ import GradientWrapper from '@/src/components/GradientWrapper';
 import HeroImg from '@/public/images/active-requests.png';
 import LayoutEffect from '@/src/components/LayoutEffect';
 import EnlargeableImage from '../EnlargeableImage';
-import { TryVoiceAgent } from '../TryVoiceAgent/agent';
+import { TryVoiceAgent } from '../TryVoiceAgent/entry';
 
 const Hero = () => (
   <section>
@@ -44,6 +44,7 @@ const Hero = () => (
                 <EnlargeableImage
                   alt="active-requests"
                   src={HeroImg}
+                  loading={"eager"}
                   className="rounded-lg border border-0 shadow-lg"
                 />
               </div>
