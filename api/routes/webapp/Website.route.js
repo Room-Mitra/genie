@@ -1,6 +1,8 @@
 import express from 'express';
 import multer from 'multer';
 import { WebClient } from '@slack/web-api';
+import { generateOtpForEmail, verifyOtpForEmail } from '#services/Otp.service.js';
+import { OtpPurpose } from '#Constants/OtpPurpose.constants.js';
 
 const router = express.Router();
 
@@ -74,6 +76,17 @@ router.post('/leads', async (req, res) => {
           ...(market ? [{ type: 'mrkdwn', text: `*Market*\n${market || '—'}` }] : []),
         ],
       },
+      ...(message
+        ? [
+            {
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: `*Message*\n${message}`,
+              },
+            },
+          ]
+        : []),
       {
         type: 'context',
         elements: [{ type: 'mrkdwn', text: `Received: ${new Date().toLocaleString()}` }],
@@ -193,6 +206,48 @@ router.post('/feedback', upload.single('audio'), async (req, res) => {
   } catch (err) {
     console.error('Feedback submit failed', err);
     return res.status(500).json({ ok: false, error: 'Internal server error' });
+  }
+});
+
+router.post('/voice-agent-trial-request', async (req, res) => {
+  const { name, email, otp } = req.body || {};
+
+  if (!email) {
+    return res.status(400).json({ ok: false, error: 'Email is required' });
+  }
+
+  try {
+    // Case 1: request OTP
+    if (name && !otp) {
+      await generateOtpForEmail(email, name, OtpPurpose.VOICE_AGENT_TRIAL_REQUEST);
+
+      return res.json({
+        message: 'Verification code sent to email',
+      });
+    }
+
+    // Case 2: verify OTP
+    if (otp && !name) {
+      const token = await verifyOtpForEmail(email, otp, OtpPurpose.VOICE_AGENT_TRIAL_REQUEST);
+      return res.json({
+        token,
+      });
+    }
+
+    // Bad payload
+    return res.status(400).json({
+      error: 'Provide either { name, email } to request an OTP, or { email, otp } to verify',
+    });
+  } catch (err) {
+    console.error('Error in /voice-agent-trail-request', err);
+    if (err.code === 'INVALID_CODE') {
+      return res.status(400).json({
+        error: 'Invalid or expired verification code',
+      });
+    }
+    return res.status(500).json({
+      error: err?.message || 'Internal server error',
+    });
   }
 });
 

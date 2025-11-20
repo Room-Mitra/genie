@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export async function POST(req) {
-  const endpoint = `${process.env.API_BASE_URL}/website/leads`;
+  const endpoint = `${process.env.API_BASE_URL}/website/voice-agent-trial-request`;
 
   //JSON handler
   const body = await req.json().catch(() => null);
@@ -18,9 +18,10 @@ export async function POST(req) {
     });
 
     if (!res.ok) {
-      const text = await res.text().catch(() => '');
-      throw new Error(text || `Request failed with ${res.status}`);
+      const e = await res.json().catch(() => '');
+      throw new Error(e?.error || `Request failed with ${res.status}`);
     }
+    return NextResponse.json(await res.json().catch(() => ({})));
   } catch (err) {
     return NextResponse.json(
       {
@@ -29,6 +30,4 @@ export async function POST(req) {
       { status: 400 }
     );
   }
-
-  return NextResponse.json({ ok: true });
 }

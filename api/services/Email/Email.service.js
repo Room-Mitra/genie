@@ -47,10 +47,7 @@ export async function sendEmail({ to, subject, html, text, from }) {
 
   try {
     const command = new SendEmailCommand(params);
-    const resp = await SES.send(command);
-
-    console.log('SES v3 sendEmail success:', resp);
-    return resp;
+    return await SES.send(command);
   } catch (err) {
     console.error(
       'SES v3 sendEmail error details:',
