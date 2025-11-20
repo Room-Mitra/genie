@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { createPortal } from 'react-dom';
 
-export default function EnlargeableImage({ src, alt, width, height, className = '' }) {
+export default function EnlargeableImage({ src, alt, width, height, loading, className = '' }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -33,6 +33,7 @@ export default function EnlargeableImage({ src, alt, width, height, className = 
         alt={alt}
         width={width * 2}
         height={height * 2}
+        loading={loading}
         className="max-w-[90vw] max-h-[90vh] object-contain"
       />
     </div>
