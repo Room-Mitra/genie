@@ -1,7 +1,8 @@
 import { TTSClient } from '#clients/TTS.client.js';
 import { STTClient } from '#clients/STT.client.js';
-import fs from 'node:fs';
-import path from 'node:path';
+
+// import fs from 'node:fs';
+// import path from 'node:path';
 
 // --- Configuration Constants ---
 const AUDIO_CONFIG = {
@@ -18,20 +19,21 @@ const TTS_VOICE = {
   name: 'en-US-Standard-C', // Use a standard or WaveNet voice
 };
 
+// function analyzeBuffer(buffer) {
+//   let min = 32767;
+//   let max = -32768;
+
+//   for (let i = 0; i < buffer.length; i += 2) {
+//     const sample = buffer.readInt16LE(i); // interpret as signed 16-bit
+//     if (sample < min) min = sample;
+//     if (sample > max) max = sample;
+//   }
+
+//   console.log('[DEBUG] Audio sample range:', { min, max });
+// }
+
+
 // --- Core Logic ---
-
-function analyzeBuffer(buffer) {
-  let min = 32767;
-  let max = -32768;
-
-  for (let i = 0; i < buffer.length; i += 2) {
-    const sample = buffer.readInt16LE(i); // interpret as signed 16-bit
-    if (sample < min) min = sample;
-    if (sample > max) max = sample;
-  }
-
-  console.log('[DEBUG] Audio sample range:', { min, max });
-}
 
 /**
  * Step 1: Speech-to-Text (STT)
@@ -46,7 +48,7 @@ async function transcribeAudio(audioBuffer) {
       return '';
     }
 
-    console.log('[STT] Starting transcription. Buffer length:', audioBuffer.length);
+    // console.log('[STT] Starting transcription. Buffer length:', audioBuffer.length);
 
     const audioBytes = audioBuffer.toString('base64');
 
@@ -59,7 +61,7 @@ async function transcribeAudio(audioBuffer) {
 
     const [response] = await STTClient.recognize(request);
 
-    console.log('[STT] Raw STT response:', JSON.stringify(response, null, 2));
+    // console.log('[STT] Raw STT response:', JSON.stringify(response, null, 2));
 
     if (!response.results || response.results.length === 0) {
       console.warn('[STT] No transcription results from STT service');
@@ -71,7 +73,7 @@ async function transcribeAudio(audioBuffer) {
       .join(' ')
       .trim();
 
-    console.log('[STT] Final transcription:', transcription);
+    // console.log('[STT] Final transcription:', transcription);
 
     return transcription;
   } catch (err) {
@@ -105,7 +107,7 @@ async function synthesizeSpeech(text) {
     }
 
     const audioBuffer = Buffer.from(audioBase64, 'base64');
-    console.log('[TTS] Audio buffer size:', audioBuffer.length);
+    // console.log('[TTS] Audio buffer size:', audioBuffer.length);
 
     return audioBuffer;
   } catch (error) {
@@ -115,16 +117,16 @@ async function synthesizeSpeech(text) {
 }
 
 export function connection(ws) {
-  console.log('Client connected via WebSocket');
+  // console.log('Client connected via WebSocket');
 
   let audioBuffer = Buffer.alloc(0);
 
   ws.on('message', async function incoming(message, isBinary) {
-    console.log('[WS] Incoming message', {
-      isBinary,
-      typeofMessage: typeof message,
-      length: message?.length,
-    });
+    // console.log('[WS] Incoming message', {
+    //   isBinary,
+    //   typeofMessage: typeof message,
+    //   length: message?.length,
+    // });
 
     // 1. BINARY = audio chunks
     if (isBinary) {
@@ -142,18 +144,13 @@ export function connection(ws) {
 
     try {
       const command = JSON.parse(text);
-      console.log('[WS] Parsed command:', command);
+      // console.log('[WS] Parsed command:', command);
 
       if (command.type === 'STOP_RECORDING') {
-        console.log('[WS] STOP_RECORDING received. Audio size:', audioBuffer.length);
-        analyzeBuffer(audioBuffer);
+        // console.log('[WS] STOP_RECORDING received. Audio size:', audioBuffer.length);
+        // analyzeBuffer(audioBuffer);
 
-        console.log('[WS] STOP_RECORDING received. Saving raw audio debug file...');
-
-        const filename = path.join(`debug-audio-${Date.now()}.raw`);
-        fs.writeFileSync(filename, audioBuffer);
-
-        console.log('[WS] Saved audio to', filename);
+        // console.log('[WS] STOP_RECORDING received. Saving raw audio debug file...');
 
         if (audioBuffer.length === 0) {
           console.warn('[WS] STOP_RECORDING received but audioBuffer is empty');
@@ -166,9 +163,9 @@ export function connection(ws) {
           return;
         }
 
-        console.log(
-          `[DEBUG] Received STOP_RECORDING. Audio length: ${audioBuffer.length} bytes. Starting STT...`
-        );
+        // console.log(
+        //   `[DEBUG] Received STOP_RECORDING. Audio length: ${audioBuffer.length} bytes. Starting STT...`
+        // );
 
         // ----- PHASE 1: STT -----
         const userText = await transcribeAudio(audioBuffer);
@@ -197,13 +194,13 @@ export function connection(ws) {
 
         // ----- PHASE 2: SIMPLE AGENT REPLY -----
         const replyText = generateAgentReply(userText);
-        console.log(`Agent Reply: ${replyText}`);
+        // console.log(`Agent Reply: ${replyText}`);
         ws.send(JSON.stringify({ type: 'reply_text', text: replyText }));
 
         // ----- PHASE 3: TTS -----
         const audioContent = await synthesizeSpeech(replyText);
 
-        console.log('[WS] Sending TTS audio. Bytes:', audioContent.length);
+        // console.log('[WS] Sending TTS audio. Bytes:', audioContent.length);
 
         if (!audioContent || !audioContent.length) {
           console.error('[TTS] No audio bytes to send');
@@ -215,7 +212,6 @@ export function connection(ws) {
           );
           return;
         }
-
 
         // 1. tell client to start collecting audio
         ws.send(JSON.stringify({ type: 'audio_start', format: 'mp3' }));
@@ -239,7 +235,7 @@ export function connection(ws) {
   });
 
   ws.on('close', () => {
-    console.log('Client disconnected');
+    // console.log('Client disconnected');
   });
 
   ws.on('error', (error) => {
