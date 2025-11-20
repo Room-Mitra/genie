@@ -1,6 +1,6 @@
 // RoomMitra minimal service worker - versioned for easy updates
-const SW_VERSION = "roommitra-sw-v5"; // bump this when you update the file
-console.log(`[${SW_VERSION}] service worker version`);
+const SW_VERSION = "roommitra-sw-v6"; // bump this when you update the file
+console.log('🔥 Loading SW version', SW_VERSION);
 self.addEventListener("install", (event) => {
   // Skip waiting only if you plan to immediately activate on install
   // For now we will not call skipWaiting to avoid surprises on clients.
@@ -25,9 +25,13 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(fetch(event.request));
 });
 
-self.addEventListener("message", (event) => {
-  // Allow the page to send a "ping" to check the SW is alive
-  if (event.data && event.data.type === "PING_SW") {
-    event.ports?.[0]?.postMessage({ type: "PONG", version: SW_VERSION });
+
+self.addEventListener('message', (event) => {
+  if (!event.data) return;
+  if (event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+  if (event.data.type === 'PING_SW') {
+    event.ports?.[0]?.postMessage({ type: 'PONG', version: SW_VERSION });
   }
 });
