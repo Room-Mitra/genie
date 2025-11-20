@@ -1,45 +1,20 @@
 import { TTSClient } from '#clients/TTS.client.js';
 import { STTClient } from '#clients/STT.client.js';
 
-// import fs from 'node:fs';
-// import path from 'node:path';
+// --- Configuration ---
 
-// --- Configuration Constants ---
 const AUDIO_CONFIG = {
-  encoding: 'LINEAR16', // Raw 16-bit PCM (WAV) audio is common for client-side recording
-  sampleRateHertz: 16000, // Important: Must match the client's audio capture rate
+  encoding: 'LINEAR16',
+  sampleRateHertz: 16000,
   languageCode: 'en-US',
-  // You can tweak these if you want:
-  // enableAutomaticPunctuation: true,
-  // model: 'default',
 };
 
 const TTS_VOICE = {
   languageCode: 'en-US',
-  name: 'en-US-Standard-C', // Use a standard or WaveNet voice
+  name: 'en-US-Standard-C',
 };
 
-// function analyzeBuffer(buffer) {
-//   let min = 32767;
-//   let max = -32768;
-
-//   for (let i = 0; i < buffer.length; i += 2) {
-//     const sample = buffer.readInt16LE(i); // interpret as signed 16-bit
-//     if (sample < min) min = sample;
-//     if (sample > max) max = sample;
-//   }
-
-//   console.log('[DEBUG] Audio sample range:', { min, max });
-// }
-
-
-// --- Core Logic ---
-
-/**
- * Step 1: Speech-to-Text (STT)
- * @param {Buffer} audioContent The audio data buffer.
- * @returns {Promise<string>} The transcribed text.
- */
+// --- Helpers ---
 
 async function transcribeAudio(audioBuffer) {
   try {
@@ -48,20 +23,14 @@ async function transcribeAudio(audioBuffer) {
       return '';
     }
 
-    // console.log('[STT] Starting transcription. Buffer length:', audioBuffer.length);
-
     const audioBytes = audioBuffer.toString('base64');
 
     const request = {
-      audio: {
-        content: audioBytes,
-      },
+      audio: { content: audioBytes },
       config: AUDIO_CONFIG,
     };
 
     const [response] = await STTClient.recognize(request);
-
-    // console.log('[STT] Raw STT response:', JSON.stringify(response, null, 2));
 
     if (!response.results || response.results.length === 0) {
       console.warn('[STT] No transcription results from STT service');
@@ -73,8 +42,7 @@ async function transcribeAudio(audioBuffer) {
       .join(' ')
       .trim();
 
-    // console.log('[STT] Final transcription:', transcription);
-
+    console.log('[STT] Final transcription:', transcription);
     return transcription;
   } catch (err) {
     console.error('[STT] Error during transcription:', err);
@@ -83,9 +51,14 @@ async function transcribeAudio(audioBuffer) {
 }
 
 function generateAgentReply(userText) {
+  if (!userText || !userText.trim()) {
+    return "I'm sorry, I couldn't quite hear that. Could you please repeat that?";
+  }
+
   if (userText.toLowerCase().includes('weather')) {
     return 'The current weather is sunny with a high of 75 degrees Fahrenheit. Is there anything else I can help you with?';
   }
+
   return `Thank you for saying, "${userText}". I am now processing your request. Please wait one moment.`;
 }
 
@@ -98,7 +71,6 @@ async function synthesizeSpeech(text) {
 
   try {
     const [response] = await TTSClient.synthesizeSpeech(request);
-
     const audioBase64 = response.audioContent;
 
     if (!audioBase64) {
@@ -107,8 +79,7 @@ async function synthesizeSpeech(text) {
     }
 
     const audioBuffer = Buffer.from(audioBase64, 'base64');
-    // console.log('[TTS] Audio buffer size:', audioBuffer.length);
-
+    console.log('[TTS] Audio buffer size:', audioBuffer.length);
     return audioBuffer;
   } catch (error) {
     console.error('[TTS] Error:', error);
@@ -116,129 +87,140 @@ async function synthesizeSpeech(text) {
   }
 }
 
-export function connection(ws) {
-  // console.log('Client connected via WebSocket');
+// Send one text + TTS reply
+async function sendTTSReply(ws, replyText) {
+  ws.send(JSON.stringify({ type: 'reply_text', text: replyText }));
 
-  let audioBuffer = Buffer.alloc(0);
+  const audioContent = await synthesizeSpeech(replyText);
+  if (!audioContent || !audioContent.length) {
+    console.error('[TTS] No audio bytes to send');
+    ws.send(
+      JSON.stringify({
+        type: 'error',
+        message: 'TTS failed or returned empty audio.',
+      })
+    );
+    return;
+  }
+
+  ws.send(JSON.stringify({ type: 'audio_start', format: 'mp3' }));
+  ws.send(audioContent, { binary: true });
+  ws.send(JSON.stringify({ type: 'audio_end' }));
+}
+
+// Handle a full utterance (STT -> reply -> TTS)
+async function processUtterance(ws, audioBufferRef) {
+  const audioBuffer = audioBufferRef.current;
+
+  if (!audioBuffer || !audioBuffer.length) {
+    console.warn('[WS] END_UTTERANCE received but audioBuffer is empty');
+    ws.send(
+      JSON.stringify({
+        type: 'error',
+        message: 'No audio data received for this utterance.',
+      })
+    );
+    return;
+  }
+
+  // Clear buffer for next utterance
+  audioBufferRef.current = Buffer.alloc(0);
+
+  console.log('[WS] Processing utterance. Audio bytes:', audioBuffer.length);
+
+  const userText = await transcribeAudio(audioBuffer);
+
+  if (userText === 'Transcription failed.') {
+    ws.send(
+      JSON.stringify({
+        type: 'error',
+        message: 'Transcription failed due to server error. Check server logs for details.',
+      })
+    );
+    return;
+  }
+
+  // Send transcript text (user side)
+  ws.send(
+    JSON.stringify({
+      type: 'transcript',
+      text: userText,
+    })
+  );
+
+  const replyText = generateAgentReply(userText);
+  await sendTTSReply(ws, replyText);
+}
+
+// --- Main connection handler ---
+
+export function connection(ws) {
+  console.log('[WS] Client connected');
+
+  // Use a wrapper object so we can mutate .current from async function safely
+  const audioBufferRef = { current: Buffer.alloc(0) };
+  let isClosing = false;
 
   ws.on('message', async function incoming(message, isBinary) {
-    // console.log('[WS] Incoming message', {
-    //   isBinary,
-    //   typeofMessage: typeof message,
-    //   length: message?.length,
-    // });
-
-    // 1. BINARY = audio chunks
+    // 1) Binary = PCM16 audio chunks
     if (isBinary) {
       const messageBuffer = Buffer.isBuffer(message) ? message : Buffer.from(message);
 
-      audioBuffer = Buffer.concat([audioBuffer, messageBuffer]);
-      // Optional: log current buffer size
-      // console.log('[WS] Audio buffer size:', audioBuffer.length);
+      audioBufferRef.current = Buffer.concat([audioBufferRef.current, messageBuffer]);
+      // console.log('[WS] Audio buffer size:', audioBufferRef.current.length);
       return;
     }
 
-    // 2. TEXT = JSON control messages (STOP_RECORDING, etc.)
-    // ws may still give you a Buffer for text frames – normalize to string
+    // 2) Text = control messages (START_CALL, END_UTTERANCE, etc.)
     const text = typeof message === 'string' ? message : message.toString('utf8');
 
+    let command;
     try {
-      const command = JSON.parse(text);
-      // console.log('[WS] Parsed command:', command);
+      command = JSON.parse(text);
+    } catch (e) {
+      console.warn('[WS] Non-JSON text frame received, ignoring:', text);
+      return;
+    }
 
-      if (command.type === 'STOP_RECORDING') {
-        // console.log('[WS] STOP_RECORDING received. Audio size:', audioBuffer.length);
-        // analyzeBuffer(audioBuffer);
+    // Ignore commands if socket is closing
+    if (isClosing) return;
 
-        // console.log('[WS] STOP_RECORDING received. Saving raw audio debug file...');
+    switch (command.type) {
+      case 'START_CALL': {
+        console.log('[WS] START_CALL received');
 
-        if (audioBuffer.length === 0) {
-          console.warn('[WS] STOP_RECORDING received but audioBuffer is empty');
-          ws.send(
-            JSON.stringify({
-              type: 'error',
-              message: 'No audio data received.',
-            })
-          );
-          return;
-        }
+        const greetingText =
+          'Hi, this is Room Mitra. I am your virtual assistant for the hotel. How can I help you today?';
 
-        // console.log(
-        //   `[DEBUG] Received STOP_RECORDING. Audio length: ${audioBuffer.length} bytes. Starting STT...`
-        // );
-
-        // ----- PHASE 1: STT -----
-        const userText = await transcribeAudio(audioBuffer);
-
-        if (userText === 'Transcription failed.') {
-          ws.send(
-            JSON.stringify({
-              type: 'error',
-              message: 'Transcription failed due to server error. Check server logs for details.',
-            })
-          );
-          // Clear audio so next turn starts fresh
-          audioBuffer = Buffer.alloc(0);
-          return;
-        }
-
-        ws.send(
-          JSON.stringify({
-            type: 'transcript',
-            text: userText,
-          })
-        );
-
-        // Clear audio buffer for the next recording
-        audioBuffer = Buffer.alloc(0);
-
-        // ----- PHASE 2: SIMPLE AGENT REPLY -----
-        const replyText = generateAgentReply(userText);
-        // console.log(`Agent Reply: ${replyText}`);
-        ws.send(JSON.stringify({ type: 'reply_text', text: replyText }));
-
-        // ----- PHASE 3: TTS -----
-        const audioContent = await synthesizeSpeech(replyText);
-
-        // console.log('[WS] Sending TTS audio. Bytes:', audioContent.length);
-
-        if (!audioContent || !audioContent.length) {
-          console.error('[TTS] No audio bytes to send');
-          ws.send(
-            JSON.stringify({
-              type: 'error',
-              message: 'TTS failed or returned empty audio.',
-            })
-          );
-          return;
-        }
-
-        // 1. tell client to start collecting audio
-        ws.send(JSON.stringify({ type: 'audio_start', format: 'mp3' }));
-
-        // 2. send raw bytes as a binary frame
-        ws.send(audioContent, { binary: true });
-
-        // 3. tell client audio is done
-        ws.send(JSON.stringify({ type: 'audio_end' }));
+        await sendTTSReply(ws, greetingText);
+        break;
       }
 
-      // You can add more command types here if needed:
-      // else if (command.type === 'PING') { ... }
-    } catch (e) {
-      if (e instanceof SyntaxError) {
-        console.warn('[WS] Non-JSON text frame received, ignoring:', text);
-      } else {
-        console.error('Error processing WebSocket message:', e);
+      // New continuous listening name
+      case 'END_UTTERANCE': {
+        console.log('[WS] END_UTTERANCE / STOP_RECORDING received');
+        await processUtterance(ws, audioBufferRef);
+        break;
+      }
+
+      case 'PING': {
+        ws.send(JSON.stringify({ type: 'PONG' }));
+        break;
+      }
+
+      default: {
+        console.warn('[WS] Unknown command type:', command.type);
       }
     }
   });
 
   ws.on('close', () => {
-    // console.log('Client disconnected');
+    isClosing = true;
+    console.log('[WS] Client disconnected');
   });
 
   ws.on('error', (error) => {
-    console.error('WebSocket Error:', error);
+    isClosing = true;
+    console.error('[WS] WebSocket Error:', error);
   });
 }

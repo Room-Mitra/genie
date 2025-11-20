@@ -1,27 +1,27 @@
-import {
-  ArrowUpIcon,
-  ChatBubbleLeftIcon,
-  MicrophoneIcon,
-  SparklesIcon,
-  XCircleIcon,
-} from '@heroicons/react/24/outline';
+import { ChatBubbleLeftIcon, SparklesIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import { useState, useRef, useEffect, useCallback } from 'react';
-// // Using lucide-react icons (assuming it's available in the environment)
-// import { Mic, Zap, MessageCircle, Volume2, ArrowUp, XCircle } from 'lucide-react';
 
-const SERVER_URL = 'ws://localhost:3001'; // UPDATED: Changed from 8080 to 3001
+const SERVER_URL = 'ws://localhost:3001';
 
-// --- Audio Configuration (Must match server.js) ---
+// Must match server
 const SAMPLE_RATE = 16000;
 const BUFFER_SIZE = 4096;
 
-export const Agent = () => {
-  const [isRecording, setIsRecording] = useState(false);
-  const [transcript, setTranscript] = useState('Tap the mic to start speaking...');
-  const [replyText, setReplyText] = useState('');
+export const Agent = ({ onClose, onSuccess }) => {
   const [isConnected, setIsConnected] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
   const [error, setError] = useState(null);
+  const [conversationEnded, setConversationEnded] = useState(false);
+
+  // Chat messages { id, role: 'user' | 'agent' | 'system', text }
+  const [messages, setMessages] = useState([
+    {
+      id: 'init',
+      role: 'system',
+      text: 'Connecting you to the Room Mitra voice agent...',
+    },
+  ]);
 
   const wsRef = useRef(null);
   const audioContextRef = useRef(null);
@@ -29,170 +29,112 @@ export const Agent = () => {
   const streamRef = useRef(null);
 
   const isRecordingRef = useRef(false);
+  const manualCloseRef = useRef(false); // true when user explicitly ends conversation or closes UI
+  const lastSpeechTimeRef = useRef(Date.now());
+  const hasSentEndForThisUtteranceRef = useRef(false);
 
   useEffect(() => {
     isRecordingRef.current = isRecording;
   }, [isRecording]);
 
-  // --- 1. WebSocket Setup ---
-
-  const connectWebSocket = useCallback(() => {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      setIsConnected(true);
-      return;
-    }
-
-    // console.log(`Attempting to connect to WebSocket server at: ${SERVER_URL}`);
-
-    const ws = new WebSocket(SERVER_URL);
-    wsRef.current = ws;
-
-    // Make sure binary frames come in as ArrayBuffer
-    ws.binaryType = 'arraybuffer';
-
-    ws.onopen = () => {
-      // console.log('WebSocket connected');
-      setIsConnected(true);
-      setError(null);
-    };
-
-    ws.onclose = (event) => {
-      // Added 'event' argument
-      setIsConnected(false); // Immediate update on close
-      let reason = `Code: ${event.code}, Reason: ${event.reason || 'No specific reason provided'}`;
-      // console.log(`WebSocket disconnected (${reason}). Attempting to reconnect in 5s...`);
-      setError(`Connection lost to ${ws.url}. Attempting reconnection...`);
-      setTimeout(connectWebSocket, 5000);
-    };
-
-    ws.onerror = (e) => {
-      // Updated error logging to provide more context
-      console.warn(
-        'WebSocket connection attempt failed. Check server status and URL:',
-        wsRef.current?.url,
-        e
-      );
-      // Check if the connection is immediately closing (likely a connection refused error)
-      if (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
-        setError(
-          `Failed to connect to ${ws.url}. Ensure the Node.js server is running and accessible.`
-        );
-      } else {
-        setError(`WebSocket connection error. Check console for details.`);
-      }
-      // Do not call ws.close() here as it might be called in onclose handler already
-    };
-
-    // This buffer holds chunks of the incoming TTS audio (MP3)
-    let ttsAudioChunks = [];
-    let isReceivingAudio = false;
-
-    ws.onmessage = async (event) => {
-      // 1. Binary frames = TTS audio data (since we set binaryType = 'arraybuffer')
-      if (typeof event.data !== 'string') {
-        if (isReceivingAudio) {
-          // event.data is already an ArrayBuffer
-          ttsAudioChunks.push(event.data);
-        }
-        return;
-      }
-
-      // 2. Text frames = JSON messages
-      try {
-        const message = JSON.parse(event.data);
-
-        if (message.type === 'transcript') {
-          // console.log('Received STT Transcript:', message.text);
-          setTranscript(message.text);
-          setIsThinking(true);
-        } else if (message.type === 'reply_text') {
-          setReplyText(message.text);
-        } else if (message.type === 'audio_start') {
-          // console.log('Receiving TTS audio...');
-          ttsAudioChunks = [];
-          isReceivingAudio = true;
-        } else if (message.type === 'audio_end') {
-          // console.log('Finished receiving TTS audio. Chunks:', ttsAudioChunks.length);
-          isReceivingAudio = false;
-          setIsThinking(false);
-
-          if (!ttsAudioChunks.length) {
-            console.error('No TTS audio chunks received before audio_end');
-            return;
-          }
-
-          const audioBlob = new Blob(ttsAudioChunks, { type: 'audio/mpeg' });
-          const audioUrl = URL.createObjectURL(audioBlob);
-          const audio = new Audio(audioUrl);
-
-          audio.play().catch((e) => console.error('Audio playback error:', e));
-          audio.onended = () => URL.revokeObjectURL(audioUrl);
-        } else if (message.type === 'error') {
-          setError(`Server Error: ${message.message}`);
-          setIsThinking(false);
-        }
-      } catch (e) {
-        console.warn('Received non-JSON message:', event.data, e);
-      }
-    };
+  // Utility to append a message
+  const pushMessage = useCallback((role, text) => {
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        role,
+        text,
+      },
+    ]);
   }, []);
 
-  useEffect(() => {
-    connectWebSocket();
-    return () => {
-      // Only close the WebSocket when the component unmounts
-      if (wsRef.current) wsRef.current.close();
-      // IMPORTANT: If we started the AudioContext, we should close it here too
-      // to ensure microphone resource is released on unmount.
-      if (audioContextRef.current) audioContextRef.current.close();
-    };
-  }, [connectWebSocket]);
-
-  // --- 2. Audio Recording Logic (Web Audio API for PCM/LINEAR16) ---
+  // Convert Float32 PCM to Int16 for server
   function float32ToInt16(float32Array) {
     const int16Array = new Int16Array(float32Array.length);
     for (let i = 0; i < float32Array.length; i++) {
       let s = float32Array[i];
-      // clamp
       if (s > 1) s = 1;
       else if (s < -1) s = -1;
-      // scale to 16-bit signed
       int16Array[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
     }
     return int16Array;
   }
 
-  const startRecording = async () => {
-    if (!isConnected) {
-      setError('Not connected to the server. Please check the connection.');
+  // Core cleanup for mic + audio + socket
+  const cleanupResources = useCallback(() => {
+    manualCloseRef.current = true; // avoid auto reconnect on purpose
+
+    // Stop recording flag
+    isRecordingRef.current = false;
+    setIsRecording(false);
+
+    // Stop ScriptProcessor
+    if (processorRef.current) {
+      try {
+        processorRef.current.disconnect();
+      } catch (e) {
+        console.warn('Error disconnecting processor', e);
+      }
+      processorRef.current = null;
+    }
+
+    // Stop audio tracks
+    if (streamRef.current) {
+      try {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+      } catch (e) {
+        console.warn('Error stopping media tracks', e);
+      }
+      streamRef.current = null;
+    }
+
+    // Close audio context
+    if (audioContextRef.current) {
+      try {
+        audioContextRef.current.close();
+      } catch (e) {
+        console.warn('Error closing AudioContext', e);
+      }
+      audioContextRef.current = null;
+    }
+
+    // Close socket
+    if (wsRef.current) {
+      try {
+        wsRef.current.close();
+      } catch (e) {
+        console.warn('Error closing WebSocket', e);
+      }
+      wsRef.current = null;
+    }
+
+    setIsConnected(false);
+    setIsThinking(false);
+  }, []);
+
+  // Start mic streaming to server continuously
+  const startRecording = useCallback(async () => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      setError('Not connected to the server. Cannot start listening.');
       return;
     }
 
     try {
-      // Reset state
-      setTranscript('Listening...');
-      setReplyText('');
       setError(null);
-      setIsThinking(false);
 
       if (!audioContextRef.current) {
-        // Create AudioContext only on the first run
         const audioContext = new (window.AudioContext || window.webkitAudioContext)({
           sampleRate: SAMPLE_RATE,
         });
-        // console.log('[CLIENT] Actual AudioContext sampleRate:', audioContext.sampleRate);
-
         audioContextRef.current = audioContext;
 
-        // Get microphone stream (only need to acquire once)
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: { sampleRate: SAMPLE_RATE, channelCount: 1 },
         });
         streamRef.current = stream;
 
         const source = audioContext.createMediaStreamSource(stream);
-
-        // Create a ScriptProcessorNode to process audio chunks
         const processor = audioContext.createScriptProcessor(BUFFER_SIZE, 1, 1);
         processorRef.current = processor;
 
@@ -211,6 +153,42 @@ export const Agent = () => {
 
           const pcm16 = float32ToInt16(input); // Int16Array
 
+          // --- Basic silence detection to decide when an utterance has ended ---
+          // Compute RMS volume of this chunk
+          let sumSquares = 0;
+          for (let i = 0; i < input.length; i++) {
+            const sample = input[i];
+            sumSquares += sample * sample;
+          }
+          const rms = Math.sqrt(sumSquares / input.length);
+
+          const SILENCE_THRESHOLD = 0.01; // tweak as needed
+          const SILENCE_DURATION_MS = 1000; // 1 second of silence
+
+          const now = Date.now();
+
+          if (rms > SILENCE_THRESHOLD) {
+            // We have speech in this chunk
+            lastSpeechTimeRef.current = now;
+            hasSentEndForThisUtteranceRef.current = false;
+          } else {
+            // Chunk is "silent" -> check how long we have been silent
+            const silenceFor = now - lastSpeechTimeRef.current;
+            if (
+              !hasSentEndForThisUtteranceRef.current &&
+              silenceFor > SILENCE_DURATION_MS &&
+              wsRef.current &&
+              wsRef.current.readyState === WebSocket.OPEN
+            ) {
+              try {
+                wsRef.current.send(JSON.stringify({ type: 'END_UTTERANCE' }));
+                hasSentEndForThisUtteranceRef.current = true;
+              } catch (err) {
+                console.error('[CLIENT] Failed to send END_UTTERANCE:', err);
+              }
+            }
+          }
+
           // For debugging: log a small sample of values
           // console.log('[CLIENT] PCM16 slice:', pcm16.slice(0, 10));
 
@@ -222,140 +200,266 @@ export const Agent = () => {
           }
         };
 
-        // Connect nodes: Source -> Processor -> Destination (necessary to trigger onaudioprocess)
+        // Need to connect to destination for onaudioprocess to fire
         source.connect(processor);
         processor.connect(audioContext.destination);
-      } else {
-        // If Context exists, resume it (this re-activates the stream/processor)
+      } else if (audioContextRef.current.state === 'suspended') {
         await audioContextRef.current.resume();
       }
 
       setIsRecording(true);
+      isRecordingRef.current = true;
+      pushMessage('system', 'Listening. You can start speaking at any time.');
     } catch (err) {
       console.error('Error accessing microphone:', err);
       setError(
-        'Could not access microphone. Check permissions or ensure the app is served over HTTPS/localhost.'
+        'Could not access microphone. Check permissions or ensure the app is served over HTTPS or localhost.'
       );
       setIsRecording(false);
+      isRecordingRef.current = false;
     }
-  };
+  }, [pushMessage]);
 
-  const stopRecording = () => {
-    if (!isRecordingRef.current) return;
-
+  // WebSocket setup
+  const connectWebSocket = useCallback(() => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({ type: 'STOP_RECORDING' }));
-      // console.log('[DEBUG CLIENT] Dispatched STOP_RECORDING');
-      setTranscript('Transcription complete. Waiting for agent reply...');
+      setIsConnected(true);
+      return;
     }
 
-    setIsRecording(false);
+    manualCloseRef.current = false;
 
-    if (audioContextRef.current && audioContextRef.current.state === 'running') {
-      audioContextRef.current
-        .suspend()
-        .catch((e) => console.error('Error suspending AudioContext:', e));
-    }
-  };
+    const ws = new WebSocket(SERVER_URL);
+    wsRef.current = ws;
+    ws.binaryType = 'arraybuffer';
 
-  // Handler for the microphone button press
-  const toggleRecording = () => {
-    if (isRecording) {
-      stopRecording();
-    } else {
+    // Local TTS chunk buffer
+    let ttsAudioChunks = [];
+    let isReceivingAudio = false;
+
+    ws.onopen = () => {
+      setIsConnected(true);
+      setError(null);
+      pushMessage('system', 'Connected. Setting up your call with the agent...');
+
+      // First message: START_CALL
+      try {
+        ws.send(JSON.stringify({ type: 'START_CALL' }));
+      } catch (e) {
+        console.error('Failed to send START_CALL:', e);
+      }
+
+      // Start microphone streaming automatically
       startRecording();
-    }
-  };
+    };
 
-  // --- UI Rendering (Omitted for brevity) ---
+    ws.onclose = (event) => {
+      setIsConnected(false);
+      const reason = `Code: ${event.code}, Reason: ${event.reason || 'No specific reason provided'}`;
+
+      if (!manualCloseRef.current) {
+        // Unplanned disconnect: show error and attempt reconnect
+        setError(`Connection lost to ${ws.url} (${reason}). Attempting reconnection...`);
+        setTimeout(() => {
+          connectWebSocket();
+        }, 5000);
+      } else {
+        // Manual close. No auto reconnect.
+        pushMessage('system', 'Conversation ended.');
+      }
+    };
+
+    ws.onerror = (e) => {
+      console.warn(
+        'WebSocket connection error. Check server status and URL:',
+        wsRef.current?.url,
+        e
+      );
+      if (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
+        setError(
+          `Failed to connect to ${ws.url}. Ensure the Node.js server is running and accessible.`
+        );
+      } else {
+        setError('WebSocket connection error. Check console for details.');
+      }
+    };
+
+    ws.onmessage = async (event) => {
+      // Binary: audio chunks
+      if (typeof event.data !== 'string') {
+        if (isReceivingAudio) {
+          ttsAudioChunks.push(event.data);
+        }
+        return;
+      }
+
+      // Text: JSON control messages
+      try {
+        const message = JSON.parse(event.data);
+
+        if (message.type === 'transcript') {
+          // STT transcript from your speech
+          if (message.text) {
+            pushMessage('user', message.text);
+          }
+          setIsThinking(true);
+        } else if (message.type === 'reply_text') {
+          // Agent's reply text
+          if (message.text) {
+            pushMessage('agent', message.text);
+          }
+        } else if (message.type === 'audio_start') {
+          ttsAudioChunks = [];
+          isReceivingAudio = true;
+        } else if (message.type === 'audio_end') {
+          isReceivingAudio = false;
+          setIsThinking(false);
+
+          if (!ttsAudioChunks.length) {
+            console.error('No TTS audio chunks received before audio_end');
+            return;
+          }
+
+          const audioBlob = new Blob(ttsAudioChunks, { type: 'audio/mpeg' });
+          const audioUrl = URL.createObjectURL(audioBlob);
+          const audio = new Audio(audioUrl);
+
+          audio.play().catch((e) => console.error('Audio playback error:', e));
+          audio.onended = () => URL.revokeObjectURL(audioUrl);
+        } else if (message.type === 'error') {
+          setError(`Server Error: ${message.message}`);
+          setIsThinking(false);
+          pushMessage('system', `Server error: ${message.message}`);
+        }
+      } catch (e) {
+        console.warn('Received non JSON message:', event.data, e);
+      }
+    };
+  }, [pushMessage, startRecording]);
+
+  // Init WebSocket when component mounts
+  useEffect(() => {
+    connectWebSocket();
+    return () => {
+      cleanupResources();
+    };
+  }, [connectWebSocket, cleanupResources]);
 
   const statusColor = isConnected ? 'bg-green-500' : 'bg-red-500';
 
-  const renderIcon = () => {
-    if (!isConnected) {
-      return <XCircleIcon className="w-12 h-12 text-white" />;
+  // End only the conversation (no onClose)
+  const handleEndConversation = () => {
+    setConversationEnded(true);
+    cleanupResources();
+  };
+
+  // Close the UI, but first clean up everything
+  const handleCloseClick = () => {
+    cleanupResources();
+    onClose?.();
+  };
+
+  const renderMessageBubble = (msg) => {
+    const isUser = msg.role === 'user';
+    const isAgent = msg.role === 'agent';
+    const isSystem = msg.role === 'system';
+
+    if (isSystem) {
+      return (
+        <div key={msg.id} className="flex justify-center my-2">
+          <div className="text-xs text-gray-400 italic">{msg.text}</div>
+        </div>
+      );
     }
-    if (isRecording) {
-      return <MicrophoneIcon className="w-12 h-12 text-white animate-pulse" />;
-    }
-    if (isThinking) {
-      return <SparklesIcon className="w-12 h-12 text-white animate-spin" />;
-    }
-    return <MicrophoneIcon className="w-12 h-12 text-white" />;
+
+    return (
+      <div key={msg.id} className={`flex my-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
+        <div
+          className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm shadow-sm ${
+            isUser
+              ? 'bg-indigo-600 text-white rounded-br-sm'
+              : 'bg-gray-200 text-gray-900 rounded-bl-sm'
+          }`}
+        >
+          {msg.text}
+        </div>
+      </div>
+    );
   };
 
   return (
-    <div className="w-full bg-gray-800 max-w-2xl  shadow-2xl p-8 space-y-8">
+    <div className="w-full bg-gray-800 max-w-2xl shadow-2xl p-6 space-y-4 flex flex-col h-[480px]">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <div className="flex items-center text-sm">
+        <div className="flex items-center text-xs">
           <span className={`w-3 h-3 rounded-full mr-2 ${statusColor}`}></span>
-          <span className="text-gray-200">{isConnected ? 'Connected' : 'Disconnected'}</span>
+          <span className="text-gray-200">
+            {isConnected ? 'Connected to agent' : 'Disconnected'}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-gray-300">
+          {isRecording && !conversationEnded && (
+            <span className="flex items-center gap-1">
+              <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              Listening
+            </span>
+          )}
+          {isThinking && (
+            <span className="flex items-center gap-1">
+              <SparklesIcon className="w-4 h-4 animate-spin" />
+              Thinking
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Status/Error Messages */}
+      {/* Error */}
       {error && (
-        <div className="p-3 bg-red-100 text-red-700 rounded-xl border border-red-300">
+        <div className="p-3 bg-red-100 text-red-700 rounded-xl border border-red-300 text-xs">
           <strong>Connection Error:</strong> {error}
         </div>
       )}
 
-      {/* Transcription Display */}
-      <div className="bg-gray-100 p-6 rounded-2xl shadow-inner min-h-[100px]">
-        <h2 className="text-xs font-semibold uppercase text-gray-500 mb-2 flex items-center">
-          <ArrowUpIcon className="w-4 h-4 mr-1 text-gray-500" />
-          Your Speech (STT Result)
-        </h2>
-        <p className={`text-xl font-medium ${isRecording ? 'text-indigo-600' : 'text-gray-900'}`}>
-          {transcript}
-        </p>
-      </div>
-
-      {/* Reply Display */}
-      <div className="bg-indigo-50 p-6 rounded-2xl shadow-md min-h-[120px]">
-        <h2 className="text-xs font-semibold uppercase text-indigo-500 mb-2 flex items-center">
-          <ChatBubbleLeftIcon className="w-4 h-4 mr-1 text-indigo-500" />
-          Agent Reply (TTS Source)
-        </h2>
-        {isThinking ? (
-          <div className="flex items-center space-x-2 text-indigo-600">
-            <SparklesIcon className="w-4 h-4 animate-spin" />
-            <p className="italic">Generating response...</p>
+      {/* Conversation thread */}
+      <div className="flex-1 bg-gray-900/40 rounded-2xl p-4 overflow-y-auto space-y-1">
+        {messages.map((m) => renderMessageBubble(m))}
+        {!conversationEnded && (
+          <div className="mt-3 text-[11px] text-gray-400 flex items-center gap-1">
+            <ChatBubbleLeftIcon className="w-3 h-3" />
+            Speak naturally. The agent is listening and will reply with voice and text.
           </div>
-        ) : (
-          <p className="text-lg text-indigo-900">
-            {replyText || 'Agent is ready for your command.'}
-          </p>
+        )}
+        {conversationEnded && (
+          <div className="mt-3 text-[11px] text-gray-400 italic">
+            Conversation has ended. You can close this window.
+          </div>
         )}
       </div>
 
-      {/* Microphone Button */}
-      <div className="flex justify-center pt-4">
+      {/* Footer buttons */}
+      <div className="flex gap-3 px-2 py-2 bg-gray-900/60 rounded-xl">
         <button
-          onClick={toggleRecording}
-          disabled={!isConnected && !isRecording}
-          className={`
-                            p-6 rounded-full transition-all duration-300 shadow-xl
-                            ${
-                              isRecording
-                                ? 'bg-red-600 hover:bg-red-700 ring-4 ring-red-300/50'
-                                : 'bg-indigo-600 hover:bg-indigo-700 ring-4 ring-indigo-300/50'
-                            }
-                            ${!isConnected && !isRecording ? 'opacity-50 cursor-not-allowed' : ''}
-                        `}
-          aria-label={isRecording ? 'Stop Recording' : 'Start Recording'}
+          type="button"
+          disabled={conversationEnded || !isConnected}
+          onClick={handleEndConversation}
+          className={`inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold
+            ${
+              conversationEnded || !isConnected
+                ? 'bg-gray-500 text-gray-200 cursor-not-allowed'
+                : 'bg-red-500 text-white hover:bg-red-600'
+            }`}
         >
-          {renderIcon()}
+          End conversation
         </button>
-      </div>
 
-      {/* Instructions */}
-      <div className="text-center text-sm text-gray-500 pt-4">
-        <p>
-          Tap the button to start/stop recording. Ensure your Node.js server is running on{' '}
-          {SERVER_URL}.
-        </p>
+        <button
+          type="button"
+          data-autofocus
+          onClick={handleCloseClick}
+          className="inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold bg-white/10 text-white hover:bg-white/20"
+        >
+          Close
+        </button>
       </div>
     </div>
   );
