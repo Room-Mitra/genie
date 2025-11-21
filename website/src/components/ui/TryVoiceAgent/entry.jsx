@@ -96,7 +96,7 @@ export function TryVoiceAgent() {
               {step === 2 && (
                 <OTPForm name={name} email={email} onClose={onClose} onSuccess={onSuccess} />
               )}
-              {step === 3 && <Agent onClose={onClose} email={email} name={name} token={token} />}
+              {step === 3 && <Agent onClose={onClose} token={token} />}
             </DialogPanel>
           </div>
         </div>

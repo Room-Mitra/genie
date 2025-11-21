@@ -2,6 +2,7 @@ import { synthesizeSpeech } from '#services/TTS.service.js';
 import { transcribeAudio } from '#services/STT.service.js';
 import { handleConversation } from '#services/Conversation.service.js';
 import { ulid } from 'ulid';
+import { sendVoiceAgentTrialNotification } from '#services/Slack.service.js';
 
 const TRIAL_LIMIT_MS = 5 * 60 * 1000; // 5 minutes
 
@@ -255,6 +256,13 @@ export function connection(ws, request) {
 
     const durationMs = Date.now() - callStartedAt;
     const reason = reasonBuf.toString();
+
+    sendVoiceAgentTrialNotification(
+      { name: user.name, email: user.sub },
+      durationMs,
+      reason,
+      conversationId
+    );
 
     isClosing = true;
     // console.log('[WS] Client disconnected');
