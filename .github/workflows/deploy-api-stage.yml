@@ -118,7 +118,7 @@ jobs:
               "sudo -u appuser -H bash -lc \"docker pull ${IMAGE_URI}\"",
               "sudo -u appuser -H bash -lc \"docker stop api-stage || true\"",
               "sudo -u appuser -H bash -lc \"docker rm api-stage || true\"",
-              "sudo -u appuser -H bash -lc \"docker run -d --name api-stage -e PORT=4001 --env-file /opt/roommitra/api-stage/.env -v /opt/roommitra/api-stage/voice-agent-trial-service-account.json:/app/voice-agent-trial-service-account.json:ro --restart unless-stopped -p 4001:4001 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=api-stage ${IMAGE_URI}\"",
+              "sudo -u appuser -H bash -lc \"docker run -d --name api-stage -e PORT=4001 --env-file /opt/roommitra/api-stage/.env -v /opt/roommitra/api-stage/voice-agent-trial-service-account.json:/app/voice-agent-trial-service-account.json:ro --restart unless-stopped -p 127.0.0.1:4001:4001 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=api-stage ${IMAGE_URI}\"",
               "sudo -u appuser -H bash -lc \"docker container prune -f\"",
               "sudo -u appuser -H bash -lc \"docker system prune -af --volumes\"",
               "sudo -u appuser -H bash -lc \"docker builder prune -af\""

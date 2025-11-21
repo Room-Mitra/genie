@@ -50,19 +50,21 @@ sudo -u appuser -H bash -lc "docker run -d --name website --env-file /opt/roommi
 
 # api
 sudo -u appuser -H bash -lc "aws ssm get-parameter --name \"/roommitra/api/env\" --with-decryption --query \"Parameter.Value\" --output text > /opt/roommitra/api/.env"
+sudo -u appuser -H bash -lc "aws ssm get-parameter --name \"/roommitra/api/voice-agent-trial-service-account.json\" --with-decryption --query \"Parameter.Value\" --output text > /opt/roommitra/api/voice-agent-trial-service-account.json"
 sudo -u appuser -H bash -lc "chmod 600 /opt/roommitra/api/.env"
 sudo -u appuser -H bash -lc "docker pull ${API_IMAGE_URI}"
 sudo -u appuser -H bash -lc "docker stop api || true"
 sudo -u appuser -H bash -lc "docker rm api || true"
-sudo -u appuser -H bash -lc "docker run -d --name api -e PORT=4000 --env-file /opt/roommitra/api/.env --restart unless-stopped -p 127.0.0.1:4000:4000 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=api ${API_IMAGE_URI}"
+sudo -u appuser -H bash -lc "docker run -d --name api -e PORT=4000 --env-file /opt/roommitra/api/.env -v /opt/roommitra/api/voice-agent-trial-service-account.json:/app/voice-agent-trial-service-account.json:ro --restart unless-stopped -p 127.0.0.1:4000:4000 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=api ${API_IMAGE_URI}"
 
 # api-stage
 sudo -u appuser -H bash -lc "aws ssm get-parameter --name \"/roommitra/api-stage/env\" --with-decryption --query \"Parameter.Value\" --output text > /opt/roommitra/api-stage/.env"
+sudo -u appuser -H bash -lc "aws ssm get-parameter --name \"/roommitra/api-stage/voice-agent-trial-service-account.json\" --with-decryption --query \"Parameter.Value\" --output text > /opt/roommitra/api-stage/voice-agent-trial-service-account.json"
 sudo -u appuser -H bash -lc "chmod 600 /opt/roommitra/api-stage/.env"
 sudo -u appuser -H bash -lc "docker pull ${API_IMAGE_URI}"
 sudo -u appuser -H bash -lc "docker stop api-stage || true"
 sudo -u appuser -H bash -lc "docker rm api-stage || true"
-sudo -u appuser -H bash -lc "docker run -d --name api-stage -e PORT=4001 --env-file /opt/roommitra/api-stage/.env --restart unless-stopped -p 127.0.0.1:4001:4001 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=api-stage ${API_IMAGE_URI}"
+sudo -u appuser -H bash -lc "docker run -d --name api-stage -e PORT=4001 --env-file /opt/roommitra/api-stage/.env -v /opt/roommitra/api-stage/voice-agent-trial-service-account.json:/app/voice-agent-trial-service-account.json:ro --restart unless-stopped -p 127.0.0.1:4001:4001 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=api-stage ${API_IMAGE_URI}"
 
 
 # webapp
