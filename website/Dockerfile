@@ -1,5 +1,5 @@
 # ---------- Builder ----------
-FROM node:20-slim AS builder
+FROM node:20-alpine AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 
@@ -25,7 +25,7 @@ RUN npm run build
 RUN rm -rf .next/cache
 
 # ---------- Runtime ----------
-FROM node:20-slim AS runner
+FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
