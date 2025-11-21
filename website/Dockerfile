@@ -1,5 +1,5 @@
 # ---------- Builder ----------
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 
@@ -14,6 +14,9 @@ RUN npm ci --include=dev
 ARG NEXT_PUBLIC_SITE_URL
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 
+ARG NEXT_PUBLIC_SOCKET_IO_URL
+ENV NEXT_PUBLIC_SOCKET_IO_URL=$NEXT_PUBLIC_SOCKET_IO_URL
+
 # Build
 COPY . .
 RUN npm run build
@@ -22,7 +25,7 @@ RUN npm run build
 RUN rm -rf .next/cache
 
 # ---------- Runtime ----------
-FROM node:20-alpine AS runner
+FROM node:20-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
