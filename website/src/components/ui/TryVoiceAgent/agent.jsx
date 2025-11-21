@@ -1,4 +1,3 @@
-import { ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { MicVAD } from '@ricky0123/vad-web';
 
@@ -7,7 +6,7 @@ const SERVER_URL = process.env.NEXT_PUBLIC_SOCKET_IO_URL;
 // Must match server
 const SAMPLE_RATE = 16000;
 
-export const Agent = ({ onClose, onSuccess }) => {
+export const Agent = ({ token, onClose }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
@@ -113,8 +112,6 @@ export const Agent = ({ onClose, onSuccess }) => {
   // Core cleanup for VAD + socket (+ optional audio stop)
   const cleanupResources = useCallback((options = {}) => {
     const { stopAudio = true } = options;
-
-    manualCloseRef.current = true; // we are intentionally tearing down
 
     // Stop VAD if active
     if (vadRef.current) {
@@ -244,7 +241,8 @@ export const Agent = ({ onClose, onSuccess }) => {
 
     manualCloseRef.current = false;
 
-    const ws = new WebSocket(SERVER_URL);
+    const url = `${SERVER_URL}?token=${encodeURIComponent(token)}`;
+    const ws = new WebSocket(url);
     wsRef.current = ws;
     ws.binaryType = 'arraybuffer';
 
@@ -285,6 +283,22 @@ export const Agent = ({ onClose, onSuccess }) => {
 
       if (isPlannedEnd) {
         pushMessage('system', `Assistant has ended the call.`);
+        setConversationEnded(true);
+        // Let any last TTS audio finish naturally
+        cleanupResources({ stopAudio: false });
+        return;
+      }
+
+      if (code === 4000 && reason === 'trial_ended') {
+        pushMessage('system', `Trial has ended.`);
+        setConversationEnded(true);
+        // Let any last TTS audio finish naturally
+        cleanupResources({ stopAudio: false });
+        return;
+      }
+
+      if (code === 4003 && reason === 'unauthorized') {
+        pushMessage('system', 'Unauthorized connection.');
         setConversationEnded(true);
         // Let any last TTS audio finish naturally
         cleanupResources({ stopAudio: false });
@@ -383,8 +397,8 @@ export const Agent = ({ onClose, onSuccess }) => {
             agentLastSpeechEndTimeRef.current = Date.now();
           };
         } else if (message.type === 'call_end') {
-          
           pushMessage('system', `Agent ended the call`);
+          manualCloseRef.current = true;
           setConversationEnded(true);
           // Let remaining TTS audio finish
           cleanupResources({ stopAudio: false });
@@ -411,6 +425,8 @@ export const Agent = ({ onClose, onSuccess }) => {
 
   // End only the conversation (no onClose)
   const handleEndConversation = () => {
+    manualCloseRef.current = true; // user ended
+
     setConversationEnded(true);
 
     // Immediately interrupt any playing TTS
@@ -431,6 +447,7 @@ export const Agent = ({ onClose, onSuccess }) => {
 
   // Close the UI, but first clean up everything (also interrupts audio)
   const handleCloseClick = () => {
+    manualCloseRef.current = true; // user closed
     setConversationEnded(true);
     cleanupResources({ stopAudio: true });
     onClose?.();

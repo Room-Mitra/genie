@@ -14,6 +14,7 @@ export function TryVoiceAgent() {
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
+  const [token, setToken] = useState('');
 
   const onClick = () => {
     // router.push('/contact-us');
@@ -25,17 +26,19 @@ export function TryVoiceAgent() {
     setTimeout(() => {
       setStep(1);
       setEmail('');
+      setName('');
     }, 300);
   };
 
-  const onSuccess = ({ name: n, email: e, token: _t }) => {
+  const onSuccess = ({ name: n, email: e, token: t }) => {
     if (step === 1) {
-      setStep(2);
       setEmail(e);
       setName(n);
+      setStep(2);
     }
 
     if (step === 2) {
+      setToken(t);
       setStep(3);
     }
   };
@@ -62,10 +65,19 @@ export function TryVoiceAgent() {
           </svg>
         </button>
       </div>
-      <Dialog open={showModal} onClose={onClose} className="relative z-40">
+      <Dialog
+        open={showModal}
+        onClose={() => {
+          if (step !== 3) onClose();
+        }}
+        className="relative z-40"
+      >
         <DialogBackdrop
           transition
           className="data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in fixed inset-0 bg-gray-900/50 transition-opacity"
+          onClick={(e) => {
+            if (step === 3) e.stopPropagation();
+          }}
         />
 
         <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
@@ -88,14 +100,13 @@ export function TryVoiceAgent() {
                   </div>
                 </div>
               </div>
-              {/* {step === 1 && <LeadForm onSuccess={onSuccess} onClose={onClose} />}
+              {step === 1 && <LeadForm onSuccess={onSuccess} onClose={onClose} />}
               {step === 2 && (
                 <OTPForm name={name} email={email} onClose={onClose} onSuccess={onSuccess} />
               )}
               {step === 3 && (
-                <Agent onClose={onClose} onSuccess={onSuccess} email={email} name={name} />
-              )} */}
-              <Agent onClose={onClose} onSuccess={onSuccess} email={email} name={name} />
+                <Agent onClose={onClose} email={email} name={name} token={token} />
+              )}
             </DialogPanel>
           </div>
         </div>

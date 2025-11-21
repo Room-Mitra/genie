@@ -3,6 +3,8 @@ import { transcribeAudio } from '#services/STT.service.js';
 import { handleConversation } from '#services/Conversation.service.js';
 import { ulid } from 'ulid';
 
+const TRIAL_LIMIT_MS = 0.5 * 60 * 1000; // 5 minutes
+
 async function generateAgentReply(userText, conversationId) {
   const text = (userText || '').trim();
 
@@ -42,7 +44,9 @@ async function sendTTSReply(ws, replyText) {
   ws.send(JSON.stringify({ type: 'audio_end' }));
 }
 
-function endCall(ws, reason = 'agent_completed') {
+function endCall(ws, code = 1000, reason = 'agent_completed', options = {}) {
+  const { delayMs = 150 } = options;
+
   if (!ws || ws.readyState !== ws.OPEN) {
     console.warn('[WS] endCall called but socket is not open.');
     return;
@@ -58,15 +62,15 @@ function endCall(ws, reason = 'agent_completed') {
     })
   );
 
-  // 2. Small delay to allow message to flush before closing
+  // 2. Small delay to allow message (and any remaining audio frames) to flush
   setTimeout(() => {
     try {
-      ws.close(1000, reason); // Normal closure with reason
+      ws.close(code, reason);
       console.log('[WS] Socket closed with reason:', reason);
     } catch (err) {
       console.error('[WS] Failed to close socket:', err);
     }
-  }, 150);
+  }, delayMs);
 }
 
 // Handle a full utterance (STT -> reply -> TTS)
@@ -140,14 +144,48 @@ async function processUtterance(ws, audioBufferRef) {
 
   // 5) If the conversation can be ended, close the socket
   if (reply.canEndCall) {
-    endCall(ws, 'no_more_actions');
+    endCall(ws, 1000, 'no_more_actions');
   }
 }
 
 // --- Main connection handler ---
 
-export function connection(ws) {
-  console.log('[WS] Client connected');
+export function connection(ws, request) {
+  const user = request.user;
+
+  if (!user) {
+    // Should not happen if upgrade auth is correct, but just in case:
+    endCall(ws, 4003, 'unauthorized');
+    return;
+  }
+
+  const callStartedAt = Date.now();
+  ws.callStartedAt = callStartedAt;
+
+  const TRIAL_MESSAGE =
+    'This was a trial call with Room Mitra and is limited to 5 minutes. I will end the call now. To continue, please request a full demo from our website.';
+
+  // Set up a timer that ends the call after 5 minutes
+  const trialTimer = setTimeout(async () => {
+    if (!ws || ws.readyState !== ws.OPEN) {
+      console.warn('[WS] Trial timer fired but socket is not open.');
+      return;
+    }
+
+    console.log('[WS] Trial limit reached. Sending final TTS.');
+
+    try {
+      // 1) Send the text + audio fully
+      await sendTTSReply(ws, TRIAL_MESSAGE);
+    } catch (err) {
+      console.error('[WS] Error sending trial TTS reply:', err);
+    }
+
+    // 2) Now signal call end and close socket (optionally with a slightly longer delay)
+    endCall(ws, 4000, 'trial_ended', { delayMs: 2000 }); // 2s to let buffers flush
+  }, TRIAL_LIMIT_MS);
+
+  ws.trialTimer = trialTimer;
 
   const conversationId = ulid();
   ws.conversationId = conversationId;
@@ -209,7 +247,15 @@ export function connection(ws) {
     }
   });
 
-  ws.on('close', () => {
+  ws.on('close', (_code, reasonBuf) => {
+    // Always clear the timer so it does not fire after the socket is already closed
+    if (ws.trialTimer) {
+      clearTimeout(ws.trialTimer);
+    }
+
+    const durationMs = Date.now() - callStartedAt;
+    const reason = reasonBuf.toString();
+
     isClosing = true;
     console.log('[WS] Client disconnected');
   });
