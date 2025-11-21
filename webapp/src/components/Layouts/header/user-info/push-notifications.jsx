@@ -4,9 +4,9 @@ import { getFirebaseMessaging } from '@/lib/firebaseClient';
 import { getToken } from 'firebase/messaging';
 
 export default function PushNotifications({ user }) {
-  const { userId } = user;
 
   async function enable() {
+    const { userId } = user;
     try {
       const perm = await Notification.requestPermission();
       if (perm !== 'granted') {
@@ -31,7 +31,9 @@ export default function PushNotifications({ user }) {
   }
 
   useEffect(() => {
-    enable();
+    if (user) {
+      enable();
+    }
   }, []);
 
   return null;
