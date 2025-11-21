@@ -1,51 +1,9 @@
-import { TTSClient } from '#clients/TTS.client.js';
-import { STTClient } from '#clients/STT.client.js';
+import { synthesizeSpeech } from '#services/TTS.service.js';
+import { transcribeAudio } from '#services/STT.service.js';
+import { handleConversation } from '#services/Conversation.service.js';
+import { ulid } from 'ulid';
 
-// --- Configuration ---
-
-const AUDIO_CONFIG = {
-  encoding: 'LINEAR16',
-  sampleRateHertz: 16000,
-  languageCode: 'en-US',
-};
-
-// --- Helpers ---
-
-async function transcribeAudio(audioBuffer) {
-  try {
-    if (!audioBuffer || !audioBuffer.length) {
-      console.warn('[STT] Empty audioBuffer passed to transcribeAudio');
-      return '';
-    }
-
-    const audioBytes = audioBuffer.toString('base64');
-
-    const request = {
-      audio: { content: audioBytes },
-      config: AUDIO_CONFIG,
-    };
-
-    const [response] = await STTClient.recognize(request);
-
-    if (!response.results || response.results.length === 0) {
-      console.warn('[STT] No transcription results from STT service');
-      return '';
-    }
-
-    const transcription = response.results
-      .map((result) => result.alternatives?.[0]?.transcript || '')
-      .join(' ')
-      .trim();
-
-    console.log('[STT] Final transcription:', transcription);
-    return transcription;
-  } catch (err) {
-    console.error('[STT] Error during transcription:', err);
-    return 'Transcription failed.';
-  }
-}
-
-function generateAgentReply(userText) {
+async function generateAgentReply(userText, conversationId) {
   const text = (userText || '').trim();
 
   if (!text) {
@@ -53,42 +11,15 @@ function generateAgentReply(userText) {
     return 'How can I help you?';
   }
 
-  if (text.toLowerCase().includes('weather')) {
-    return 'The current weather is sunny with a high of 75 degrees Fahrenheit. Is there anything else I can help you with?';
-  }
-
-  return `Thank you for saying, "${text}". I am now processing your request. Please wait one moment.`;
-}
-
-async function synthesizeSpeech(text) {
-  const request = {
-    input: { text },
-    voice: {
-      languageCode: 'en-IN',
-      name: 'en-IN-Neural2-D',
-    },
-    audioConfig: {
-      audioEncoding: 'MP3',
-      speakingRate: 1.1,
-    },
+  const conversationData = {
+    hotelId: process.env.DEMO_HOTEL_ID,
+    conversationId,
+    userContent: text,
+    isProspect: true,
   };
 
-  try {
-    const [response] = await TTSClient.synthesizeSpeech(request);
-    const audioBase64 = response.audioContent;
-
-    if (!audioBase64) {
-      console.warn('[TTS] Empty audioContent returned from TTS');
-      return Buffer.alloc(0);
-    }
-
-    const audioBuffer = Buffer.from(audioBase64, 'base64');
-    console.log('[TTS] Audio buffer size:', audioBuffer.length);
-    return audioBuffer;
-  } catch (error) {
-    console.error('[TTS] Error:', error);
-    return Buffer.alloc(0);
-  }
+  const result = await handleConversation(conversationData);
+  return result.message;
 }
 
 // Send one text + TTS reply
@@ -178,7 +109,7 @@ async function processUtterance(ws, audioBufferRef) {
   );
 
   // 4) Generate and speak reply
-  const replyText = generateAgentReply(cleaned);
+  const replyText = await generateAgentReply(cleaned, ws.conversationId);
   await sendTTSReply(ws, replyText);
 }
 
@@ -186,6 +117,9 @@ async function processUtterance(ws, audioBufferRef) {
 
 export function connection(ws) {
   console.log('[WS] Client connected');
+
+  const conversationId = ulid();
+  ws.conversationId = conversationId;
 
   // Use a wrapper object so we can mutate .current from async function safely
   const audioBufferRef = { current: Buffer.alloc(0) };

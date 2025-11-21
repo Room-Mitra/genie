@@ -2,7 +2,7 @@ import { ChatBubbleLeftIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { MicVAD } from '@ricky0123/vad-web';
 
-const SERVER_URL = 'ws://localhost:3001';
+const SERVER_URL = process.env.NEXT_PUBLIC_SOCKET_IO_URL;
 
 // Must match server
 const SAMPLE_RATE = 16000;
@@ -39,13 +39,26 @@ export const Agent = ({ onClose, onSuccess }) => {
 
   // Utility to append a message
   const pushMessage = useCallback((role, text) => {
-    if (!text) return;
+    if (text == null) {
+      console.log('[RETURN] 1');
+      return;
+    }
+
+    let safeText = text;
+
+    if (typeof text === 'object') {
+      console.warn('[Agent] pushMessage got non-string text:', text);
+      safeText = JSON.stringify(text, null, 2); // or just return to skip it
+    } else if (typeof text !== 'string') {
+      safeText = String(text);
+    }
+
     setMessages((prev) => [
       ...prev,
       {
         id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
         role,
-        text,
+        text: safeText,
       },
     ]);
   }, []);
@@ -59,6 +72,7 @@ export const Agent = ({ onClose, onSuccess }) => {
       else if (s < -1) s = -1;
       int16Array[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
     }
+    console.log('[RETURN] 2');
     return int16Array;
   }
 
@@ -103,6 +117,7 @@ export const Agent = ({ onClose, onSuccess }) => {
   const startRecording = useCallback(async () => {
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
       setError('Not connected to the server. Cannot start listening.');
+      console.log('[RETURN] 3');
       return;
     }
 
@@ -122,14 +137,19 @@ export const Agent = ({ onClose, onSuccess }) => {
 
             // Ignore segments that are clearly from our own TTS
             if (isAgentSpeakingRef.current || now - agentLastSpeechEndTimeRef.current < 500) {
+              console.log('[RETURN] 4');
               return;
             }
 
             if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+              console.log('[RETURN] 5');
               return;
             }
 
-            if (!audio || !audio.length) return;
+            if (!audio || !audio.length) {
+              console.log('[RETURN] 6');
+              return;
+            }
 
             // --- Tiny filter for coughs, "uh", throat clearing etc. ---
 
@@ -150,6 +170,7 @@ export const Agent = ({ onClose, onSuccess }) => {
             if (durationSec < MIN_DURATION_SEC || rms < MIN_RMS) {
               // You can console.log here for debugging if you want
               // console.log('[VAD] Dropped short/quiet segment', { durationSec, rms });
+              console.log('[RETURN] 7');
               return;
             }
 
@@ -192,6 +213,7 @@ export const Agent = ({ onClose, onSuccess }) => {
   const connectWebSocket = useCallback(() => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       setIsConnected(true);
+      console.log('[RETURN] 8');
       return;
     }
 
@@ -257,9 +279,12 @@ export const Agent = ({ onClose, onSuccess }) => {
     ws.onmessage = async (event) => {
       // Binary: audio chunks
       if (typeof event.data !== 'string') {
+        console.log('[WS] raw message:', event);
+
         if (isReceivingAudio) {
           ttsAudioChunks.push(event.data);
         }
+        console.log('[RETURN] 9');
         return;
       }
 
@@ -287,6 +312,7 @@ export const Agent = ({ onClose, onSuccess }) => {
 
           if (!ttsAudioChunks.length) {
             console.error('No TTS audio chunks received before audio_end');
+            console.log('[RETURN] 10');
             return;
           }
 

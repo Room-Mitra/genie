@@ -16,8 +16,8 @@ export function TryVoiceAgent() {
   const [name, setName] = useState('');
 
   const onClick = () => {
-    router.push('/contact-us');
-    // setShowModal(true);
+    // router.push('/contact-us');
+    setShowModal(true);
   };
 
   const onClose = () => {
@@ -88,11 +88,14 @@ export function TryVoiceAgent() {
                   </div>
                 </div>
               </div>
-              {step === 1 && <LeadForm onSuccess={onSuccess} onClose={onClose} />}
+              {/* {step === 1 && <LeadForm onSuccess={onSuccess} onClose={onClose} />}
               {step === 2 && (
                 <OTPForm name={name} email={email} onClose={onClose} onSuccess={onSuccess} />
               )}
-              {step === 3 && <Agent onClose={onClose} onSuccess={onSuccess} />}
+              {step === 3 && (
+                <Agent onClose={onClose} onSuccess={onSuccess} email={email} name={name} />
+              )} */}
+              <Agent onClose={onClose} onSuccess={onSuccess} email={email} name={name} />
             </DialogPanel>
           </div>
         </div>
@@ -101,8 +104,7 @@ export function TryVoiceAgent() {
   );
 }
 
-
-// TODO : Send token from OTP to Agent, 
+// TODO : Send token from OTP to Agent,
 // TODO: auth token on socket handling
 
 // TODO: terminate call after 5 minutes
@@ -111,5 +113,4 @@ export function TryVoiceAgent() {
 
 // TODO: Add typing indicator when agent is responding
 
-// TODO: Improve the connected state / live call indicator 
-
+// TODO: Improve the connected state / live call indicator
