@@ -216,8 +216,6 @@ export const Agent = ({ token, onClose }) => {
 
         vadRef.current = vad;
         await vad.start();
-
-        pushMessage('system', 'Listening. You can start speaking at any time.');
       }
 
       setIsRecording(true);
@@ -273,50 +271,32 @@ export const Agent = ({ token, onClose }) => {
 
       const code = event.code;
       const reason = event.reason || 'No specific reason provided';
-
       const closeInfo = `Code: ${code}, Reason: ${reason}`;
 
-      // If server ended the call intentionally
-      const isPlannedEnd =
-        code === 1000 &&
-        ['agent_completed', 'user_requested_end', 'no_more_actions'].includes(reason);
+      // 1. Any intentional close (user pressed End / Close, or server sent call_end / END_CALL)
+      if (manualCloseRef.current) {
+        // We may already have set conversationEnded and pushed a message,
+        // but this is safe to call again.
+        if (!conversationEnded) {
+          setConversationEnded(true);
+          // If for some reason we never got a call_end message, fall back:
+        }
 
-      if (isPlannedEnd) {
-        pushMessage('system', `Assistant has ended the call.`);
-        setConversationEnded(true);
-        // Let any last TTS audio finish naturally
+        // Let any last TTS audio finish; do not stop it here
         cleanupResources({ stopAudio: false });
         return;
       }
 
-      if (code === 4000 && reason === 'trial_ended') {
-        pushMessage('system', `Trial has ended.`);
-        setConversationEnded(true);
-        // Let any last TTS audio finish naturally
-        cleanupResources({ stopAudio: false });
-        return;
-      }
-
-      if (code === 4003 && reason === 'unauthorized') {
+      // 2. Known non retryable closes (for example auth failure)
+      if (code === 4003) {
         pushMessage('system', 'Unauthorized connection.');
         setConversationEnded(true);
-        // Let any last TTS audio finish naturally
         cleanupResources({ stopAudio: false });
         return;
       }
 
-      // Client-initiated close (manual hangup / UI close)
-      if (manualCloseRef.current) {
-        pushMessage('system', 'You ended the call.');
-        setConversationEnded(true);
-        // We already stopped audio when initiating cleanup; avoid double-stop here
-        cleanupResources({ stopAudio: false });
-        return;
-      }
-
-      // Otherwise: unexpected disconnect
+      // 3. Otherwise: unexpected disconnect => auto-reconnect
       setError(`Connection lost to ${ws.url} (${closeInfo}). Attempting reconnection...`);
-
       setTimeout(() => {
         connectWebSocket();
       }, 5000);
@@ -397,11 +377,12 @@ export const Agent = ({ token, onClose }) => {
             agentLastSpeechEndTimeRef.current = Date.now();
           };
         } else if (message.type === 'call_end') {
-          pushMessage('system', `Agent ended the call`);
+          // Server has decided to end the call
           manualCloseRef.current = true;
           setConversationEnded(true);
-          // Let remaining TTS audio finish
-          cleanupResources({ stopAudio: false });
+
+          // For any server initiated end (including trial_ended), we always say:
+          pushMessage('system', 'Agent ended the call.');
         } else if (message.type === 'error') {
           setError(`Server Error: ${message.message}`);
           setIsThinking(false);
@@ -425,7 +406,10 @@ export const Agent = ({ token, onClose }) => {
 
   // End only the conversation (no onClose)
   const handleEndConversation = () => {
-    manualCloseRef.current = true; // user ended
+    manualCloseRef.current = true; // user explicitly ended
+
+    // Only here we show "You ended the call."
+    pushMessage('system', 'You ended the call.');
 
     setConversationEnded(true);
 
@@ -441,7 +425,7 @@ export const Agent = ({ token, onClose }) => {
       console.warn('[CLIENT] Failed to send END_CALL', e);
     }
 
-    // Tear down mic + socket etc; this will also mark manualCloseRef
+    // Tear down mic + socket etc; server will close its side too
     cleanupResources({ stopAudio: false });
   };
 

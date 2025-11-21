@@ -3,7 +3,7 @@ import { transcribeAudio } from '#services/STT.service.js';
 import { handleConversation } from '#services/Conversation.service.js';
 import { ulid } from 'ulid';
 
-const TRIAL_LIMIT_MS = 0.5 * 60 * 1000; // 5 minutes
+const TRIAL_LIMIT_MS = 5 * 60 * 1000; // 5 minutes
 
 async function generateAgentReply(userText, conversationId) {
   const text = (userText || '').trim();
@@ -52,7 +52,7 @@ function endCall(ws, code = 1000, reason = 'agent_completed', options = {}) {
     return;
   }
 
-  console.log('[WS] Ending call. Reason:', reason);
+  // console.log('[WS] Ending call. Reason:', reason);
 
   // 1. Notify client that the agent is ending the call
   ws.send(
@@ -66,7 +66,7 @@ function endCall(ws, code = 1000, reason = 'agent_completed', options = {}) {
   setTimeout(() => {
     try {
       ws.close(code, reason);
-      console.log('[WS] Socket closed with reason:', reason);
+      // console.log('[WS] Socket closed with reason:', reason);
     } catch (err) {
       console.error('[WS] Failed to close socket:', err);
     }
@@ -81,11 +81,11 @@ async function processUtterance(ws, audioBufferRef) {
   // 16000 samples/sec * 2 bytes/sample ≈ 32000 bytes/sec
   const MIN_AUDIO_BYTES = 32000 * 0.2; // ~0.2 seconds
   if (!audioBuffer || audioBuffer.length < MIN_AUDIO_BYTES) {
-    console.log(
-      '[WS] END_UTTERANCE: audio too short (',
-      audioBuffer?.length || 0,
-      'bytes). Skipping STT.'
-    );
+    // console.log(
+    //   '[WS] END_UTTERANCE: audio too short (',
+    //   audioBuffer?.length || 0,
+    //   'bytes). Skipping STT.'
+    // );
     audioBufferRef.current = Buffer.alloc(0);
     return;
   }
@@ -93,7 +93,7 @@ async function processUtterance(ws, audioBufferRef) {
   // Clear buffer for next utterance
   audioBufferRef.current = Buffer.alloc(0);
 
-  console.log('[WS] Processing utterance. Audio bytes:', audioBuffer.length);
+  // console.log('[WS] Processing utterance. Audio bytes:', audioBuffer.length);
 
   const userText = await transcribeAudio(audioBuffer);
 
@@ -113,10 +113,10 @@ async function processUtterance(ws, audioBufferRef) {
   //    We also skip the "sorry, I couldn’t hear that" in this case.
   const MIN_TRANSCRIPT_CHARS = 5;
   if (!cleaned || cleaned.length < MIN_TRANSCRIPT_CHARS) {
-    console.log(
-      '[WS] Empty/short transcription, skipping reply. Transcript:',
-      JSON.stringify(cleaned)
-    );
+    // console.log(
+    //   '[WS] Empty/short transcription, skipping reply. Transcript:',
+    //   JSON.stringify(cleaned)
+    // );
 
     // Optional: you can send a transcript back if you want to debug, but
     // the client ignores empty text anyway.
@@ -220,7 +220,7 @@ export function connection(ws, request) {
 
     switch (command.type) {
       case 'START_CALL': {
-        console.log('[WS] START_CALL received');
+        // console.log('[WS] START_CALL received');
 
         const greetingText =
           'Hi, this is Room Mitra. I am your virtual assistant for the hotel. How can I help you today?';
@@ -231,7 +231,7 @@ export function connection(ws, request) {
 
       // New continuous listening name
       case 'END_UTTERANCE': {
-        console.log('[WS] END_UTTERANCE / STOP_RECORDING received');
+        // console.log('[WS] END_UTTERANCE / STOP_RECORDING received');
         await processUtterance(ws, audioBufferRef);
         break;
       }
@@ -257,7 +257,7 @@ export function connection(ws, request) {
     const reason = reasonBuf.toString();
 
     isClosing = true;
-    console.log('[WS] Client disconnected');
+    // console.log('[WS] Client disconnected');
   });
 
   ws.on('error', (error) => {

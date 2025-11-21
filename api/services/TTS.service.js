@@ -23,7 +23,7 @@ export async function synthesizeSpeech(text) {
     }
 
     const audioBuffer = Buffer.from(audioBase64, 'base64');
-    console.log('[TTS] Audio buffer size:', audioBuffer.length);
+    // console.log('[TTS] Audio buffer size:', audioBuffer.length);
     return audioBuffer;
   } catch (error) {
     console.error('[TTS] Error:', error);

@@ -34,7 +34,7 @@ export async function transcribeAudio(audioBuffer) {
       .join(' ')
       .trim();
 
-    console.log('[STT] Final transcription:', transcription);
+    // console.log('[STT] Final transcription:', transcription);
     return transcription;
   } catch (err) {
     console.error('[STT] Error during transcription:', err);
