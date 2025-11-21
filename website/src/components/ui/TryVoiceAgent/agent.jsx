@@ -1,4 +1,4 @@
-import { ChatBubbleLeftIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { MicVAD } from '@ricky0123/vad-web';
 
@@ -10,7 +10,7 @@ const SAMPLE_RATE = 16000;
 export const Agent = ({ onClose, onSuccess }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [isThinking, setIsThinking] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false); // new - waiting for STT
   const [error, setError] = useState(null);
   const [conversationEnded, setConversationEnded] = useState(false);
 
@@ -29,13 +29,29 @@ export const Agent = ({ onClose, onSuccess }) => {
   const isRecordingRef = useRef(false);
   const manualCloseRef = useRef(false); // true when user explicitly ends conversation or closes UI
 
+  // TTS audio tracking so we can stop it on hangup
+  const currentAudioRef = useRef(null);
+  const currentAudioUrlRef = useRef(null);
+
   // Used to avoid reacting to our own TTS
   const isAgentSpeakingRef = useRef(false);
   const agentLastSpeechEndTimeRef = useRef(0);
 
+  const messagesEndRef = useRef(null);
+
   useEffect(() => {
     isRecordingRef.current = isRecording;
   }, [isRecording]);
+
+  // Auto scroll to bottom whenever messages or typing state changes
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'end',
+      });
+    }
+  }, [messages, isTranscribing, conversationEnded]);
 
   // Utility to append a message
   const pushMessage = useCallback((role, text) => {
@@ -75,7 +91,25 @@ export const Agent = ({ onClose, onSuccess }) => {
     return int16Array;
   }
 
-  // Core cleanup for VAD + socket
+  const stopCurrentAudio = () => {
+    try {
+      if (currentAudioRef.current) {
+        currentAudioRef.current.pause();
+        currentAudioRef.current.currentTime = 0;
+      }
+      if (currentAudioUrlRef.current) {
+        URL.revokeObjectURL(currentAudioUrlRef.current);
+      }
+    } catch (e) {
+      console.warn('[CLIENT] Error stopping audio', e);
+    } finally {
+      currentAudioRef.current = null;
+      currentAudioUrlRef.current = null;
+      isAgentSpeakingRef.current = false;
+    }
+  };
+
+  // Core cleanup for VAD + socket + audio
   const cleanupResources = useCallback(() => {
     manualCloseRef.current = true; // avoid auto reconnect on purpose
 
@@ -98,6 +132,9 @@ export const Agent = ({ onClose, onSuccess }) => {
     isRecordingRef.current = false;
     setIsRecording(false);
 
+    // Stop any TTS audio that is playing
+    stopCurrentAudio();
+
     // Close socket
     if (wsRef.current) {
       try {
@@ -109,7 +146,7 @@ export const Agent = ({ onClose, onSuccess }) => {
     }
 
     setIsConnected(false);
-    setIsThinking(false);
+    setIsTranscribing(false);
   }, []);
 
   // Start MicVAD: WebRTC-style VAD, no manual silence detection
@@ -127,7 +164,6 @@ export const Agent = ({ onClose, onSuccess }) => {
         const vad = await MicVAD.new({
           onSpeechStart: () => {
             // Speech started (user likely talking)
-            // You could set some UI indicator here if desired
           },
           onSpeechEnd: (audio) => {
             // audio is a Float32Array at 16kHz containing JUST the speech segment
@@ -146,7 +182,7 @@ export const Agent = ({ onClose, onSuccess }) => {
               return;
             }
 
-            // --- Tiny filter for coughs, "uh", throat clearing etc. ---
+            // Tiny filter for coughs, "uh", throat clearing etc.
 
             // 1) Duration check
             const durationSec = audio.length / SAMPLE_RATE;
@@ -163,25 +199,23 @@ export const Agent = ({ onClose, onSuccess }) => {
 
             // Drop tiny or very quiet segments
             if (durationSec < MIN_DURATION_SEC || rms < MIN_RMS) {
-              // You can console.log here for debugging if you want
-              // console.log('[VAD] Dropped short/quiet segment', { durationSec, rms });
-
               return;
             }
 
-            // --- If we got here, this is a "real" utterance. Send it. ---
+            // If we got here, this is a "real" utterance. Send it.
             const pcm16 = float32ToInt16(audio);
 
             try {
+              setIsTranscribing(true); // we are waiting for STT
               wsRef.current.send(pcm16);
               wsRef.current.send(JSON.stringify({ type: 'END_UTTERANCE' }));
             } catch (err) {
               console.error('[CLIENT] Failed to send utterance audio:', err);
+              setIsTranscribing(false);
             }
           },
 
-          // Load WASM and model from CDN, as recommended in the README
-          // (this avoids bundling ONNX manually)
+          // Load WASM and model from CDN
           onnxWASMBasePath: 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/',
           baseAssetPath: 'https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.29/dist/',
         });
@@ -245,7 +279,7 @@ export const Agent = ({ onClose, onSuccess }) => {
 
       const closeInfo = `Code: ${code}, Reason: ${reason}`;
 
-      // If server ended the call intentionally (code 1000 + known reason)
+      // If server ended the call intentionally
       const isPlannedEnd =
         code === 1000 &&
         ['agent_completed', 'user_requested_end', 'no_more_actions'].includes(reason);
@@ -265,7 +299,7 @@ export const Agent = ({ onClose, onSuccess }) => {
         return;
       }
 
-      // Otherwise: true unexpected disconnect
+      // Otherwise: unexpected disconnect
       setError(`Connection lost to ${ws.url} (${closeInfo}). Attempting reconnection...`);
 
       setTimeout(() => {
@@ -303,10 +337,10 @@ export const Agent = ({ onClose, onSuccess }) => {
 
         if (message.type === 'transcript') {
           // STT transcript from your speech
+          setIsTranscribing(false);
           if (message.text) {
             pushMessage('user', message.text);
           }
-          setIsThinking(true);
         } else if (message.type === 'reply_text') {
           // Agent's reply text
           if (message.text) {
@@ -315,9 +349,11 @@ export const Agent = ({ onClose, onSuccess }) => {
         } else if (message.type === 'audio_start') {
           ttsAudioChunks = [];
           isReceivingAudio = true;
+
+          // New audio is about to play, stop any old audio
+          stopCurrentAudio();
         } else if (message.type === 'audio_end') {
           isReceivingAudio = false;
-          setIsThinking(false);
 
           if (!ttsAudioChunks.length) {
             console.error('No TTS audio chunks received before audio_end');
@@ -328,37 +364,37 @@ export const Agent = ({ onClose, onSuccess }) => {
           const audioUrl = URL.createObjectURL(audioBlob);
           const audio = new Audio(audioUrl);
 
+          currentAudioRef.current = audio;
+          currentAudioUrlRef.current = audioUrl;
+
           // Mark that agent is speaking so we ignore its voice in VAD onSpeechEnd
           isAgentSpeakingRef.current = true;
 
           audio.play().catch((e) => {
             console.error('Audio playback error:', e);
-            // If playback fails, clear the flag so mic works again
             isAgentSpeakingRef.current = false;
-            URL.revokeObjectURL(audioUrl);
+            stopCurrentAudio();
           });
 
           audio.onended = () => {
-            URL.revokeObjectURL(audioUrl);
-            isAgentSpeakingRef.current = false;
-
-            // Short cooldown window so any trailing echo doesn't create segments
+            stopCurrentAudio();
+            // Short cooldown window so any trailing echo does not create segments
             agentLastSpeechEndTimeRef.current = Date.now();
           };
         } else if (message.type === 'call_end') {
-          pushMessage('system', `Agent ended the call`);
+          pushMessage('system', `Agent ended the call (${message.reason})`);
           setConversationEnded(true);
           cleanupResources();
         } else if (message.type === 'error') {
           setError(`Server Error: ${message.message}`);
-          setIsThinking(false);
+          setIsTranscribing(false);
           pushMessage('system', `Server error: ${message.message}`);
         }
       } catch (e) {
         console.warn('Received non JSON message:', event.data, e);
       }
     };
-  }, [pushMessage, startRecording]);
+  }, [pushMessage, startRecording, cleanupResources]);
 
   // Init WebSocket when component mounts
   useEffect(() => {
@@ -373,6 +409,16 @@ export const Agent = ({ onClose, onSuccess }) => {
   // End only the conversation (no onClose)
   const handleEndConversation = () => {
     setConversationEnded(true);
+
+    // Let server know we are intentionally ending, if possible
+    try {
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify({ type: 'END_CALL', reason: 'user_button' }));
+      }
+    } catch (e) {
+      console.warn('[CLIENT] Failed to send END_CALL', e);
+    }
+
     cleanupResources();
   };
 
@@ -421,20 +467,7 @@ export const Agent = ({ onClose, onSuccess }) => {
             {isConnected ? 'Connected to agent' : 'Disconnected'}
           </span>
         </div>
-        <div className="flex items-center gap-2 text-xs text-gray-300">
-          {isRecording && !conversationEnded && (
-            <span className="flex items-center gap-1">
-              <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              Listening
-            </span>
-          )}
-          {isThinking && (
-            <span className="flex items-center gap-1">
-              <SparklesIcon className="w-4 h-4 animate-spin" />
-              Thinking
-            </span>
-          )}
-        </div>
+        {/* Removed scary red listening dot and sparkles spinner here */}
       </div>
 
       {/* Error */}
@@ -447,10 +480,25 @@ export const Agent = ({ onClose, onSuccess }) => {
       {/* Conversation thread */}
       <div className="flex-1 bg-gray-900/40 rounded-2xl p-4 overflow-y-auto space-y-1">
         {messages.map((m) => renderMessageBubble(m))}
+
+        {/* Typing / transcribing indicator at bottom of thread */}
+        {!conversationEnded && isTranscribing && (
+          <div className="flex justify-end my-2">
+            <div className="max-w-[60%] rounded-2xl px-3 py-2 text-xs bg-indigo-500/60 text-white flex items-center gap-2">
+              <span>Transcribing</span>
+              <span className="flex gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-white/80 animate-bounce [animation-delay:0ms]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-white/60 animate-bounce [animation-delay:150ms]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-white/40 animate-bounce [animation-delay:300ms]" />
+              </span>
+            </div>
+          </div>
+        )}
+
         {!conversationEnded && (
           <div className="mt-3 text-[11px] text-gray-400 flex items-center gap-1">
             <ChatBubbleLeftIcon className="w-3 h-3" />
-            Speak naturally. The agent is listening and will reply with voice and text.
+            <span>Speak naturally. The agent is listening and will reply with voice and text.</span>
           </div>
         )}
         {conversationEnded && (
@@ -458,7 +506,21 @@ export const Agent = ({ onClose, onSuccess }) => {
             Conversation has ended. You can close this window.
           </div>
         )}
+
+        {/* Always scroll to here */}
+        <div ref={messagesEndRef} />
       </div>
+
+      {/* Soft listening indicator at bottom */}
+      {!conversationEnded && isRecording && (
+        <div className="flex items-center gap-2 text-[11px] text-emerald-200 px-2">
+          <span className="relative flex h-3 w-3">
+            <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400" />
+          </span>
+          <span>Listening in the background. You can start speaking at any time.</span>
+        </div>
+      )}
 
       {/* Footer buttons */}
       <div className="flex gap-3 px-2 py-2 bg-gray-900/60 rounded-xl">
