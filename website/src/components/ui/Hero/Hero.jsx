@@ -44,7 +44,7 @@ const Hero = () => (
                 <EnlargeableImage
                   alt="active-requests"
                   src={HeroImg}
-                  loading={"eager"}
+                  loading={'lazy'}
                   className="rounded-lg border border-0 shadow-lg"
                 />
               </div>
