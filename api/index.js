@@ -16,6 +16,8 @@ import morgan from 'morgan';
 import cron from 'node-cron';
 import { WebSocketServer } from 'ws';
 import http from 'http';
+import url from 'url';
+import jwt from 'jsonwebtoken';
 
 // import swaggerUi from 'swagger-ui-express';
 // import swaggerJsdoc from 'swagger-jsdoc';
@@ -142,8 +144,27 @@ app.get('/android/health', (req, res) => {
 });
 
 server.on('upgrade', function upgrade(request, socket, head) {
+  const { query, pathname } = url.parse(request.url, true);
+
+  const token = query.token;
+
+  if (!token) {
+    socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+    socket.destroy();
+    return;
+  }
+
+  try {
+    request.user = jwt.verify(token, process.env.SECRET_KEY);
+  } catch (err) {
+    // Could be expired, malformed, etc.
+    socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+    socket.destroy();
+    return;
+  }
+
   // Check if the request is destined for the root WebSocket path
-  if (request.url === '/') {
+  if (pathname === '/') {
     // Use the handleUpgrade function to pass control to the ws server
     wss.handleUpgrade(request, socket, head, function done(ws) {
       wss.emit('connection', ws, request);

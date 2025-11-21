@@ -1,6 +1,6 @@
 'use client';
+
 import { Dialog, DialogBackdrop, DialogTitle, DialogPanel } from '@headlessui/react';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { LeadForm } from './leadForm';
 import { MicrophoneIcon } from '@heroicons/react/24/outline';
@@ -8,16 +8,14 @@ import { OTPForm } from './otpForm';
 import { Agent } from './agent';
 
 export function TryVoiceAgent() {
-  const router = useRouter();
-
   const [showModal, setShowModal] = useState(false);
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
+  const [token, setToken] = useState('');
 
   const onClick = () => {
-    router.push('/contact-us');
-    // setShowModal(true);
+    setShowModal(true);
   };
 
   const onClose = () => {
@@ -25,17 +23,20 @@ export function TryVoiceAgent() {
     setTimeout(() => {
       setStep(1);
       setEmail('');
+      setName('');
+      setToken('');
     }, 300);
   };
 
-  const onSuccess = ({ name: n, email: e, token: _t }) => {
+  const onSuccess = ({ name: n, email: e, token: t }) => {
     if (step === 1) {
-      setStep(2);
       setEmail(e);
       setName(n);
+      setStep(2);
     }
 
     if (step === 2) {
+      setToken(t);
       setStep(3);
     }
   };
@@ -62,10 +63,13 @@ export function TryVoiceAgent() {
           </svg>
         </button>
       </div>
-      <Dialog open={showModal} onClose={onClose} className="relative z-40">
+      <Dialog open={showModal} onClose={() => {}} className="relative z-40">
         <DialogBackdrop
           transition
           className="data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in fixed inset-0 bg-gray-900/50 transition-opacity"
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
         />
 
         <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
@@ -92,7 +96,7 @@ export function TryVoiceAgent() {
               {step === 2 && (
                 <OTPForm name={name} email={email} onClose={onClose} onSuccess={onSuccess} />
               )}
-              {step === 3 && <Agent onClose={onClose} onSuccess={onSuccess} />}
+              {step === 3 && <Agent onClose={onClose} token={token} />}
             </DialogPanel>
           </div>
         </div>
@@ -100,16 +104,3 @@ export function TryVoiceAgent() {
     </>
   );
 }
-
-
-// TODO : Send token from OTP to Agent, 
-// TODO: auth token on socket handling
-
-// TODO: terminate call after 5 minutes
-
-// TODO: Hook up reply to conversation Handler
-
-// TODO: Add typing indicator when agent is responding
-
-// TODO: Improve the connected state / live call indicator 
-

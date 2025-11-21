@@ -1,51 +1,12 @@
-import { TTSClient } from '#clients/TTS.client.js';
-import { STTClient } from '#clients/STT.client.js';
+import { synthesizeSpeech } from '#services/TTS.service.js';
+import { transcribeAudio } from '#services/STT.service.js';
+import { handleConversation } from '#services/Conversation.service.js';
+import { ulid } from 'ulid';
+import { sendVoiceAgentTrialNotification } from '#services/Slack.service.js';
 
-// --- Configuration ---
+const TRIAL_LIMIT_MS = 5 * 60 * 1000; // 5 minutes
 
-const AUDIO_CONFIG = {
-  encoding: 'LINEAR16',
-  sampleRateHertz: 16000,
-  languageCode: 'en-US',
-};
-
-// --- Helpers ---
-
-async function transcribeAudio(audioBuffer) {
-  try {
-    if (!audioBuffer || !audioBuffer.length) {
-      console.warn('[STT] Empty audioBuffer passed to transcribeAudio');
-      return '';
-    }
-
-    const audioBytes = audioBuffer.toString('base64');
-
-    const request = {
-      audio: { content: audioBytes },
-      config: AUDIO_CONFIG,
-    };
-
-    const [response] = await STTClient.recognize(request);
-
-    if (!response.results || response.results.length === 0) {
-      console.warn('[STT] No transcription results from STT service');
-      return '';
-    }
-
-    const transcription = response.results
-      .map((result) => result.alternatives?.[0]?.transcript || '')
-      .join(' ')
-      .trim();
-
-    console.log('[STT] Final transcription:', transcription);
-    return transcription;
-  } catch (err) {
-    console.error('[STT] Error during transcription:', err);
-    return 'Transcription failed.';
-  }
-}
-
-function generateAgentReply(userText) {
+async function generateAgentReply(userText, conversationId) {
   const text = (userText || '').trim();
 
   if (!text) {
@@ -53,42 +14,14 @@ function generateAgentReply(userText) {
     return 'How can I help you?';
   }
 
-  if (text.toLowerCase().includes('weather')) {
-    return 'The current weather is sunny with a high of 75 degrees Fahrenheit. Is there anything else I can help you with?';
-  }
-
-  return `Thank you for saying, "${text}". I am now processing your request. Please wait one moment.`;
-}
-
-async function synthesizeSpeech(text) {
-  const request = {
-    input: { text },
-    voice: {
-      languageCode: 'en-IN',
-      name: 'en-IN-Neural2-D',
-    },
-    audioConfig: {
-      audioEncoding: 'MP3',
-      speakingRate: 1.1,
-    },
+  const conversationData = {
+    hotelId: process.env.DEMO_HOTEL_ID,
+    conversationId,
+    userContent: text,
+    isProspect: true,
   };
 
-  try {
-    const [response] = await TTSClient.synthesizeSpeech(request);
-    const audioBase64 = response.audioContent;
-
-    if (!audioBase64) {
-      console.warn('[TTS] Empty audioContent returned from TTS');
-      return Buffer.alloc(0);
-    }
-
-    const audioBuffer = Buffer.from(audioBase64, 'base64');
-    console.log('[TTS] Audio buffer size:', audioBuffer.length);
-    return audioBuffer;
-  } catch (error) {
-    console.error('[TTS] Error:', error);
-    return Buffer.alloc(0);
-  }
+  return await handleConversation(conversationData);
 }
 
 // Send one text + TTS reply
@@ -112,6 +45,35 @@ async function sendTTSReply(ws, replyText) {
   ws.send(JSON.stringify({ type: 'audio_end' }));
 }
 
+function endCall(ws, code = 1000, reason = 'agent_completed', options = {}) {
+  const { delayMs = 150 } = options;
+
+  if (!ws || ws.readyState !== ws.OPEN) {
+    console.warn('[WS] endCall called but socket is not open.');
+    return;
+  }
+
+  // console.log('[WS] Ending call. Reason:', reason);
+
+  // 1. Notify client that the agent is ending the call
+  ws.send(
+    JSON.stringify({
+      type: 'call_end',
+      reason,
+    })
+  );
+
+  // 2. Small delay to allow message (and any remaining audio frames) to flush
+  setTimeout(() => {
+    try {
+      ws.close(code, reason);
+      // console.log('[WS] Socket closed with reason:', reason);
+    } catch (err) {
+      console.error('[WS] Failed to close socket:', err);
+    }
+  }, delayMs);
+}
+
 // Handle a full utterance (STT -> reply -> TTS)
 async function processUtterance(ws, audioBufferRef) {
   const audioBuffer = audioBufferRef.current;
@@ -120,11 +82,11 @@ async function processUtterance(ws, audioBufferRef) {
   // 16000 samples/sec * 2 bytes/sample ≈ 32000 bytes/sec
   const MIN_AUDIO_BYTES = 32000 * 0.2; // ~0.2 seconds
   if (!audioBuffer || audioBuffer.length < MIN_AUDIO_BYTES) {
-    console.log(
-      '[WS] END_UTTERANCE: audio too short (',
-      audioBuffer?.length || 0,
-      'bytes). Skipping STT.'
-    );
+    // console.log(
+    //   '[WS] END_UTTERANCE: audio too short (',
+    //   audioBuffer?.length || 0,
+    //   'bytes). Skipping STT.'
+    // );
     audioBufferRef.current = Buffer.alloc(0);
     return;
   }
@@ -132,7 +94,7 @@ async function processUtterance(ws, audioBufferRef) {
   // Clear buffer for next utterance
   audioBufferRef.current = Buffer.alloc(0);
 
-  console.log('[WS] Processing utterance. Audio bytes:', audioBuffer.length);
+  // console.log('[WS] Processing utterance. Audio bytes:', audioBuffer.length);
 
   const userText = await transcribeAudio(audioBuffer);
 
@@ -152,10 +114,10 @@ async function processUtterance(ws, audioBufferRef) {
   //    We also skip the "sorry, I couldn’t hear that" in this case.
   const MIN_TRANSCRIPT_CHARS = 5;
   if (!cleaned || cleaned.length < MIN_TRANSCRIPT_CHARS) {
-    console.log(
-      '[WS] Empty/short transcription, skipping reply. Transcript:',
-      JSON.stringify(cleaned)
-    );
+    // console.log(
+    //   '[WS] Empty/short transcription, skipping reply. Transcript:',
+    //   JSON.stringify(cleaned)
+    // );
 
     // Optional: you can send a transcript back if you want to debug, but
     // the client ignores empty text anyway.
@@ -178,14 +140,56 @@ async function processUtterance(ws, audioBufferRef) {
   );
 
   // 4) Generate and speak reply
-  const replyText = generateAgentReply(cleaned);
-  await sendTTSReply(ws, replyText);
+  const reply = await generateAgentReply(cleaned, ws.conversationId);
+  await sendTTSReply(ws, reply.message);
+
+  // 5) If the conversation can be ended, close the socket
+  if (reply.canEndCall) {
+    endCall(ws, 1000, 'no_more_actions');
+  }
 }
 
 // --- Main connection handler ---
 
-export function connection(ws) {
-  console.log('[WS] Client connected');
+export function connection(ws, request) {
+  const user = request.user;
+
+  if (!user) {
+    // Should not happen if upgrade auth is correct, but just in case:
+    endCall(ws, 4003, 'unauthorized');
+    return;
+  }
+
+  const callStartedAt = Date.now();
+  ws.callStartedAt = callStartedAt;
+
+  const TRIAL_MESSAGE =
+    'This was a trial call with Room Mitra and is limited to 5 minutes. I will end the call now. To continue, please request a full demo from our website.';
+
+  // Set up a timer that ends the call after 5 minutes
+  const trialTimer = setTimeout(async () => {
+    if (!ws || ws.readyState !== ws.OPEN) {
+      console.warn('[WS] Trial timer fired but socket is not open.');
+      return;
+    }
+
+    console.log('[WS] Trial limit reached. Sending final TTS.');
+
+    try {
+      // 1) Send the text + audio fully
+      await sendTTSReply(ws, TRIAL_MESSAGE);
+    } catch (err) {
+      console.error('[WS] Error sending trial TTS reply:', err);
+    }
+
+    // 2) Now signal call end and close socket (optionally with a slightly longer delay)
+    endCall(ws, 4000, 'trial_ended', { delayMs: 2000 }); // 2s to let buffers flush
+  }, TRIAL_LIMIT_MS);
+
+  ws.trialTimer = trialTimer;
+
+  const conversationId = ulid();
+  ws.conversationId = conversationId;
 
   // Use a wrapper object so we can mutate .current from async function safely
   const audioBufferRef = { current: Buffer.alloc(0) };
@@ -217,7 +221,7 @@ export function connection(ws) {
 
     switch (command.type) {
       case 'START_CALL': {
-        console.log('[WS] START_CALL received');
+        // console.log('[WS] START_CALL received');
 
         const greetingText =
           'Hi, this is Room Mitra. I am your virtual assistant for the hotel. How can I help you today?';
@@ -228,7 +232,7 @@ export function connection(ws) {
 
       // New continuous listening name
       case 'END_UTTERANCE': {
-        console.log('[WS] END_UTTERANCE / STOP_RECORDING received');
+        // console.log('[WS] END_UTTERANCE / STOP_RECORDING received');
         await processUtterance(ws, audioBufferRef);
         break;
       }
@@ -244,9 +248,24 @@ export function connection(ws) {
     }
   });
 
-  ws.on('close', () => {
+  ws.on('close', (_code, reasonBuf) => {
+    // Always clear the timer so it does not fire after the socket is already closed
+    if (ws.trialTimer) {
+      clearTimeout(ws.trialTimer);
+    }
+
+    const durationMs = Date.now() - callStartedAt;
+    const reason = reasonBuf.toString();
+
+    sendVoiceAgentTrialNotification(
+      { name: user.name, email: user.sub },
+      durationMs,
+      reason,
+      conversationId
+    );
+
     isClosing = true;
-    console.log('[WS] Client disconnected');
+    // console.log('[WS] Client disconnected');
   });
 
   ws.on('error', (error) => {

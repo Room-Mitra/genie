@@ -1,15 +1,14 @@
 import express from 'express';
 import multer from 'multer';
-import { WebClient } from '@slack/web-api';
 import { generateOtpForEmail, verifyOtpForEmail } from '#services/Otp.service.js';
 import { OtpPurpose } from '#Constants/OtpPurpose.constants.js';
+import { SlackClient } from '#clients/Slack.client.js';
 
 const router = express.Router();
 
-const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN;
 const SLACK_FEEDBACK_CHANNEL = process.env.SLACK_FEEDBACK_CHANNEL;
 const SLACK_SALES_CHANNEL = process.env.SLACK_SALES_CHANNEL;
-const slackClient = new WebClient(SLACK_BOT_TOKEN);
+const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN;
 
 // store audio in memory for forwarding to Slack
 const upload = multer({
@@ -93,7 +92,7 @@ router.post('/leads', async (req, res) => {
       },
     ];
 
-    await slackClient.chat.postMessage({
+    await SlackClient.chat.postMessage({
       channel: SLACK_SALES_CHANNEL,
       text: textPlain,
       blocks,
@@ -177,7 +176,7 @@ router.post('/feedback', upload.single('audio'), async (req, res) => {
     });
 
     // 1) Send main message via chat.postMessage
-    await slackClient.chat.postMessage({
+    await SlackClient.chat.postMessage({
       channel: SLACK_FEEDBACK_CHANNEL,
       text: textPlain,
       blocks,
@@ -186,7 +185,7 @@ router.post('/feedback', upload.single('audio'), async (req, res) => {
     // 2) Upload audio file (if any)
     if (audioFile) {
       try {
-        await slackClient.files.uploadV2({
+        await SlackClient.files.uploadV2({
           channel_id: SLACK_FEEDBACK_CHANNEL,
           initial_comment: `🎧 Voice feedback from ${displayName} (Room ${displayRoom})`,
           file_uploads: [
