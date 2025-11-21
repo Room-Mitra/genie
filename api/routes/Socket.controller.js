@@ -18,8 +18,7 @@ async function generateAgentReply(userText, conversationId) {
     isProspect: true,
   };
 
-  const result = await handleConversation(conversationData);
-  return result.message;
+  return await handleConversation(conversationData);
 }
 
 // Send one text + TTS reply
@@ -41,6 +40,33 @@ async function sendTTSReply(ws, replyText) {
   ws.send(JSON.stringify({ type: 'audio_start', format: 'mp3' }));
   ws.send(audioContent, { binary: true });
   ws.send(JSON.stringify({ type: 'audio_end' }));
+}
+
+function endCall(ws, reason = 'agent_completed') {
+  if (!ws || ws.readyState !== ws.OPEN) {
+    console.warn('[WS] endCall called but socket is not open.');
+    return;
+  }
+
+  console.log('[WS] Ending call. Reason:', reason);
+
+  // 1. Notify client that the agent is ending the call
+  ws.send(
+    JSON.stringify({
+      type: 'call_end',
+      reason,
+    })
+  );
+
+  // 2. Small delay to allow message to flush before closing
+  setTimeout(() => {
+    try {
+      ws.close(1000, reason); // Normal closure with reason
+      console.log('[WS] Socket closed with reason:', reason);
+    } catch (err) {
+      console.error('[WS] Failed to close socket:', err);
+    }
+  }, 150);
 }
 
 // Handle a full utterance (STT -> reply -> TTS)
@@ -109,8 +135,13 @@ async function processUtterance(ws, audioBufferRef) {
   );
 
   // 4) Generate and speak reply
-  const replyText = await generateAgentReply(cleaned, ws.conversationId);
-  await sendTTSReply(ws, replyText);
+  const reply = await generateAgentReply(cleaned, ws.conversationId);
+  await sendTTSReply(ws, reply.message);
+
+  // 5) If the conversation can be ended, close the socket
+  if (reply.canEndCall) {
+    endCall(ws, 'no_more_actions');
+  }
 }
 
 // --- Main connection handler ---

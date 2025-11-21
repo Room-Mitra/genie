@@ -40,7 +40,6 @@ export const Agent = ({ onClose, onSuccess }) => {
   // Utility to append a message
   const pushMessage = useCallback((role, text) => {
     if (text == null) {
-      console.log('[RETURN] 1');
       return;
     }
 
@@ -72,7 +71,7 @@ export const Agent = ({ onClose, onSuccess }) => {
       else if (s < -1) s = -1;
       int16Array[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
     }
-    console.log('[RETURN] 2');
+
     return int16Array;
   }
 
@@ -117,7 +116,6 @@ export const Agent = ({ onClose, onSuccess }) => {
   const startRecording = useCallback(async () => {
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
       setError('Not connected to the server. Cannot start listening.');
-      console.log('[RETURN] 3');
       return;
     }
 
@@ -137,17 +135,14 @@ export const Agent = ({ onClose, onSuccess }) => {
 
             // Ignore segments that are clearly from our own TTS
             if (isAgentSpeakingRef.current || now - agentLastSpeechEndTimeRef.current < 500) {
-              console.log('[RETURN] 4');
               return;
             }
 
             if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-              console.log('[RETURN] 5');
               return;
             }
 
             if (!audio || !audio.length) {
-              console.log('[RETURN] 6');
               return;
             }
 
@@ -170,7 +165,7 @@ export const Agent = ({ onClose, onSuccess }) => {
             if (durationSec < MIN_DURATION_SEC || rms < MIN_RMS) {
               // You can console.log here for debugging if you want
               // console.log('[VAD] Dropped short/quiet segment', { durationSec, rms });
-              console.log('[RETURN] 7');
+
               return;
             }
 
@@ -213,7 +208,6 @@ export const Agent = ({ onClose, onSuccess }) => {
   const connectWebSocket = useCallback(() => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       setIsConnected(true);
-      console.log('[RETURN] 8');
       return;
     }
 
@@ -245,20 +239,38 @@ export const Agent = ({ onClose, onSuccess }) => {
 
     ws.onclose = (event) => {
       setIsConnected(false);
-      const reason = `Code: ${event.code}, Reason: ${
-        event.reason || 'No specific reason provided'
-      }`;
 
-      if (!manualCloseRef.current) {
-        // Unplanned disconnect: show error and attempt reconnect
-        setError(`Connection lost to ${ws.url} (${reason}). Attempting reconnection...`);
-        setTimeout(() => {
-          connectWebSocket();
-        }, 5000);
-      } else {
-        // Manual close. No auto reconnect.
-        pushMessage('system', 'Conversation ended.');
+      const code = event.code;
+      const reason = event.reason || 'No specific reason provided';
+
+      const closeInfo = `Code: ${code}, Reason: ${reason}`;
+
+      // If server ended the call intentionally (code 1000 + known reason)
+      const isPlannedEnd =
+        code === 1000 &&
+        ['agent_completed', 'user_requested_end', 'no_more_actions'].includes(reason);
+
+      if (isPlannedEnd) {
+        pushMessage('system', `Assistant has ended the call.`);
+        setConversationEnded(true);
+        cleanupResources();
+        return;
       }
+
+      // Client-initiated close (manual hangup)
+      if (manualCloseRef.current) {
+        pushMessage('system', 'You ended the call.');
+        setConversationEnded(true);
+        cleanupResources();
+        return;
+      }
+
+      // Otherwise: true unexpected disconnect
+      setError(`Connection lost to ${ws.url} (${closeInfo}). Attempting reconnection...`);
+
+      setTimeout(() => {
+        connectWebSocket();
+      }, 5000);
     };
 
     ws.onerror = (e) => {
@@ -279,12 +291,9 @@ export const Agent = ({ onClose, onSuccess }) => {
     ws.onmessage = async (event) => {
       // Binary: audio chunks
       if (typeof event.data !== 'string') {
-        console.log('[WS] raw message:', event);
-
         if (isReceivingAudio) {
           ttsAudioChunks.push(event.data);
         }
-        console.log('[RETURN] 9');
         return;
       }
 
@@ -312,7 +321,6 @@ export const Agent = ({ onClose, onSuccess }) => {
 
           if (!ttsAudioChunks.length) {
             console.error('No TTS audio chunks received before audio_end');
-            console.log('[RETURN] 10');
             return;
           }
 
@@ -337,6 +345,10 @@ export const Agent = ({ onClose, onSuccess }) => {
             // Short cooldown window so any trailing echo doesn't create segments
             agentLastSpeechEndTimeRef.current = Date.now();
           };
+        } else if (message.type === 'call_end') {
+          pushMessage('system', `Agent ended the call`);
+          setConversationEnded(true);
+          cleanupResources();
         } else if (message.type === 'error') {
           setError(`Server Error: ${message.message}`);
           setIsThinking(false);
@@ -366,13 +378,14 @@ export const Agent = ({ onClose, onSuccess }) => {
 
   // Close the UI, but first clean up everything
   const handleCloseClick = () => {
+    setConversationEnded(true);
     cleanupResources();
     onClose?.();
   };
 
   const renderMessageBubble = (msg) => {
     const isUser = msg.role === 'user';
-    const isAgent = msg.role === 'agent';
+    // const isAgent = msg.role === 'agent';
     const isSystem = msg.role === 'system';
 
     if (isSystem) {

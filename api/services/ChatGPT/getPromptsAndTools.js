@@ -1,7 +1,8 @@
 import {
-  BASE_SYSTEM_GUESTS,
-  BASE_SYSTEM_PROSPECTS,
-  METADATA_REQUIREMENT,
+  GUESTS_BASE_SYSTEM,
+  PROSPECTS_BASE_SYSTEM,
+  GUESTS_METADATA_REQUIREMENT,
+  PROSPECTS_METADATA_REQUIREMENT,
 } from './prompts/Base.prompt.js';
 import { ROOM_BOOKING_PROMPT } from './prompts/BookRoom.prompt.js';
 import { MENU_ENQUIRY_PROMPT } from './prompts/MenuEnquiry.prompt.js';
@@ -27,10 +28,11 @@ export function getPromptsAndTools({ intents, isProspect }) {
   const promptSet = new Set();
 
   if (isProspect) {
-    prompts.push(BASE_SYSTEM_PROSPECTS);
+    prompts.push(PROSPECTS_BASE_SYSTEM);
+    prompts.push(PROSPECTS_METADATA_REQUIREMENT);
   } else {
-    prompts.push(BASE_SYSTEM_GUESTS);
-    prompts.push(METADATA_REQUIREMENT);
+    prompts.push(GUESTS_BASE_SYSTEM);
+    prompts.push(GUESTS_METADATA_REQUIREMENT);
   }
 
   for (const intent of intents) {

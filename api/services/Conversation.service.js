@@ -91,6 +91,7 @@ export async function handleConversation({
   const {
     reply,
     isUserResponseNeeded,
+    canEndCall,
     agents,
     conversationState: updatedConversationState,
   } = chatGPTResponse;
@@ -111,6 +112,7 @@ export async function handleConversation({
     conversationId,
     message: reply,
     isConversationOpen: isUserResponseNeeded,
+    canEndCall,
     agents,
     // requests: savedRequests.map(requestResponse),
   };

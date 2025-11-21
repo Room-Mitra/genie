@@ -2,7 +2,6 @@ import OpenAIClient from '#clients/OpenAI.client.js';
 import { computeJaccardScore } from '#libs/ranking.js';
 import { callFunction } from './callFunction.js';
 import { getPromptsAndTools } from './getPromptsAndTools.js';
-import { BASE_SYSTEM_GUESTS, METADATA_REQUIREMENT } from './prompts/Base.prompt.js';
 
 const GPT_MODEL = 'gpt-4.1-mini';
 
@@ -108,6 +107,7 @@ function collectReplyTexts(resp) {
   if (!resp?.output) return null;
 
   let isUserResponseNeeded = null;
+  let canEndCall = null;
   let agents = [];
 
   // 1) Keep only assistant messages in this response
@@ -152,6 +152,9 @@ function collectReplyTexts(resp) {
         if (typeof meta.isUserResponseNeeded === 'boolean') {
           isUserResponseNeeded = meta.isUserResponseNeeded;
         }
+        if (typeof meta.canEndCall === 'boolean') {
+          canEndCall = meta.canEndCall;
+        }
         if (Array.isArray(meta.agents)) {
           agents = meta.agents;
         }
@@ -175,6 +178,10 @@ function collectReplyTexts(resp) {
             isUserResponseNeeded = obj.isUserResponseNeeded;
             continue; // don't keep this line in reply text
           }
+          if (typeof obj.canEndCall === 'boolean') {
+            canEndCall = obj.canEndCall;
+            continue;
+          }
           if (Array.isArray(obj.agents)) {
             agents = obj.agents;
             continue;
@@ -194,7 +201,7 @@ function collectReplyTexts(resp) {
     isUserResponseNeeded = endsWithQuestion;
   }
 
-  return { replyText: finalText, agents, isUserResponseNeeded };
+  return { replyText: finalText, agents, isUserResponseNeeded, canEndCall };
 }
 
 export async function askChatGpt({
@@ -365,17 +372,20 @@ export async function askChatGpt({
   // 6) Final reply object
   let replyText = '';
   let isUserResponseNeeded = false;
+  let canEndCall = false;
   let agents = [];
 
   if (lastReplyMeta) {
     replyText = lastReplyMeta.replyText;
     isUserResponseNeeded = lastReplyMeta.isUserResponseNeeded;
+    canEndCall = lastReplyMeta.canEndCall;
     agents = lastReplyMeta.agents;
   }
 
   return {
     reply: replyText || 'Something went wrong, could you please try that again?',
     isUserResponseNeeded,
+    canEndCall,
     agents,
     conversationState,
   };
