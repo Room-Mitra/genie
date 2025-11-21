@@ -80,7 +80,7 @@ export const callFunction = async ({
 
       const { requestType, details } = summarizeBookingArgs(args);
 
-      return create_hotel_requests_handler({
+      return await create_hotel_requests_handler({
         args: {
           requests: [
             {
@@ -170,7 +170,7 @@ export const callFunction = async ({
     }
 
     case 'create_hotel_requests':
-      return create_hotel_requests_handler({
+      return await create_hotel_requests_handler({
         args,
         hotelId,
         roomId,
@@ -182,7 +182,7 @@ export const callFunction = async ({
       });
 
     case 'order_food':
-      return create_hotel_requests_handler({
+      return await create_hotel_requests_handler({
         args: {
           requests: [
             {
