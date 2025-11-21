@@ -1,13 +1,14 @@
 import express from 'express';
 import multer from 'multer';
-import { WebClient } from '@slack/web-api';
+import { generateOtpForEmail, verifyOtpForEmail } from '#services/Otp.service.js';
+import { OtpPurpose } from '#Constants/OtpPurpose.constants.js';
+import { SlackClient } from '#clients/Slack.client.js';
 
 const router = express.Router();
 
-const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN;
 const SLACK_FEEDBACK_CHANNEL = process.env.SLACK_FEEDBACK_CHANNEL;
 const SLACK_SALES_CHANNEL = process.env.SLACK_SALES_CHANNEL;
-const slackClient = new WebClient(SLACK_BOT_TOKEN);
+const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN;
 
 // store audio in memory for forwarding to Slack
 const upload = multer({
@@ -74,13 +75,24 @@ router.post('/leads', async (req, res) => {
           ...(market ? [{ type: 'mrkdwn', text: `*Market*\n${market || '—'}` }] : []),
         ],
       },
+      ...(message
+        ? [
+            {
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: `*Message*\n${message}`,
+              },
+            },
+          ]
+        : []),
       {
         type: 'context',
         elements: [{ type: 'mrkdwn', text: `Received: ${new Date().toLocaleString()}` }],
       },
     ];
 
-    await slackClient.chat.postMessage({
+    await SlackClient.chat.postMessage({
       channel: SLACK_SALES_CHANNEL,
       text: textPlain,
       blocks,
@@ -164,7 +176,7 @@ router.post('/feedback', upload.single('audio'), async (req, res) => {
     });
 
     // 1) Send main message via chat.postMessage
-    await slackClient.chat.postMessage({
+    await SlackClient.chat.postMessage({
       channel: SLACK_FEEDBACK_CHANNEL,
       text: textPlain,
       blocks,
@@ -173,7 +185,7 @@ router.post('/feedback', upload.single('audio'), async (req, res) => {
     // 2) Upload audio file (if any)
     if (audioFile) {
       try {
-        await slackClient.files.uploadV2({
+        await SlackClient.files.uploadV2({
           channel_id: SLACK_FEEDBACK_CHANNEL,
           initial_comment: `🎧 Voice feedback from ${displayName} (Room ${displayRoom})`,
           file_uploads: [
@@ -193,6 +205,48 @@ router.post('/feedback', upload.single('audio'), async (req, res) => {
   } catch (err) {
     console.error('Feedback submit failed', err);
     return res.status(500).json({ ok: false, error: 'Internal server error' });
+  }
+});
+
+router.post('/voice-agent-trial-request', async (req, res) => {
+  const { name, email, otp } = req.body || {};
+
+  if (!email) {
+    return res.status(400).json({ ok: false, error: 'Email is required' });
+  }
+
+  try {
+    // Case 1: request OTP
+    if (name && !otp) {
+      await generateOtpForEmail(email, name, OtpPurpose.VOICE_AGENT_TRIAL_REQUEST);
+
+      return res.json({
+        message: 'Verification code sent to email',
+      });
+    }
+
+    // Case 2: verify OTP
+    if (otp && !name) {
+      const token = await verifyOtpForEmail(email, otp, OtpPurpose.VOICE_AGENT_TRIAL_REQUEST);
+      return res.json({
+        token,
+      });
+    }
+
+    // Bad payload
+    return res.status(400).json({
+      error: 'Provide either { name, email } to request an OTP, or { email, otp } to verify',
+    });
+  } catch (err) {
+    console.error('Error in /voice-agent-trail-request', err);
+    if (err.code === 'INVALID_CODE') {
+      return res.status(400).json({
+        error: 'Invalid or expired verification code',
+      });
+    }
+    return res.status(500).json({
+      error: err?.message || 'Internal server error',
+    });
   }
 });
 

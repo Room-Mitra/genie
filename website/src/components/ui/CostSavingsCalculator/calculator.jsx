@@ -44,20 +44,6 @@ function formatCurrency(value, currency) {
   });
 }
 
-// Estimate hotel size from daily revenue and an approximate ADR
-function getHotelSizeHint(dailyRoomRevenue, approxAdr) {
-  if (!approxAdr || approxAdr <= 0) return '';
-  const approxRoomsSold = dailyRoomRevenue / approxAdr;
-
-  if (approxRoomsSold <= 40) {
-    return 'Recommended for 20 to 40 room hotels';
-  }
-  if (approxRoomsSold <= 120) {
-    return 'Recommended for 50 to 100 room hotels';
-  }
-  return 'Recommended for 100 plus room hotels';
-}
-
 export default function CostSavingsCalculator() {
   const [selectedMarket, setSelectedMarket] = useState('india');
   const preset = useMemo(() => MARKET_PRESETS[selectedMarket], [selectedMarket]);
@@ -88,11 +74,6 @@ export default function CostSavingsCalculator() {
         monthlyValue: total / 12,
       };
     }, [monthlySalary, staffCount, automationPercent, dailyRoomRevenue, upsellPercent]);
-
-  const hotelSizeHint = useMemo(
-    () => getHotelSizeHint(dailyRoomRevenue, preset.approxAdr),
-    [dailyRoomRevenue, preset.approxAdr]
-  );
 
   return (
     <section className="w-full max-w-3xl rounded-2xl border border-gray-800 bg-gray-900 p-6 shadow-xl backdrop-blur">
@@ -266,20 +247,18 @@ export default function CostSavingsCalculator() {
       </div>
 
       <div className="mt-6 border-t border-gray-800 pt-4 text-sm text-gray-400">
-        <div className="flex  flex-col-reverse sm:flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          {hotelSizeHint && <p className="mt-3 text-md text-gray-100">{hotelSizeHint}</p>}
+        <div className="flex  flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <p className="mt-4 sm:mt-0">
+            This is a directional estimate, not a quote. Actual results depend on property size,
+            adoption, and operations.
+          </p>
           <NavLink
             href={`/contact-us?monthlySalary=${monthlySalary}&staffCount=${staffCount}&automationPercent=${automationPercent}&dailyRoomRevenue=${dailyRoomRevenue}&upsellPercent=${upsellPercent}&market=${selectedMarket}`}
             className={`w-auto text-sm rounded-full text-white ring-offset-2 cta-btn text-nowrap `}
           >
             Book a Demo
           </NavLink>
-
         </div>
-        <p className="sm:w-[75%] mt-4 sm:mt-0">
-          This is a directional estimate, not a quote. Actual results depend on property size,
-          adoption, and operations.
-        </p>
       </div>
     </section>
   );

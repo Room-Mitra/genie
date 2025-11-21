@@ -23,6 +23,7 @@ export async function handleConversation({
   guestUserId,
   conversationId,
   userContent,
+  isProspect,
 }) {
   let conversation = null;
   let conversationState = null;
@@ -49,6 +50,7 @@ export async function handleConversation({
       guestUserId,
       deviceId: deviceId,
       channel: 'android',
+      isProspect,
     };
   }
 
@@ -83,11 +85,13 @@ export async function handleConversation({
     conversationId,
     guestUserId,
     conversationState,
+    isProspect,
   });
 
   const {
     reply,
     isUserResponseNeeded,
+    canEndCall,
     agents,
     conversationState: updatedConversationState,
   } = chatGPTResponse;
@@ -108,6 +112,7 @@ export async function handleConversation({
     conversationId,
     message: reply,
     isConversationOpen: isUserResponseNeeded,
+    canEndCall,
     agents,
     // requests: savedRequests.map(requestResponse),
   };

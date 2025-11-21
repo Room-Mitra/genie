@@ -22,9 +22,12 @@ export async function POST(req) {
       throw new Error(text || `Request failed with ${res.status}`);
     }
   } catch (err) {
-    return NextResponse.status(400).json({
-      error: err?.message || 'Something went wrong. Please try again.',
-    });
+    return NextResponse.json(
+      {
+        error: err?.message || 'Something went wrong. Please try again.',
+      },
+      { status: 400 }
+    );
   }
 
   return NextResponse.json({ ok: true });
