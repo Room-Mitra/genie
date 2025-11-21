@@ -14,6 +14,7 @@ import { LogOutIcon, SettingsIcon, UserIcon } from "./icons";
 import { toast } from "react-toastify";
 import { useUser } from "@/context/UserContext";
 import User from "@/components/ui/user";
+import PushNotifications from "./push-notifications";
 
 async function logout() {
   try {
@@ -41,6 +42,7 @@ export function UserInfo() {
 
         <div className="flex items-center gap-3">
           <div>
+            <PushNotifications user={user} />
             <User user={user} width="w-50" />
           </div>
           <div className="flex items-center gap-1 font-medium text-dark dark:text-dark-6 max-[1024px]:sr-only">
