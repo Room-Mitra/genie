@@ -3,12 +3,29 @@ import { transcribeAudio } from '#services/STT.service.js';
 import { handleConversation } from '#services/Conversation.service.js';
 import { ulid } from 'ulid';
 import { sendVoiceAgentTrialNotification } from '#services/Slack.service.js';
+import { Language } from '#Constants/Language.constants.js';
 
 const TRIAL_LIMIT_MS = 5 * 60 * 1000; // 5 minutes
 
 function getGreetingText(language) {
   switch (language) {
-    case 'english':
+    case Language.English:
+      return 'Hi, this is Room Mitra. I am your virtual assistant for the hotel. How can I help you today?';
+
+    case Language.Kannada:
+      return 'ಹಾಯ್, ಇದು ರೂಂ ಮಿತ್ರ. ನಾನು ನಿಮ್ಮ ಹೋಟೆಲ್‌ನ ವರ್ಚುವಲ್ ಸಹಾಯಕ. ಇಂದು ನಿಮಗೆ ಹೇಗೆ ಸಹಾಯ ಮಾಡಬಹುದು?';
+
+    case Language.Hindi:
+      return 'नमस्ते, यह रूम मित्रा है। मैं आपके होटल की वर्चुअल असिस्टेंट हूँ। आज मैं आपकी कैसे मदद कर सकती हूँ?';
+
+    case Language.Telugu:
+      return 'హాయ్, ఇది రూమ్ మిత్ర. నేను మీ హోటల్‌కు వర్చువల్ అసిస్టెంట్‌ని. ఈ రోజు మీకు ఎలా సహాయం చేయగలను?';
+
+    case Language.Tamil:
+      return 'ஹாய், இது ரூம் மித்ரா. நான் உங்கள் ஹோட்டலுக்கான மெய்நிகர் உதவியாளர். இன்று நான் எப்படி உதவலாம்?';
+
+    case Language.Malayalam:
+      return 'ഹൈ, ഇത് റൂം മിത്ര. ഞാൻ നിങ്ങളുടെ ഹോട്ടലിലെ വെർച്വൽ അസിസ്റ്റന്റ് ആണ്. ഇന്ന് ഞാൻ നിങ്ങളെ എങ്ങനെ സഹായിക്കാം?';
   }
 
   return 'Hi, this is Room Mitra. I am your virtual assistant for the hotel. How can I help you today?';
@@ -33,10 +50,12 @@ async function generateAgentReply(userText, conversationId) {
 }
 
 // Send one text + TTS reply
-async function sendTTSReply(ws, replyText) {
-  ws.send(JSON.stringify({ type: 'reply_text', text: replyText }));
+async function sendTTSReply(ws, reply) {
+  ws.send(
+    JSON.stringify({ type: 'reply_text', text: reply.displayMessage, language: ws.language })
+  );
 
-  const audioContent = await synthesizeSpeech(replyText);
+  const audioContent = await synthesizeSpeech(reply.message, ws.language);
   if (!audioContent || !audioContent.length) {
     console.error('[TTS] No audio bytes to send');
     ws.send(
@@ -83,7 +102,7 @@ function endCall(ws, code = 1000, reason = 'agent_completed', options = {}) {
 }
 
 // Handle a full utterance (STT -> reply -> TTS)
-async function processUtterance(ws, audioBufferRef) {
+async function processUtterance(ws, audioBufferRef, language) {
   const audioBuffer = audioBufferRef.current;
 
   // 1) Skip if the audio is too short (e.g. < 200 ms)
@@ -104,7 +123,7 @@ async function processUtterance(ws, audioBufferRef) {
 
   // console.log('[WS] Processing utterance. Audio bytes:', audioBuffer.length);
 
-  const userText = await transcribeAudio(audioBuffer);
+  const userText = await transcribeAudio(audioBuffer, language);
 
   if (userText === 'Transcription failed.') {
     ws.send(
@@ -149,7 +168,7 @@ async function processUtterance(ws, audioBufferRef) {
 
   // 4) Generate and speak reply
   const reply = await generateAgentReply(cleaned, ws.conversationId);
-  await sendTTSReply(ws, reply.message);
+  await sendTTSReply(ws, reply);
 
   // 5) If the conversation can be ended, close the socket
   if (reply.canEndCall) {
@@ -168,6 +187,8 @@ export function connection(ws, request) {
     return;
   }
 
+  ws.language = user.language;
+
   const callStartedAt = Date.now();
   ws.callStartedAt = callStartedAt;
 
@@ -185,7 +206,7 @@ export function connection(ws, request) {
 
     try {
       // 1) Send the text + audio fully
-      await sendTTSReply(ws, TRIAL_MESSAGE);
+      await sendTTSReply(ws, { displayMessage: TRIAL_MESSAGE, message: TRIAL_MESSAGE });
     } catch (err) {
       console.error('[WS] Error sending trial TTS reply:', err);
     }
@@ -233,14 +254,14 @@ export function connection(ws, request) {
 
         const greetingText = getGreetingText(ws.language);
 
-        await sendTTSReply(ws, greetingText, ws.language);
+        await sendTTSReply(ws, { displayMessage: greetingText, message: greetingText });
         break;
       }
 
       // New continuous listening name
       case 'END_UTTERANCE': {
         // console.log('[WS] END_UTTERANCE / STOP_RECORDING received');
-        await processUtterance(ws, audioBufferRef);
+        await processUtterance(ws, audioBufferRef, ws.language);
         break;
       }
 
@@ -268,7 +289,8 @@ export function connection(ws, request) {
       { name: user.name, email: user.sub },
       durationMs,
       reason,
-      conversationId
+      conversationId,
+      ws.language
     );
 
     isClosing = true;

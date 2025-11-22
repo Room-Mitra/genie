@@ -6,7 +6,8 @@ export async function sendVoiceAgentTrialNotification(
   user,
   durationMs,
   closingReason,
-  conversationId
+  conversationId,
+  language
 ) {
   if (!SLACK_SALES_CHANNEL) {
     console.error('[SLACK] SLACK_SALES_CHANNEL env var is not set. Skipping notification.');
@@ -41,6 +42,10 @@ export async function sendVoiceAgentTrialNotification(
         {
           type: 'mrkdwn',
           text: `*Email*\n${email || 'Not provided'}`,
+        },
+        {
+          type: 'mrkdwn',
+          text: `*Language*\n${language || 'Not provided'}`,
         },
       ],
     },

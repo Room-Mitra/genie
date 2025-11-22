@@ -64,10 +64,12 @@ export function TryVoiceAgent() {
           </svg>
         </button>
       </div>
-      <Dialog open={showModal} onClose={() => {}} className="relative z-40">
+      <Dialog open={showModal} onClose={() => {}} className="relative z-50">
         <DialogBackdrop
           transition
-          className="data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in fixed inset-0 bg-gray-900/50 transition-opacity"
+          className="fixed inset-0 bg-gray-900/80 backdrop-blur-md
+             data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out
+             data-leave:duration-200 data-leave:ease-in"
           onClick={(e) => {
             e.stopPropagation();
           }}
@@ -77,7 +79,7 @@ export function TryVoiceAgent() {
           <div className="fixed inset-0 z-10 flex min-h-full items-center justify-center p-4 overflow-y-auto">
             <DialogPanel
               transition
-            className={cn(
+              className={cn(
                 'data-closed:translate-y-4 data-closed:opacity-0',
                 'data-enter:duration-300 data-enter:ease-out',
                 'data-leave:duration-200 data-leave:ease-in',

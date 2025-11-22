@@ -3,6 +3,7 @@ import multer from 'multer';
 import { generateOtpForEmail, verifyOtpForEmail } from '#services/Otp.service.js';
 import { OtpPurpose } from '#Constants/OtpPurpose.constants.js';
 import { SlackClient } from '#clients/Slack.client.js';
+import { Languages } from '#Constants/Language.constants.js';
 
 const router = express.Router();
 
@@ -221,6 +222,11 @@ router.post('/voice-agent-trial-request', async (req, res) => {
       if (!language) {
         return res.status(400).json({ ok: false, error: 'Language is required' });
       }
+
+      if (!Languages.includes(language)) {
+        return res.status(400).json({ error: 'unsupported language' });
+      }
+
       await generateOtpForEmail(email, name, language, OtpPurpose.VOICE_AGENT_TRIAL_REQUEST);
 
       return res.json({

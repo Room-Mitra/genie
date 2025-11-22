@@ -74,6 +74,7 @@ export const Agent = ({ token, onClose }) => {
         id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
         role,
         text: safeText,
+        timestamp: Date.now(),
       },
     ]);
   }, []);
@@ -439,7 +440,6 @@ export const Agent = ({ token, onClose }) => {
 
   const renderMessageBubble = (msg) => {
     const isUser = msg.role === 'user';
-    const isAgent = msg.role === 'agent';
     const isSystem = msg.role === 'system';
 
     if (isSystem) {
@@ -461,9 +461,26 @@ export const Agent = ({ token, onClose }) => {
         >
           {msg.text}
         </div>
+
+        {/* Timestamp */}
+        <div className={`text-[10px] text-gray-400 mt-1 ${isUser ? 'text-right' : 'text-left'}`}>
+          {formatTimeAgo(msg.timestamp)}
+        </div>
       </div>
     );
   };
+
+  function formatTimeAgo(date) {
+    const now = Date.now();
+    const diff = Math.floor((now - date) / 1000);
+
+    if (diff < 60) return `${diff}s ago`;
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+
+    const d = new Date(date);
+    return d.toLocaleString(); // falls back to full readable time
+  }
 
   return (
     <div className="w-full bg-gray-800 max-w-2xl shadow-2xl p-6 space-y-4 flex flex-col h-[480px]">

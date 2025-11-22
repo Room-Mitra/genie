@@ -111,11 +111,29 @@ export async function handleConversation({
   const response = {
     conversationId,
     message: reply,
+    displayMessage: stripSSML(reply),
     isConversationOpen: isUserResponseNeeded,
     canEndCall,
     agents,
-    // requests: savedRequests.map(requestResponse),
   };
 
   return response;
+}
+
+export function stripSSML(text = '') {
+  if (!text) return '';
+
+  return (
+    text
+      // unwrap <say-as> tags but keep the inner digits
+      .replace(/<say-as[^>]*>(.*?)<\/say-as>/gi, '$1')
+
+      // remove <speak> if present
+      .replace(/<\/?speak>/gi, '')
+
+      // collapse whitespace
+      .replace(/\s+/g, ' ')
+
+      .trim()
+  );
 }

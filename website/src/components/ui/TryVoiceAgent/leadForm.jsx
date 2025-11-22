@@ -7,11 +7,11 @@ export function LeadForm({ onClose, onSuccess }) {
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [language, setLanguage] = useState('english');
+  const [language, setLanguage] = useState('');
 
   const canSubmit = useMemo(() => {
-    return !submitting && name.trim() !== '' && email.trim() !== '';
-  }, [submitting, name, email]);
+    return !submitting && name.trim() !== '' && email.trim() !== '' && language !== '';
+  }, [submitting, name, email, language]);
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -93,12 +93,15 @@ export function LeadForm({ onClose, onSuccess }) {
               </label>
               <select
                 id="language"
-                name={language}
-                value={email}
+                name="language"
+                value={language}
                 onChange={(e) => setLanguage(e.target.value)}
                 required
-                className="w-full px-3 py-2 border text-gray-200 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 bg-gray-800 py-2 border text-gray-200 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
+                <option value="" disabled hidden>
+                  Select a language
+                </option>
                 <option value="english">English</option>
                 <option value="kannada">Kannada</option>
                 <option value="hindi">Hindi</option>
