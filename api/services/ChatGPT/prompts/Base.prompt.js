@@ -190,18 +190,3 @@ export const NUMBER_FORMATTING_PROMPT = `
     "Dinner for 2 people" → NO wrapping  
     "Room 207" → NO wrapping unless explicitly asked to read digits
 `;
-
-export const LANGUAGE_PROMPT = `
-LANGUAGE RULES:
-
-1. DETECTED_LANGUAGE = the language of the user's latest message.
-2. The assistant must reply ONLY in DETECTED_LANGUAGE.
-3. Do NOT mix languages. The entire reply must be in one language.
-4. Do NOT reply in English unless the user writes in English.
-5. Do NOT translate unless the user explicitly asks.
-6. All hotel terminology (room types, dates, amenities, booking details) must also be expressed in DETECTED_LANGUAGE.
-7. If a tool call is needed:
-   - Tool arguments may stay in English.
-   - The visible assistant message to the user must follow DETECTED_LANGUAGE.
-8. System instructions and tool descriptions are in English, but they must not influence the language of the reply.
-`;

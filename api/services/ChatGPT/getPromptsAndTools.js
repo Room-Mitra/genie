@@ -4,8 +4,8 @@ import {
   GUESTS_METADATA_REQUIREMENT,
   PROSPECTS_METADATA_REQUIREMENT,
   NUMBER_FORMATTING_PROMPT,
-  LANGUAGE_PROMPT,
 } from './prompts/Base.prompt.js';
+import { LANGUAGE_PROMPT } from './prompts/Language.prompt.js';
 import { ROOM_BOOKING_PROMPT } from './prompts/BookRoom.prompt.js';
 import { MENU_ENQUIRY_PROMPT } from './prompts/MenuEnquiry.prompt.js';
 import { MUSIC_PROMPT } from './prompts/Music.prompt.js';
