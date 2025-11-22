@@ -36,7 +36,6 @@ export function getPromptsAndTools({ intents, isProspect }) {
     prompts.push(PROSPECTS_METADATA_REQUIREMENT);
   } else {
     prompts.push(GUESTS_BASE_SYSTEM);
-    prompts.push(LANGUAGE_PROMPT);
     prompts.push(NUMBER_FORMATTING_PROMPT);
     prompts.push(GUESTS_METADATA_REQUIREMENT);
   }

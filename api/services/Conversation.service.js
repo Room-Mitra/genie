@@ -110,8 +110,8 @@ export async function handleConversation({
 
   const response = {
     conversationId,
-    message: reply,
-    displayMessage: stripSSML(reply),
+    message: stripSSML(reply),
+    speakMessage: reply,
     isConversationOpen: isUserResponseNeeded,
     canEndCall,
     agents,

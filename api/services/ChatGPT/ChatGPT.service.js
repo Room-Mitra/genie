@@ -383,7 +383,7 @@ export async function askChatGpt({
   }
 
   return {
-    reply: replyText || 'Something went wrong, could you please try that again?',
+    reply: `<speak>${replyText || 'Something went wrong, could you please try that again?'}</speak>`,
     isUserResponseNeeded,
     canEndCall,
     agents,
