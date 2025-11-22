@@ -71,6 +71,7 @@ export async function handleConversation({
       hotel_requests: [],
       order_requests: [],
       menu_items: [],
+      room_availability: [],
     };
   }
 
