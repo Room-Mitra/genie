@@ -13,6 +13,7 @@ export function TryVoiceAgent() {
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
+  const [language, setLanguage] = useState('');
   const [token, setToken] = useState('');
 
   const onClick = () => {
@@ -29,10 +30,11 @@ export function TryVoiceAgent() {
     }, 300);
   };
 
-  const onSuccess = ({ name: n, email: e, token: t }) => {
+  const onSuccess = ({ name: n, email: e, language: l, token: t }) => {
     if (step === 1) {
       setEmail(e);
       setName(n);
+      setLanguage(l);
       setStep(2);
     }
 
@@ -105,7 +107,13 @@ export function TryVoiceAgent() {
               </div>
               {step === 1 && <LeadForm onSuccess={onSuccess} onClose={onClose} />}
               {step === 2 && (
-                <OTPForm name={name} email={email} onClose={onClose} onSuccess={onSuccess} />
+                <OTPForm
+                  name={name}
+                  email={email}
+                  language={language}
+                  onClose={onClose}
+                  onSuccess={onSuccess}
+                />
               )}
               {step === 3 && <Agent onClose={onClose} token={token} />}
             </DialogPanel>

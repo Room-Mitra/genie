@@ -220,7 +220,7 @@ router.post('/voice-agent-trial-request', async (req, res) => {
     // Case 1: request OTP
     if (name && !otp) {
       if (!language) {
-        return res.status(400).json({ ok: false, error: 'Language is required' });
+        return res.status(400).json({ ok: false, error: 'language is required' });
       }
 
       if (!Languages.includes(language)) {

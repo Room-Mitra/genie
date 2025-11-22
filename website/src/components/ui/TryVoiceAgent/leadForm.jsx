@@ -42,7 +42,7 @@ export function LeadForm({ onClose, onSuccess }) {
       }
 
       form.reset();
-      onSuccess({ email, name });
+      onSuccess({ email, name, language });
       setName('');
       setEmail('');
     } catch (err) {
@@ -88,27 +88,46 @@ export function LeadForm({ onClose, onSuccess }) {
             </div>
 
             <div className="flex flex-col text-left">
-              <label htmlFor="name" className="block text-gray-200 font-semibold mb-2">
+              <label htmlFor="language" className="block text-gray-200 font-semibold mb-2">
                 Language <span className="text-red-500">*</span>
               </label>
-              <select
-                id="language"
-                name="language"
-                value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                required
-                className="w-full px-3 bg-gray-800 py-2 border text-gray-200 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="" disabled hidden>
-                  Select a language
-                </option>
-                <option value="english">English</option>
-                <option value="kannada">Kannada</option>
-                <option value="hindi">Hindi</option>
-                <option value="tamil">Tamil</option>
-                <option value="telugu">Telugu</option>
-                <option value="malayalam">Malayalam</option>
-              </select>
+
+              <div className="relative">
+                <select
+                  id="language"
+                  name="language"
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value)}
+                  required
+                  className="w-full appearance-none px-3 pr-9 bg-gray-800 py-2 border text-gray-200 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="" disabled hidden>
+                    Select a language
+                  </option>
+                  <option value="english">English</option>
+                  <option value="kannada">Kannada</option>
+                  <option value="hindi">Hindi</option>
+                  <option value="tamil">Tamil</option>
+                  <option value="telugu">Telugu</option>
+                  <option value="malayalam">Malayalam</option>
+                </select>
+
+                {/* Custom dropdown arrow */}
+                <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                  <svg
+                    className="h-4 w-4 text-gray-400"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </span>
+              </div>
             </div>
           </div>
 
