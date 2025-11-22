@@ -209,7 +209,7 @@ router.post('/feedback', upload.single('audio'), async (req, res) => {
 });
 
 router.post('/voice-agent-trial-request', async (req, res) => {
-  const { name, email, otp } = req.body || {};
+  const { name, email, language, otp } = req.body || {};
 
   if (!email) {
     return res.status(400).json({ ok: false, error: 'Email is required' });
@@ -218,7 +218,10 @@ router.post('/voice-agent-trial-request', async (req, res) => {
   try {
     // Case 1: request OTP
     if (name && !otp) {
-      await generateOtpForEmail(email, name, OtpPurpose.VOICE_AGENT_TRIAL_REQUEST);
+      if (!language) {
+        return res.status(400).json({ ok: false, error: 'Language is required' });
+      }
+      await generateOtpForEmail(email, name, language, OtpPurpose.VOICE_AGENT_TRIAL_REQUEST);
 
       return res.json({
         message: 'Verification code sent to email',

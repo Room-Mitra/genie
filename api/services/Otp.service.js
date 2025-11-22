@@ -18,12 +18,12 @@ function generateOtp() {
   return String(Math.floor(10000 + Math.random() * 90000));
 }
 
-export async function generateOtpForEmail(email, name, purpose) {
+export async function generateOtpForEmail(email, name, language, purpose) {
   const code = generateOtp();
   const now = Math.floor(Date.now() / 1000); // seconds
   const ttl = now + OTP_TTL_SECONDS;
 
-  await saveOTP(email, name, code, ttl, purpose);
+  await saveOTP(email, name, language, code, ttl, purpose);
 
   await sendVerificationEmail({
     to: email,
@@ -63,6 +63,7 @@ export async function verifyOtpForEmail(email, code, purpose) {
   const payload = {
     sub: email,
     name: record.name,
+    language: record.language,
     iat: nowSec,
   };
 

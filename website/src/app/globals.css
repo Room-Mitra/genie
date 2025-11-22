@@ -39,8 +39,7 @@ html {
   animation: fadeIn 1.8s;
 }
 
-.cta-btn:hover,
-.cta-btn:focus {
+.cta-btn:hover {
   background: #fff2c3;
   color: var(--primary);
   box-shadow: 0 2px 16px 0 rgba(226, 192, 68, 0.22);

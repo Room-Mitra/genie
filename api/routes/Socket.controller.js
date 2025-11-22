@@ -6,6 +6,14 @@ import { sendVoiceAgentTrialNotification } from '#services/Slack.service.js';
 
 const TRIAL_LIMIT_MS = 5 * 60 * 1000; // 5 minutes
 
+function getGreetingText(language) {
+  switch (language) {
+    case 'english':
+  }
+
+  return 'Hi, this is Room Mitra. I am your virtual assistant for the hotel. How can I help you today?';
+}
+
 async function generateAgentReply(userText, conversationId) {
   const text = (userText || '').trim();
 
@@ -223,10 +231,9 @@ export function connection(ws, request) {
       case 'START_CALL': {
         // console.log('[WS] START_CALL received');
 
-        const greetingText =
-          'Hi, this is Room Mitra. I am your virtual assistant for the hotel. How can I help you today?';
+        const greetingText = getGreetingText(ws.language);
 
-        await sendTTSReply(ws, greetingText);
+        await sendTTSReply(ws, greetingText, ws.language);
         break;
       }
 
