@@ -53,7 +53,7 @@ async function generateAgentReply(userText, conversationId) {
 async function sendTTSReply(ws, reply) {
   ws.send(JSON.stringify({ type: 'reply_text', text: reply.message, language: ws.language }));
 
-  const audioContent = await synthesizeSpeech(reply.speakMessage, ws.language);
+  const audioContent = await synthesizeSpeech(reply.ssml, ws.language);
   if (!audioContent || !audioContent.length) {
     console.error('[TTS] No audio bytes to send');
     ws.send(
@@ -204,7 +204,7 @@ export function connection(ws, request) {
 
     try {
       // 1) Send the text + audio fully
-      await sendTTSReply(ws, { speakMessage: TRIAL_MESSAGE, message: TRIAL_MESSAGE });
+      await sendTTSReply(ws, { ssml: `<speak>${TRIAL_MESSAGE}</speak>`, message: TRIAL_MESSAGE });
     } catch (err) {
       console.error('[WS] Error sending trial TTS reply:', err);
     }
@@ -252,7 +252,7 @@ export function connection(ws, request) {
 
         const greetingText = getGreetingText(ws.language);
 
-        await sendTTSReply(ws, { speakMessage: greetingText, message: greetingText });
+        await sendTTSReply(ws, { ssml: `<speak>${greetingText}</speak>`, message: greetingText });
         break;
       }
 

@@ -1,11 +1,11 @@
 import { TTSClient } from '#clients/TTS.client.js';
 import { VoiceForLanguage } from '#Constants/Language.constants.js';
 
-export async function synthesizeSpeech(text, language) {
+export async function synthesizeSpeech(ssml, language) {
   const { languageCode, name, speakingRate } = VoiceForLanguage[language];
 
   const request = {
-    input: { text },
+    input: { ssml },
     voice: {
       languageCode,
       name,
