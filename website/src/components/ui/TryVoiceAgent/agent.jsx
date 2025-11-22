@@ -40,6 +40,48 @@ export const Agent = ({ token, onClose }) => {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const ua = window.navigator.userAgent || '';
+    const isIOS = /iPad|iPhone|iPod/.test(ua);
+
+    if (!isIOS) return;
+
+    const unlock = () => {
+      // Ensure we have a single shared <audio> element
+      if (!currentAudioRef.current) {
+        const a = new Audio();
+        a.preload = 'auto';
+        a.playsInline = true;
+        currentAudioRef.current = a;
+      }
+
+      const a = currentAudioRef.current;
+      a.muted = true;
+      const p = a.play();
+      if (p && typeof p.then === 'function') {
+        p.then(() => {
+          a.pause();
+          a.muted = false;
+        }).catch(() => {
+          // ignore – this is just a priming call
+        });
+      }
+
+      window.removeEventListener('touchstart', unlock);
+      window.removeEventListener('click', unlock);
+    };
+
+    window.addEventListener('touchstart', unlock);
+    window.addEventListener('click', unlock);
+
+    return () => {
+      window.removeEventListener('touchstart', unlock);
+      window.removeEventListener('click', unlock);
+    };
+  }, []);
+
+  useEffect(() => {
     isRecordingRef.current = isRecording;
   }, [isRecording]);
 
@@ -360,18 +402,35 @@ export const Agent = ({ token, onClose }) => {
 
           const audioBlob = new Blob(ttsAudioChunks, { type: 'audio/mpeg' });
           const audioUrl = URL.createObjectURL(audioBlob);
-          const audio = new Audio(audioUrl);
 
-          currentAudioRef.current = audio;
+          // Reuse a single <audio> element across the session
+          let audio = currentAudioRef.current;
+          if (!audio) {
+            audio = new Audio();
+            audio.preload = 'auto';
+            audio.playsInline = true; // important on iOS
+            currentAudioRef.current = audio;
+          }
+
+          // Clean up previous URL if there was one
+          if (currentAudioUrlRef.current) {
+            URL.revokeObjectURL(currentAudioUrlRef.current);
+          }
           currentAudioUrlRef.current = audioUrl;
+
+          audio.src = audioUrl;
+          audio.load(); // helps Safari notice the new src
 
           isAgentSpeakingRef.current = true;
 
-          audio.play().catch((e) => {
-            console.error('Audio playback error:', e);
-            isAgentSpeakingRef.current = false;
-            stopCurrentAudio();
-          });
+          const playPromise = audio.play();
+          if (playPromise && typeof playPromise.then === 'function') {
+            playPromise.catch((e) => {
+              console.error('Audio playback error:', e);
+              isAgentSpeakingRef.current = false;
+              stopCurrentAudio();
+            });
+          }
 
           audio.onended = () => {
             stopCurrentAudio();

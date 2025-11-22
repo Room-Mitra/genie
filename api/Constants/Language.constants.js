@@ -23,21 +23,21 @@ export const VoiceForLanguage = {
   [Language.Telugu]: {
     languageCode: 'te-IN',
     name: 'te-IN-Standard-A',
-    speakingRate: 1.5,
+    speakingRate: 1.1,
   },
   [Language.Malayalam]: {
     languageCode: 'ml-IN',
     name: 'ml-IN-Wavenet-C',
-    speakingRate: 1.5,
+    speakingRate: 1.1,
   },
   [Language.Hindi]: {
     languageCode: 'hi-IN',
     name: 'hi-IN-Wavenet-E',
-    speakingRate: 1.5,
+    speakingRate: 1.1,
   },
   [Language.Tamil]: {
     languageCode: 'ta-IN',
     name: 'ta-IN-Wavenet-A',
-    speakingRate: 1.5,
+    speakingRate: 1.1,
   },
 };
