@@ -6,21 +6,19 @@ import NavLink from '../NavLink';
 const MARKET_PRESETS = {
   india: {
     currency: 'INR',
-    salary: { min: 15000, max: 60000, defaultValue: 25000, step: 1000 },
-    staff: { min: 1, max: 15, defaultValue: 4, step: 1 },
+    salary: { min: 20000, max: 150000, defaultValue: 35000, step: 5000 },
+    staff: { min: 1, max: 50, defaultValue: 10, step: 1 },
     automation: { min: 20, max: 90, defaultValue: 60, step: 5 },
-    dailyRevenue: { min: 5000, max: 300000, defaultValue: 10000, step: 5000 },
-    upsell: { min: 1, max: 20, defaultValue: 5, step: 1 },
-    approxAdr: 5000, // rough average daily rate in INR
+    dailyRevenue: { min: 5000, max: 2500000, defaultValue: 100000, step: 5000 },
+    upsell: { min: 1, max: 100, defaultValue: 25, step: 5 },
   },
   global: {
     currency: 'USD',
-    salary: { min: 1800, max: 7000, defaultValue: 3500, step: 100 },
-    staff: { min: 1, max: 20, defaultValue: 5, step: 1 },
+    salary: { min: 2500, max: 30000, defaultValue: 5000, step: 500 },
+    staff: { min: 1, max: 100, defaultValue: 10, step: 1 },
     automation: { min: 20, max: 90, defaultValue: 60, step: 5 },
-    dailyRevenue: { min: 2000, max: 200000, defaultValue: 15000, step: 1000 },
-    upsell: { min: 1, max: 20, defaultValue: 5, step: 1 },
-    approxAdr: 150, // rough average daily rate in USD
+    dailyRevenue: { min: 2000, max: 1000000, defaultValue: 100000, step: 1000 },
+    upsell: { min: 1, max: 100, defaultValue: 25, step: 5 },
   },
 };
 
@@ -45,7 +43,7 @@ function formatCurrency(value, currency) {
 }
 
 export default function CostSavingsCalculator() {
-  const [selectedMarket, setSelectedMarket] = useState('india');
+  const [selectedMarket, setSelectedMarket] = useState('global');
   const preset = useMemo(() => MARKET_PRESETS[selectedMarket], [selectedMarket]);
   const [monthlySalary, setMonthlySalary] = useState(preset.salary.defaultValue);
   const [staffCount, setStaffCount] = useState(preset.staff.defaultValue);
@@ -194,7 +192,7 @@ export default function CostSavingsCalculator() {
               type="range"
               min={preset.upsell.min}
               max={preset.upsell.max}
-              step={preset.upsell.step}
+              step={upsellPercent === 5 ? 4 : preset.upsell.step}
               value={upsellPercent}
               onChange={(e) => setUpsellPercent(Number(e.target.value))}
               className="mt-2 w-full"
