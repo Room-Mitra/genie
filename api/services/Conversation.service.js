@@ -4,10 +4,11 @@ import * as chatGPTService from '#services/ChatGPT/ChatGPT.service.js';
 import { ulid } from 'ulid';
 import { toIsoString } from '#common/timestamp.helper.js';
 
-function newMessage({ role, content, conversationId, ...props }) {
+function newMessage({ role, content, ssml, conversationId, ...props }) {
   return {
     role,
     content,
+    ssml,
     conversationId,
     entityType: 'MESSAGE',
     messageId: ulid(),
@@ -70,6 +71,7 @@ export async function handleConversation({
       hotel_requests: [],
       order_requests: [],
       menu_items: [],
+      room_availability: [],
     };
   }
 
@@ -99,7 +101,12 @@ export async function handleConversation({
   // All new messages that have to be saved
   const newMessages = [
     newUserMessage,
-    newMessage({ role: 'assistant', content: reply, conversationId }),
+    newMessage({
+      role: 'assistant',
+      content: stripSSML(reply),
+      ssml: reply,
+      conversationId,
+    }),
   ];
   // Now we save everything in the db
   await conversationRepo.saveConversationEntities(
@@ -110,12 +117,30 @@ export async function handleConversation({
 
   const response = {
     conversationId,
-    message: reply,
+    message: stripSSML(reply),
+    ssml: reply,
     isConversationOpen: isUserResponseNeeded,
     canEndCall,
     agents,
-    // requests: savedRequests.map(requestResponse),
   };
 
   return response;
+}
+
+export function stripSSML(text = '') {
+  if (!text) return '';
+
+  return (
+    text
+      // unwrap <say-as> tags but keep the inner digits
+      .replace(/<say-as[^>]*>(.*?)<\/say-as>/gi, '$1')
+
+      // remove <speak> if present
+      .replace(/<\/?speak>/gi, '')
+
+      // collapse whitespace
+      .replace(/\s+/g, ' ')
+
+      .trim()
+  );
 }

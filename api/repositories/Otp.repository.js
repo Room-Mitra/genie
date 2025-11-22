@@ -2,7 +2,7 @@ import { PutCommand, UpdateCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import { DDBV3 } from '#clients/DynamoDb.client.js';
 import { ENTITY_TABLE_NAME, GSI_ACTIVE_NAME } from '#Constants/DB.constants.js';
 
-export async function saveOTP(email, name, otp, ttl, purpose) {
+export async function saveOTP(email, name, language, otp, ttl, purpose) {
   const pk = `OTP#${email}`;
   const sk = `${purpose}#CODE#${otp}`;
   const otpItem = {
@@ -12,6 +12,7 @@ export async function saveOTP(email, name, otp, ttl, purpose) {
     active_sk: sk,
     email,
     name,
+    language,
     code: otp,
     purpose,
     createdAt: new Date().toISOString(),

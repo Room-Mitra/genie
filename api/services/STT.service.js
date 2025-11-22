@@ -1,14 +1,7 @@
 import { STTClient } from '#clients/STT.client.js';
+import { VoiceForLanguage } from '#Constants/Language.constants.js';
 
-const AUDIO_CONFIG = {
-  encoding: 'LINEAR16',
-  sampleRateHertz: 16000,
-  languageCode: 'en-US',
-};
-
-// --- Helpers ---
-
-export async function transcribeAudio(audioBuffer) {
+export async function transcribeAudio(audioBuffer, language) {
   try {
     if (!audioBuffer || !audioBuffer.length) {
       console.warn('[STT] Empty audioBuffer passed to transcribeAudio');
@@ -19,7 +12,11 @@ export async function transcribeAudio(audioBuffer) {
 
     const request = {
       audio: { content: audioBytes },
-      config: AUDIO_CONFIG,
+      config: {
+        encoding: 'LINEAR16',
+        sampleRateHertz: 16000,
+        languageCode: VoiceForLanguage[language].languageCode,
+      },
     };
 
     const [response] = await STTClient.recognize(request);

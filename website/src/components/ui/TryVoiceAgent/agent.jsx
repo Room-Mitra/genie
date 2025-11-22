@@ -40,6 +40,48 @@ export const Agent = ({ token, onClose }) => {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const ua = window.navigator.userAgent || '';
+    const isIOS = /iPad|iPhone|iPod/.test(ua);
+
+    if (!isIOS) return;
+
+    const unlock = () => {
+      // Ensure we have a single shared <audio> element
+      if (!currentAudioRef.current) {
+        const a = new Audio();
+        a.preload = 'auto';
+        a.playsInline = true;
+        currentAudioRef.current = a;
+      }
+
+      const a = currentAudioRef.current;
+      a.muted = true;
+      const p = a.play();
+      if (p && typeof p.then === 'function') {
+        p.then(() => {
+          a.pause();
+          a.muted = false;
+        }).catch(() => {
+          // ignore – this is just a priming call
+        });
+      }
+
+      window.removeEventListener('touchstart', unlock);
+      window.removeEventListener('click', unlock);
+    };
+
+    window.addEventListener('touchstart', unlock);
+    window.addEventListener('click', unlock);
+
+    return () => {
+      window.removeEventListener('touchstart', unlock);
+      window.removeEventListener('click', unlock);
+    };
+  }, []);
+
+  useEffect(() => {
     isRecordingRef.current = isRecording;
   }, [isRecording]);
 
@@ -74,6 +116,7 @@ export const Agent = ({ token, onClose }) => {
         id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
         role,
         text: safeText,
+        timestamp: Date.now(),
       },
     ]);
   }, []);
@@ -359,18 +402,35 @@ export const Agent = ({ token, onClose }) => {
 
           const audioBlob = new Blob(ttsAudioChunks, { type: 'audio/mpeg' });
           const audioUrl = URL.createObjectURL(audioBlob);
-          const audio = new Audio(audioUrl);
 
-          currentAudioRef.current = audio;
+          // Reuse a single <audio> element across the session
+          let audio = currentAudioRef.current;
+          if (!audio) {
+            audio = new Audio();
+            audio.preload = 'auto';
+            audio.playsInline = true; // important on iOS
+            currentAudioRef.current = audio;
+          }
+
+          // Clean up previous URL if there was one
+          if (currentAudioUrlRef.current) {
+            URL.revokeObjectURL(currentAudioUrlRef.current);
+          }
           currentAudioUrlRef.current = audioUrl;
+
+          audio.src = audioUrl;
+          audio.load(); // helps Safari notice the new src
 
           isAgentSpeakingRef.current = true;
 
-          audio.play().catch((e) => {
-            console.error('Audio playback error:', e);
-            isAgentSpeakingRef.current = false;
-            stopCurrentAudio();
-          });
+          const playPromise = audio.play();
+          if (playPromise && typeof playPromise.then === 'function') {
+            playPromise.catch((e) => {
+              console.error('Audio playback error:', e);
+              isAgentSpeakingRef.current = false;
+              stopCurrentAudio();
+            });
+          }
 
           audio.onended = () => {
             stopCurrentAudio();
@@ -436,10 +496,8 @@ export const Agent = ({ token, onClose }) => {
     cleanupResources({ stopAudio: true });
     onClose?.();
   };
-
   const renderMessageBubble = (msg) => {
     const isUser = msg.role === 'user';
-    const isAgent = msg.role === 'agent';
     const isSystem = msg.role === 'system';
 
     if (isSystem) {
@@ -452,18 +510,37 @@ export const Agent = ({ token, onClose }) => {
 
     return (
       <div key={msg.id} className={`flex my-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
-        <div
-          className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm shadow-sm ${
-            isUser
-              ? 'bg-indigo-600 text-white rounded-br-sm'
-              : 'bg-gray-200 text-gray-900 rounded-bl-sm'
-          }`}
-        >
-          {msg.text}
+        <div className="flex flex-col max-w-[80%]">
+          <div
+            className={`rounded-2xl px-4 py-2 text-sm shadow-sm ${
+              isUser
+                ? 'bg-indigo-600 text-white rounded-br-sm'
+                : 'bg-gray-200 text-gray-900 rounded-bl-sm'
+            }`}
+          >
+            {msg.text}
+          </div>
+
+          {/* Timestamp BELOW bubble */}
+          <div className={`text-[10px] text-gray-400 mt-1 ${isUser ? 'text-right' : 'text-left'}`}>
+            {formatTimeAgo(msg.timestamp)}
+          </div>
         </div>
       </div>
     );
   };
+
+  function formatTimeAgo(date) {
+    const now = Date.now();
+    const diff = Math.floor((now - date) / 1000);
+
+    if (diff < 60) return `${diff}s ago`;
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+
+    const d = new Date(date);
+    return d.toLocaleString(); // falls back to full readable time
+  }
 
   return (
     <div className="w-full bg-gray-800 max-w-2xl shadow-2xl p-6 space-y-4 flex flex-col h-[480px]">

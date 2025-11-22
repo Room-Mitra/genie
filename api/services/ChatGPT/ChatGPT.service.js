@@ -349,6 +349,10 @@ export async function askChatGpt({
           conversationState.hotel_requests.push(output);
         }
 
+        if (tc.name === 'room_availability') {
+          conversationState.room_availabilities.push(output);
+        }
+
         return {
           type: 'function_call_output',
           call_id: tc.call_id,
@@ -383,7 +387,7 @@ export async function askChatGpt({
   }
 
   return {
-    reply: replyText || 'Something went wrong, could you please try that again?',
+    reply: `<speak>${replyText || 'Something went wrong, could you please try that again?'}</speak>`,
     isUserResponseNeeded,
     canEndCall,
     agents,
