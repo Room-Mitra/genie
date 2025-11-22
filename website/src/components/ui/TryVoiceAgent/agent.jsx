@@ -437,7 +437,6 @@ export const Agent = ({ token, onClose }) => {
     cleanupResources({ stopAudio: true });
     onClose?.();
   };
-
   const renderMessageBubble = (msg) => {
     const isUser = msg.role === 'user';
     const isSystem = msg.role === 'system';
@@ -452,19 +451,21 @@ export const Agent = ({ token, onClose }) => {
 
     return (
       <div key={msg.id} className={`flex my-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
-        <div
-          className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm shadow-sm ${
-            isUser
-              ? 'bg-indigo-600 text-white rounded-br-sm'
-              : 'bg-gray-200 text-gray-900 rounded-bl-sm'
-          }`}
-        >
-          {msg.text}
-        </div>
+        <div className="flex flex-col max-w-[80%]">
+          <div
+            className={`rounded-2xl px-4 py-2 text-sm shadow-sm ${
+              isUser
+                ? 'bg-indigo-600 text-white rounded-br-sm'
+                : 'bg-gray-200 text-gray-900 rounded-bl-sm'
+            }`}
+          >
+            {msg.text}
+          </div>
 
-        {/* Timestamp */}
-        <div className={`text-[10px] text-gray-400 mt-1 ${isUser ? 'text-right' : 'text-left'}`}>
-          {formatTimeAgo(msg.timestamp)}
+          {/* Timestamp BELOW bubble */}
+          <div className={`text-[10px] text-gray-400 mt-1 ${isUser ? 'text-right' : 'text-left'}`}>
+            {formatTimeAgo(msg.timestamp)}
+          </div>
         </div>
       </div>
     );
