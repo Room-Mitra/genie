@@ -26,18 +26,17 @@ const Pricing = () => {
         name: 'Growth',
         desc: (
           <>
-            <p>Everything in Starter,</p>
-            <p> plus the AI Phone Agent</p>
+            <p>Starter plus the AI Phone Agent</p>
           </>
         ),
         price: 750,
         isMostPop: true,
         features: [
           'AI Phone Agent answers calls instantly',
-          'Handles bookings, pricing questions, and FAQs',
-          'Captures leads and routes important calls to staff',
+          'Handles bookings, pricing and FAQs',
+          'Lead capture and call routing to staff',
           'Reduces front-desk workload',
-          '24/7 voice coverage for guests and non-guests',
+          '24/7 voice coverage for prospects and guests',
           'Call analytics and peak-hour insights',
         ],
       },
@@ -75,18 +74,17 @@ const Pricing = () => {
         name: 'Growth',
         desc: (
           <>
-            <p>Everything in Starter,</p>
-            <p> plus the AI Phone Agent</p>
+            <p>Starter plus the AI Phone Agent</p>
           </>
         ),
         price: 18,
         isMostPop: true,
         features: [
           'AI Phone Agent answers calls instantly',
-          'Handles bookings, pricing questions, and FAQs',
-          'Captures leads and routes important calls to staff',
+          'Handles bookings, pricing and FAQs',
+          'Lead capture and call routing to staff',
           'Reduces front-desk workload',
-          '24/7 voice coverage for guests and non-guests',
+          '24/7 voice coverage for prospects and guests',
           'Call analytics and peak-hour insights',
         ],
       },
