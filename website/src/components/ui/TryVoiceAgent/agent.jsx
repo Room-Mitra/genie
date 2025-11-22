@@ -6,6 +6,19 @@ const SERVER_URL = process.env.NEXT_PUBLIC_SOCKET_IO_URL;
 // Must match server
 const SAMPLE_RATE = 16000;
 
+// Convert Float32 PCM ([-1,1]) to Int16 for server
+function float32ToInt16(float32Array) {
+  const int16Array = new Int16Array(float32Array.length);
+  for (let i = 0; i < float32Array.length; i++) {
+    let s = float32Array[i];
+    if (s > 1) s = 1;
+    else if (s < -1) s = -1;
+    int16Array[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+  }
+
+  return int16Array;
+}
+
 export const Agent = ({ token, onClose }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -133,18 +146,30 @@ export const Agent = ({ token, onClose }) => {
     ]);
   }, []);
 
-  // Convert Float32 PCM ([-1,1]) to Int16 for server
-  function float32ToInt16(float32Array) {
-    const int16Array = new Int16Array(float32Array.length);
-    for (let i = 0; i < float32Array.length; i++) {
-      let s = float32Array[i];
-      if (s > 1) s = 1;
-      else if (s < -1) s = -1;
-      int16Array[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
-    }
+  const unlockIOSAudio = useCallback(() => {
+    if (audioUnlockedRef.current) return;
 
-    return int16Array;
-  }
+    const audio = audioElementRef.current; // <-- IMPORTANT
+    if (!audio) return;
+
+    audio.muted = true;
+    const p = audio.play();
+    if (p && typeof p.then === 'function') {
+      p.then(() => {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.muted = false;
+        audioUnlockedRef.current = true;
+      }).catch((err) => {
+        console.warn('[AUDIO] iOS unlock failed', err);
+      });
+    } else {
+      audio.pause();
+      audio.currentTime = 0;
+      audio.muted = false;
+      audioUnlockedRef.current = true;
+    }
+  }, []);
 
   const stopCurrentAudio = useCallback(() => {
     const audio = currentAudioRef.current; // ⬅️ use the real playing audio
@@ -505,6 +530,7 @@ export const Agent = ({ token, onClose }) => {
     cleanupResources({ stopAudio: true });
     onClose?.();
   };
+
   const renderMessageBubble = (msg) => {
     const isUser = msg.role === 'user';
     const isSystem = msg.role === 'system';
@@ -550,31 +576,6 @@ export const Agent = ({ token, onClose }) => {
     const d = new Date(date);
     return d.toLocaleString(); // falls back to full readable time
   }
-
-  const unlockIOSAudio = useCallback(() => {
-    if (audioUnlockedRef.current) return;
-
-    const audio = audioElementRef.current; // <-- IMPORTANT
-    if (!audio) return;
-
-    audio.muted = true;
-    const p = audio.play();
-    if (p && typeof p.then === 'function') {
-      p.then(() => {
-        audio.pause();
-        audio.currentTime = 0;
-        audio.muted = false;
-        audioUnlockedRef.current = true;
-      }).catch((err) => {
-        console.warn('[AUDIO] iOS unlock failed', err);
-      });
-    } else {
-      audio.pause();
-      audio.currentTime = 0;
-      audio.muted = false;
-      audioUnlockedRef.current = true;
-    }
-  }, []);
 
   return (
     <div className="w-full bg-gray-800 max-w-2xl shadow-2xl p-6 space-y-4 flex flex-col h-[480px]">
