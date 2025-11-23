@@ -1,6 +1,13 @@
 name: Deploy Website
 
 on:
+  workflow_dispatch:
+    inputs:
+      commit_sha:
+        description: 'Commit SHA to run the workflow on'
+        required: true
+        type: string
+
   push:
     branches:
       - release
@@ -91,7 +98,7 @@ jobs:
             NEXT_PUBLIC_SOCKET_IO_URL=wss://api.roommitra.com
           tags: |
             public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:${{ env.IMAGE_TAG }}
-            public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:latest
+            public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:release
           cache-from: |
             type=gha
             type=registry,ref=public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:buildcache

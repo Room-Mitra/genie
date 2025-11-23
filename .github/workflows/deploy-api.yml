@@ -1,6 +1,13 @@
 name: Deploy api
 
 on:
+  workflow_dispatch:
+    inputs:
+      commit_sha:
+        description: 'Commit SHA to run the workflow on'
+        required: true
+        type: string
+
   push:
     branches:
       - release
@@ -88,7 +95,6 @@ jobs:
           provenance: false
           tags: |
             public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:${{ env.IMAGE_TAG }}
-            public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:latest
             public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:release
           cache-from: |
             type=gha
