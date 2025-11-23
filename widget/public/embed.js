@@ -10,7 +10,9 @@
   const HOTEL_ID = data.hotelId || data.hotelId || '';
   const THEME = data.theme ? JSON.parse(decodeURIComponent(data.theme)) : null;
   const POSITION = data.position || 'bottom-right';
-  const WIDGET_URL = (data.widgetUrl || ("http://localhost:3001" + '/widget')) + `?hotelId=${encodeURIComponent(HOTEL_ID)}`;
+  const WIDGET_URL =
+    (data.widgetUrl || 'http://localhost:3001' + '/widget') +
+    `?hotelId=${encodeURIComponent(HOTEL_ID)}`;
 
   // Create minimized launcher
   const launcher = document.createElement('button');
@@ -43,9 +45,18 @@
 
   // Hold iframe
   let iframe = null;
+
+  function closeWidget() {
+    if (iframe) {
+      iframe.style.display = 'none';
+    }
+    open = false;
+  }
+
   function openWidget() {
     if (iframe) {
       iframe.style.display = 'block';
+      open = true;
       return;
     }
 
@@ -88,16 +99,27 @@
       openWidget();
       open = true;
     } else {
-      if (iframe) iframe.style.display = iframe.style.display === 'none' ? 'block' : 'none';
+      if (iframe) {
+        const nowHidden = iframe.style.display !== 'none';
+        iframe.style.display = nowHidden ? 'none' : 'block';
+        open = !nowHidden;
+      }
+    }
+  });
+
+  // Listen for close requests from inside the iframe
+  window.addEventListener('message', function (event) {
+    const msg = event.data;
+    if (!msg || typeof msg !== 'object') return;
+    if (msg.type === 'ROOMMITRA_CLOSE_WIDGET') {
+      closeWidget();
     }
   });
 
   // provide API for host page devs
   window.RoomMitraWidget = {
     open: openWidget,
-    close: function () {
-      if (iframe) iframe.style.display = 'none';
-    },
+    close: closeWidget,
     post: function (msg) {
       if (iframe) iframe.contentWindow.postMessage(msg, '*');
     },

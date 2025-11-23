@@ -1,8 +1,4 @@
-import WidgetClient from "./WidgetClient";
-
-export const metadata = {
-  title: "Room Mitra Widget",
-};
+import WidgetClient from './WidgetClient.jsx';
 
 export default function WidgetPage() {
   return <WidgetClient />;

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { MicVAD } from '@ricky0123/vad-web';
 
-const SERVER_URL = 'wss://api.roommitra.com';
+const SERVER_URL = process.env.NEXT_PUBLIC_SOCKET_IO_URL;
 
 // Must match server
 const SAMPLE_RATE = 16000;
@@ -38,6 +38,10 @@ export const Agent = ({ token, onClose }) => {
 
   const wsRef = useRef(null);
   const vadRef = useRef(null);
+
+  // Controls whether we are allowed to auto-reconnect.
+  // Turn this off when the user ends the call or closes the modal.
+  const shouldReconnectRef = useRef(true);
 
   const isRecordingRef = useRef(false);
   const manualCloseRef = useRef(false); // true when we intentionally tear down the WS from client
@@ -322,6 +326,12 @@ export const Agent = ({ token, onClose }) => {
       return;
     }
 
+    // If we've been told not to reconnect (call ended / modal closed),
+    // just bail out.
+    if (!shouldReconnectRef.current) {
+      return;
+    }
+
     manualCloseRef.current = false;
 
     const url = `${SERVER_URL}?token=${encodeURIComponent(token)}`;
@@ -381,10 +391,19 @@ export const Agent = ({ token, onClose }) => {
         return;
       }
 
-      // 3. Otherwise: unexpected disconnect => auto-reconnect
+      // 3. Otherwise: unexpected disconnect => auto-reconnect (only if allowed)
+      if (!shouldReconnectRef.current) {
+        // We've been told not to reconnect anymore (user ended / closed UI),
+        // so just clean up and exit.
+        cleanupResources({ stopAudio: false });
+        return;
+      }
+
       setError(`Connection lost to ${ws.url} (${closeInfo}). Attempting reconnection...`);
       setTimeout(() => {
-        connectWebSocket();
+        if (shouldReconnectRef.current) {
+          connectWebSocket();
+        }
       }, 5000);
     };
 
@@ -463,8 +482,9 @@ export const Agent = ({ token, onClose }) => {
             agentLastSpeechEndTimeRef.current = Date.now();
           };
         } else if (message.type === 'call_end') {
-          // Server has decided to end the call
+          // Server has decided to end the call. Do NOT reconnect after this.
           manualCloseRef.current = true;
+          shouldReconnectRef.current = false;
           setConversationEnded(true);
 
           // For any server initiated end (including trial_ended), we always say:
@@ -494,13 +514,19 @@ export const Agent = ({ token, onClose }) => {
     connectWebSocket();
     return () => {
       // On unmount, we do a full cleanup and stop audio
+      // Component is going away: mark this as an intentional close and
+      // disable any future reconnects.
+      manualCloseRef.current = true;
+      shouldReconnectRef.current = false;
       cleanupResources({ stopAudio: true });
     };
   }, [connectWebSocket, cleanupResources]);
 
   // End only the conversation (no onClose)
   const handleEndConversation = () => {
-    manualCloseRef.current = true; // user explicitly ended
+    // User explicitly ended. Do not reconnect this socket anymore.
+    manualCloseRef.current = true;
+    shouldReconnectRef.current = false;
 
     // Only here we show "You ended the call."
     pushMessage('system', 'You ended the call.');
@@ -578,74 +604,77 @@ export const Agent = ({ token, onClose }) => {
   }
 
   return (
-    <div className="w-full bg-gray-800 max-w-2xl shadow-2xl p-6 space-y-4 flex flex-col h-[480px]">
-      {/* Header (no connected indicator now, just a simple title if you want) */}
-      <div className="flex justify-between items-center">
-        <div className="text-xs text-gray-200 font-semibold">Room Mitra Voice Agent</div>
+    <div className="flex h-full max-h-full flex-col bg-gray-800 max-w-2xl shadow-2xl">
+      {/* Header (fixed, non-scrollable) */}
+      <div className="flex items-center justify-between border-gray-700/60 bg-gray-900/60 px-6 py-4">
+        <div className="text-xs font-semibold text-gray-200">Voice Agent</div>
       </div>
 
-      {/* Error */}
+      {/* Error (fixed, non-scrollable, always under header) */}
       {error && (
-        <div className="p-3 bg-red-100 text-red-700 rounded-xl border border-red-300 text-xs">
+        <div className="p-3 bg-red-100 text-red-700 border border-red-300 text-xs overflow-hidden">
           <strong>Connection Error:</strong> {error}
         </div>
       )}
 
-      {/* Conversation thread */}
-      <div className="flex-1 bg-gray-900/40 rounded-2xl p-4 overflow-y-auto space-y-1">
-        {messages.map((m) => renderMessageBubble(m))}
-        {/* Typing / transcribing / thinking indicators at bottom of thread */}
+      {/* Middle section: conversation (scrollable) + listening indicator */}
+      <div className="flex-1 flex flex-col overflow-hidden px-4 pt-4 pb-2">
+        {/* Conversation thread – ONLY this scrolls */}
+        <div className="flex-1 bg-gray-900/40 rounded-2xl p-4 overflow-y-auto space-y-1">
+          {messages.map((m) => renderMessageBubble(m))}
+          {/* Typing / transcribing / thinking indicators at bottom of thread */}
 
-        {/* User STT transcription in progress – right side, like user bubble */}
-        {!conversationEnded && isTranscribing && (
-          <div className="flex justify-end my-2">
-            <div className="max-w-[60%] rounded-2xl px-3 py-2 text-xs bg-indigo-600 text-white flex items-center gap-2 rounded-br-sm">
-              <span>Transcribing</span>
-              <span className="flex gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-white/80 animate-bounce [animation-delay:0ms]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-white/60 animate-bounce [animation-delay:150ms]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-white/40 animate-bounce [animation-delay:300ms]" />
-              </span>
+          {/* User STT transcription in progress – right side, like user bubble */}
+          {!conversationEnded && isTranscribing && (
+            <div className="flex justify-end my-2">
+              <div className="max-w-[60%] rounded-2xl px-3 py-2 text-xs bg-indigo-600 text-white flex items-center gap-2 rounded-br-sm">
+                <span>Transcribing</span>
+                <span className="flex gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white/80 animate-bounce [animation-delay:0ms]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-white/60 animate-bounce [animation-delay:150ms]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-white/40 animate-bounce [animation-delay:300ms]" />
+                </span>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/*  Agent thinking / replying – left side, like agent bubble  */}
-        {!conversationEnded && !isTranscribing && isThinking && (
-          <div className="flex justify-start my-2">
-            <div className="max-w-[60%] rounded-2xl px-3 py-2 text-xs bg-gray-200 text-gray-900 flex items-center gap-2 rounded-bl-sm">
-              <span>Agent is replying</span>
-              <span className="flex gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-gray-700/80 animate-bounce [animation-delay:0ms]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-gray-700/60 animate-bounce [animation-delay:150ms]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-gray-700/40 animate-bounce [animation-delay:300ms]" />
-              </span>
+          {/*  Agent thinking / replying – left side, like agent bubble  */}
+          {!conversationEnded && !isTranscribing && isThinking && (
+            <div className="flex justify-start my-2">
+              <div className="max-w-[60%] rounded-2xl px-3 py-2 text-xs bg-gray-200 text-gray-900 flex items-center gap-2 rounded-bl-sm">
+                <span>Agent is replying</span>
+                <span className="flex gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-gray-700/80 animate-bounce [animation-delay:0ms]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-gray-700/60 animate-bounce [animation-delay:150ms]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-gray-700/40 animate-bounce [animation-delay:300ms]" />
+                </span>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {conversationEnded && (
-          <div className="mt-3 text-[11px] text-gray-400 italic">
-            Conversation has ended. You can close this window.
+          {conversationEnded && (
+            <div className="mt-3 text-[11px] text-gray-400 italic">
+              Conversation has ended. You can close this window.
+            </div>
+          )}
+          {/* Always scroll to here */}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Soft listening indicator stays visible above footer, non-scrollable */}
+        {!conversationEnded && isRecording && isConnected && (
+          <div className="mt-2 flex items-center gap-2 text-[11px] text-emerald-200">
+            <span className="relative flex h-3 w-3">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+              <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-400" />
+            </span>
+            <span>Listening in the background. You can start speaking at any time.</span>
           </div>
         )}
-        {/* Always scroll to here */}
-        <div ref={messagesEndRef} />
       </div>
 
-      {/* Soft listening indicator at bottom */}
-      {!conversationEnded && isRecording && isConnected && (
-        <div className="flex items-center gap-2 text-[11px] text-emerald-200 px-2">
-          <span className="relative flex h-3 w-3">
-            <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400" />
-          </span>
-          <span>Listening in the background. You can start speaking at any time.</span>
-        </div>
-      )}
-
       {/* Footer buttons */}
-      <div className="flex gap-3 px-2 py-2 bg-gray-900/60 rounded-xl">
+      <div className="border-t border-gray-700/60 bg-gray-900/60 px-4 py-3 flex gap-3 justify-center sm:flex-row-reverse sm:px-6">
         <button
           type="button"
           disabled={conversationEnded || !isConnected}
@@ -669,9 +698,7 @@ export const Agent = ({ token, onClose }) => {
           Close
         </button>
       </div>
-      <audio ref={audioElementRef} playsInline style={{ display: 'none' }} />
+      <audio ref={audioElementRef} playsInline className="hidden" />
     </div>
   );
 };
-
-export default Agent;
