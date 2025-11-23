@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 
-const AgentWrapper = dynamic(() => import('@/src/components/AgentWrapper'), { ssr: false });
+const AgentWrapper = dynamic(() => import('../../components/AgentWrapper'), { ssr: false });
 
 export const metadata = {
   title: 'Room Mitra Widget',
