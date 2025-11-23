@@ -6,6 +6,19 @@ const SERVER_URL = process.env.NEXT_PUBLIC_SOCKET_IO_URL;
 // Must match server
 const SAMPLE_RATE = 16000;
 
+// Convert Float32 PCM ([-1,1]) to Int16 for server
+function float32ToInt16(float32Array) {
+  const int16Array = new Int16Array(float32Array.length);
+  for (let i = 0; i < float32Array.length; i++) {
+    let s = float32Array[i];
+    if (s > 1) s = 1;
+    else if (s < -1) s = -1;
+    int16Array[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+  }
+
+  return int16Array;
+}
+
 export const Agent = ({ token, onClose }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -33,6 +46,11 @@ export const Agent = ({ token, onClose }) => {
   const currentAudioRef = useRef(null);
   const currentAudioUrlRef = useRef(null);
 
+  // Track if we've already done a user-gesture-based unlock
+  const audioUnlockedRef = useRef(false);
+
+  const audioElementRef = useRef(null);
+
   // Used to avoid reacting to our own TTS
   const isAgentSpeakingRef = useRef(false);
   const agentLastSpeechEndTimeRef = useRef(0);
@@ -52,6 +70,55 @@ export const Agent = ({ token, onClose }) => {
       });
     }
   }, [messages, isTranscribing, isThinking, conversationEnded]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const ua = window.navigator.userAgent || '';
+    const isIOS = /iPad|iPhone|iPod/.test(ua);
+
+    // You can skip the isIOS check and run this everywhere if you like.
+    // But keeping it iOS-only is slightly cleaner.
+    if (!isIOS) return;
+
+    const handleUserInteraction = () => {
+      if (audioUnlockedRef.current) return;
+
+      try {
+        const a = new Audio();
+        a.muted = true;
+
+        const p = a.play();
+        if (p && typeof p.then === 'function') {
+          p.then(() => {
+            a.pause();
+            a.currentTime = 0;
+            audioUnlockedRef.current = true;
+            // console.log('[AUDIO] iOS audio unlocked');
+          }).catch((err) => {
+            console.warn('[AUDIO] iOS unlock failed', err);
+          });
+        } else {
+          a.pause();
+          a.currentTime = 0;
+          audioUnlockedRef.current = true;
+        }
+      } catch (err) {
+        console.warn('[AUDIO] Error during unlock', err);
+      } finally {
+        window.removeEventListener('touchstart', handleUserInteraction);
+        window.removeEventListener('click', handleUserInteraction);
+      }
+    };
+
+    window.addEventListener('touchstart', handleUserInteraction, { passive: true });
+    window.addEventListener('click', handleUserInteraction);
+
+    return () => {
+      window.removeEventListener('touchstart', handleUserInteraction);
+      window.removeEventListener('click', handleUserInteraction);
+    };
+  }, []);
 
   // Utility to append a message
   const pushMessage = useCallback((role, text) => {
@@ -74,82 +141,100 @@ export const Agent = ({ token, onClose }) => {
         id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
         role,
         text: safeText,
+        timestamp: Date.now(),
       },
     ]);
   }, []);
 
-  // Convert Float32 PCM ([-1,1]) to Int16 for server
-  function float32ToInt16(float32Array) {
-    const int16Array = new Int16Array(float32Array.length);
-    for (let i = 0; i < float32Array.length; i++) {
-      let s = float32Array[i];
-      if (s > 1) s = 1;
-      else if (s < -1) s = -1;
-      int16Array[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+  const unlockIOSAudio = useCallback(() => {
+    if (audioUnlockedRef.current) return;
+
+    const audio = audioElementRef.current; // <-- IMPORTANT
+    if (!audio) return;
+
+    audio.muted = true;
+    const p = audio.play();
+    if (p && typeof p.then === 'function') {
+      p.then(() => {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.muted = false;
+        audioUnlockedRef.current = true;
+      }).catch((err) => {
+        console.warn('[AUDIO] iOS unlock failed', err);
+      });
+    } else {
+      audio.pause();
+      audio.currentTime = 0;
+      audio.muted = false;
+      audioUnlockedRef.current = true;
+    }
+  }, []);
+
+  const stopCurrentAudio = useCallback(() => {
+    const audio = currentAudioRef.current; // ⬅️ use the real playing audio
+
+    if (audio) {
+      try {
+        audio.pause();
+        audio.currentTime = 0;
+      } catch (e) {
+        console.warn('[AUDIO] Error stopping audio', e);
+      }
     }
 
-    return int16Array;
-  }
-
-  const stopCurrentAudio = () => {
-    try {
-      if (currentAudioRef.current) {
-        currentAudioRef.current.pause();
-        currentAudioRef.current.currentTime = 0;
-      }
-      if (currentAudioUrlRef.current) {
-        URL.revokeObjectURL(currentAudioUrlRef.current);
-      }
-    } catch (e) {
-      console.warn('[CLIENT] Error stopping audio', e);
-    } finally {
-      currentAudioRef.current = null;
+    if (currentAudioUrlRef.current) {
+      URL.revokeObjectURL(currentAudioUrlRef.current);
       currentAudioUrlRef.current = null;
-      isAgentSpeakingRef.current = false;
     }
-  };
+
+    isAgentSpeakingRef.current = false;
+  }, []);
 
   // Core cleanup for VAD + socket (+ optional audio stop)
-  const cleanupResources = useCallback((options = {}) => {
-    const { stopAudio = true } = options;
+  const cleanupResources = useCallback(
+    (options = {}) => {
+      const { stopAudio = true } = options;
 
-    // Stop VAD if active
-    if (vadRef.current) {
-      try {
-        if (typeof vadRef.current.pause === 'function') {
-          vadRef.current.pause();
-        } else if (typeof vadRef.current.stop === 'function') {
-          vadRef.current.stop();
+      // Stop VAD if active
+      if (vadRef.current) {
+        try {
+          if (typeof vadRef.current.pause === 'function') {
+            vadRef.current.pause();
+          } else if (typeof vadRef.current.stop === 'function') {
+            vadRef.current.stop();
+          }
+        } catch (e) {
+          console.warn('[VAD] Error stopping VAD instance', e);
         }
-      } catch (e) {
-        console.warn('[VAD] Error stopping VAD instance', e);
+        vadRef.current = null;
       }
-      vadRef.current = null;
-    }
 
-    // Stop recording flag
-    isRecordingRef.current = false;
-    setIsRecording(false);
+      // Stop recording flag
+      isRecordingRef.current = false;
+      setIsRecording(false);
 
-    // Stop any TTS audio that is playing, if requested
-    if (stopAudio) {
-      stopCurrentAudio();
-    }
-
-    // Close socket
-    if (wsRef.current) {
-      try {
-        wsRef.current.close();
-      } catch (e) {
-        console.warn('Error closing WebSocket', e);
+      // Stop any TTS audio that is playing, if requested
+      if (stopAudio) {
+        stopCurrentAudio();
       }
-      wsRef.current = null;
-    }
 
-    setIsConnected(false);
-    setIsThinking(false);
-    setIsTranscribing(false);
-  }, []);
+      // Close socket
+      if (wsRef.current) {
+        try {
+          wsRef.current.close();
+        } catch (e) {
+          console.warn('Error closing WebSocket', e);
+        }
+        wsRef.current = null;
+      }
+
+      setIsConnected(false);
+      setIsThinking(false);
+      setIsTranscribing(false);
+    },
+    [stopCurrentAudio]
+  );
 
   // Start MicVAD: WebRTC-style VAD, no manual silence detection
   const startRecording = useCallback(async () => {
@@ -228,7 +313,7 @@ export const Agent = ({ token, onClose }) => {
       setIsRecording(false);
       isRecordingRef.current = false;
     }
-  }, [pushMessage]);
+  }, []);
 
   // WebSocket setup
   const connectWebSocket = useCallback(() => {
@@ -253,14 +338,15 @@ export const Agent = ({ token, onClose }) => {
       setError(null);
       pushMessage('system', 'Connected. Setting up your call with the agent...');
 
-      // First message: START_CALL
+      // Unlock iOS audio here so the hidden <audio> can play all subsequent replies
+      unlockIOSAudio();
+
       try {
         ws.send(JSON.stringify({ type: 'START_CALL' }));
       } catch (e) {
         console.error('Failed to send START_CALL:', e);
       }
 
-      // Start microphone + VAD pipeline automatically
       startRecording();
     };
 
@@ -393,7 +479,15 @@ export const Agent = ({ token, onClose }) => {
         console.warn('Received non JSON message:', event.data, e);
       }
     };
-  }, [pushMessage, startRecording, cleanupResources]);
+  }, [
+    pushMessage,
+    startRecording,
+    cleanupResources,
+    conversationEnded,
+    stopCurrentAudio,
+    token,
+    unlockIOSAudio,
+  ]);
 
   // Init WebSocket when component mounts
   useEffect(() => {
@@ -439,7 +533,6 @@ export const Agent = ({ token, onClose }) => {
 
   const renderMessageBubble = (msg) => {
     const isUser = msg.role === 'user';
-    const isAgent = msg.role === 'agent';
     const isSystem = msg.role === 'system';
 
     if (isSystem) {
@@ -452,18 +545,37 @@ export const Agent = ({ token, onClose }) => {
 
     return (
       <div key={msg.id} className={`flex my-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
-        <div
-          className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm shadow-sm ${
-            isUser
-              ? 'bg-indigo-600 text-white rounded-br-sm'
-              : 'bg-gray-200 text-gray-900 rounded-bl-sm'
-          }`}
-        >
-          {msg.text}
+        <div className="flex flex-col max-w-[80%]">
+          <div
+            className={`rounded-2xl px-4 py-2 text-sm shadow-sm ${
+              isUser
+                ? 'bg-indigo-600 text-white rounded-br-sm'
+                : 'bg-gray-200 text-gray-900 rounded-bl-sm'
+            }`}
+          >
+            {msg.text}
+          </div>
+
+          {/* Timestamp BELOW bubble */}
+          <div className={`text-[10px] text-gray-400 mt-1 ${isUser ? 'text-right' : 'text-left'}`}>
+            {formatTimeAgo(msg.timestamp)}
+          </div>
         </div>
       </div>
     );
   };
+
+  function formatTimeAgo(date) {
+    const now = Date.now();
+    const diff = Math.floor((now - date) / 1000);
+
+    if (diff < 60) return `${diff}s ago`;
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+
+    const d = new Date(date);
+    return d.toLocaleString(); // falls back to full readable time
+  }
 
   return (
     <div className="w-full bg-gray-800 max-w-2xl shadow-2xl p-6 space-y-4 flex flex-col h-[480px]">
@@ -557,6 +669,7 @@ export const Agent = ({ token, onClose }) => {
           Close
         </button>
       </div>
+      <audio ref={audioElementRef} playsInline style={{ display: 'none' }} />
     </div>
   );
 };

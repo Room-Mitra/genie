@@ -1,6 +1,13 @@
 name: Deploy webapp-stage
 
 on:
+  workflow_dispatch:
+    inputs:
+      commit_sha:
+        description: 'Commit SHA to run the workflow on'
+        required: true
+        type: string
+
   push:
     branches:
       - main
@@ -90,6 +97,7 @@ jobs:
             NODE_ENV=production
           tags: |
             public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:${{ env.IMAGE_TAG }}
+            public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:stage
           cache-from: |
             type=gha
             type=registry,ref=public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:buildcache

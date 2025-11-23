@@ -59,7 +59,10 @@ endpoint=http://localhost:8000
 aws ssm start-session --target $(aws ec2 describe-instances --filters "Name=tag:Name,Values=roommitra-ec2" "Name=instance-state-name,Values=running" --query "Reservations[0].Instances[0].InstanceId" --output text)
 ```
 
-## Certificate on the EC2
+
+# Certificates on EC2
+
+## New certs
 
 If you need to generate new certificates for EC
 
@@ -79,6 +82,24 @@ sudo aws s3 cp /root/letsencrypt-backup.tgz $BUCKET/letsencrypt-$(date +%F).tgz
 sudo aws s3 cp /root/letsencrypt-backup.tgz $BUCKET/letsencrypt-latest.tgz
 
 ```
+
+## Updating existing certs while adding new domains
+
+1. Check what certs are available 
+```sh
+sudo certbot certificates
+```
+2. Ensure DNS records have A records pointing to the server IP
+3. Add new domains to the certificate, assuming cert name returned in previous step was `roommitra.com`
+```sh
+sudo certbot --nginx \
+  --cert-name roommitra.com \ 
+  -d roommitra.com \
+  -d api.roommitra.com \
+  -d new.roommitra.com
+```
+4. Back up the certificate to S3. See above.
+
 
 ## Deploying new code
 

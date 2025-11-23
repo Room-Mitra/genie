@@ -6,12 +6,14 @@ import { LeadForm } from './leadForm';
 import { MicrophoneIcon } from '@heroicons/react/24/outline';
 import { OTPForm } from './otpForm';
 import { Agent } from './agent';
+import { cn } from '@/src/lib/utils';
 
 export function TryVoiceAgent() {
   const [showModal, setShowModal] = useState(false);
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
+  const [language, setLanguage] = useState('');
   const [token, setToken] = useState('');
 
   const onClick = () => {
@@ -28,10 +30,11 @@ export function TryVoiceAgent() {
     }, 300);
   };
 
-  const onSuccess = ({ name: n, email: e, token: t }) => {
+  const onSuccess = ({ name: n, email: e, language: l, token: t }) => {
     if (step === 1) {
       setEmail(e);
       setName(n);
+      setLanguage(l);
       setStep(2);
     }
 
@@ -63,20 +66,30 @@ export function TryVoiceAgent() {
           </svg>
         </button>
       </div>
-      <Dialog open={showModal} onClose={() => {}} className="relative z-40">
+      <Dialog open={showModal} onClose={() => {}} className="relative z-50">
         <DialogBackdrop
           transition
-          className="data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in fixed inset-0 bg-gray-900/50 transition-opacity"
+          className="fixed inset-0 bg-gray-900/80 backdrop-blur-md
+             data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out
+             data-leave:duration-200 data-leave:ease-in"
           onClick={(e) => {
             e.stopPropagation();
           }}
         />
 
         <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
-          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+          <div className="fixed inset-0 z-10 flex min-h-full items-center justify-center p-4 overflow-y-auto">
             <DialogPanel
               transition
-              className="data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in data-closed:sm:translate-y-0 data-closed:sm:scale-95 relative transform overflow-hidden rounded-lg bg-gray-800 text-left shadow-xl outline -outline-offset-1 outline-white/10 transition-all sm:my-8 sm:w-full sm:max-w-lg"
+              className={cn(
+                'data-closed:translate-y-4 data-closed:opacity-0',
+                'data-enter:duration-300 data-enter:ease-out',
+                'data-leave:duration-200 data-leave:ease-in',
+                'data-closed:sm:translate-y-0 data-closed:sm:scale-95',
+                'relative transform overflow-hidden rounded-lg bg-gray-800',
+                'text-left shadow-xl outline -outline-offset-1 outline-white/10',
+                'transition-all sm:my-8 sm:w-full sm:max-w-lg'
+              )}
             >
               <div className="bg-gray-900 sm:p-5">
                 <div className="flex flex-row p-3 sm:p-0">
@@ -94,7 +107,13 @@ export function TryVoiceAgent() {
               </div>
               {step === 1 && <LeadForm onSuccess={onSuccess} onClose={onClose} />}
               {step === 2 && (
-                <OTPForm name={name} email={email} onClose={onClose} onSuccess={onSuccess} />
+                <OTPForm
+                  name={name}
+                  email={email}
+                  language={language}
+                  onClose={onClose}
+                  onSuccess={onSuccess}
+                />
               )}
               {step === 3 && <Agent onClose={onClose} token={token} />}
             </DialogPanel>

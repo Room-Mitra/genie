@@ -33,7 +33,7 @@ usermod -aG docker appuser
 install -d -o appuser -g appuser -m 750 /home/appuser
 install -d -o appuser -g appuser -m 700 /home/appuser/.pm2
 
-mkdir -p /opt/roommitra/{api,api-stage,webapp,webapp-stage,website}
+mkdir -p /opt/roommitra/{api,api-stage,webapp,webapp-stage,website,website-stage}
 chmod 775 -R /opt/roommitra
 chown -R appuser:appuser /opt/roommitra
 
@@ -46,7 +46,18 @@ sudo -u appuser -H bash -lc "chmod 600 /opt/roommitra/website/.env"
 sudo -u appuser -H bash -lc "docker pull ${WEBSITE_IMAGE_URI}"
 sudo -u appuser -H bash -lc "docker stop website || true"
 sudo -u appuser -H bash -lc "docker rm website || true"
-sudo -u appuser -H bash -lc "docker run -d --name website --env-file /opt/roommitra/website/.env --restart unless-stopped -p 127.0.0.1:3000:3000 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=website ${WEBSITE_IMAGE_URI}"
+sudo -u appuser -H bash -lc "docker run -d --name website -e PORT=3000 --env-file /opt/roommitra/website/.env --restart unless-stopped -p 127.0.0.1:3000:3000 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=website ${WEBSITE_IMAGE_URI}"
+
+
+# website stage
+sudo -u appuser -H bash -lc "aws ssm get-parameter --name \"/roommitra/website-stage/env\" --with-decryption --query \"Parameter.Value\" --output text > /opt/roommitra/website-stage/.env"
+sudo -u appuser -H bash -lc "chmod 600 /opt/roommitra/website-stage/.env"
+sudo -u appuser -H bash -lc "docker pull ${WEBSITE_IMAGE_URI}"
+sudo -u appuser -H bash -lc "docker stop website-stage || true"
+sudo -u appuser -H bash -lc "docker rm website-stage || true"
+sudo -u appuser -H bash -lc "docker run -d --name website-stage -e PORT=3002 --env-file /opt/roommitra/website-stage/.env --restart unless-stopped -p 127.0.0.1:3002:3002 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=website-stage ${WEBSITE_IMAGE_URI}"
+
+
 
 # api
 sudo -u appuser -H bash -lc "aws ssm get-parameter --name \"/roommitra/api/env\" --with-decryption --query \"Parameter.Value\" --output text > /opt/roommitra/api/.env"
@@ -86,6 +97,10 @@ sudo -u appuser -H bash -lc "docker run -d --name webapp-stage -e PORT=3003 --en
 
 
 # ---------- Nginx reverse proxy (HTTP only pre-cert) ----------
+
+sudo mkdir -p /var/www/certbot/.well-known/acme-challenge
+echo test | sudo tee /var/www/certbot/.well-known/acme-challenge/testfile
+
 cat >/etc/nginx/conf.d/roommitra-precert.conf <<'NGINX'
 # Upgrade map for websockets
 map $http_upgrade $connection_upgrade {
@@ -97,7 +112,7 @@ map $http_upgrade $connection_upgrade {
 server {
   listen 80;
   listen [::]:80;
-  server_name roommitra.com;
+  server_name roommitra.com www.roommitra.com;
 
   location / {
     proxy_pass http://127.0.0.1:3000;
@@ -111,6 +126,52 @@ server {
     proxy_send_timeout    60s;
     proxy_read_timeout    60s;
     send_timeout          60s;
+  }
+  
+  location /.well-known/acme-challenge/ {
+    root /var/www/certbot;
+  }
+}
+
+# www.roommitra.com -> redirect to https://roommitra.com, but keep ACME on HTTP
+server {
+  listen 80;
+  listen [::]:80;
+  server_name www.roommitra.com;
+
+  # Let certbot http-01 challenges work
+  location /.well-known/acme-challenge/ {
+    root /var/www/certbot;
+  }
+
+  # Everything else redirects to the main domain
+  location / {
+    return 301 https://roommitra.com$request_uri;
+  }
+}
+
+# stage.roommitra.com -> :3002
+server {
+  listen 80;
+  listen [::]:80;
+  server_name stage.roommitra.com;
+
+  location / {
+    proxy_pass http://127.0.0.1:3002;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+    proxy_set_header Host $host;
+
+    # helpful timeouts
+    proxy_connect_timeout 5s;
+    proxy_send_timeout    60s;
+    proxy_read_timeout    60s;
+    send_timeout          60s;
+  }
+  
+  location /.well-known/acme-challenge/ {
+    root /var/www/certbot;
   }
 }
 
@@ -140,6 +201,10 @@ server {
     proxy_read_timeout    300s;
     send_timeout          300s;
   }
+  
+  location /.well-known/acme-challenge/ {
+    root /var/www/certbot;
+  }
 }
 
 # api-stage.roommitra.com -> :4001
@@ -153,7 +218,24 @@ server {
 
   location / {
     proxy_pass http://127.0.0.1:4001;
+    
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+
+    proxy_connect_timeout 5s;
+    proxy_send_timeout    300s;
+    proxy_read_timeout    300s;
+    send_timeout          300s;
+  }
+  
+  location /.well-known/acme-challenge/ {
+    root /var/www/certbot;
   }
 }
 
@@ -170,6 +252,10 @@ server {
     proxy_pass http://127.0.0.1:3001;
     proxy_set_header Host $host;
   }
+
+  location /.well-known/acme-challenge/ {
+    root /var/www/certbot;
+  }
 }
 
 # app-stage.roommitra.com -> :3003
@@ -184,6 +270,10 @@ server {
   location / {
     proxy_pass http://127.0.0.1:3003;
     proxy_set_header Host $host;
+  }
+
+  location /.well-known/acme-challenge/ {
+    root /var/www/certbot;
   }
 }
 
