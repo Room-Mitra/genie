@@ -27,7 +27,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": ":github: *New commit pushed to \`${{ github.ref_name }}\`* in *${{ github.repository }}*"
+                    "text": ":github: *New commit pushed to `release`* in *${{ github.repository }}*"
                   }
                 },
                 {
@@ -43,7 +43,7 @@ jobs:
                     },
                     {
                       "type": "mrkdwn",
-                      "text": "*Commit:*\n\`${{ env.SHORT_SHA }}\`"
+                      "text": "*Commit:*\n`${{ env.SHORT_SHA }}`"
                     },
                     {
                       "type": "mrkdwn",
