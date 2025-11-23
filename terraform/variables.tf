@@ -36,7 +36,7 @@ variable "tags" {
 variable "website_image_uri" {
   type        = string
   description = "ECR URI for the website Docker image"
-  default     = "public.ecr.aws/p1s3y6q3/roommitra/website:latest"
+  default     = "public.ecr.aws/p1s3y6q3/roommitra/website:release"
 }
 
 variable "api_image_uri" {
@@ -48,8 +48,30 @@ variable "api_image_uri" {
 variable "webapp_image_uri" {
   type        = string
   description = "ECR URI for the webapp Docker image"
-  default     = "public.ecr.aws/p1s3y6q3/roommitra/webapp:latest"
+  default     = "public.ecr.aws/p1s3y6q3/roommitra/webapp:release"
 }
+
+
+variable "stage_website_image_uri" {
+  type        = string
+  description = "ECR URI for the website Docker image"
+  default     = "public.ecr.aws/p1s3y6q3/roommitra/website:stage"
+}
+
+variable "stage_api_image_uri" {
+  type        = string
+  description = "ECR URI for the API Docker image"
+  default     = "public.ecr.aws/p1s3y6q3/roommitra/api:stage"
+}
+
+variable "stage_webapp_image_uri" {
+  type        = string
+  description = "ECR URI for the webapp Docker image"
+  default     = "public.ecr.aws/p1s3y6q3/roommitra/webapp:stage"
+}
+
+
+
 
 variable "ecr_registry" {
   type        = string
