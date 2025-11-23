@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { MicVAD } from '@ricky0123/vad-web';
 
-const SERVER_URL = "wss://api.roommitra.com";
+const SERVER_URL = 'wss://api.roommitra.com';
 
 // Must match server
 const SAMPLE_RATE = 16000;
@@ -547,10 +547,11 @@ export const Agent = ({ token, onClose }) => {
       <div key={msg.id} className={`flex my-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
         <div className="flex flex-col max-w-[80%]">
           <div
-            className={`rounded-2xl px-4 py-2 text-sm shadow-sm ${isUser
-              ? 'bg-indigo-600 text-white rounded-br-sm'
-              : 'bg-gray-200 text-gray-900 rounded-bl-sm'
-              }`}
+            className={`rounded-2xl px-4 py-2 text-sm shadow-sm ${
+              isUser
+                ? 'bg-indigo-600 text-white rounded-br-sm'
+                : 'bg-gray-200 text-gray-900 rounded-bl-sm'
+            }`}
           >
             {msg.text}
           </div>
@@ -650,9 +651,10 @@ export const Agent = ({ token, onClose }) => {
           disabled={conversationEnded || !isConnected}
           onClick={handleEndConversation}
           className={`inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold
-            ${conversationEnded || !isConnected
-              ? 'bg-gray-500 text-gray-200 cursor-not-allowed'
-              : 'bg-red-500 text-white hover:bg-red-600'
+            ${
+              conversationEnded || !isConnected
+                ? 'bg-gray-500 text-gray-200 cursor-not-allowed'
+                : 'bg-red-500 text-white hover:bg-red-600'
             }`}
         >
           End conversation
@@ -673,4 +675,3 @@ export const Agent = ({ token, onClose }) => {
 };
 
 export default Agent;
-

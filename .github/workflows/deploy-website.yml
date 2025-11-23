@@ -128,7 +128,7 @@ jobs:
               "sudo -u appuser -H bash -lc \"docker pull ${IMAGE_URI}\"",
               "sudo -u appuser -H bash -lc \"docker stop website || true\"",
               "sudo -u appuser -H bash -lc \"docker rm website || true\"",
-              "sudo -u appuser -H bash -lc \"docker run -d --name website --env-file /opt/roommitra/website/.env --restart unless-stopped -p 3000:3000 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=website ${IMAGE_URI}\"",
+              "sudo -u appuser -H bash -lc \"docker run -d --name website -e PORT=3000 --env-file /opt/roommitra/website/.env --restart unless-stopped -p 3000:3000 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=website ${IMAGE_URI}\"",
               "sudo -u appuser -H bash -lc \"docker container prune -f\"",
               "sudo -u appuser -H bash -lc \"docker system prune -af --volumes\"",
               "sudo -u appuser -H bash -lc \"docker builder prune -af\""
