@@ -1,4 +1,3 @@
-// app/widget/page.tsx
 import WidgetClient from "./WidgetClient";
 
 export const metadata = {

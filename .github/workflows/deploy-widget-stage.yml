@@ -15,7 +15,6 @@ on:
       - 'widget/**'
       - '.github/workflows/deploy-widget-stage.yml'
       - 'widget/Dockerfile'
-      - chai/deploy-widget
 
 permissions:
   id-token: write
