@@ -10,7 +10,7 @@
   const HOTEL_ID = data.hotelId || data.hotelId || '';
   const THEME = data.theme ? JSON.parse(decodeURIComponent(data.theme)) : null;
   const POSITION = data.position || 'bottom-right';
-  const WIDGET_URL = (data.widgetUrl || ("http://localhost:3000" + '/widget')) + `?hotelId=${encodeURIComponent(HOTEL_ID)}`;
+  const WIDGET_URL = (data.widgetUrl || ("http://localhost:3001" + '/widget')) + `?hotelId=${encodeURIComponent(HOTEL_ID)}`;
 
   // Create minimized launcher
   const launcher = document.createElement('button');

@@ -146,6 +146,55 @@ export default [
     },
   },
 
+  // ==================================
+  // ROOM MITRA WIDGET: Next.js client and config
+  // ==================================
+  {
+    files: ['roommitra-widget/**/*.{js,jsx,ts,tsx}'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      parserOptions: { ecmaFeatures: { jsx: true } },
+      globals: {
+        ...globals.browser,
+        process: 'readonly',
+      },
+    },
+    plugins: {
+      react,
+      'react-hooks': reactHooks,
+      'jsx-a11y': jsxA11y,
+      '@next/next': next,
+      '@typescript-eslint': tseslint,
+    },
+    settings: { react: { version: 'detect' } },
+    rules: {
+      ...react.configs.recommended.rules,
+      ...reactHooks.configs.recommended.rules,
+      ...jsxA11y.configs.recommended.rules,
+      // Next recommended plus Core Web Vitals
+      ...next.configs.recommended.rules,
+      ...next.configs['core-web-vitals'].rules,
+
+      'react/jsx-uses-react': 'off',
+      'react/react-in-jsx-scope': 'off',
+      'react/prop-types': 'off',
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      // You’re on /app router, not /pages
+      '@next/next/no-html-link-for-pages': 'off',
+
+      // Work around the plugin crash in your stack
+      '@next/next/no-duplicate-head': 'off',
+
+      // Prefer TS-aware unused-vars
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+    },
+  },
+
   // Optionally, restrict test envs
   {
     files: ['**/*.{test,spec}.{js,jsx}'],
