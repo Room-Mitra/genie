@@ -1,4 +1,4 @@
-name: Deploy webapp
+name: Deploy Widget-stage
 
 on:
   workflow_dispatch:
@@ -10,11 +10,12 @@ on:
 
   push:
     branches:
-      - release
+      - main
     paths:
-      - 'webapp/**'
-      - '.github/workflows/deploy-webapp.yml'
-      - 'webapp/Dockerfile'
+      - 'widget/**'
+      - '.github/workflows/deploy-widget-stage.yml'
+      - 'widget/Dockerfile'
+      - chai/deploy-widget
 
 permissions:
   id-token: write
@@ -24,14 +25,14 @@ env:
   AWS_REGION: ap-south-1
   AWS_ACCOUNT_ID: '086325458599'
   PUBLIC_ECR_ALIAS: p1s3y6q3
-  PUBLIC_ECR_REPO: roommitra/webapp
+  PUBLIC_ECR_REPO: roommitra/widget
   INSTANCE_TAG_KEY: Name
   INSTANCE_TAG_VALUE: roommitra-ec2
   IMAGE_TAG: ${{ github.sha }}
 
 defaults:
   run:
-    working-directory: ./webapp
+    working-directory: ./widget
 
 jobs:
   build-and-push:
@@ -57,7 +58,7 @@ jobs:
               "blocks": [
                 { "type": "section",
                   "text": { "type": "mrkdwn",
-                    "text": ":alarm_clock: *PROD 🟣 `webapp` Build started* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
+                    "text": ":alarm_clock: *STAGE 🟠 `widget` Build started* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
                   }
                 },
                 { "type": "context", "elements": [
@@ -88,15 +89,17 @@ jobs:
       - name: Build & Push with ECR cache
         uses: docker/build-push-action@v5
         with:
-          context: ./webapp
-          file: ./webapp/Dockerfile
+          context: ./widget
+          file: ./widget/Dockerfile
           push: true
           provenance: false
           build-args: |
             NODE_ENV=production
+            NEXT_PUBLIC_SITE_URL=https://stage.roommitra.com
+            NEXT_PUBLIC_SOCKET_IO_URL=wss://api-stage.roommitra.com
           tags: |
             public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:${{ env.IMAGE_TAG }}
-            public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:release
+            public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:stage
           cache-from: |
             type=gha
             type=registry,ref=public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:buildcache
@@ -121,12 +124,12 @@ jobs:
           {
             "commands": [
               "set -euo pipefail",
-              "sudo -u appuser -H bash -lc \"aws ssm get-parameter --name '/roommitra/webapp/env' --with-decryption --query 'Parameter.Value' --output text > /opt/roommitra/webapp/.env\"",
-              "sudo -u appuser -H bash -lc \"chmod 600 /opt/roommitra/webapp/.env\"",
+              "sudo -u appuser -H bash -lc \"aws ssm get-parameter --name '/roommitra/widget-stage/env' --with-decryption --query 'Parameter.Value' --output text > /opt/roommitra/widget-stage/.env\"",
+              "sudo -u appuser -H bash -lc \"chmod 600 /opt/roommitra/widget-stage/.env\"",
               "sudo -u appuser -H bash -lc \"docker pull ${IMAGE_URI}\"",
-              "sudo -u appuser -H bash -lc \"docker stop webapp || true\"",
-              "sudo -u appuser -H bash -lc \"docker rm webapp || true\"",
-              "sudo -u appuser -H bash -lc \"docker run -d --name webapp -e PORT=3001 --env-file /opt/roommitra/webapp/.env --restart unless-stopped -p 127.0.0.1:3001:3001 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=webapp ${IMAGE_URI}\"",
+              "sudo -u appuser -H bash -lc \"docker stop widget-stage || true\"",
+              "sudo -u appuser -H bash -lc \"docker rm widget-stage || true\"",
+              "sudo -u appuser -H bash -lc \"docker run -d --name widget-stage -e PORT=5001 --env-file /opt/roommitra/widget-stage/.env --restart unless-stopped -p 127.0.0.1:5001:5001 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=widget-stage ${IMAGE_URI}\"",
               "sudo -u appuser -H bash -lc \"docker container prune -f\"",
               "sudo -u appuser -H bash -lc \"docker system prune -af --volumes\"",
               "sudo -u appuser -H bash -lc \"docker builder prune -af\""
@@ -143,7 +146,7 @@ jobs:
             --region ${{ env.AWS_REGION }} \
             --instance-ids "${{ steps.find.outputs.instance_id }}" \
             --document-name "AWS-RunShellScript" \
-            --comment "Deploy webapp ${{ github.sha }}" \
+            --comment "Deploy widget-stage ${{ github.sha }}" \
             --parameters file:///tmp/ssm-params.json
 
       # Success message
@@ -156,7 +159,7 @@ jobs:
               "blocks": [
                 { "type": "section",
                   "text": { "type": "mrkdwn",
-                    "text": ":white_check_mark: *PROD 🟣 `webapp` Build passed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
+                    "text": ":white_check_mark: *STAGE 🟠 `widget` Build passed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
                   }
                 },
                 { "type": "context", "elements": [
@@ -179,7 +182,7 @@ jobs:
               "blocks": [
                 { "type": "section",
                   "text": { "type": "mrkdwn",
-                    "text": ":x: *PROD 🟣 `webapp` Build failed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
+                    "text": ":x: *STAGE 🟠 `widget` Build failed* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
                   }
                 },
                 { "type": "context", "elements": [
