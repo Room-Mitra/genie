@@ -16,7 +16,6 @@ export async function POST(req) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
-    console.log(body, endpoint, req, res);
 
     if (!res.ok) {
       const e = await res.json().catch(() => '');

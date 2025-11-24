@@ -11,7 +11,7 @@
   const THEME = data.theme ? JSON.parse(decodeURIComponent(data.theme)) : null;
   const POSITION = data.position || 'bottom-right';
   const WIDGET_URL =
-    (data.widgetUrl || 'http://localhost:3001' + '/widget') +
+    (data.widgetUrl || 'http://localhost:3003' + '/widget') +
     `?hotelId=${encodeURIComponent(HOTEL_ID)}`;
 
   // Create minimized launcher
