@@ -23,18 +23,18 @@
 
       // Handles widget.roommitra.com, widget-stage.roommitra.com, etc.
       if (host.endsWith('roommitra.com') && host.startsWith('widget')) {
-        baseWidgetUrl = `${url.protocol}//${host}/widget`;
+        baseWidgetUrl = `${url.protocol}//${host}`;
       } else {
         // local/dev fallback
-        baseWidgetUrl = 'http://localhost:3003/widget';
+        baseWidgetUrl = 'http://localhost:3003';
       }
     } catch (e) {
       // If URL parsing fails, fall back to localhost
-      baseWidgetUrl = 'http://localhost:3003/widget';
+      baseWidgetUrl = 'http://localhost:3003';
     }
   }
 
-  const WIDGET_URL = `${baseWidgetUrl}?hotelId=${encodeURIComponent(HOTEL_ID)}`;
+  const WIDGET_URL = `${baseWidgetUrl}/widget?hotelId=${encodeURIComponent(HOTEL_ID)}`;
 
   // Create minimized launcher
   const launcher = document.createElement('button');
@@ -47,12 +47,18 @@
   launcher.style.border = 'none';
   launcher.style.cursor = 'pointer';
   launcher.style.boxShadow = '0 6px 18px rgba(0,0,0,0.2)';
-  launcher.style.background = THEME && THEME.primary ? THEME.primary : '#0ea5a4';
+  launcher.style.background = THEME && THEME.primary ? THEME.primary : '#161032';
   launcher.style.display = 'flex';
   launcher.style.alignItems = 'center';
   launcher.style.justifyContent = 'center';
   launcher.style.color = '#fff';
-  launcher.innerText = 'RM';
+  launcher.innerHTML = `
+  <img 
+    src="${baseWidgetUrl}/images/square-no-bg.svg"
+    alt="Room Mitra"
+    style="width: 60%; height: 60%; object-fit: contain; pointer-events: none;"
+  />
+  `;
 
   // position
   if (POSITION === 'bottom-left') {

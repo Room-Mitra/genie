@@ -53,6 +53,10 @@ export function LeadForm({ onClose, onSuccess }) {
 
   return (
     <form onSubmit={onSubmit} className="flex h-full flex-col bg-gray-800">
+      {/* Header (fixed, non-scrollable) */}
+      <div className="flex items-center justify-between border-gray-700/60 bg-gray-900/60 px-6 py-4">
+        <div className="text-xs font-semibold text-gray-200">Voice Agent</div>
+      </div>
       <div className="flex-1 flex items-center justify-center">
         <div className="w-full max-w-sm px-5 py-10 text-center mx-auto">
           <div className="grid gap-4">

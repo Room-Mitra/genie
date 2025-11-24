@@ -196,6 +196,10 @@ export function OTPForm({ email, name, language, onClose, onSuccess }) {
 
   return (
     <form onSubmit={handleSubmit} className="flex h-full flex-col bg-gray-800">
+      {/* Header (fixed, non-scrollable) */}
+      <div className="flex items-center justify-between border-gray-700/60 bg-gray-900/60 px-6 py-4">
+        <div className="text-xs font-semibold text-gray-200">Voice Agent</div>
+      </div>
       <div className="flex-1 flex items-center justify-center">
         <div className="px-5 py-10 text-center max-w-sm mx-auto">
           <h2 className="text-lg font-semibold text-white mb-2">Verify your email</h2>

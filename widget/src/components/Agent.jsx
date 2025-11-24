@@ -565,7 +565,10 @@ export const Agent = ({ token, onClose }) => {
   useEffect(() => {
     connectWebSocket();
     return () => {
-      cleanupResources({ stopAudio: true });
+      // When the component unmounts or the effect re-runs (e.g. because
+      // conversationEnded changed), we do NOT want to interrupt any TTS
+      // that is currently playing. Let the audio finish naturally.
+      cleanupResources({ stopAudio: false });
     };
   }, [connectWebSocket, cleanupResources]);
 
