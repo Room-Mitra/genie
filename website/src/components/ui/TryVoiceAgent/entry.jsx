@@ -1,55 +1,15 @@
 'use client';
 
-import { Dialog, DialogBackdrop, DialogTitle, DialogPanel } from '@headlessui/react';
-import { useState } from 'react';
-import { LeadForm } from './leadForm';
-import { MicrophoneIcon } from '@heroicons/react/24/outline';
-import { OTPForm } from './otpForm';
-import { Agent } from './agent';
-import { cn } from '@/src/lib/utils';
-
 export function TryVoiceAgent() {
-  const [showModal, setShowModal] = useState(false);
-  const [step, setStep] = useState(1);
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
-  const [language, setLanguage] = useState('');
-  const [token, setToken] = useState('');
-
-  const onClick = () => {
-    setShowModal(true);
-  };
-
-  const onClose = () => {
-    setShowModal(false);
-    setTimeout(() => {
-      setStep(1);
-      setEmail('');
-      setName('');
-      setToken('');
-    }, 300);
-  };
-
-  const onSuccess = ({ name: n, email: e, language: l, token: t }) => {
-    if (step === 1) {
-      setEmail(e);
-      setName(n);
-      setLanguage(l);
-      setStep(2);
-    }
-
-    if (step === 2) {
-      setToken(t);
-      setStep(3);
-    }
-  };
-
   return (
     <>
       <div className="flex justify-center font-medium text-sm py-10">
         <button
           className="flex items-center text-white cta-btn py-2.5 px-4 rounded-full duration-150"
-          onClick={onClick}
+          onClick={() => {
+            /* eslint-disable-next-line no-undef */
+            RoomMitraWidget.open();
+          }}
         >
           Try the Voice Agent
           <svg
@@ -66,60 +26,6 @@ export function TryVoiceAgent() {
           </svg>
         </button>
       </div>
-      <Dialog open={showModal} onClose={() => {}} className="relative z-50">
-        <DialogBackdrop
-          transition
-          className="fixed inset-0 bg-gray-900/80 backdrop-blur-md
-             data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out
-             data-leave:duration-200 data-leave:ease-in"
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
-        />
-
-        <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
-          <div className="fixed inset-0 z-10 flex min-h-full items-center justify-center p-4 overflow-y-auto">
-            <DialogPanel
-              transition
-              className={cn(
-                'data-closed:translate-y-4 data-closed:opacity-0',
-                'data-enter:duration-300 data-enter:ease-out',
-                'data-leave:duration-200 data-leave:ease-in',
-                'data-closed:sm:translate-y-0 data-closed:sm:scale-95',
-                'relative transform overflow-hidden rounded-lg bg-gray-800',
-                'text-left shadow-xl outline -outline-offset-1 outline-white/10',
-                'transition-all sm:my-8 sm:w-full sm:max-w-lg'
-              )}
-            >
-              <div className="bg-gray-900 sm:p-5">
-                <div className="flex flex-row p-3 sm:p-0">
-                  <div className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10">
-                    <MicrophoneIcon aria-hidden="true" className="size-6 text-orange-500" />
-                  </div>
-                  <div className="mx-3 flex w-full items-center align-middle">
-                    <div className="grid w-full grid-cols-2 justify-between gap-4">
-                      <DialogTitle as="h3" className="text-base font-semibold text-white">
-                        Try the voice agent
-                      </DialogTitle>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {step === 1 && <LeadForm onSuccess={onSuccess} onClose={onClose} />}
-              {step === 2 && (
-                <OTPForm
-                  name={name}
-                  email={email}
-                  language={language}
-                  onClose={onClose}
-                  onSuccess={onSuccess}
-                />
-              )}
-              {step === 3 && <Agent onClose={onClose} token={token} />}
-            </DialogPanel>
-          </div>
-        </div>
-      </Dialog>
     </>
   );
 }

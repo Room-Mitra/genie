@@ -147,10 +147,10 @@ export default [
   },
 
   // ==================================
-  // ROOM MITRA WIDGET: Next.js client and config
+  //  WIDGET: Next.js client and config
   // ==================================
   {
-    files: ['roommitra-widget/**/*.{js,jsx,ts,tsx}'],
+    files: ['widget/**/*.{js,jsx,ts,tsx}'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',

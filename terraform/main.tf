@@ -89,10 +89,12 @@ resource "aws_instance" "web" {
     WEBSITE_IMAGE_URI = var.website_image_uri
     API_IMAGE_URI     = var.api_image_uri
     WEBAPP_IMAGE_URI  = var.webapp_image_uri
+    WIDGET_IMAGE_URI  = var.widget_image_uri
 
     STAGE_WEBSITE_IMAGE_URI = var.stage_website_image_uri
     STAGE_API_IMAGE_URI     = var.stage_api_image_uri
     STAGE_WEBAPP_IMAGE_URI  = var.stage_webapp_image_uri
+    STAGE_WIDGET_IMAGE_URI  = var.stage_widget_image_uri
 
     REGISTRY = var.ecr_registry
 

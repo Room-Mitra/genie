@@ -10,7 +10,31 @@
   const HOTEL_ID = data.hotelId || data.hotelId || '';
   const THEME = data.theme ? JSON.parse(decodeURIComponent(data.theme)) : null;
   const POSITION = data.position || 'bottom-right';
-  const WIDGET_URL = (data.widgetUrl || ("http://localhost:3001" + '/widget')) + `?hotelId=${encodeURIComponent(HOTEL_ID)}`;
+
+  // Determine widget base URL
+  let baseWidgetUrl = data.widgetUrl;
+
+  if (!baseWidgetUrl) {
+    const scriptSrc = scriptTag?.src || '';
+
+    try {
+      const url = new URL(scriptSrc, window.location.href);
+      const host = url.hostname;
+
+      // Handles widget.roommitra.com, widget-stage.roommitra.com, etc.
+      if (host.endsWith('roommitra.com') && host.startsWith('widget')) {
+        baseWidgetUrl = `${url.protocol}//${host}`;
+      } else {
+        // local/dev fallback
+        baseWidgetUrl = 'http://localhost:3003';
+      }
+    } catch (e) {
+      // If URL parsing fails, fall back to localhost
+      baseWidgetUrl = 'http://localhost:3003';
+    }
+  }
+
+  const WIDGET_URL = `${baseWidgetUrl}/widget?hotelId=${encodeURIComponent(HOTEL_ID)}`;
 
   // Create minimized launcher
   const launcher = document.createElement('button');
@@ -23,12 +47,18 @@
   launcher.style.border = 'none';
   launcher.style.cursor = 'pointer';
   launcher.style.boxShadow = '0 6px 18px rgba(0,0,0,0.2)';
-  launcher.style.background = THEME && THEME.primary ? THEME.primary : '#0ea5a4';
+  launcher.style.background = THEME && THEME.primary ? THEME.primary : '#161032';
   launcher.style.display = 'flex';
   launcher.style.alignItems = 'center';
   launcher.style.justifyContent = 'center';
   launcher.style.color = '#fff';
-  launcher.innerText = 'RM';
+  launcher.innerHTML = `
+  <img 
+    src="${baseWidgetUrl}/images/square-no-bg.svg"
+    alt="Room Mitra"
+    style="width: 60%; height: 60%; object-fit: contain; pointer-events: none;"
+  />
+  `;
 
   // position
   if (POSITION === 'bottom-left') {
@@ -43,9 +73,18 @@
 
   // Hold iframe
   let iframe = null;
+
+  function closeWidget() {
+    if (iframe) {
+      iframe.style.display = 'none';
+    }
+    open = false;
+  }
+
   function openWidget() {
     if (iframe) {
       iframe.style.display = 'block';
+      open = true;
       return;
     }
 
@@ -88,16 +127,27 @@
       openWidget();
       open = true;
     } else {
-      if (iframe) iframe.style.display = iframe.style.display === 'none' ? 'block' : 'none';
+      if (iframe) {
+        const nowHidden = iframe.style.display !== 'none';
+        iframe.style.display = nowHidden ? 'none' : 'block';
+        open = !nowHidden;
+      }
+    }
+  });
+
+  // Listen for close requests from inside the iframe
+  window.addEventListener('message', function (event) {
+    const msg = event.data;
+    if (!msg || typeof msg !== 'object') return;
+    if (msg.type === 'ROOMMITRA_CLOSE_WIDGET') {
+      closeWidget();
     }
   });
 
   // provide API for host page devs
   window.RoomMitraWidget = {
     open: openWidget,
-    close: function () {
-      if (iframe) iframe.style.display = 'none';
-    },
+    close: closeWidget,
     post: function (msg) {
       if (iframe) iframe.contentWindow.postMessage(msg, '*');
     },

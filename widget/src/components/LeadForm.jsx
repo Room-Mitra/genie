@@ -26,7 +26,6 @@ export function LeadForm({ onClose, onSuccess }) {
     }
 
     try {
-      console.log("______________")
       const res = await fetch('/api/voice-agent-trial-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -36,7 +35,6 @@ export function LeadForm({ onClose, onSuccess }) {
           language: data.language,
         }),
       });
-      console.log(res)
       if (!res.ok) {
         const j = await res.json().catch(() => '');
         throw new Error(j?.error || `Request failed with ${res.status}`);
@@ -54,9 +52,13 @@ export function LeadForm({ onClose, onSuccess }) {
   };
 
   return (
-    <form onSubmit={onSubmit}>
-      <div className="max-h-180 overflow-auto bg-gray-800">
-        <div className="px-5 py-10 text-center max-w-sm mx-auto">
+    <form onSubmit={onSubmit} className="flex h-full flex-col bg-gray-800">
+      {/* Header (fixed, non-scrollable) */}
+      <div className="flex items-center justify-between border-gray-700/60 bg-gray-900/60 px-6 py-4">
+        <div className="text-xs font-semibold text-gray-200">Voice Agent</div>
+      </div>
+      <div className="flex-1 flex items-center justify-center">
+        <div className="w-full max-w-sm px-5 py-10 text-center mx-auto">
           <div className="grid gap-4">
             <div className="flex flex-col text-left">
               <label htmlFor="name" className="block text-gray-200 font-semibold mb-2">
@@ -130,24 +132,12 @@ export function LeadForm({ onClose, onSuccess }) {
                 </span>
               </div>
             </div>
+            {errorMessage && <p className="mt-4 text-sm text-red-500">{errorMessage}</p>}
           </div>
-
-          <div>{errorMessage && <p className="mt-4 text-sm text-red-500">{errorMessage}</p>}</div>
         </div>
       </div>
-      <div className="flex gap-3  px-4 py-3 bg-gray-700/25 sm:flex-row-reverse sm:px-6">
-        <button
-          type="submit"
-          className={cn(
-            'inset-ring inset-ring-white/5 mt-3 inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold sm:mt-0 sm:w-auto',
-            !canSubmit
-              ? 'bg-gray-700 text-gray-400'
-              : 'bg-indigo-600 text-white hover:bg-indigo-500'
-          )}
-          disabled={!canSubmit}
-        >
-          {submitting ? 'Submitting...' : 'Submit'}
-        </button>
+      {/* BUTTON ROW PINNED TO BOTTOM */}
+      <div className="border-t border-gray-700/60 bg-gray-900/60 px-4 py-3 flex gap-3 justify-center sm:flex-row-reverse sm:px-6">
         <button
           type="button"
           data-autofocus
@@ -158,9 +148,22 @@ export function LeadForm({ onClose, onSuccess }) {
             setSubmitting(false);
             onClose();
           }}
-          className="inset-ring inset-ring-white/5 mt-3 inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold hover:bg-white/50 bg-white/20 text-white hover:bg-white/50 sm:mt-0 sm:w-auto"
+          className="inset-ring inset-ring-white/5 inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold bg-white/20 text-white hover:bg-white/40 sm:w-auto"
         >
           Close
+        </button>
+
+        <button
+          type="submit"
+          className={cn(
+            'inset-ring inset-ring-white/5 inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold sm:w-auto',
+            !canSubmit
+              ? 'bg-gray-700 text-gray-400'
+              : 'bg-indigo-600 text-white hover:bg-indigo-500'
+          )}
+          disabled={!canSubmit}
+        >
+          {submitting ? 'Submitting...' : 'Submit'}
         </button>
       </div>
     </form>

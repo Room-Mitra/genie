@@ -75,7 +75,7 @@ sudo -u appuser -H bash -lc "chmod 600 /opt/roommitra/widget/.env"
 sudo -u appuser -H bash -lc "docker pull ${WIDGET_IMAGE_URI}"
 sudo -u appuser -H bash -lc "docker stop widget || true"
 sudo -u appuser -H bash -lc "docker rm widget || true"
-sudo -u appuser -H bash -lc "docker run -d --name widget -e PORT=3000 --env-file /opt/roommitra/widget/.env --restart unless-stopped -p 127.0.0.1:3000:3000 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=widget ${WIDGET_IMAGE_URI}"
+sudo -u appuser -H bash -lc "docker run -d --name widget -e PORT=5000 --env-file /opt/roommitra/widget/.env --restart unless-stopped -p 127.0.0.1:5000:5000 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=widget ${WIDGET_IMAGE_URI}"
 
 
 
@@ -307,7 +307,7 @@ server {
 server {
   listen 80;
   listen [::]:80;
-  server_name widget.roommitra.com
+  server_name widget.roommitra.com;
 
   location / {
     proxy_pass http://127.0.0.1:5000;
@@ -329,7 +329,7 @@ server {
 server {
   listen 80;
   listen [::]:80;
-  server_name widget-stage.roommitra.com
+  server_name widget-stage.roommitra.com;
 
   location / {
     proxy_pass http://127.0.0.1:5001;
