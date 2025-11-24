@@ -195,8 +195,8 @@ export function OTPForm({ email, name, language, onClose, onSuccess }) {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="max-h-180 overflow-auto bg-gray-800">
+    <form onSubmit={handleSubmit} className="flex h-full flex-col bg-gray-800">
+      <div className="flex-1 flex items-center justify-center">
         <div className="px-5 py-10 text-center max-w-sm mx-auto">
           <h2 className="text-lg font-semibold text-white mb-2">Verify your email</h2>
           <p className="text-sm text-gray-300 mb-4">
@@ -243,8 +243,15 @@ export function OTPForm({ email, name, language, onClose, onSuccess }) {
           {errorMessage && <p className="mt-4 text-sm text-red-500">{errorMessage}</p>}
         </div>
       </div>
-
-      <div className="flex gap-3 px-4 py-3 bg-gray-700/25 sm:flex-row-reverse sm:px-6">
+      <div className="border-t border-gray-700/60 bg-gray-900/60 px-4 py-3 flex gap-3 justify-center sm:flex-row-reverse sm:px-6">
+        <button
+          type="button"
+          data-autofocus
+          onClick={onClose}
+          className="inset-ring inset-ring-white/5 mt-3 inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold hover:bg-white/50 bg-white/20 text-white hover:bg-white/50 sm:mt-0 sm:w-auto"
+        >
+          Close
+        </button>
         <button
           type="submit"
           className={cn(
@@ -256,14 +263,6 @@ export function OTPForm({ email, name, language, onClose, onSuccess }) {
           disabled={!canSubmit}
         >
           {submitting ? 'Verifying...' : 'Submit'}
-        </button>
-        <button
-          type="button"
-          data-autofocus
-          onClick={onClose}
-          className="inset-ring inset-ring-white/5 mt-3 inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold hover:bg-white/50 bg-white/20 text-white hover:bg-white/50 sm:mt-0 sm:w-auto"
-        >
-          Close
         </button>
       </div>
     </form>
