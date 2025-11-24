@@ -228,7 +228,7 @@ export function connection(ws, request) {
       const messageBuffer = Buffer.isBuffer(message) ? message : Buffer.from(message);
 
       audioBufferRef.current = Buffer.concat([audioBufferRef.current, messageBuffer]);
-      console.log('[WS] Audio buffer size:', audioBufferRef.current.length);
+      // console.log('[WS] Audio buffer size:', audioBufferRef.current.length);
       return;
     }
 
@@ -248,7 +248,7 @@ export function connection(ws, request) {
 
     switch (command.type) {
       case 'START_CALL': {
-        console.log('[WS] START_CALL received');
+        // console.log('[WS] START_CALL received');
 
         const greetingText = getGreetingText(ws.language);
 
@@ -258,7 +258,7 @@ export function connection(ws, request) {
 
       // New continuous listening name
       case 'END_UTTERANCE': {
-        console.log('[WS] END_UTTERANCE received');
+        // console.log('[WS] END_UTTERANCE received');
         await processUtterance(ws, audioBufferRef, ws.language);
         break;
       }
@@ -301,7 +301,7 @@ export function connection(ws, request) {
     );
 
     isClosing = true;
-    console.log('[WS] Client disconnected');
+    // console.log('[WS] Client disconnected');
   });
 
   ws.on('error', (error) => {

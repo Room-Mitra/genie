@@ -35,7 +35,6 @@ export function LeadForm({ onClose, onSuccess }) {
           language: data.language,
         }),
       });
-      console.log(res);
       if (!res.ok) {
         const j = await res.json().catch(() => '');
         throw new Error(j?.error || `Request failed with ${res.status}`);

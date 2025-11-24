@@ -1,6 +1,9 @@
 'use client';
 
-import AgentWrapper from '@/src/components/AgentWrapper';
+import dynamic from 'next/dynamic';
+
+const AgentWrapper = dynamic(() => import('../../components/AgentWrapper'), { ssr: false });
+
 
 export default function WidgetClient() {
   return (

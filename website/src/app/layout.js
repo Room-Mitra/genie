@@ -2,6 +2,7 @@ import Navbar from '@/src/components/ui/Navbar';
 import './globals.css';
 import GoogleAnalytics from '@/src/components/GoogleAnalytics';
 import Footer from '../components/ui/Footer';
+import Script from 'next/script';
 
 export const metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://roommitra.com'),
@@ -25,6 +26,13 @@ export default function RootLayout({ children }) {
         <Navbar />
         <main>{children}</main>
         <Footer />
+        
+        {/* Room Mitra Support Widget */}
+        <Script
+          src="http://localhost:3003/embed.js"
+          data-hotel-id="ANANTHERRA_99"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );

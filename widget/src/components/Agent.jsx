@@ -323,11 +323,11 @@ export const Agent = ({ token, onClose }) => {
   const connectWebSocket = useCallback(() => {
     // If this conversation has been marked as ended, never connect again
     if (conversationEnded) {
-      console.log('[WS] Not connecting: conversationEnded is true');
+      // console.log('[WS] Not connecting: conversationEnded is true');
       return;
     }
 
-    console.log('[WS] connectWebSocket called, shouldReconnectRef =', shouldReconnectRef.current);
+    // console.log('[WS] connectWebSocket called, shouldReconnectRef =', shouldReconnectRef.current);
 
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       setIsConnected(true);
@@ -337,14 +337,14 @@ export const Agent = ({ token, onClose }) => {
     // If we've been told not to reconnect (call ended / modal closed),
     // just bail out.
     if (!shouldReconnectRef.current) {
-      console.log('[WS] not connecting: shouldReconnectRef is false');
+      // console.log('[WS] not connecting: shouldReconnectRef is false');
       return;
     }
 
     manualCloseRef.current = false;
 
     const url = `${SERVER_URL}?token=${encodeURIComponent(token)}`;
-    console.log('[WS] Creating WebSocket to', url);
+    // console.log('[WS] Creating WebSocket to', url);
 
     const ws = new WebSocket(url);
     wsRef.current = ws;
@@ -357,11 +357,11 @@ export const Agent = ({ token, onClose }) => {
     ws.onopen = () => {
       // Ignore events from stale sockets
       if (wsRef.current !== ws) {
-        console.log('[WS] onopen from stale socket, ignoring');
+        // console.log('[WS] onopen from stale socket, ignoring');
         return;
       }
 
-      console.log('[WS] onopen', ws.url);
+      // console.log('[WS] onopen', ws.url);
       setIsConnected(true);
       setError(null);
       pushMessage('system', 'Connected. Setting up your call with the agent...');
@@ -379,17 +379,19 @@ export const Agent = ({ token, onClose }) => {
     };
 
     ws.onclose = (event) => {
+      // console.log('[WS] onclose', {
+      //   url: ws.url,
+      //   code: event.code,
+      //   reason: event.reason,
+      //   manualClose: manualCloseRef.current,
+      //   shouldReconnect: shouldReconnectRef.current,
+      // });
+
       if (wsRef.current !== ws) {
-        console.log('[WS] onclose from stale socket, ignoring');
+        // console.log('[WS] onclose from stale socket, ignoring');
         return;
       }
-      console.log('[WS] onclose', {
-        url: ws.url,
-        code: event.code,
-        reason: event.reason,
-        manualClose: manualCloseRef.current,
-        shouldReconnect: shouldReconnectRef.current,
-      });
+
       setIsConnected(false);
       isRecordingRef.current = false;
       setIsRecording(false);
@@ -420,8 +422,6 @@ export const Agent = ({ token, onClose }) => {
         return;
       }
 
-      console.log('shouldReconnectRef', shouldReconnectRef.current);
-
       // 3. Otherwise: unexpected disconnect => auto-reconnect (only if allowed)
       if (!shouldReconnectRef.current) {
         // We've been told not to reconnect anymore (user ended / closed UI),
@@ -433,7 +433,6 @@ export const Agent = ({ token, onClose }) => {
       setError(`Connection lost to ${ws.url} (${closeInfo}). Attempting reconnection...`);
       setTimeout(() => {
         if (shouldReconnectRef.current) {
-          console.log('reconnectin');
           connectWebSocket();
         }
       }, 5000);
@@ -441,12 +440,12 @@ export const Agent = ({ token, onClose }) => {
 
     ws.onerror = (e) => {
       if (wsRef.current !== ws) {
-        console.log('[WS] onerror from stale socket, ignoring');
+        // console.log('[WS] onerror from stale socket, ignoring');
         return;
       }
 
       if (manualCloseRef.current) {
-        console.log('[WS] Ignoring error after manual close');
+        // console.log('[WS] Ignoring error after manual close');
         return;
       }
 
@@ -473,7 +472,7 @@ export const Agent = ({ token, onClose }) => {
 
     ws.onmessage = async (event) => {
       if (wsRef.current !== ws) {
-        console.log('[WS] onmessage from stale socket, ignoring');
+        // console.log('[WS] onmessage from stale socket, ignoring');
         return;
       }
       // Binary: audio chunks
@@ -538,7 +537,6 @@ export const Agent = ({ token, onClose }) => {
           // Server has decided to end the call. Do NOT reconnect after this.
           manualCloseRef.current = true;
           shouldReconnectRef.current = false;
-          console.log('call-end');
           setConversationEnded(true);
 
           // For any server initiated end (including trial_ended), we always say:
@@ -567,12 +565,6 @@ export const Agent = ({ token, onClose }) => {
   useEffect(() => {
     connectWebSocket();
     return () => {
-      // // On unmount, we do a full cleanup and stop audio
-      // // Component is going away: mark this as an intentional close and
-      // // disable any future reconnects.
-      // manualCloseRef.current = true;
-      // shouldReconnectRef.current = false;
-      console.log('unmount');
       cleanupResources({ stopAudio: true });
     };
   }, [connectWebSocket, cleanupResources]);
