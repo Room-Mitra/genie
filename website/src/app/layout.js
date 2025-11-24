@@ -34,6 +34,7 @@ export default function RootLayout({ children }) {
               ? 'https://widget.roommitra.com/embed.js'
               : 'https://widget-stage.roommitra.com/embed.js'
           }
+          data-hotel-id="ROOMMITRA"
           strategy="afterInteractive"
         />
       </body>
