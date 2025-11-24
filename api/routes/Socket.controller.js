@@ -258,8 +258,17 @@ export function connection(ws, request) {
 
       // New continuous listening name
       case 'END_UTTERANCE': {
-        // console.log('[WS] END_UTTERANCE / STOP_RECORDING received');
+        // console.log('[WS] END_UTTERANCE received');
         await processUtterance(ws, audioBufferRef, ws.language);
+        break;
+      }
+
+      case 'END_CALL': {
+        console.log('[WS] END_CALL received');
+
+        const code = 1000;
+        const reason = 'user_ended_conversation';
+        ws.close(code, reason);
         break;
       }
 
