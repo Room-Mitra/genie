@@ -26,11 +26,14 @@ export default function RootLayout({ children }) {
         <Navbar />
         <main>{children}</main>
         <Footer />
-        
+
         {/* Room Mitra Support Widget */}
         <Script
-          src="http://localhost:3003/embed.js"
-          data-hotel-id="ANANTHERRA_99"
+          src={
+            process.env.ENV === 'production'
+              ? 'https://widget.roommitra.com/embed.js'
+              : 'https://widget-stage.roommitra.com/embed.js'
+          }
           strategy="afterInteractive"
         />
       </body>
