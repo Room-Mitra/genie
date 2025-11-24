@@ -10,9 +10,31 @@
   const HOTEL_ID = data.hotelId || data.hotelId || '';
   const THEME = data.theme ? JSON.parse(decodeURIComponent(data.theme)) : null;
   const POSITION = data.position || 'bottom-right';
-  const WIDGET_URL =
-    (data.widgetUrl || 'http://localhost:3003' + '/widget') +
-    `?hotelId=${encodeURIComponent(HOTEL_ID)}`;
+
+  // Determine widget base URL
+  let baseWidgetUrl = data.widgetUrl;
+
+  if (!baseWidgetUrl) {
+    const scriptSrc = scriptTag?.src || '';
+
+    try {
+      const url = new URL(scriptSrc, window.location.href);
+      const host = url.hostname;
+
+      // Handles widget.roommitra.com, widget-stage.roommitra.com, etc.
+      if (host.endsWith('roommitra.com') && host.startsWith('widget')) {
+        baseWidgetUrl = `${url.protocol}//${host}/widget`;
+      } else {
+        // local/dev fallback
+        baseWidgetUrl = 'http://localhost:3003/widget';
+      }
+    } catch (e) {
+      // If URL parsing fails, fall back to localhost
+      baseWidgetUrl = 'http://localhost:3003/widget';
+    }
+  }
+
+  const WIDGET_URL = `${baseWidgetUrl}?hotelId=${encodeURIComponent(HOTEL_ID)}`;
 
   // Create minimized launcher
   const launcher = document.createElement('button');
