@@ -13,6 +13,7 @@
 
   // Room Mitra image lightbox in parent page
   const LIGHTBOX_ROOT_ID = 'room-mitra-image-lightbox-root';
+  let roomMitraPreviousBodyOverflow = null;
 
   // Determine widget base URL
   let baseWidgetUrl = data.widgetUrl;
@@ -165,27 +166,40 @@
     }
     return root;
   }
-
   function renderImageLightbox(items, startIndex) {
     const root = ensureLightboxRoot();
     root.innerHTML = '';
+
+    // Lock background scroll
+    if (roomMitraPreviousBodyOverflow === null) {
+      roomMitraPreviousBodyOverflow = document.body.style.overflow || '';
+      document.body.style.overflow = 'hidden';
+    }
 
     const overlay = document.createElement('div');
     overlay.style.position = 'fixed';
     overlay.style.inset = '0';
     overlay.style.zIndex = '2147483647';
-    overlay.style.background = 'rgba(0,0,0,0.8)';
     overlay.style.display = 'flex';
     overlay.style.alignItems = 'center';
     overlay.style.justifyContent = 'center';
+    overlay.style.background = 'rgba(15,23,42,0.65)';
+    overlay.style.backdropFilter = 'blur(12px)';
+    overlay.style.webkitBackdropFilter = 'blur(12px)';
+    overlay.style.opacity = '0';
+    overlay.style.transition = 'opacity 150ms ease-out';
 
     let index = startIndex;
+    let touchStartX = null;
+    let touchStartY = null;
 
     const container = document.createElement('div');
     container.style.position = 'relative';
     container.style.maxWidth = '900px';
     container.style.maxHeight = '90vh';
     container.style.margin = '0 16px';
+    container.style.transform = 'scale(0.96)';
+    container.style.transition = 'transform 150ms ease-out';
 
     const imgEl = document.createElement('img');
     imgEl.style.maxHeight = '75vh';
@@ -198,7 +212,22 @@
     captionEl.style.marginTop = '10px';
     captionEl.style.textAlign = 'center';
     captionEl.style.fontSize = '12px';
-    captionEl.style.color = '#fff';
+    captionEl.style.color = '#f5f5f5';
+
+    function cleanup() {
+      root.innerHTML = '';
+      if (roomMitraPreviousBodyOverflow !== null) {
+        document.body.style.overflow = roomMitraPreviousBodyOverflow;
+        roomMitraPreviousBodyOverflow = null;
+      }
+      window.removeEventListener('keydown', onKeyDown);
+    }
+
+    function close() {
+      overlay.style.opacity = '0';
+      container.style.transform = 'scale(0.96)';
+      setTimeout(cleanup, 160);
+    }
 
     function showCurrent() {
       const item = items[index];
@@ -207,12 +236,73 @@
       captionEl.textContent = item.caption || '';
     }
 
+    function onKeyDown(e) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        close();
+      } else if (e.key === 'ArrowLeft' && items.length > 1) {
+        index = (index - 1 + items.length) % items.length;
+        showCurrent();
+      } else if (e.key === 'ArrowRight' && items.length > 1) {
+        index = (index + 1) % items.length;
+        showCurrent();
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown);
+
     // Close on background click
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) {
-        root.innerHTML = '';
+        close();
       }
     });
+
+    // Touch swipe support + prevent scroll bleed
+    overlay.addEventListener(
+      'touchstart',
+      (e) => {
+        if (!e.touches || e.touches.length !== 1) return;
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+      },
+      { passive: true }
+    );
+
+    overlay.addEventListener(
+      'touchmove',
+      (e) => {
+        if (typeof e.cancelable !== 'boolean' || e.cancelable) {
+          e.preventDefault();
+        }
+      },
+      { passive: false }
+    );
+
+    overlay.addEventListener(
+      'touchend',
+      (e) => {
+        if (touchStartX == null || touchStartY == null || !e.changedTouches?.length) return;
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        const dy = e.changedTouches[0].clientY - touchStartY;
+        const minSwipe = 40;
+
+        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > minSwipe && items.length > 1) {
+          if (dx > 0) {
+            // swipe right → previous
+            index = (index - 1 + items.length) % items.length;
+          } else {
+            // swipe left → next
+            index = (index + 1) % items.length;
+          }
+          showCurrent();
+        }
+
+        touchStartX = null;
+        touchStartY = null;
+      },
+      { passive: true }
+    );
 
     // Close button
     const closeBtn = document.createElement('button');
@@ -225,11 +315,17 @@
     closeBtn.style.border = 'none';
     closeBtn.style.borderRadius = '50%';
     closeBtn.style.cursor = 'pointer';
-    closeBtn.style.background = 'rgba(0,0,0,0.85)';
+    closeBtn.style.background = 'rgba(15,23,42,0.9)';
     closeBtn.style.color = 'white';
-    closeBtn.addEventListener('click', () => (root.innerHTML = ''));
+    closeBtn.style.display = 'flex';
+    closeBtn.style.alignItems = 'center';
+    closeBtn.style.justifyContent = 'center';
+    closeBtn.style.fontSize = '16px';
+    closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      close();
+    });
 
-    // Navigation
     if (items.length > 1) {
       const prevBtn = document.createElement('button');
       prevBtn.textContent = '‹';
@@ -239,10 +335,10 @@
       prevBtn.style.transform = 'translateY(-50%)';
       prevBtn.style.marginLeft = '10px';
       prevBtn.style.padding = '8px 12px';
-      prevBtn.style.background = 'rgba(0,0,0,0.6)';
+      prevBtn.style.background = 'rgba(15,23,42,0.85)';
       prevBtn.style.color = '#fff';
       prevBtn.style.border = 'none';
-      prevBtn.style.borderRadius = '50%';
+      prevBtn.style.borderRadius = '999px';
       prevBtn.style.cursor = 'pointer';
       prevBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -258,10 +354,10 @@
       nextBtn.style.transform = 'translateY(-50%)';
       nextBtn.style.marginRight = '10px';
       nextBtn.style.padding = '8px 12px';
-      nextBtn.style.background = 'rgba(0,0,0,0.6)';
+      nextBtn.style.background = 'rgba(15,23,42,0.85)';
       nextBtn.style.color = '#fff';
       nextBtn.style.border = 'none';
-      nextBtn.style.borderRadius = '50%';
+      nextBtn.style.borderRadius = '999px';
       nextBtn.style.cursor = 'pointer';
       nextBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -280,6 +376,12 @@
     root.appendChild(overlay);
 
     showCurrent();
+
+    // Smooth fade + scale-in
+    requestAnimationFrame(() => {
+      overlay.style.opacity = '1';
+      container.style.transform = 'scale(1)';
+    });
   }
 
   // Listen for lightbox messages from iframe
