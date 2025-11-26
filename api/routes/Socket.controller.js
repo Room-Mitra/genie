@@ -50,8 +50,22 @@ async function generateAgentReply(userText, conversationId) {
 }
 
 // Send one text + TTS reply
+// Supports rich contentBlocks alongside plain text.
 async function sendTTSReply(ws, reply) {
-  ws.send(JSON.stringify({ type: 'reply_text', text: reply.message, language: ws.language }));
+  const payload = {
+    type: 'reply_text',
+    language: ws.language,
+  };
+
+  if (reply.message) {
+    payload.text = reply.message;
+  }
+
+  if (Array.isArray(reply.contentBlocks) && reply.contentBlocks.length > 0) {
+    payload.contentBlocks = reply.contentBlocks;
+  }
+
+  ws.send(JSON.stringify(payload));
 
   const audioContent = await synthesizeSpeech(reply.ssml, ws.language);
   if (!audioContent || !audioContent.length) {

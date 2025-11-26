@@ -27,7 +27,7 @@ export const Agent = ({ token, onClose }) => {
   const [error, setError] = useState(null);
   const [conversationEnded, setConversationEnded] = useState(false);
 
-  // Chat messages { id, role: 'user' | 'agent' | 'system', text }
+  // Chat messages { id, role: 'user' | 'agent' | 'system', text?, contentBlocks? }
   const [messages, setMessages] = useState([
     {
       id: 'init',
@@ -35,6 +35,29 @@ export const Agent = ({ token, onClose }) => {
       text: 'Connecting you to the Room Mitra voice agent...',
     },
   ]);
+  const [previewImage, setPreviewImage] = useState(null);
+  // Preview state for WhatsApp-style gallery
+  // { items: ImageBlockItem[], index: number }
+  const [previewState, setPreviewState] = useState(null);
+
+  // Ask the parent page (embed.js) to open a full-screen preview
+  const openPreview = useCallback((items, index) => {
+    if (typeof window === 'undefined' || !Array.isArray(items) || !items.length) {
+      return;
+    }
+    const safeIndex = Math.min(Math.max(index, 0), items.length - 1);
+    window.parent?.postMessage(
+      {
+        source: 'room-mitra-widget',
+        type: 'open_image_lightbox',
+        payload: {
+          items,
+          index: safeIndex,
+        },
+      },
+      '*'
+    );
+  }, []);
 
   const wsRef = useRef(null);
   const vadRef = useRef(null);
@@ -58,6 +81,8 @@ export const Agent = ({ token, onClose }) => {
   // Used to avoid reacting to our own TTS
   const isAgentSpeakingRef = useRef(false);
   const agentLastSpeechEndTimeRef = useRef(0);
+
+  const fullscreenRequestedRef = useRef(false);
 
   const messagesEndRef = useRef(null);
 
@@ -124,19 +149,23 @@ export const Agent = ({ token, onClose }) => {
     };
   }, []);
 
-  // Utility to append a message
-  const pushMessage = useCallback((role, text) => {
-    if (text == null) {
-      return;
-    }
-
+  // Utility to append a message (supports structured meta like contentBlocks)
+  const pushMessage = useCallback((role, text, meta = {}) => {
     let safeText = text;
 
-    if (typeof text === 'object') {
-      console.warn('[Agent] pushMessage got non-string text:', text);
-      safeText = JSON.stringify(text, null, 2);
-    } else if (typeof text !== 'string') {
-      safeText = String(text);
+    if (safeText != null && typeof safeText === 'object') {
+      console.warn('[Agent] pushMessage got non-string text:', safeText);
+      safeText = JSON.stringify(safeText, null, 2);
+    } else if (safeText != null && typeof safeText !== 'string') {
+      safeText = String(safeText);
+    }
+
+    const hasContentBlocks =
+      meta && Array.isArray(meta.contentBlocks) && meta.contentBlocks.length > 0;
+
+    // Ignore if we have neither plain text nor any structured content
+    if (safeText == null && !hasContentBlocks) {
+      return;
     }
 
     setMessages((prev) => [
@@ -146,6 +175,7 @@ export const Agent = ({ token, onClose }) => {
         role,
         text: safeText,
         timestamp: Date.now(),
+        ...meta,
       },
     ]);
   }, []);
@@ -495,8 +525,22 @@ export const Agent = ({ token, onClose }) => {
           }
           setIsThinking(true);
         } else if (message.type === 'reply_text') {
-          // Agent's reply text
-          if (message.text) {
+          // Agent's reply, now supporting structured contentBlocks
+          const blocks = Array.isArray(message.contentBlocks) ? message.contentBlocks : [];
+
+          if (blocks.length > 0) {
+            // If blocks exist, push them as structured content.
+            // If there is also a plain text field and no explicit text block,
+            // prepend it as a text block for display.
+            let finalBlocks = blocks;
+
+            if (!blocks.some((b) => b.type === 'text') && message.text) {
+              finalBlocks = [{ type: 'text', text: message.text }, ...blocks];
+            }
+
+            pushMessage('agent', null, { contentBlocks: finalBlocks });
+          } else if (message.text) {
+            // Backwards compatibility: plain-text-only replies
             pushMessage('agent', message.text);
           }
         } else if (message.type === 'audio_start') {
@@ -607,6 +651,83 @@ export const Agent = ({ token, onClose }) => {
     onClose?.();
   };
 
+  const renderContentBlock = (block, index) => {
+    if (!block || !block.type) return null;
+
+    // 1) Plain text block
+    if (block.type === 'text') {
+      return (
+        <p key={index} className="mb-1 last:mb-0 whitespace-pre-wrap">
+          {block.text}
+        </p>
+      );
+    }
+
+    // 2) WhatsApp-style image list
+    if (block.type === 'image_list') {
+      const items = Array.isArray(block.items) ? block.items : [];
+      if (!items.length) return null;
+
+      // Single image: big thumb with caption under it
+      if (items.length === 1) {
+        const img = items[0];
+        return (
+          <div key={index} className="mt-2">
+            <button
+              type="button"
+              onClick={() => openPreview(items, 0)}
+              className="block w-full overflow-hidden rounded-xl"
+            >
+              <img
+                src={img.url}
+                alt={img.alt || img.caption || 'Image'}
+                className="w-full max-h-64 object-cover"
+              />
+            </button>
+            {img.caption && <p className="mt-1 text-[11px] text-gray-700">{img.caption}</p>}
+          </div>
+        );
+      }
+
+      // 2–4 images → 2x2 grid
+      // >4 images → 2x2 grid, last tile has +N overlay
+      const maxThumbs = 4;
+      const visible = items.slice(0, maxThumbs);
+      const extraCount = items.length - visible.length;
+
+      return (
+        <div key={index} className="mt-2 grid grid-cols-2 gap-1 overflow-hidden rounded-xl">
+          {visible.map((img, idx) => {
+            const isLast = idx === visible.length - 1;
+            const showOverlay = extraCount > 0 && isLast;
+
+            return (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => openPreview(items, idx)}
+                className="relative h-24 sm:h-28 overflow-hidden"
+              >
+                <img
+                  src={img.url}
+                  alt={img.alt || img.caption || 'Image'}
+                  className="h-full w-full object-cover"
+                />
+                {showOverlay && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/60">
+                    <span className="text-sm font-semibold text-white">+{extraCount}</span>
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      );
+    }
+
+    return null;
+  };
+
   const renderMessageBubble = (msg) => {
     const isUser = msg.role === 'user';
     const isSystem = msg.role === 'system';
@@ -619,6 +740,8 @@ export const Agent = ({ token, onClose }) => {
       );
     }
 
+    const hasBlocks = Array.isArray(msg.contentBlocks) && msg.contentBlocks.length > 0;
+
     return (
       <div key={msg.id} className={`flex my-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
         <div className="flex flex-col max-w-[80%]">
@@ -629,7 +752,9 @@ export const Agent = ({ token, onClose }) => {
                 : 'bg-gray-200 text-gray-900 rounded-bl-sm'
             }`}
           >
-            {msg.text}
+            {hasBlocks
+              ? msg.contentBlocks.map((block, idx) => renderContentBlock(block, idx))
+              : msg.text}
           </div>
 
           {/* Timestamp BELOW bubble */}
