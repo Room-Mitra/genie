@@ -10,11 +10,7 @@ export default function Home() {
 
         {/* Room Mitra Support Widget */}
         <Script
-          src={
-            process.env.ENV === 'production'
-              ? 'https://widget.roommitra.com/embed.js'
-              : 'https://widget-stage.roommitra.com/embed.js'
-          }
+          src={'http://localhost:3003/embed.js'}
           data-hotel-id="ROOMMITRA"
           strategy="afterInteractive"
         />

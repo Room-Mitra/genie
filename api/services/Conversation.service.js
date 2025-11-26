@@ -122,6 +122,52 @@ export async function handleConversation({
     isConversationOpen: isUserResponseNeeded,
     canEndCall,
     agents,
+    contentBlocks: [
+      {
+        type: 'text',
+        text: stripSSML(reply),
+      },
+      {
+        type: 'image_list',
+        items: [
+          {
+            url: 'https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/AMENITY/01K97101227EDW4GVME6AR7KGN.jpeg',
+            caption: 'UrMedz Millenium',
+            alt: 'UrMedz Millenium',
+          },
+          {
+            url: 'https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/AMENITY/01K97R4E74WJXEW672T1A4MEHP.png',
+            caption: 'Squash Court',
+            alt: 'Squash Court',
+          },
+          {
+            url: 'https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/AMENITY/01K9EJ5X2MFXGZPQPSYX271TD3.webp',
+            caption: 'Badminton',
+            alt: 'Badminton',
+          },
+          {
+            url: 'https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8A5C7YAK0XAXAZBHJN9NVTS/CONCIERGE/01K8TAT75TEP0D9YJZQW3VHVNP.png',
+            caption: 'Airport Pickup',
+            alt: 'Airport Pickup',
+          },
+          {
+            url: 'https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8A5C7YAK0XAXAZBHJN9NVTS/CONCIERGE/01K8TBNWF2RJHD7VNZSVXDXSGK.png',
+            caption: 'Local tours',
+            alt: 'Local Tours',
+          },
+          {
+            url: 'https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8A5C7YAK0XAXAZBHJN9NVTS/CONCIERGE/01K9EJPF26AQ0JK4RXD8A9F7QR.webp',
+            caption: 'Salon',
+            alt: 'Salon',
+          },
+          {
+            url: 'https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8A5C7YAK0XAXAZBHJN9NVTS/CONCIERGE/01K9EJRN5B1SA9CWCBDBNSTDVB.webp',
+            caption: 'Ayurvedic Massage',
+            alt: 'Ayurvedic Massage',
+          },
+        ],
+      },
+    ],
   };
 
   return response;
