@@ -24,6 +24,7 @@ export const Agent = ({ token, onClose }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false); // waiting for STT
+  const [liveTranscript, setLiveTranscript] = useState(''); // partial STT text
   const [error, setError] = useState(null);
   const [conversationEnded, setConversationEnded] = useState(false);
 
@@ -518,12 +519,19 @@ export const Agent = ({ token, onClose }) => {
         const message = JSON.parse(event.data);
 
         if (message.type === 'transcript') {
-          // STT transcript from your speech
+          // Final STT transcript from your speech
           setIsTranscribing(false);
+          setLiveTranscript('');
           if (message.text) {
             pushMessage('user', message.text);
           }
           setIsThinking(true);
+        } else if (message.type === 'transcript_partial') {
+          // Streaming / partial STT from the server
+          if (message.text) {
+            setLiveTranscript(message.text);
+            setIsTranscribing(true);
+          }
         } else if (message.type === 'reply_text') {
           // Agent's reply, now supporting structured contentBlocks
           const blocks = Array.isArray(message.contentBlocks) ? message.contentBlocks : [];
@@ -589,6 +597,7 @@ export const Agent = ({ token, onClose }) => {
           setError(`Server Error: ${message.message}`);
           setIsThinking(false);
           setIsTranscribing(false);
+          setLiveTranscript('');
           pushMessage('system', `Server error: ${message.message}`);
         }
       } catch (e) {
@@ -625,6 +634,7 @@ export const Agent = ({ token, onClose }) => {
     // Only here we show "You ended the call."
     pushMessage('system', 'You ended the call.');
     setConversationEnded(true);
+    setLiveTranscript('');
 
     // Immediately interrupt any playing TTS
     stopCurrentAudio();
@@ -803,7 +813,7 @@ export const Agent = ({ token, onClose }) => {
           {!conversationEnded && isTranscribing && (
             <div className="flex justify-end my-2">
               <div className="max-w-[60%] rounded-2xl px-3 py-2 text-xs bg-indigo-600 text-white flex items-center gap-2 rounded-br-sm">
-                <span>Transcribing</span>
+                <span className="truncate max-w-[180px]">{liveTranscript || 'Transcribing'}</span>{' '}
                 <span className="flex gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-white/80 animate-bounce [animation-delay:0ms]" />
                   <span className="w-1.5 h-1.5 rounded-full bg-white/60 animate-bounce [animation-delay:150ms]" />
