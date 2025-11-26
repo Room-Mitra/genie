@@ -33,6 +33,7 @@ import requestRoutes from '#routes/webapp/Request.controller.js';
 import hotelRoutes from '#routes/webapp/Hotel.controller.js';
 import imageRoutes from '#routes/webapp/Image.controller.js';
 import orderRoutes from '#routes/webapp/Order.controller.js';
+import widgetRoutes from '#routes/Widget.controller.js';
 
 //Android Routes
 import androidLoginRoutes from '#routes/android/Login.controller.js';
@@ -52,7 +53,7 @@ import adminHotelRoutes from '#routes/admin/Hotel.controller.js';
 import adminStaffRoutes from '#routes/admin/Staff.controller.js';
 
 // Socket controller
-import { connection } from '#routes/Socket.controller.js';
+import { connection } from '#routes/WebVoiceAgent.controller.js';
 
 // Cron jobs
 import { checkDelayedRequests } from '#tasks/checkDelayedRequests.task.js';
@@ -119,6 +120,8 @@ app.use('/user', userRoutes);
 app.use('/login', loginRoutes);
 app.use('/website', websiteRoutes);
 
+app.use('/widget', widgetRoutes);
+
 // -------------------------
 // Admin Routes
 // -------------------------
@@ -164,10 +167,10 @@ server.on('upgrade', function upgrade(request, socket, head) {
   }
 
   // Check if the request is destined for the root WebSocket path
-  if (pathname === '/') {
+  if (pathname === '/web-voice-agent') {
     // Use the handleUpgrade function to pass control to the ws server
     wss.handleUpgrade(request, socket, head, function done(ws) {
-      wss.emit('connection', ws, request);
+      wss.emit('web-voice-agent-connection', ws, request);
     });
   } else {
     // If the path is wrong, close the socket and return a 404 (though the client often sees a connection failure first)
@@ -176,7 +179,7 @@ server.on('upgrade', function upgrade(request, socket, head) {
 });
 
 // --- WebSocket Handler ---
-wss.on('connection', connection);
+wss.on('web-voice-agent-connection', connection);
 
 cron.schedule('*/2 * * * *', () => {
   checkDelayedRequests();

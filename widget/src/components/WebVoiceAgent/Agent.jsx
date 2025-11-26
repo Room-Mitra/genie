@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { MicVAD } from '@ricky0123/vad-web';
 
-const SERVER_URL = process.env.NEXT_PUBLIC_SOCKET_IO_URL;
+const SERVER_URL = process.env.NEXT_PUBLIC_WEB_VOICE_AGENT_SOCKET_IO_URL;
 
 // Must match server
 const SAMPLE_RATE = 16000;
@@ -41,7 +41,7 @@ export const Agent = ({ token, onClose }) => {
   // { items: ImageBlockItem[], index: number }
   const [previewState, setPreviewState] = useState(null);
 
-  // Ask the parent page (embed.js) to open a full-screen preview
+  // Ask the parent page (web-voice-agent.js) to open a full-screen preview
   const openPreview = useCallback((items, index) => {
     if (typeof window === 'undefined' || !Array.isArray(items) || !items.length) {
       return;

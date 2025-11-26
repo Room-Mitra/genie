@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export async function POST(req) {
-  const endpoint = `${process.env.API_BASE_URL}/website/voice-agent-trial-request`;
+  const endpoint = `${process.env.API_BASE_URL}/widget/web-voice-agent`;
 
   //JSON handler
   const body = await req.json().catch(() => null);

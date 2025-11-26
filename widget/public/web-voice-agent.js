@@ -4,7 +4,7 @@
   window.RoomMitraWidgetBootloader = true;
 
   // Default config (can override via data-* attributes)
-  const scriptTag = document.currentScript || document.querySelector('script[src*="embed.js"]');
+  const scriptTag = document.currentScript || document.querySelector('script[src*="web-voice-agent.js"]');
   const data = (scriptTag && scriptTag.dataset) || {};
 
   const HOTEL_ID = data.hotelId || data.hotelId || '';

@@ -65,4 +65,4 @@ terraform.tfstate.backup
 
 
 # service account key jsons
-voice-agent-trial-service-account.json
+web-voice-agent-service-account.json
