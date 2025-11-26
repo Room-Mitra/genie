@@ -1,16 +1,16 @@
 import { NextResponse } from 'next/server';
 
 export async function POST(req) {
-  const endpoint = `${process.env.API_BASE_URL}/widget/web-voice-agent`;
-
-  //JSON handler
-  const body = await req.json().catch(() => null);
-
-  if (body.hp) {
-    return NextResponse.json({ ok: true });
-  }
-
   try {
+    const body = await req.json();
+    const { hotelId, phone, country } = body;
+
+    if (!hotelId || !phone) {
+      return NextResponse.json({ error: 'Missing hotelId or phone' }, { status: 400 });
+    }
+
+    const endpoint = `${process.env.API_BASE_URL}/widget/request-callback`;
+
     const res = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -23,11 +23,7 @@ export async function POST(req) {
     }
     return NextResponse.json(await res.json().catch(() => ({})));
   } catch (err) {
-    return NextResponse.json(
-      {
-        error: err?.message || 'Something went wrong. Please try again.',
-      },
-      { status: 400 }
-    );
+    console.error('Callback request error', err);
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
