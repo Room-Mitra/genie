@@ -1,11 +1,15 @@
 import { synthesizeSpeech } from '#services/TTS.service.js';
-import { transcribeAudio } from '#services/STT.service.js';
+import { streamingTranscribe } from '#clients/STT.client.js';
 import { handleConversation } from '#services/Conversation.service.js';
 import { ulid } from 'ulid';
 import { sendVoiceAgentTrialNotification } from '#services/Slack.service.js';
-import { Language } from '#Constants/Language.constants.js';
+import { Language, VoiceForLanguage } from '#Constants/Language.constants.js';
 
 const TRIAL_LIMIT_MS = 5 * 60 * 1000; // 5 minutes
+
+// Map our internal language enum → Google STT v2 Recognizer names.
+// Fill these env vars with your actual recognizer resource IDs, e.g.:
+//   projects/<PROJECT>/locations/asia-south1/recognizers/roommitra-en-in
 
 function getGreetingText(language) {
   switch (language) {
@@ -135,9 +139,45 @@ async function processUtterance(ws, audioBufferRef, language) {
 
   // console.log('[WS] Processing utterance. Audio bytes:', audioBuffer.length);
 
-  const userText = await transcribeAudio(audioBuffer, language);
+  const recognizerName = VoiceForLanguage[language].recognizer;
+  if (!recognizerName) {
+    console.error('[STT] No recognizer configured for language:', language);
+    ws.send(
+      JSON.stringify({
+        type: 'error',
+        message: 'Transcription failed due to missing recognizer configuration.',
+      })
+    );
+    return;
+  }
 
-  if (userText === 'Transcription failed.') {
+  let finalTranscript = '';
+  let lastPartial = '';
+
+  try {
+    // Stream this utterance buffer to Google STT v2 and emit partial + final results.
+    await streamingTranscribe({
+      recognizerName,
+      audioBuffer,
+      onPartial: (partial) => {
+        const cleanedPartial = (partial || '').trim();
+        if (!cleanedPartial) return;
+        lastPartial = cleanedPartial;
+
+        // Stream partial text to the client for live UI updates
+        ws.send(
+          JSON.stringify({
+            type: 'transcript_partial',
+            text: cleanedPartial,
+          })
+        );
+      },
+      onFinal: (full) => {
+        finalTranscript = (full || '').trim();
+      },
+    });
+  } catch (err) {
+    console.error('[STT] Streaming transcription failed:', err);
     ws.send(
       JSON.stringify({
         type: 'error',
@@ -147,7 +187,9 @@ async function processUtterance(ws, audioBufferRef, language) {
     return;
   }
 
-  const cleaned = (userText || '').trim();
+  // If for some reason we never got an explicit final result, fall back
+  // to the last partial.
+  const cleaned = (finalTranscript || lastPartial || '').trim();
 
   // 2) If STT returned nothing or almost nothing, don't reply.
   //    We also skip the "sorry, I couldn’t hear that" in this case.
