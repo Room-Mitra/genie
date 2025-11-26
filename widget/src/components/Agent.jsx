@@ -284,6 +284,15 @@ export const Agent = ({ token, onClose }) => {
       // Only create VAD once
       if (!vadRef.current) {
         const vad = await MicVAD.new({
+          // Let MicVAD manage getUserMedia, but tweak the audio constraints
+          additionalAudioConstraints: {
+            channelCount: 1,
+            sampleRate: 48000, // browser-native, VAD will resample to 16k
+            sampleSize: 16,
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: false,
+          },
           onSpeechStart: () => {
             // speech started
           },
