@@ -191,3 +191,31 @@ jobs:
             }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      # Cancelled message
+      - uses: slackapi/slack-github-action@v1.26.0
+        if: ${{ cancelled() }}
+        with:
+          channel-id: ${{ secrets.ENG_OPS_CHANNEL_ID }}
+          payload: |
+            {
+              "blocks": [
+                { 
+                  "type": "section",
+                  "text": { 
+                    "type": "mrkdwn",
+                    "text": ":no_entry_sign: *PROD 🟣 `api` Build was cancelled* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
+                  }
+                },
+                { 
+                  "type": "context",
+                  "elements": [
+                    { "type": "mrkdwn", "text": "*Author:* ${{ env.AUTHOR_NAME }}" },
+                    { "type": "mrkdwn", "text": "*Branch:* ${{ github.ref_name }}" },
+                    { "type": "mrkdwn", "text": "*Workflow:* <${{ env.RUN_URL }}|open run>" }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

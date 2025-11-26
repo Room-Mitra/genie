@@ -27,7 +27,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": ":octocat: *New commit pushed to `release`* in *${{ github.repository }}*"
+                    "text": ":cat: *New commit pushed to `release`* in *${{ github.repository }}*"
                   }
                 },
                 {
