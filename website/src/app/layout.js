@@ -31,8 +31,8 @@ export default function RootLayout({ children }) {
         <Script
           src={
             process.env.ENV === 'production'
-              ? 'https://widget.roommitra.com/embed.js'
-              : 'https://widget-stage.roommitra.com/embed.js'
+              ? 'https://widget.roommitra.com/web-voice-agent.js'
+              : 'https://widget-stage.roommitra.com/web-voice-agent.js'
           }
           data-hotel-id="ROOMMITRA"
           strategy="afterInteractive"

@@ -137,7 +137,7 @@ export function OTPForm({ email, name, language, onClose, onSuccess }) {
     try {
       setResending(true);
 
-      const res = await fetch('/api/voice-agent-trial-request', {
+      const res = await fetch('/api/web-voice-agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -170,7 +170,7 @@ export function OTPForm({ email, name, language, onClose, onSuccess }) {
     try {
       setSubmitting(true);
 
-      const res = await fetch('/api/voice-agent-trial-request', {
+      const res = await fetch('/api/web-voice-agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -26,7 +26,7 @@ export function LeadForm({ onClose, onSuccess }) {
     }
 
     try {
-      const res = await fetch('/api/voice-agent-trial-request', {
+      const res = await fetch('/api/web-voice-agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

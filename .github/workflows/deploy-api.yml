@@ -121,12 +121,12 @@ jobs:
             "commands": [
               "set -euo pipefail",
               "sudo -u appuser -H bash -lc \"aws ssm get-parameter --name '/roommitra/api/env' --with-decryption --query 'Parameter.Value' --output text > /opt/roommitra/api/.env\"",
-              "sudo -u appuser -H bash -lc \"aws ssm get-parameter --name '/roommitra/api/voice-agent-trial-service-account.json' --with-decryption --query 'Parameter.Value' --output text > /opt/roommitra/api/voice-agent-trial-service-account.json\"",
+              "sudo -u appuser -H bash -lc \"aws ssm get-parameter --name '/roommitra/api/web-voice-agent-service-account.json' --with-decryption --query 'Parameter.Value' --output text > /opt/roommitra/api/web-voice-agent-service-account.json\"",
               "sudo -u appuser -H bash -lc \"chmod 600 /opt/roommitra/api/.env\"",
               "sudo -u appuser -H bash -lc \"docker pull ${IMAGE_URI}\"",
               "sudo -u appuser -H bash -lc \"docker stop api || true\"",
               "sudo -u appuser -H bash -lc \"docker rm api || true\"",
-              "sudo -u appuser -H bash -lc \"docker run -d --name api -e PORT=4000 --env-file /opt/roommitra/api/.env -v /opt/roommitra/api/voice-agent-trial-service-account.json:/app/voice-agent-trial-service-account.json:ro --restart unless-stopped -p 127.0.0.1:4000:4000 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=api ${IMAGE_URI}\"",
+              "sudo -u appuser -H bash -lc \"docker run -d --name api -e PORT=4000 --env-file /opt/roommitra/api/.env -v /opt/roommitra/api/web-voice-agent-service-account.json:/app/web-voice-agent-service-account.json:ro --restart unless-stopped -p 127.0.0.1:4000:4000 --log-driver=awslogs --log-opt awslogs-region=ap-south-1 --log-opt awslogs-group=/roommitra/containers --log-opt awslogs-stream=api ${IMAGE_URI}\"",
               "sudo -u appuser -H bash -lc \"docker container prune -f\"",
               "sudo -u appuser -H bash -lc \"docker system prune -af --volumes\"",
               "sudo -u appuser -H bash -lc \"docker builder prune -af\""
@@ -187,6 +187,34 @@ jobs:
                   { "type": "mrkdwn", "text": "*Branch:* ${{ github.ref_name }}" },
                   { "type": "mrkdwn", "text": "*Workflow:* <${{ env.RUN_URL }}|open run>" }
                 ]}
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      # Cancelled message
+      - uses: slackapi/slack-github-action@v1.26.0
+        if: ${{ cancelled() }}
+        with:
+          channel-id: ${{ secrets.ENG_OPS_CHANNEL_ID }}
+          payload: |
+            {
+              "blocks": [
+                { 
+                  "type": "section",
+                  "text": { 
+                    "type": "mrkdwn",
+                    "text": ":no_entry_sign: *PROD 🟣 `api` Build was cancelled* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
+                  }
+                },
+                { 
+                  "type": "context",
+                  "elements": [
+                    { "type": "mrkdwn", "text": "*Author:* ${{ env.AUTHOR_NAME }}" },
+                    { "type": "mrkdwn", "text": "*Branch:* ${{ github.ref_name }}" },
+                    { "type": "mrkdwn", "text": "*Workflow:* <${{ env.RUN_URL }}|open run>" }
+                  ]
+                }
               ]
             }
         env:

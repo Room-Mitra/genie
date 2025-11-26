@@ -112,26 +112,24 @@ function collectReplyTexts(resp) {
 
   // 1) Keep only assistant messages in this response
   const assistantMsgs = resp.output.filter((o) => o.type === 'message' && o.role === 'assistant');
-
   if (assistantMsgs.length === 0) return null;
 
-  // 2) Collect ALL output_text chunks from ALL assistant messages, in order
+  // 2) Only use the LAST assistant message (final model reply for this step)
+  const lastAssistant = assistantMsgs[assistantMsgs.length - 1];
   const rawTexts = [];
-  for (const msg of assistantMsgs) {
-    for (const c of msg.content || []) {
-      if (c.type === 'output_text' && typeof c.text === 'string') {
-        const trimmed = c.text.trim();
-        if (trimmed) rawTexts.push(trimmed);
-      }
+  for (const c of lastAssistant.content || []) {
+    if (c.type === 'output_text' && typeof c.text === 'string') {
+      const trimmed = c.text.trim();
+      if (trimmed) rawTexts.push(trimmed);
     }
   }
 
   if (rawTexts.length === 0) return null;
 
-  // 3) Deduplicate consecutive identical texts (fixes "Manchow" × 20 type issues)
+  // 3) Optional: very light dedupe if multiple text chunks exist (usually not needed)
   const deduped = [];
   for (const t of rawTexts) {
-    if (!deduped.length || computeJaccardScore(deduped[deduped.length - 1], t) < 3) {
+    if (!deduped.length || computeJaccardScore(deduped[deduped.length - 1], t) < 0.7) {
       deduped.push(t);
     }
   }

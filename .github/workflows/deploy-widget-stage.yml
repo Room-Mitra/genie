@@ -95,7 +95,7 @@ jobs:
           build-args: |
             NODE_ENV=production
             NEXT_PUBLIC_SITE_URL=https://stage.roommitra.com
-            NEXT_PUBLIC_SOCKET_IO_URL=wss://api-stage.roommitra.com
+            NEXT_PUBLIC_WEB_VOICE_AGENT_SOCKET_IO_URL=wss://api-stage.roommitra.com/web-voice-agent
           tags: |
             public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:${{ env.IMAGE_TAG }}
             public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:stage
@@ -189,6 +189,34 @@ jobs:
                   { "type": "mrkdwn", "text": "*Branch:* ${{ github.ref_name }}" },
                   { "type": "mrkdwn", "text": "*Workflow:* <${{ env.RUN_URL }}|open run>" }
                 ]}
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      # Cancelled message
+      - uses: slackapi/slack-github-action@v1.26.0
+        if: ${{ cancelled() }}
+        with:
+          channel-id: ${{ secrets.ENG_OPS_CHANNEL_ID }}
+          payload: |
+            {
+              "blocks": [
+                { 
+                  "type": "section",
+                  "text": { 
+                    "type": "mrkdwn",
+                    "text": ":no_entry_sign: *STAGE 🟠 `widget` Build was cancelled* for <${{ env.COMMIT_URL }}|${{ env.SHORT_SHA }}>"
+                  }
+                },
+                { 
+                  "type": "context",
+                  "elements": [
+                    { "type": "mrkdwn", "text": "*Author:* ${{ env.AUTHOR_NAME }}" },
+                    { "type": "mrkdwn", "text": "*Branch:* ${{ github.ref_name }}" },
+                    { "type": "mrkdwn", "text": "*Workflow:* <${{ env.RUN_URL }}|open run>" }
+                  ]
+                }
               ]
             }
         env:

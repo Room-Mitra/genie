@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 
-const AgentWrapper = dynamic(() => import('../../components/AgentWrapper'), { ssr: false });
+const AgentWrapper = dynamic(() => import('../../components/WebVoiceAgent/AgentWrapper'), { ssr: false });
 
 
 export default function WidgetClient() {
