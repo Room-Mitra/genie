@@ -122,6 +122,23 @@ export async function handleConversation({
     isConversationOpen: isUserResponseNeeded,
     canEndCall,
     agents,
+    contentBlocks: [],
+    // contentBlocks: [
+    //   {
+    //     type: 'text',
+    //     text: stripSSML(reply),
+    //   },
+    //   {
+    //     type: 'image_list',
+    //     items: [
+    //       {
+    //         url: 'https://roommitra-assets-bucket.s3.ap-south-1.amazonaws.com/01K8YNZK107SWYMN3XSCHTFRFW/AMENITY/01K97101227EDW4GVME6AR7KGN.jpeg',
+    //         caption: 'UrMedz Millenium',
+    //         alt: 'UrMedz Millenium',
+    //       },
+    //     ],
+    //   },
+    // ],
   };
 
   return response;
