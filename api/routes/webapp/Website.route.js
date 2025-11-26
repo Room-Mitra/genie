@@ -247,7 +247,7 @@ router.post('/voice-agent-trial-request', async (req, res) => {
       error: 'Provide either { name, email } to request an OTP, or { email, otp } to verify',
     });
   } catch (err) {
-    console.error('Error in /voice-agent-trail-request', err);
+    console.error('Error in /voice-agent-trial-request', err);
     if (err.code === 'INVALID_CODE') {
       return res.status(400).json({
         error: 'Invalid or expired verification code',

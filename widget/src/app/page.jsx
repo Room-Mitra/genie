@@ -9,11 +9,7 @@ export default function Home() {
         <Image src={logo} alt="logo" width={'250'} height={'250'} />
 
         {/* Room Mitra Support Widget */}
-        <Script
-          src={'http://localhost:3003/embed.js'}
-          data-hotel-id="ROOMMITRA"
-          strategy="afterInteractive"
-        />
+        <Script src={'/web-voice-agent.js'} data-hotel-id="ROOMMITRA" strategy="afterInteractive" />
       </main>
     </div>
   );

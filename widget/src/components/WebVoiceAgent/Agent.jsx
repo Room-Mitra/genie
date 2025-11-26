@@ -41,7 +41,7 @@ export const Agent = ({ token, onClose }) => {
   // { items: ImageBlockItem[], index: number }
   const [previewState, setPreviewState] = useState(null);
 
-  // Ask the parent page (embed.js) to open a full-screen preview
+  // Ask the parent page (web-voice-agent.js) to open a full-screen preview
   const openPreview = useCallback((items, index) => {
     if (typeof window === 'undefined' || !Array.isArray(items) || !items.length) {
       return;
