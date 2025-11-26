@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { MicVAD } from '@ricky0123/vad-web';
 
-const SERVER_URL = process.env.NEXT_PUBLIC_SOCKET_IO_URL;
+const SERVER_URL = process.env.NEXT_PUBLIC_WEB_VOICE_AGENT_SOCKET_IO_URL;
 
 // Must match server
 const SAMPLE_RATE = 16000;

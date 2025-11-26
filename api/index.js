@@ -167,7 +167,7 @@ server.on('upgrade', function upgrade(request, socket, head) {
   }
 
   // Check if the request is destined for the root WebSocket path
-  if (pathname === '/') {
+  if (pathname === '/web-voice-agent') {
     // Use the handleUpgrade function to pass control to the ws server
     wss.handleUpgrade(request, socket, head, function done(ws) {
       wss.emit('web-voice-agent-connection', ws, request);
