@@ -123,4 +123,14 @@ router.put('/:staffUserId', async (req, res) => {
   }
 });
 
+router.post('/duty', async (req, res) => {
+  try {
+    const { userId, onDuty } = req.body
+    res.json({ message: 'Staff duty updated!', userId, onDuty });
+  } catch (err) {
+    console.error('Failed to update staff duty', err);
+    return res.status(400).json({ error: err?.error || 'Failed to update staff duty' });
+  }
+})
+
 export default router;
