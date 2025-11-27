@@ -37,6 +37,14 @@ export default function RootLayout({ children }) {
           data-hotel-id="ROOMMITRA"
           strategy="afterInteractive"
         />
+
+        <Script
+          src={'http://localhost:3003/request-callback.js'}
+          data-hotel-id="ROOMMITRA"
+          strategy="afterInteractive"
+          data-height="175"
+          data-primary-color="#e2c044"
+        />
       </body>
     </html>
   );
