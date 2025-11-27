@@ -15,7 +15,7 @@ function parseQuery() {
   return { hotelId, theme, token, position };
 }
 
-export default function AgentWrapper(props) {
+export default function WebVoiceAgent() {
   const initialQuery = useMemo(() => parseQuery(), []);
 
   const [config, setConfig] = useState({

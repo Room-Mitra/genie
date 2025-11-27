@@ -1,0 +1,19 @@
+.cta-btn {
+  border: none;
+  border-radius: 40px;
+  font-family: 'Montserrat', Arial, sans-serif;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    box-shadow 0.2s;
+  box-shadow: 0 2px 10px 0 rgba(226, 192, 68, 0.12);
+  animation: fadeIn 1.8s;
+  background: #e2c044;
+}
+
+.cta-btn:hover {
+  background: #fff2c3;
+  box-shadow: 0 2px 16px 0 rgba(226, 192, 68, 0.22);
+}

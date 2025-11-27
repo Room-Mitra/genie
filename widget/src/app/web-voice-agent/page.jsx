@@ -1,4 +1,4 @@
-import WidgetClient from './WidgetClient.jsx';
+import WidgetClient from './client.jsx';
 
 export default function WidgetPage() {
   return <WidgetClient />;
