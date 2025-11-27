@@ -39,7 +39,11 @@ export default function RootLayout({ children }) {
         />
 
         <Script
-          src={'http://localhost:3003/request-callback.js'}
+          src={
+            process.env.ENV === 'production'
+              ? 'https://widget.roommitra.com/request-callback.js'
+              : 'https://widget-stage.roommitra.com/request-callback.js'
+          }
           data-hotel-id="ROOMMITRA"
           strategy="afterInteractive"
           data-height="175"
