@@ -2,6 +2,7 @@ import express from 'express';
 import { generateOtpForEmail, verifyOtpForEmail } from '#services/Otp.service.js';
 import { OtpPurpose } from '#Constants/OtpPurpose.constants.js';
 import { Languages } from '#Constants/Language.constants.js';
+import { requestCallback } from '#services/Bolna.service.js';
 
 const router = express.Router();
 
@@ -44,6 +45,33 @@ router.post('/web-voice-agent', async (req, res) => {
     });
   } catch (err) {
     console.error('Error in /web-voice-agent', err);
+    if (err.code === 'INVALID_CODE') {
+      return res.status(400).json({
+        error: 'Invalid or expired verification code',
+      });
+    }
+    return res.status(500).json({
+      error: err?.message || 'Internal server error',
+    });
+  }
+});
+
+router.post('/request-callback', async (req, res) => {
+  const { phone } = req.body || {};
+
+  if (!phone) {
+    return res.status(400).json({ ok: false, error: 'phone is required' });
+  }
+
+  try {
+    await requestCallback(phone);
+
+    return res.status(200).json({
+      ok: true,
+      message: 'requested callback',
+    });
+  } catch (err) {
+    console.error('Error in /request-callback', err);
     if (err.code === 'INVALID_CODE') {
       return res.status(400).json({
         error: 'Invalid or expired verification code',

@@ -3,15 +3,15 @@
 export function TryVoiceAgent() {
   return (
     <>
-      <div className="flex justify-center font-medium text-sm py-10">
+      <div className="flex justify-center font-medium text-sm pt-6 pb-10">
         <button
-          className="flex items-center text-white cta-btn py-2.5 px-4 rounded-full duration-150"
+          className="flex items-center cta-btn py-2.5 px-4 rounded-full duration-150"
           onClick={() => {
             /* eslint-disable-next-line no-undef */
             RoomMitraWidget.open();
           }}
         >
-          Try the Voice Agent
+          Try the Web Voice Agent
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"
