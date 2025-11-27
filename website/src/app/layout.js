@@ -27,7 +27,7 @@ export default function RootLayout({ children }) {
         <main>{children}</main>
         <Footer />
 
-        {/* Room Mitra Support Widget */}
+        {/* Web Voice Agent Widget */}
         <Script
           src={
             process.env.ENV === 'production'
