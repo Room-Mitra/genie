@@ -133,4 +133,15 @@ router.post('/duty', async (req, res) => {
   }
 })
 
+router.post('/register-device', async (req, res) => {
+  try {
+    const { user, deviceId, platform, appVersion } = req.body
+    console.log(({ message: `Staff device updated! ${JSON.stringify(req.body)}` }))
+    res.json({ message: `Staff device updated!`, user, deviceId, platform, appVersion });
+  } catch (err) {
+    console.error('Failed to update staff device', err);
+    return res.status(400).json({ error: err?.error || 'Failed to update staff device' });
+  }
+})
+
 export default router;
