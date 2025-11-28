@@ -71,6 +71,11 @@ async function sendTTSReply(ws, reply) {
 
   ws.send(JSON.stringify(payload));
 
+  // If the client is muted, skip TTS and only send text/contentBlocks.
+  if (ws.isMuted) {
+    return;
+  }
+
   const audioContent = await synthesizeSpeech(reply.ssml, ws.language);
   if (!audioContent || !audioContent.length) {
     console.error('[TTS] No audio bytes to send');
@@ -86,6 +91,20 @@ async function sendTTSReply(ws, reply) {
   ws.send(JSON.stringify({ type: 'audio_start', format: 'mp3' }));
   ws.send(audioContent, { binary: true });
   ws.send(JSON.stringify({ type: 'audio_end' }));
+}
+
+async function handleUserTextMessage(ws, text) {
+  const cleaned = (text || '').trim();
+  if (!cleaned) {
+    return;
+  }
+
+  const reply = await generateAgentReply(cleaned, ws.conversationId);
+  await sendTTSReply(ws, reply);
+
+  if (reply.canEndCall) {
+    endCall(ws, 1000, 'no_more_actions');
+  }
 }
 
 function endCall(ws, code = 1000, reason = 'agent_completed', options = {}) {
@@ -220,14 +239,8 @@ async function processUtterance(ws, audioBufferRef, language) {
     })
   );
 
-  // 4) Generate and speak reply
-  const reply = await generateAgentReply(cleaned, ws.conversationId);
-  await sendTTSReply(ws, reply);
-
-  // 5) If the conversation can be ended, close the socket
-  if (reply.canEndCall) {
-    endCall(ws, 1000, 'no_more_actions');
-  }
+  // 4) Handle the recognized text as a user message
+  await handleUserTextMessage(ws, cleaned);
 }
 
 // --- Main connection handler ---
@@ -242,6 +255,7 @@ export function connection(ws, request) {
   }
 
   ws.language = user.language;
+  ws.isMuted = false;
 
   const callStartedAt = Date.now();
   ws.callStartedAt = callStartedAt;
@@ -316,6 +330,17 @@ export function connection(ws, request) {
       case 'END_UTTERANCE': {
         // console.log('[WS] END_UTTERANCE received');
         await processUtterance(ws, audioBufferRef, ws.language);
+        break;
+      }
+
+      case 'USER_TEXT': {
+        // Text message sent directly from client, skip STT entirely
+        await handleUserTextMessage(ws, command.text || '');
+        break;
+      }
+
+      case 'SET_MUTE': {
+        ws.isMuted = !!command.muted;
         break;
       }
 
