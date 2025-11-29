@@ -32,7 +32,6 @@ export function MobileProvider({ children }) {
     if (sentToBackend) return;          // avoid duplicate requests
 
     async function sendToServer() {
-      console.log(user, "--------")
       try {
         const res = await fetch("/api/staff/register-device", {
           method: "POST",
@@ -57,7 +56,21 @@ export function MobileProvider({ children }) {
       }
     }
 
+    function sendUserDataToStaffApp() {
+      if (sessionStorage.getItem("rm_jwt")) {
+        const data = {
+          ...user,
+          token: sessionStorage.getItem("rm_jwt"),
+          type: "LOGIN_DATA"
+        };
+
+        window.ReactNativeWebView?.postMessage(JSON.stringify(data));
+      }
+    }
     sendToServer();
+    if (/ExpoMobileApp/i.test(navigator.userAgent)) { // ONLY run when inside a mobile WebView
+      sendUserDataToStaffApp();
+    }
   }, [mobile, sentToBackend, user]);
 
   return (

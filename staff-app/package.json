@@ -3,11 +3,11 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "start": "expo start",
+    "start": "expo start --config app.config.js",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web",
+    "android": "expo start --android --config app.config.js",
+    "ios": "expo start --ios --config app.config.js",
+    "web": "expo start --web --config app.config.js",
     "lint": "expo lint"
   },
   "dependencies": {

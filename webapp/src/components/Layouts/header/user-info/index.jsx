@@ -33,7 +33,7 @@ async function updateOnDuty(onDuty, userId) {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId, onDuty }),
+    body: JSON.stringify({ userId, onDuty, trigger: "manual" }),
   });
 
   if (!res.ok) {
