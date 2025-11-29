@@ -115,7 +115,7 @@ const CallbackWidget = ({ hotelId, primary, cardBgColor }) => {
   }, [isCountryOpen]);
 
   // Theme defaults
-  console.log('primary in component', primary);
+  // TODO: use this somewhere
   const themePrimary = primary || '#6366f1';
   const themeCardBg = cardBgColor || 'rgba(15,23,42,0.9)';
 

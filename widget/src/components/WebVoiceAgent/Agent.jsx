@@ -28,6 +28,10 @@ export const Agent = ({ token, onClose }) => {
   const [error, setError] = useState(null);
   const [conversationEnded, setConversationEnded] = useState(false);
 
+  // Mute + text input
+  const [isMuted, setIsMuted] = useState(false);
+  const [typedText, setTypedText] = useState('');
+
   // Chat messages { id, role: 'user' | 'agent' | 'system', text?, contentBlocks? }
   const [messages, setMessages] = useState([
     {
@@ -36,10 +40,6 @@ export const Agent = ({ token, onClose }) => {
       text: 'Connecting you to the Room Mitra voice agent...',
     },
   ]);
-  const [previewImage, setPreviewImage] = useState(null);
-  // Preview state for WhatsApp-style gallery
-  // { items: ImageBlockItem[], index: number }
-  const [previewState, setPreviewState] = useState(null);
 
   // Ask the parent page (web-voice-agent.js) to open a full-screen preview
   const openPreview = useCallback((items, index) => {
@@ -83,13 +83,16 @@ export const Agent = ({ token, onClose }) => {
   const isAgentSpeakingRef = useRef(false);
   const agentLastSpeechEndTimeRef = useRef(0);
 
-  const fullscreenRequestedRef = useRef(false);
-
   const messagesEndRef = useRef(null);
+  const isMutedRef = useRef(false);
 
   useEffect(() => {
     isRecordingRef.current = isRecording;
   }, [isRecording]);
+
+  useEffect(() => {
+    isMutedRef.current = isMuted;
+  }, [isMuted]);
 
   // Auto scroll to bottom whenever messages or typing/thinking state changes
   useEffect(() => {
@@ -207,23 +210,32 @@ export const Agent = ({ token, onClose }) => {
   }, []);
 
   const stopCurrentAudio = useCallback(() => {
-    const audio = currentAudioRef.current; // ⬅️ use the real playing audio
-
-    if (audio) {
+    // Stop any "constructed" Audio instance
+    if (currentAudioRef.current) {
       try {
-        audio.pause();
-        audio.currentTime = 0;
+        currentAudioRef.current.pause();
       } catch (e) {
-        console.warn('[AUDIO] Error stopping audio', e);
+        console.warn('[Audio] Error pausing current audio', e);
       }
     }
 
     if (currentAudioUrlRef.current) {
       URL.revokeObjectURL(currentAudioUrlRef.current);
-      currentAudioUrlRef.current = null;
     }
 
+    currentAudioRef.current = null;
+    currentAudioUrlRef.current = null;
     isAgentSpeakingRef.current = false;
+
+    // Also stop the hidden <audio> element path if it’s in use
+    if (audioElementRef.current) {
+      try {
+        audioElementRef.current.pause();
+        audioElementRef.current.currentTime = 0;
+      } catch (e) {
+        console.warn('[Audio] Error pausing audio element', e);
+      }
+    }
   }, []);
 
   // Core cleanup for VAD + socket (+ optional audio stop)
@@ -543,6 +555,11 @@ export const Agent = ({ token, onClose }) => {
           }
         } else if (message.type === 'reply_text') {
           // Agent's reply, now supporting structured contentBlocks
+          // We got the reply, so the agent is no longer "thinking".
+          setIsThinking(false);
+          setIsTranscribing(false);
+          setLiveTranscript('');
+
           const blocks = Array.isArray(message.contentBlocks) ? message.contentBlocks : [];
 
           if (blocks.length > 0) {
@@ -562,16 +579,18 @@ export const Agent = ({ token, onClose }) => {
           }
         } else if (message.type === 'audio_start') {
           ttsAudioChunks = [];
-          isReceivingAudio = true;
+          // If muted, do not buffer or play any incoming audio
+          isReceivingAudio = !isMutedRef.current;
 
           // New audio is about to play, stop any old audio
           stopCurrentAudio();
         } else if (message.type === 'audio_end') {
+          const wasReceiving = isReceivingAudio;
           isReceivingAudio = false;
           setIsThinking(false);
-
-          if (!ttsAudioChunks.length) {
-            console.error('No TTS audio chunks received before audio_end');
+          // If muted or we were not collecting chunks, skip playback
+          if (isMutedRef.current || !wasReceiving || !ttsAudioChunks.length) {
+            ttsAudioChunks = [];
             return;
           }
 
@@ -659,6 +678,87 @@ export const Agent = ({ token, onClose }) => {
 
     // Tear down mic + socket etc; server will close its side too
     cleanupResources({ stopAudio: false });
+  };
+
+  const handleSendText = () => {
+    const text = typedText.trim();
+    if (!text) return;
+
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      setError('Not connected to the server. Cannot send message.');
+      return;
+    }
+
+    setTypedText('');
+    // show immediately in UI
+    pushMessage('user', text);
+    setIsThinking(true);
+    setIsTranscribing(false);
+
+    try {
+      wsRef.current.send(
+        JSON.stringify({
+          type: 'USER_TEXT',
+          text,
+        })
+      );
+    } catch (e) {
+      console.error('[CLIENT] Failed to send USER_TEXT:', e);
+      setError('Failed to send message. Please try again.');
+      setIsThinking(false);
+    }
+  };
+
+  const handleToggleMute = () => {
+    const nextMuted = !isMuted;
+    setIsMuted(nextMuted);
+
+    // inform server ONLY if socket is open
+    try {
+      const ws = wsRef.current;
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(
+          JSON.stringify({
+            type: 'SET_MUTE',
+            muted: nextMuted,
+          })
+        );
+      }
+    } catch (e) {
+      console.warn('[CLIENT] Failed to send SET_MUTE (ignored, socket closed)', e);
+    }
+
+    if (nextMuted) {
+      // Stop listening and stop any current audio
+      if (vadRef.current) {
+        try {
+          if (typeof vadRef.current.pause === 'function') {
+            vadRef.current.pause();
+          } else if (typeof vadRef.current.stop === 'function') {
+            vadRef.current.stop();
+          }
+        } catch (e) {
+          console.warn('[VAD] Error pausing VAD on mute', e);
+        }
+      }
+      setIsRecording(false);
+      isRecordingRef.current = false;
+      stopCurrentAudio();
+    } else {
+      // Resume listening
+      if (vadRef.current && typeof vadRef.current.start === 'function') {
+        try {
+          vadRef.current.start();
+          setIsRecording(true);
+          isRecordingRef.current = true;
+        } catch (e) {
+          console.warn('[VAD] Error resuming VAD on unmute', e);
+          startRecording();
+        }
+      } else {
+        startRecording();
+      }
+    }
   };
 
   // Close the UI, but first clean up everything (also interrupts audio)
@@ -855,42 +955,101 @@ export const Agent = ({ token, onClose }) => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Soft listening indicator stays visible above footer, non-scrollable */}
-        {!conversationEnded && isRecording && isConnected && (
-          <div className="mt-2 flex items-center gap-2 text-[11px] text-emerald-200">
-            <span className="relative flex h-3 w-3">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
-              <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-400" />
-            </span>
-            <span>Listening in the background. You can start speaking at any time.</span>
-          </div>
+        {/* Soft listening / muted indicator stays visible above footer, non-scrollable */}
+        {!conversationEnded && isConnected && (
+          <>
+            {/* Active listening indicator only when unmuted */}
+            {isRecording && !isMuted && (
+              <div className="mt-2 flex items-center gap-2 text-[11px] text-emerald-200">
+                <span className="relative flex h-3 w-3">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+                  <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-400" />
+                </span>
+                <span>Listening in the background. You can start speaking at any time.</span>
+              </div>
+            )}
+
+            {/* Muted indicator */}
+            {isMuted && (
+              <div className="mt-2 flex items-center gap-2 text-[11px] text-gray-300">
+                <span className="relative flex h-3 w-3">
+                  <span className="relative inline-flex h-3 w-3 rounded-full bg-gray-500" />
+                </span>
+                <span>Muted. Tap Unmute to start talking again.</span>
+              </div>
+            )}
+          </>
         )}
       </div>
 
-      {/* Footer buttons */}
-      <div className="border-t border-gray-700/60 bg-gray-900/60 px-4 py-3 flex gap-3 justify-center sm:flex-row-reverse sm:px-6">
-        <button
-          type="button"
-          disabled={conversationEnded || !isConnected}
-          onClick={handleEndConversation}
-          className={`inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold
-            ${
+      {/* Footer: text input + controls */}
+      <div className="border-t border-gray-700/60 bg-gray-900/60 px-4 py-3 space-y-3 sm:px-6">
+        {/* Text input + mute */}
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={typedText}
+            onChange={(e) => setTypedText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendText();
+              }
+            }}
+            disabled={conversationEnded || !isConnected}
+            placeholder="Type a message..."
+            className="flex-1 rounded-md border border-gray-600 bg-gray-800 px-3 py-2 text-sm text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+          <button
+            type="button"
+            onClick={handleSendText}
+            disabled={conversationEnded || !isConnected || !typedText.trim()}
+            className={`inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-semibold ${
+              conversationEnded || !isConnected || !typedText.trim()
+                ? 'bg-gray-500 text-gray-200 cursor-not-allowed'
+                : 'bg-indigo-500 text-white hover:bg-indigo-600'
+            }`}
+          >
+            Send
+          </button>
+          <button
+            type="button"
+            onClick={handleToggleMute}
+            disabled={conversationEnded || !isConnected}
+            className={`inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-semibold ${
+              isMuted || conversationEnded || !isConnected
+                ? `bg-gray-700 text-gray-100 ${conversationEnded || !isConnected ? 'cursor-not-allowed' : 'hover:bg-gray-600'}`
+                : 'bg-emerald-500 text-white hover:bg-emerald-600'
+            }`}
+          >
+            {isMuted ? 'Unmute' : 'Mute'}
+          </button>
+        </div>
+
+        {/* Footer buttons */}
+        <div className="flex gap-3 justify-center sm:flex-row-reverse">
+          <button
+            type="button"
+            disabled={conversationEnded || !isConnected}
+            onClick={handleEndConversation}
+            className={`inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold ${
               conversationEnded || !isConnected
                 ? 'bg-gray-500 text-gray-200 cursor-not-allowed'
                 : 'bg-red-500 text-white hover:bg-red-600'
             }`}
-        >
-          End conversation
-        </button>
+          >
+            End conversation
+          </button>
 
-        <button
-          type="button"
-          data-autofocus
-          onClick={handleCloseClick}
-          className="inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold bg-white/10 text-white hover:bg-white/20"
-        >
-          Close
-        </button>
+          <button
+            type="button"
+            data-autofocus
+            onClick={handleCloseClick}
+            className="inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold bg-white/10 text-white hover:bg-white/20"
+          >
+            Close
+          </button>
+        </div>
       </div>
       <audio ref={audioElementRef} playsInline className="hidden" />
     </div>
