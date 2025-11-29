@@ -555,6 +555,11 @@ export const Agent = ({ token, onClose }) => {
           }
         } else if (message.type === 'reply_text') {
           // Agent's reply, now supporting structured contentBlocks
+          // We got the reply, so the agent is no longer "thinking".
+          setIsThinking(false);
+          setIsTranscribing(false);
+          setLiveTranscript('');
+
           const blocks = Array.isArray(message.contentBlocks) ? message.contentBlocks : [];
 
           if (blocks.length > 0) {
@@ -950,15 +955,30 @@ export const Agent = ({ token, onClose }) => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Soft listening indicator stays visible above footer, non-scrollable */}
-        {!conversationEnded && isRecording && isConnected && (
-          <div className="mt-2 flex items-center gap-2 text-[11px] text-emerald-200">
-            <span className="relative flex h-3 w-3">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
-              <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-400" />
-            </span>
-            <span>Listening in the background. You can start speaking at any time.</span>
-          </div>
+        {/* Soft listening / muted indicator stays visible above footer, non-scrollable */}
+        {!conversationEnded && isConnected && (
+          <>
+            {/* Active listening indicator only when unmuted */}
+            {isRecording && !isMuted && (
+              <div className="mt-2 flex items-center gap-2 text-[11px] text-emerald-200">
+                <span className="relative flex h-3 w-3">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+                  <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-400" />
+                </span>
+                <span>Listening in the background. You can start speaking at any time.</span>
+              </div>
+            )}
+
+            {/* Muted indicator */}
+            {isMuted && (
+              <div className="mt-2 flex items-center gap-2 text-[11px] text-gray-300">
+                <span className="relative flex h-3 w-3">
+                  <span className="relative inline-flex h-3 w-3 rounded-full bg-gray-500" />
+                </span>
+                <span>Muted. Tap Unmute to start talking again.</span>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -998,7 +1018,7 @@ export const Agent = ({ token, onClose }) => {
             disabled={conversationEnded || !isConnected}
             className={`inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-semibold ${
               isMuted || conversationEnded || !isConnected
-                ? `bg-gray-700 text-gray-100 ${!conversationEnded && isConnected && 'hover:bg-gray-600'}`
+                ? `bg-gray-700 text-gray-100 ${conversationEnded || !isConnected ? 'cursor-not-allowed' : 'hover:bg-gray-600'}`
                 : 'bg-emerald-500 text-white hover:bg-emerald-600'
             }`}
           >
