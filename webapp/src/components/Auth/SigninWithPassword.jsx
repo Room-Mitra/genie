@@ -53,6 +53,7 @@ export default function SigninWithPassword() {
     try {
       // 1) Login and get JWT token
       const { token } = await loginUser({ email, password });
+      sessionStorage.setItem("rm_jwt", token);
 
       // 2) Set session cookie with the token
       const s = await fetch("/auth/session", {

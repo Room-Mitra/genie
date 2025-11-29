@@ -16,5 +16,6 @@ export async function GET() {
     roles: user?.roles,
     hotelId: user?.hotelId,
     userId: user?.sub,
+    onDuty: Boolean(user?.onDuty),
   });
 }
