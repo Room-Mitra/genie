@@ -1,7 +1,7 @@
 import 'dotenv/config';
 
 export default ({ config }) => ({
-  name: "staff-app",
+  name: "Room Mitra Staff",
   slug: "staff-app",
   version: "1.0.0",
   orientation: "portrait",
@@ -22,11 +22,12 @@ export default ({ config }) => ({
 
   android: {
     package: "com.roommitra.staffapp",
+    label: "RoomMitra Staff",
     adaptiveIcon: {
       backgroundColor: "#E6F4FE",
-      foregroundImage: "./assets/images/android-icon-foreground.png",
-      backgroundImage: "./assets/images/android-icon-background.png",
-      monochromeImage: "./assets/images/android-icon-monochrome.png"
+      foregroundImage: "./assets/images/icon.png",
+      backgroundImage: "./assets/images/icon.png",
+      monochromeImage: "./assets/images/icon.png"
     },
     permissions: [
       "ACCESS_COARSE_LOCATION",

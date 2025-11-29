@@ -9,11 +9,22 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as TaskManager from 'expo-task-manager';
 import * as Notifications from 'expo-notifications';
 
+
 const BASE_URL = Constants.expoConfig?.extra?.WEB_BACKEND_URL || `https://app.roommitra.com`;
 const LOGIN_URL = `${BASE_URL}/login`;
 
 export default function WebviewScreen() {
   const [deviceInfo, setDeviceInfo] = useState<any>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Notifications.getPermissionsAsync();
+      if (status !== "granted") {
+        await Notifications.requestPermissionsAsync();
+      }
+    })();
+  }, []);
+
 
   useEffect(() => {
     async function registerNotifications() {
@@ -68,6 +79,11 @@ export default function WebviewScreen() {
   };
 
   async function initGeofence() {
+    // await Notifications.scheduleNotificationAsync({
+    //   content: { title: "Test", body: "Foreground OK?" },
+    //   trigger: null,
+    // });
+
     const { status } = await Location.requestForegroundPermissionsAsync();
     console.log("status", status)
     if (status !== "granted") return;
@@ -93,8 +109,8 @@ export default function WebviewScreen() {
 
     // HOTEL COORDINATES (replace these)
     //seg :: 13.027015718666998, 77.75148457005004
-    const HOTEL_LAT = 13.027214374930649; // TODO :: fetch from server 13.027030955745223, 77.75154339986237
-    const HOTEL_LNG = 77.75143269449472;
+    const HOTEL_LAT = 13.0273977; // TODO :: fetch from server 13.027030955745223, 77.75154339986237
+    const HOTEL_LNG = 77.7516429;
     console.log("^^^^^^^^^^^^^^^^^^^^^", await TaskManager.getRegisteredTasksAsync());
 
 
@@ -102,7 +118,7 @@ export default function WebviewScreen() {
       {
         latitude: HOTEL_LAT,
         longitude: HOTEL_LNG,
-        radius: 3, // meters // TODO :: fetch from server
+        radius: 50, // meters // TODO :: fetch from server
         notifyOnEnter: true,
         notifyOnExit: true,
       },
@@ -144,9 +160,21 @@ export default function WebviewScreen() {
         }}
         onNavigationStateChange={handleNavChange}
         injectedJavaScript={injectedJavaScript}
-        onLoadEnd={() => {
+        onLoadEnd={async () => {
           if (deviceInfo) {
             console.log("Injected mobile context into WebView");
+            const loc = await Location.getLastKnownPositionAsync({});
+            console.log("PHONE LOCATION:", loc?.coords);
+            // await Location.watchPositionAsync(
+            //   { accuracy: Location.Accuracy.Highest, distanceInterval: 1 },
+            //   (loc) => {
+            //     console.log("LIVE LOCATION:", loc.coords);
+            //   }
+            // );
+            if (await AsyncStorage.getItem("rm_user")) {
+              initGeofence();
+            }
+
           }
         }}
         onMessage={handleMessage}
