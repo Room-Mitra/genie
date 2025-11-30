@@ -11,10 +11,67 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    ```
 
 2. Start the app
-
+   Use Expo to launch the Metro bundler:
    ```bash
-   npx expo start
+   npx expo start 
    ```
+   If you want to use the Dev Client instead of Expo Go:
+   npx expo start --dev-client
+
+3. Prebuild (Generate Android/iOS Native Projects)
+
+   Run this whenever you add native modules or change native config:
+   ```
+      npx expo prebuild
+   ```
+4. Run on Android (Debug)
+   ```
+   npx expo run:android --variant debug
+   ```
+   --OR simply --
+   ```
+   npx expo run:android
+   ```
+
+5. Run on Android (Release)
+   Build and install the release variant:
+   ```
+   npx expo run:android --variant release
+   ```
+
+6. Build APK (Standalone)
+   Generate a standalone APK:
+
+   Debug APK
+      ./gradlew assembleDebug
+
+   Release APK
+      ./gradlew assembleRelease
+
+
+   Output files will be located under:
+      android/app/build/outputs/apk/
+
+7. Export for EAS-Free Android App Bundles
+   (Useful for building offline bundles without cloud builds)
+      npx expo export --platform android
+
+8. Useful Commands
+   List attached Android devices:
+   ```
+      adb devices
+   ```
+
+
+9. Project Structure
+
+Your app code lives inside the app/ directory
+(file-based routing via Expo Router).
+
+Native Android project lives inside android/
+(after running npx expo prebuild).
+
+10. 
 
 In the output, you'll find options to open the app in a
 
@@ -24,18 +81,6 @@ In the output, you'll find options to open the app in a
 - [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
 
 To learn more about developing your project with Expo, look at the following resources:
 
