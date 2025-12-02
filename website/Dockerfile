@@ -11,7 +11,10 @@ COPY package.json package-lock.json* ./
 RUN npm ci --include=dev
 
 # Public envs for Next to bake into the build
+ARG ENV
 ARG NEXT_PUBLIC_SITE_URL
+
+ENV ENV=$ENV
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 
 # Build
