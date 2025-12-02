@@ -9,8 +9,6 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Missing hotelId or phone' }, { status: 400 });
     }
 
-    console.log('Callback request:', { hotelId, phone, country });
-
     const endpoint = `${process.env.API_BASE_URL}/widget/request-callback`;
 
     const res = await fetch(endpoint, {
@@ -27,6 +25,9 @@ export async function POST(req) {
     return NextResponse.json(await res.json().catch(() => ({})));
   } catch (err) {
     console.error('Callback request error', err);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: err?.message || 'Something went wrong. Please try again' },
+      { status: 500 }
+    );
   }
 }

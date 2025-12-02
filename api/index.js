@@ -91,11 +91,12 @@ app.use(bodyParser.json());
 app.use(
   cors({
     origin: [
-      'http://localhost:3000',
-      'http://localhost:3002',
+      ...(process.env.ENV === 'local' ? ['http://localhost:3000', 'http://localhost:3002'] : []),
       'https://roommitra.com',
       'https://app.roommitra.com',
       'https://app-stage.roommitra.com',
+      'https://widget.roommitra.com',
+      'https://widget-stage.roommitra.com',
     ],
   })
 );

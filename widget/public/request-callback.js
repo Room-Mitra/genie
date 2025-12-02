@@ -11,7 +11,6 @@
 
   // NEW: read theme colors + height
   var primaryColor = scriptEl.getAttribute('data-primary-color') || '';
-  console.log('primaryColor', primaryColor);
   var cardBgColor = scriptEl.getAttribute('data-card-bg-color') || '';
   var iframeHeight = scriptEl.getAttribute('data-height') || ''; // <-- NEW
 
