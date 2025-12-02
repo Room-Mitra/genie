@@ -29,12 +29,9 @@ export default function RootLayout({ children }) {
 
         {/* Web Voice Agent Widget */}
         <Script
-          src={
-            process.env.ENV === 'production'
-              ? 'https://widget.roommitra.com/web-voice-agent.js'
-              : 'https://widget-stage.roommitra.com/web-voice-agent.js'
-          }
-          data-hotel-id="ROOMMITRA"
+          src={`${process.env.WIDGET_BASE_URL}/web-voice-agent.js`}
+          data-hotel-id={process.env.DEMO_HOTEL_ID}
+          data-signature={process.env.DEMO_WIDGET_SIGNATURE}
           strategy="afterInteractive"
         />
 

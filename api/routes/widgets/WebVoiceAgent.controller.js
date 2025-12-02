@@ -5,37 +5,89 @@ import { ulid } from 'ulid';
 import { sendVoiceAgentTrialNotification } from '#services/Slack.service.js';
 import { Language, VoiceForLanguage } from '#Constants/Language.constants.js';
 
-const TRIAL_LIMIT_MS = 5 * 60 * 1000; // 5 minutes
-
-// Map our internal language enum → Google STT v2 Recognizer names.
-// Fill these env vars with your actual recognizer resource IDs, e.g.:
-//   projects/<PROJECT>/locations/asia-south1/recognizers/roommitra-en-in
+const TRIAL_LIMIT_MINS = 5; // 5 minutes
+const TRIAL_LIMIT_MS = TRIAL_LIMIT_MINS * 60 * 1000;
 
 function getGreetingText(language) {
   switch (language) {
     case Language.English:
-      return 'Hi, this is Room Mitra. I am your virtual assistant for the hotel. How can I help you today?';
+      return 'Hi, I am Vaani, your virtual assistant for the hotel. How can I help you today?';
 
     case Language.Kannada:
-      return 'ಹಾಯ್, ಇದು ರೂಂ ಮಿತ್ರ. ನಾನು ನಿಮ್ಮ ಹೋಟೆಲ್‌ನ ವರ್ಚುವಲ್ ಸಹಾಯಕ. ಇಂದು ನಿಮಗೆ ಹೇಗೆ ಸಹಾಯ ಮಾಡಬಹುದು?';
+      return 'ಹಾಯ್, ನಾನು ವಾಣಿ, ನಿಮ್ಮ ಹೋಟೆಲ್‌ನ ವರ್ಚುವಲ್ ಸಹಾಯಕಳು. ಇಂದು ನಾನು ನಿಮಗೆ ಹೇಗೆ ಸಹಾಯ ಮಾಡಬಹುದು?';
 
     case Language.Hindi:
-      return 'नमस्ते, यह रूम मित्रा है। मैं आपके होटल की वर्चुअल असिस्टेंट हूँ। आज मैं आपकी कैसे मदद कर सकती हूँ?';
+      return 'नमस्ते, मैं वाणी हूँ, आपके होटल की वर्चुअल असिस्टेंट। आज मैं आपकी कैसे मदद कर सकती हूँ?';
 
     case Language.Telugu:
-      return 'హాయ్, ఇది రూమ్ మిత్ర. నేను మీ హోటల్‌కు వర్చువల్ అసిస్టెంట్‌ని. ఈ రోజు మీకు ఎలా సహాయం చేయగలను?';
+      return 'హాయ్, నేను వాణి, మీ హోటల్‌కి వర్చువల్ అసిస్టెంట్‌ని. ఈ రోజు మీకు ఎలా సహాయం చేయగలను?';
 
     case Language.Tamil:
-      return 'ஹாய், இது ரூம் மித்ரா. நான் உங்கள் ஹோட்டலுக்கான மெய்நிகர் உதவியாளர். இன்று நான் எப்படி உதவலாம்?';
+      return 'ஹாய், நான் வாணி, உங்கள் ஹோட்டலின் மெய்நிகர் உதவியாளர். இன்று நான் எப்படி உதவலாம்?';
 
     case Language.Malayalam:
-      return 'ഹൈ, ഇത് റൂം മിത്ര. ഞാൻ നിങ്ങളുടെ ഹോട്ടലിലെ വെർച്വൽ അസിസ്റ്റന്റ് ആണ്. ഇന്ന് ഞാൻ നിങ്ങളെ എങ്ങനെ സഹായിക്കാം?';
-  }
+      return 'ഹായ്, ഞാൻ വാണി, നിങ്ങളുടെ ഹോട്ടലിന്റെ വെർച്വൽ അസിസ്റ്റന്റാണ്. ഇന്ന് ഞാൻ നിങ്ങളെ എങ്ങനെ സഹായിക്കാം?';
 
-  return 'Hi, this is Room Mitra. I am your virtual assistant for the hotel. How can I help you today?';
+    default:
+      return 'Hi, I am Vaani, your virtual assistant for the hotel. How can I help you today?';
+  }
+}
+function getTrialMessage(language, minutes) {
+  const baseEnglish = `This was a trial call and is limited to ${minutes} minutes. I will end the call now. To continue, please request a full demo from our website.`;
+
+  switch (language) {
+    case Language.English:
+      return baseEnglish;
+
+    case Language.Kannada:
+      return `ಇದು ಟ್ರಯಲ್ ಕರೆ ಆಗಿತ್ತು ಮತ್ತು ಇದು ${minutes} ನಿಮಿಷಗಳಿಗೆ ಸೀಮಿತವಾಗಿದೆ. ನಾನು ಈಗ ಕರೆ ಮುಗಿಸುತ್ತೇನೆ. ಮುಂದುವರಿಸಲು, ದಯವಿಟ್ಟು ನಮ್ಮ ವೆಬ್‌ಸೈಟ್ ಮೂಲಕ ಸಂಪೂರ್ಣ ಡೆಮೋವನ್ನು ವಿನಂತಿಸಿ.`;
+
+    case Language.Hindi:
+      return `यह एक ट्रायल कॉल था और यह ${minutes} मिनट तक सीमित है। मैं अब कॉल समाप्त कर रही हूँ। आगे जारी रखने के लिए कृपया हमारी वेबसाइट से पूरा डेमो अनुरोध करें।`;
+
+    case Language.Telugu:
+      return `ఇది ఒక ట్రయల్ కాల్이며 ఇది ${minutes} నిమిషాలకు మాత్రమే పరిమితం. నేను ఇప్పుడు కాల్‌ను ముగిస్తున్నాను. కొనసాగించడానికి, దయచేసి మా వెబ్‌సైట్ ద్వారా పూర్తి డెమోను అభ్యర్థించండి.`;
+
+    case Language.Tamil:
+      return `இது ஒரு டிரயல் கால், மற்றும் இது ${minutes} நிமிடங்களுக்கு மட்டுமே வரையறுக்கப்பட்டுள்ளது. நான் இப்போது கால் முடிக்கிறேன். தொடர்ந்து பயன்படுத்த, எங்கள் இணையதளம் மூலம் முழு டெமோவை கேட்டுக்கொள்ளுங்கள்.`;
+
+    case Language.Malayalam:
+      return `ഇത് ഒരു ട്രയൽ കോൾ ആയിരുന്നു, ഇത് ${minutes} മിനിറ്റിലേക്ക് പരിമിതപ്പെടുത്തിയിരിക്കുന്നു. ഞാൻ ഇപ്പോൾ കോൾ അവസാനിപ്പിക്കുന്നു. തുടർ സേവനങ്ങൾക്ക്, ദയവായി ഞങ്ങളുടെ വെബ്സൈറ്റിൽ നിന്ന് ഒരു പൂർണ്ണ ഡെമോ അഭ്യർത്ഥിക്കുക.`;
+
+    default:
+      return baseEnglish;
+  }
 }
 
-async function generateAgentReply(userText, conversationId) {
+function getMaxCallDurationMessage(language) {
+  const baseEnglish =
+    'This call has reached the maximum allowed duration. I’ll end it here, but you’re welcome to start a new call anytime.';
+
+  switch (language) {
+    case Language.English:
+      return baseEnglish;
+
+    case Language.Kannada:
+      return 'ಈ ಕರೆ ಅನುಮತಿಸಲಾದ ಗರಿಷ್ಠಾವಧಿಯನ್ನು ತಲುಪಿದೆ. ನಾನು ಇಲ್ಲಿ ಕರೆ ಮುಗಿಸುತ್ತೇನೆ, ಆದರೆ ನೀವು ಯಾವಾಗ ಬೇಕಾದರೂ ಹೊಸ ಕರೆ ಪ್ರಾರಂಭಿಸಬಹುದು.';
+
+    case Language.Hindi:
+      return 'यह कॉल अधिकतम अनुमत अवधि तक पहुँच गया है। मैं यहाँ कॉल समाप्त कर रही हूँ, लेकिन आप कभी भी एक नया कॉल शुरू कर सकते हैं।';
+
+    case Language.Telugu:
+      return 'ఈ కాల్ అనుమతించబడిన గరిష్ట వ్యవధిని చేరుకుంది. నేను ఇప్పుడు కాల్‌ను ముగిస్తాను, కానీ మీరు ఎప్పుడైనా కొత్త కాల్ ప్రారంభించవచ్చు.';
+
+    case Language.Tamil:
+      return 'இந்த கால் அனுமதிக்கப்பட்ட அதிகபட்ச நேரத்தை எட்டியுள்ளது. நான் இங்கே கால் முடிக்கிறேன், ஆனால் நீங்கள் எப்போது வேண்டுமானாலும் புதிய கால் தொடங்கலாம்.';
+
+    case Language.Malayalam:
+      return 'ഈ കോള് അനുവദിച്ച പരമാവധി ദൈർഘ്യത്തിലെത്തി. ഞാൻ ഇവിടെ കോള് അവസാനിപ്പിക്കുന്നു, എന്നാൽ നിങ്ങൾക്ക് ഏത് സമയത്തും പുതിയ കോള് ആരംഭിക്കാം.';
+
+    default:
+      return baseEnglish;
+  }
+}
+
+async function generateAgentReply(userText, conversationId, hotelId) {
   const text = (userText || '').trim();
 
   if (!text) {
@@ -44,7 +96,7 @@ async function generateAgentReply(userText, conversationId) {
   }
 
   const conversationData = {
-    hotelId: process.env.DEMO_HOTEL_ID,
+    hotelId,
     conversationId,
     userContent: text,
     isProspect: true,
@@ -99,7 +151,7 @@ async function handleUserTextMessage(ws, text) {
     return;
   }
 
-  const reply = await generateAgentReply(cleaned, ws.conversationId);
+  const reply = await generateAgentReply(cleaned, ws.conversationId, ws.hotelId);
   await sendTTSReply(ws, reply);
 
   if (reply.canEndCall) {
@@ -255,35 +307,64 @@ export function connection(ws, request) {
   }
 
   ws.language = user.language;
+  ws.hotelId = user.hotelId;
   ws.isMuted = false;
 
   const callStartedAt = Date.now();
   ws.callStartedAt = callStartedAt;
 
-  const TRIAL_MESSAGE =
-    'This was a trial call with Room Mitra and is limited to 5 minutes. I will end the call now. To continue, please request a full demo from our website.';
+  const trialMessage = getTrialMessage(ws.language, TRIAL_LIMIT_MINS);
+  const maxCallDurationMessage = getMaxCallDurationMessage(ws.language);
 
-  // Set up a timer that ends the call after 5 minutes
-  const trialTimer = setTimeout(async () => {
+  if (ws.hotelId === process.env.DEMO_HOTEL_ID) {
+    // Set up a timer that ends the call after TRIAL_LIMIT_MS
+    const trialTimer = setTimeout(async () => {
+      if (!ws || ws.readyState !== ws.OPEN) {
+        console.warn('[WS] Trial timer fired but socket is not open.');
+        return;
+      }
+
+      console.log('[WS] Trial limit reached. Sending final TTS.');
+
+      try {
+        // 1) Send the text + audio fully
+        await sendTTSReply(ws, { ssml: `<speak>${trialMessage}</speak>`, message: trialMessage });
+      } catch (err) {
+        console.error('[WS] Error sending trial TTS reply:', err);
+      }
+
+      // 2) Now signal call end and close socket (optionally with a slightly longer delay)
+      endCall(ws, 4000, 'trial_ended', { delayMs: 2000 }); // 2s to let buffers flush
+    }, TRIAL_LIMIT_MS);
+
+    ws.trialTimer = trialTimer;
+  }
+
+  // Set up a timer that ends the call when the token expires
+  const maxCallDurationMs = (user.exp - Math.floor(Date.now() / 1000)) * 1000;
+  const maxCallDurationTimer = setTimeout(async () => {
     if (!ws || ws.readyState !== ws.OPEN) {
-      console.warn('[WS] Trial timer fired but socket is not open.');
+      console.warn('[WS] Max Call Duration timer fired but socket is not open.');
       return;
     }
 
-    console.log('[WS] Trial limit reached. Sending final TTS.');
+    console.log('[WS] Max Call Duration limit reached. Sending final TTS.');
 
     try {
       // 1) Send the text + audio fully
-      await sendTTSReply(ws, { ssml: `<speak>${TRIAL_MESSAGE}</speak>`, message: TRIAL_MESSAGE });
+      await sendTTSReply(ws, {
+        ssml: `<speak>${maxCallDurationMessage}</speak>`,
+        message: maxCallDurationMessage,
+      });
     } catch (err) {
-      console.error('[WS] Error sending trial TTS reply:', err);
+      console.error('[WS] Error sending max call duration TTS reply:', err);
     }
 
     // 2) Now signal call end and close socket (optionally with a slightly longer delay)
-    endCall(ws, 4000, 'trial_ended', { delayMs: 2000 }); // 2s to let buffers flush
-  }, TRIAL_LIMIT_MS);
+    endCall(ws, 4000, 'max_call_duration', { delayMs: 2000 }); // 2s to let buffers flush
+  }, maxCallDurationMs);
 
-  ws.trialTimer = trialTimer;
+  ws.maxCallDurationTimer = maxCallDurationTimer;
 
   const conversationId = ulid();
   ws.conversationId = conversationId;
@@ -321,7 +402,6 @@ export function connection(ws, request) {
         // console.log('[WS] START_CALL received');
 
         const greetingText = getGreetingText(ws.language);
-
         await sendTTSReply(ws, { ssml: `<speak>${greetingText}</speak>`, message: greetingText });
         break;
       }
@@ -368,6 +448,10 @@ export function connection(ws, request) {
     // Always clear the timer so it does not fire after the socket is already closed
     if (ws.trialTimer) {
       clearTimeout(ws.trialTimer);
+    }
+
+    if (ws.maxCallDurationTimer) {
+      clearTimeout(ws.maxCallDurationTimer);
     }
 
     const durationMs = Date.now() - callStartedAt;

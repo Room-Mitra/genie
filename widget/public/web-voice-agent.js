@@ -9,6 +9,7 @@
   const data = (scriptTag && scriptTag.dataset) || {};
 
   const hotelId = data.hotelId || '';
+  const signature = data.signature || '';
   const theme = data.theme ? JSON.parse(decodeURIComponent(data.theme)) : null;
   const position = data.position || 'bottom-right';
 
@@ -40,7 +41,16 @@
     }
   }
 
-  const widgetUrl = `${baseWidgetUrl}/web-voice-agent?hotelId=${encodeURIComponent(hotelId)}`;
+  const params = {
+    hotelId,
+    signature,
+    theme,
+    position,
+  };
+
+  const widgetUrl = `${baseWidgetUrl}/web-voice-agent?${Object.entries(params)
+    .map((p) => `${p[0]}=${encodeURIComponent(p[1])}`)
+    .join('&')}`;
 
   // Create minimized launcher
   const launcher = document.createElement('button');
@@ -118,12 +128,6 @@
     }
 
     document.body.appendChild(iframe);
-
-    // Post init config to iframe (we do this after a short delay to allow iframe to be ready)
-    iframe.addEventListener('load', function () {
-      const payload = { hotelId, theme };
-      iframe.contentWindow?.postMessage({ type: 'ROOMMITRA_INIT', payload }, '*');
-    });
   }
 
   // toggle open/close
