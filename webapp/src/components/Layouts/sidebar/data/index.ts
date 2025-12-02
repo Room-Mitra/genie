@@ -93,6 +93,10 @@ export const NAV_DATA = [
             title: "Concierge",
             url: "/hotel/concierge",
           },
+          {
+            title: "Web Voice Agent",
+            url: "/hotel/web-voice-agent",
+          },
           // {
           //   title: "Restaurant Menu",
           //   url: "/hotel/restaurant-menu",
