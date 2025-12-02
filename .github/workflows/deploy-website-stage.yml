@@ -96,6 +96,9 @@ jobs:
             ENV=stage
             NODE_ENV=production
             NEXT_PUBLIC_SITE_URL=https://stage.roommitra.com
+            NEXT_PUBLIC_WIDGET_BASE_URL=https://widget-stage.roommitra.com
+            NEXT_PUBLIC_DEMO_HOTEL_ID=01K9AN7YEM2HQZZBY42Z2K1F5J
+            NEXT_PUBLIC_DEMO_WIDGET_SIGNATURE=WJOeFcWSaHFeUlG1btkmtxQH9Dz4q8OqY3yO9P36sj0
           tags: |
             public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:${{ env.IMAGE_TAG }}
             public.ecr.aws/${{ env.PUBLIC_ECR_ALIAS }}/${{ env.PUBLIC_ECR_REPO }}:stage
