@@ -6,7 +6,7 @@ export default function Home() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black font-sans">
       <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-start py-32 px-16 sm:items-start">
-        <Image src={logo} alt="logo" width={250} height={250} className="my-12"/>
+        <Image src={logo} alt="logo" width={250} height={250} className="my-12" />
 
         {/* 👇 This is where the widget iframe will be rendered */}
         <div data-roommitra-callback-anchor className="w-full " />
@@ -20,7 +20,13 @@ export default function Home() {
         />
 
         {/* Web Voice Agent */}
-        <Script src="/web-voice-agent.js" data-hotel-id="ROOMMITRA" strategy="afterInteractive" />
+        <Script
+          src="/web-voice-agent.js"
+          data-hotel-id="01K9AN7YEM2HQZZBY42Z2K1F5J"
+          data-domain="localhost:3003"
+          data-signature="nefwrbs3N_qWM7HYMOnofNNK7PUcVuc3gM1L5VFBhBg"
+          strategy="afterInteractive"
+        />
       </main>
     </div>
   );
