@@ -34,16 +34,6 @@ const DomainConfig = ({ hotelId }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [domainToDelete, setDomainToDelete] = useState(null);
 
-  // Compute unique canonical domains
-  const canonicalDomains = useMemo(() => {
-    const set = new Set();
-    for (const d of domains) {
-      const c = canonicalDomain(d);
-      if (c) set.add(c);
-    }
-    return Array.from(set).sort();
-  }, [domains]);
-
   const fetchSignatures = async () => {
     try {
       setIsFetchingSignatures(true);
@@ -72,7 +62,6 @@ const DomainConfig = ({ hotelId }) => {
     }
   };
 
-  // Fetch signatures from backend when canonical domains change
   useEffect(() => {
     if (hotelId) fetchSignatures();
   }, [hotelId]);
@@ -83,7 +72,6 @@ const DomainConfig = ({ hotelId }) => {
     try {
       setError(null);
 
-      // Example API, adjust to your backend
       const res = await fetch(`/api/hotel`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -126,7 +114,6 @@ const DomainConfig = ({ hotelId }) => {
 
       const newAllowedDomains = [...domains, canon];
 
-      // Example API, adjust to your backend
       const res = await fetch(`/api/hotel`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
