@@ -9,7 +9,7 @@ router.get('/web-voice-agent/signatures', async (req, res) => {
 
     const signatures = await getWebVoiceAgentWidgetSignatures({ hotelId });
 
-    res.status(200).json(signatures);
+    res.status(200).json({ signatures });
   } catch (err) {
     console.log('error fetching web voice agent signatuers', err);
     return res.status(500).json({ error: err?.message || 'Internal server error' });

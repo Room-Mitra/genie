@@ -15,7 +15,7 @@ export async function getWebVoiceAgentWidgetSignatures({ hotelId }) {
   }
 
   const signatures = [];
-  for (const allowedDomain of hotel.allowedDomain || []) {
+  for (const allowedDomain of hotel.allowedDomains || []) {
     signatures.push({
       allowedDomain,
       signature: sign(hotelId, allowedDomain),

@@ -94,8 +94,8 @@ export const NAV_DATA = [
             url: "/hotel/concierge",
           },
           {
-            title: "Web Voice Agent",
-            url: "/hotel/web-voice-agent",
+            title: "Vaani - Chat Bot",
+            url: "/hotel/chat-bot",
           },
           // {
           //   title: "Restaurant Menu",
