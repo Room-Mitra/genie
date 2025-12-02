@@ -27,13 +27,15 @@ import bookingRoutes from '#routes/webapp/Booking.controller.js';
 import staffRoutes from '#routes/webapp/Staff.controller.js';
 import loginRoutes from '#routes/webapp/Login.controller.js';
 import userRoutes from '#routes/webapp/User.controller.js';
-import websiteRoutes from '#routes/webapp/Website.route.js';
+import websiteRoutes from '#routes/webapp/Website.controller.js';
 import roomRoutes from '#routes/webapp/Room.controller.js';
 import requestRoutes from '#routes/webapp/Request.controller.js';
 import hotelRoutes from '#routes/webapp/Hotel.controller.js';
 import imageRoutes from '#routes/webapp/Image.controller.js';
 import orderRoutes from '#routes/webapp/Order.controller.js';
-import widgetRoutes from '#routes/Widget.controller.js';
+import widgetConfigRoutes from '#routes/webapp/WidgetConfig.controller.js';
+
+import widgetRoutes from '#routes/widgets/Widget.controller.js';
 
 //Android Routes
 import androidLoginRoutes from '#routes/android/Login.controller.js';
@@ -53,7 +55,7 @@ import adminHotelRoutes from '#routes/admin/Hotel.controller.js';
 import adminStaffRoutes from '#routes/admin/Staff.controller.js';
 
 // Socket controller
-import { connection } from '#routes/WebVoiceAgent.controller.js';
+import { connection } from '#routes/widgets/WebVoiceAgent.controller.js';
 
 // Cron jobs
 import { checkDelayedRequests } from '#tasks/checkDelayedRequests.task.js';
@@ -107,6 +109,7 @@ app.use('/staff', authenticator, staffRoutes);
 app.use('/hotel', authenticator, hotelRoutes);
 app.use('/image', authenticator, imageRoutes);
 app.use('/orders', authenticator, orderRoutes);
+app.use('/widget-config', authenticator, widgetConfigRoutes);
 
 // Android Routes
 app.use('/android/login', androidLoginRoutes);
@@ -120,7 +123,6 @@ app.use('/android/conversations', androidAuthenticator, androidConversationRoute
 app.use('/user', userRoutes);
 app.use('/login', loginRoutes);
 app.use('/website', websiteRoutes);
-
 app.use('/widget', widgetRoutes);
 
 // -------------------------
