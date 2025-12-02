@@ -23,10 +23,9 @@ export async function POST(req) {
     }
     return NextResponse.json(await res.json().catch(() => ({})));
   } catch (err) {
+    console.error('voice-agent error', err);
     return NextResponse.json(
-      {
-        error: err?.message || 'Something went wrong. Please try again.',
-      },
+      { error: err?.message || 'Something went wrong. Please try again.' },
       { status: 400 }
     );
   }
