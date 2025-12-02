@@ -19,12 +19,11 @@ export default function Home() {
           data-height="275"
         />
 
-        {/* Web Voice Agent */}
+        {/* Vaani - Chat Bot */}
         <Script
           src="/web-voice-agent.js"
-          data-hotel-id="01K9AN7YEM2HQZZBY42Z2K1F5J"
-          data-domain="localhost:3003"
-          data-signature="nefwrbs3N_qWM7HYMOnofNNK7PUcVuc3gM1L5VFBhBg"
+          data-hotel-id={process.env.DEMO_HOTEL_ID}
+          data-signature={process.env.DEMO_WIDGET_SIGNATURE}
           strategy="afterInteractive"
         />
       </main>
