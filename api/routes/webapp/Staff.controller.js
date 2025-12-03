@@ -3,6 +3,7 @@ import {
   resetStaffPassword,
   updateStaffById,
   updateStaffDuty,
+  updateStaffLocation,
 } from '#services/Staff.service.js';
 import * as hotelService from '#services/Hotel.service.js';
 
@@ -145,6 +146,33 @@ router.post('/duty', async (req, res) => {
   } catch (err) {
     console.error('update duty error', err);
     return res.status(400).json({ error: err?.error || 'failed to update duty' });
+  }
+});
+
+router.post('/location', async (req, res) => {
+  try {
+    const { hotelId, sub: userId } = req.userData;
+    const { lat, lng, radius, wifiSSID } = req.body;
+
+    if (!hotelId || !userId)
+      return res.status(400).json({ error: 'require hotelId and userId to update location' });
+
+    if (!lat || !lng || !radius)
+      return res.status(400).json({ error: 'require lat, lng, radius to update location' });
+
+    const locationUpdate = await updateStaffLocation({
+      hotelId,
+      userId,
+      lat,
+      lng,
+      radius,
+      wifiSSID,
+    });
+
+    res.json(locationUpdate);
+  } catch (err) {
+    console.error('update location error', err);
+    return res.status(400).json({ error: err?.error || 'failed to update location' });
   }
 });
 

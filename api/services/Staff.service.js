@@ -329,3 +329,42 @@ export async function updateStaffDuty({ hotelId, userId, trigger, status }) {
 
   return dutyUpdate;
 }
+
+export async function updateStaffLocation({ hotelId, userId, lat, lng, radius, wifiSSID }) {
+  if (!userId || !hotelId) {
+    const err = new Error('need userId and hotelId to update staff duty');
+    err.code = 'MISSING_REQUIRED_FIELDS';
+    throw err;
+  }
+
+  const user = await getUserProfileById(userId);
+  if (!user) {
+    const err = new Error('user not found');
+    err.code = 'USER_NOT_FOUND';
+    throw err;
+  }
+
+  if (user.hotelId != hotelId) {
+    const err = new Error("user doesn't belong to hotel");
+    err.code = 'USER_HOTEL_MISMATCH';
+    throw err;
+  }
+
+  const hotel = await getHotelById(hotelId);
+  if (!hotel) {
+    const err = new Error('hotel not found');
+    err.code = 'HOTEL_NOT_FOUND';
+    throw err;
+  }
+
+  const dutyUpdate = await staffRepo.updateUserLocation({
+    hotelId,
+    user,
+    lat,
+    lng,
+    radius,
+    wifiSSID,
+  });
+
+  return dutyUpdate;
+}

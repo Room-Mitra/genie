@@ -252,3 +252,79 @@ export async function updateUserDutyStatus({ hotelId, user, toStatus, trigger, a
     transitionId,
   };
 }
+
+export async function updateUserLocation({ hotelId, user, lat, lng, radius, wifiSSID }) {
+  if (!user || !hotelId || !lat || !lng || !radius)
+    throw new Error('userId, hotelId, lat, lng, radius needed to update user location');
+
+  const nowIso = toIsoString();
+  const locationId = ulid();
+  const locationSk = `LOCATION#${locationId}`;
+
+  const updateExpressionFields = ['#updatedAt = :updatedAt', '#lastLocation = :lastLocation'];
+
+  const updateNames = {
+    '#updatedAt': 'updatedAt',
+    '#lastLocation': 'lastLocation',
+  };
+
+  const updateValues = {
+    ':updatedAt': nowIso,
+    ':lastLocation': {
+      lat,
+      lng,
+      radius,
+      wifiSSID,
+    },
+  };
+
+  const locationItem = {
+    pk: user.sk,
+    sk: locationSk,
+
+    active_pk: user.sk,
+    active_sk: locationSk,
+
+    entityType: 'LOCATION',
+    userId: user.userId,
+    locationId,
+    lat,
+    lng,
+    radius,
+    wifiSSID,
+
+    createdAt: nowIso,
+  };
+
+  await DDBV3.send(
+    new TransactWriteCommand({
+      TransactItems: [
+        {
+          Update: {
+            TableName: ENTITY_TABLE_NAME,
+            Key: { pk: user.pk, sk: user.sk },
+            UpdateExpression: `SET ${updateExpressionFields.join(', ')}`,
+            ExpressionAttributeNames: updateNames,
+            ExpressionAttributeValues: updateValues,
+            // ensure the main item exists
+            ConditionExpression: 'attribute_exists(pk) AND attribute_exists(sk)',
+          },
+        },
+        {
+          Put: {
+            TableName: ENTITY_TABLE_NAME,
+            Item: locationItem,
+            // idempotency for this transition record
+            ConditionExpression: 'attribute_not_exists(pk) AND attribute_not_exists(sk)',
+          },
+        },
+      ],
+    })
+  );
+
+  return {
+    userId: user.userId,
+    updatedAt: nowIso,
+    locationId,
+  };
+}
