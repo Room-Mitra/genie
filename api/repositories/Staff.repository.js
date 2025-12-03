@@ -1,7 +1,10 @@
 import { ENTITY_TABLE_NAME, GSI_HOTELTYPE_NAME } from '#Constants/DB.constants.js';
 import { toIsoString } from '#common/timestamp.helper.js';
-import { DDB } from '#clients/DynamoDb.client.js';
+import { DDB, DDBV3 } from '#clients/DynamoDb.client.js';
 import { HotelRoles } from '#Constants/roles.js';
+import { ActiveDutyStatuses, InactiveDutyStatuses } from '#Constants/statuses.constants.js';
+import { ulid } from 'ulid';
+import { TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 
 export async function addStaff({
   hotelId,
@@ -158,4 +161,170 @@ export async function queryStaffByHotelId(hotelId, reportingToUserId) {
     console.error('Failed to list staff:', err);
     throw new Error('Failed to list staff');
   }
+}
+
+export async function updateUserDutyStatus({ hotelId, user, toStatus, trigger, actor }) {
+  if (!user || !hotelId || !toStatus)
+    throw new Error('userId, hotelId, toStatus needed to update user duty status');
+
+  const fromStatus = user.status ?? 'UNKNOWN';
+
+  const nowIso = toIsoString();
+  const transitionId = ulid();
+  const logSk = `DUTY_TRANSITION#${transitionId}`;
+
+  const statusType = ActiveDutyStatuses.includes(toStatus)
+    ? 'ACTIVE'
+    : InactiveDutyStatuses.includes(toStatus)
+      ? 'INACTIVE'
+      : 'UNKNOWN';
+
+  const updateExpressionFields = [
+    '#dutyStatus = :toStatus',
+    '#updatedAt = :updatedAt',
+    '#status_pk = :status_pk',
+    '#dutyStatusType = :dutyStatusType',
+  ];
+
+  const updateNames = {
+    '#dutyStatus': 'dutyStatus',
+    '#updatedAt': 'updatedAt',
+    '#status_pk': 'status_pk',
+    '#dutyStatusType': 'dutyStatusType',
+  };
+
+  const updateValues = {
+    ':toStatus': toStatus,
+    ':updatedAt': nowIso,
+    ':status_pk': `DUTY_STATUS#${statusType}#HOTEL#${hotelId}`,
+    ':dutyStatusType': statusType,
+  };
+
+  const transitionItem = {
+    pk: user.sk,
+    sk: logSk,
+
+    active_pk: user.sk,
+    active_sk: logSk,
+
+    entityType: 'DUTY_TRANSITION',
+    userId: user.userId,
+    transitionId,
+    fromStatus,
+    toStatus,
+
+    trigger,
+    actor,
+    createdAt: nowIso,
+  };
+
+  await DDBV3.send(
+    new TransactWriteCommand({
+      TransactItems: [
+        {
+          Update: {
+            TableName: ENTITY_TABLE_NAME,
+            Key: { pk: user.pk, sk: user.sk },
+            UpdateExpression: `SET ${updateExpressionFields.join(', ')}`,
+            ExpressionAttributeNames: updateNames,
+            ExpressionAttributeValues: updateValues,
+            // ensure the main item exists
+            ConditionExpression: 'attribute_exists(pk) AND attribute_exists(sk)',
+          },
+        },
+        {
+          Put: {
+            TableName: ENTITY_TABLE_NAME,
+            Item: transitionItem,
+            // idempotency for this transition record
+            ConditionExpression: 'attribute_not_exists(pk) AND attribute_not_exists(sk)',
+          },
+        },
+      ],
+    })
+  );
+
+  return {
+    userId: user.userId,
+    fromStatus,
+    toStatus,
+    updatedAt: nowIso,
+    transitionId,
+  };
+}
+
+export async function updateUserLocation({ hotelId, user, lat, lng, radius, wifiSSID }) {
+  if (!user || !hotelId || !lat || !lng || !radius)
+    throw new Error('userId, hotelId, lat, lng, radius needed to update user location');
+
+  const nowIso = toIsoString();
+  const locationId = ulid();
+  const locationSk = `LOCATION#${locationId}`;
+
+  const updateExpressionFields = ['#updatedAt = :updatedAt', '#lastLocation = :lastLocation'];
+
+  const updateNames = {
+    '#updatedAt': 'updatedAt',
+    '#lastLocation': 'lastLocation',
+  };
+
+  const updateValues = {
+    ':updatedAt': nowIso,
+    ':lastLocation': {
+      lat,
+      lng,
+      radius,
+      wifiSSID,
+    },
+  };
+
+  const locationItem = {
+    pk: user.sk,
+    sk: locationSk,
+
+    active_pk: user.sk,
+    active_sk: locationSk,
+
+    entityType: 'LOCATION',
+    userId: user.userId,
+    locationId,
+    lat,
+    lng,
+    radius,
+    wifiSSID,
+
+    createdAt: nowIso,
+  };
+
+  await DDBV3.send(
+    new TransactWriteCommand({
+      TransactItems: [
+        {
+          Update: {
+            TableName: ENTITY_TABLE_NAME,
+            Key: { pk: user.pk, sk: user.sk },
+            UpdateExpression: `SET ${updateExpressionFields.join(', ')}`,
+            ExpressionAttributeNames: updateNames,
+            ExpressionAttributeValues: updateValues,
+            // ensure the main item exists
+            ConditionExpression: 'attribute_exists(pk) AND attribute_exists(sk)',
+          },
+        },
+        {
+          Put: {
+            TableName: ENTITY_TABLE_NAME,
+            Item: locationItem,
+            // idempotency for this transition record
+            ConditionExpression: 'attribute_not_exists(pk) AND attribute_not_exists(sk)',
+          },
+        },
+      ],
+    })
+  );
+
+  return {
+    userId: user.userId,
+    updatedAt: nowIso,
+    locationId,
+  };
 }

@@ -6,6 +6,7 @@ export const DDB = new AWS.DynamoDB.DocumentClient({ convertEmptyValues: true })
 
 const config = {
   region: process.env.region,
+  endpoint: process.env.endpoint,
   credentials: process.env.accessKeyId
     ? {
         accessKeyId: process.env.accessKeyId,
