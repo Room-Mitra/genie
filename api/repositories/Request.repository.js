@@ -9,6 +9,7 @@ import {
 import { ulid } from 'ulid';
 import { decodeToken, encodeToken } from './repository.helper.js';
 import { ActiveRequestStatuses, InActiveRequestStatuses } from '#Constants/statuses.constants.js';
+import { toIsoString } from '#common/timestamp.helper.js';
 
 export async function queryRequestsForBooking({ bookingId }) {
   if (!bookingId) {
@@ -179,7 +180,7 @@ export async function updateRequestStatusWithLog({
   const fromStatus = request.status ?? 'UNKNOWN';
 
   // 2) Build atomic update + log write
-  const nowIso = new Date().toISOString();
+  const nowIso = toIsoString();
   const transitionId = ulid();
   const logSk = `REQUEST_TRANSITION#${transitionId}`;
 

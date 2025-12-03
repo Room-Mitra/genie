@@ -5,6 +5,7 @@ import { userResponse } from '#presenters/user.js';
 import { queryRequestsByStatusType } from '#repositories/Request.repository.js';
 import * as staffRepo from '#repositories/Staff.repository.js';
 import { getUserProfileById, updateUser } from '#repositories/User.repository.js';
+import { getHotelById } from './Hotel.service.js';
 import { getActiveWorkloadByUser } from './Request.service.js';
 import { updatePassword } from './User.service.js';
 import { DateTime } from 'luxon';
@@ -290,4 +291,41 @@ function sortOnDutyStaff(onDutyStaff, workloadByUser, pastRequests) {
   });
 
   return sorted;
+}
+
+export async function updateStaffDuty({ hotelId, userId, trigger, status }) {
+  if (!userId || !hotelId) {
+    const err = new Error('need userId and hotelId to update staff duty');
+    err.code = 'MISSING_REQUIRED_FIELDS';
+    throw err;
+  }
+
+  const user = await getUserProfileById(userId);
+  if (!user) {
+    const err = new Error('user not found');
+    err.code = 'USER_NOT_FOUND';
+    throw err;
+  }
+
+  if (user.hotelId != hotelId) {
+    const err = new Error("user doesn't belong to hotel");
+    err.code = 'USER_HOTEL_MISMATCH';
+    throw err;
+  }
+
+  const hotel = await getHotelById(hotelId);
+  if (!hotel) {
+    const err = new Error('hotel not found');
+    err.code = 'HOTEL_NOT_FOUND';
+    throw err;
+  }
+
+  const dutyUpdate = await staffRepo.updateUserDutyStatus({
+    hotelId,
+    user,
+    toStatus: status,
+    trigger,
+  });
+
+  return dutyUpdate;
 }

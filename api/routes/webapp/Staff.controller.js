@@ -1,4 +1,9 @@
-import { listStaffForHotel, resetStaffPassword, updateStaffById } from '#services/Staff.service.js';
+import {
+  listStaffForHotel,
+  resetStaffPassword,
+  updateStaffById,
+  updateStaffDuty,
+} from '#services/Staff.service.js';
 import * as hotelService from '#services/Hotel.service.js';
 
 import express from 'express';
@@ -120,6 +125,26 @@ router.put('/:staffUserId', async (req, res) => {
   } catch (err) {
     console.error('update staff error', err);
     return res.status(400).json({ error: err?.error || 'failed to update staff' });
+  }
+});
+
+router.post('/duty', async (req, res) => {
+  try {
+    const { hotelId, sub: userId } = req.userData;
+    const { trigger, status } = req.body;
+
+    if (!hotelId || !userId)
+      return res.status(400).json({ error: 'require hotelId and userId to update duty' });
+
+    if (!trigger || !status)
+      return res.status(400).json({ error: 'require trigger and status to update duty' });
+
+    const dutyUpdate = await updateStaffDuty({ hotelId, userId, trigger, status });
+
+    res.json(dutyUpdate);
+  } catch (err) {
+    console.error('update duty error', err);
+    return res.status(400).json({ error: err?.error || 'failed to update duty' });
   }
 });
 
