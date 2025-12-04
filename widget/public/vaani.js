@@ -5,7 +5,7 @@
 
   // Default config (can override via data-* attributes)
   const scriptTag =
-    document.currentScript || document.querySelector('script[src*="web-voice-agent.js"]');
+    document.currentScript || document.querySelector('script[src*="vaani.js"]');
   const data = (scriptTag && scriptTag.dataset) || {};
 
   // Room Mitra image lightbox in parent page

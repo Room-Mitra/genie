@@ -29,7 +29,7 @@ export default function RootLayout({ children }) {
 
         {/* Web Voice Agent Widget */}
         <Script
-          src={`${process.env.NEXT_PUBLIC_WIDGET_BASE_URL}/web-voice-agent.js`}
+          src={`${process.env.NEXT_PUBLIC_WIDGET_BASE_URL}/vaani.js`}
           data-hotel-id={process.env.NEXT_PUBLIC_DEMO_HOTEL_ID}
           data-signature={process.env.NEXT_PUBLIC_DEMO_WIDGET_SIGNATURE}
           strategy="afterInteractive"
