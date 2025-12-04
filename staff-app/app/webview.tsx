@@ -15,8 +15,8 @@ import * as TaskManager from "expo-task-manager";
 import "../tasks/locationTask";
 import { LOCATION_TASK } from "../tasks/locationTask";
 
-import "../tasks/periodicPingTask";
-import { PERIODIC_PING_TASK } from "../tasks/periodicPingTask";
+import "../tasks/periodicLocationPingTask";
+import { PERIODIC_PING_TASK } from "../tasks/periodicLocationPingTask";
 
 const BASE_URL =
   Constants.expoConfig?.extra?.WEB_BACKEND_URL || "https://app.roommitra.com";
