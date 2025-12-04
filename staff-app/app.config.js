@@ -32,8 +32,13 @@ export default ({ config }) => ({
     permissions: [
       "ACCESS_COARSE_LOCATION",
       "ACCESS_FINE_LOCATION",
-      "ACCESS_BACKGROUND_LOCATION"
+      "ACCESS_BACKGROUND_LOCATION",
+      "FOREGROUND_SERVICE",
     ],
+    "foregroundService": {
+      "notificationTitle": "Room Mitra",
+      "notificationBody": "Location tracking active"
+    },
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false
   },

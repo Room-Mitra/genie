@@ -1,21 +1,30 @@
+// webview.tsx
+
 import React, { useEffect, useState } from "react";
 import { SafeAreaView, StyleSheet, Platform } from "react-native";
 import { WebView } from "react-native-webview";
 import Constants from "expo-constants";
 import * as Application from "expo-application";
 import * as Location from "expo-location";
-import { GEOFENCE_TASK } from "../tasks/geoTask";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as TaskManager from 'expo-task-manager';
-import * as Notifications from 'expo-notifications';
+import "../tasks/locationFetchTask"; // <-- CRITICAL import to register the task!
+import * as Notifications from "expo-notifications";
+import * as BackgroundFetch from "expo-background-fetch";
+import * as TaskManager from "expo-task-manager";
 
+import { LOCATION_FETCH_TASK } from "../tasks/locationFetchTask";
 
-const BASE_URL = Constants.expoConfig?.extra?.WEB_BACKEND_URL || `https://app.roommitra.com`;
+const BASE_URL =
+  Constants.expoConfig?.extra?.WEB_BACKEND_URL || `https://app.roommitra.com`;
+
 const LOGIN_URL = `${BASE_URL}/login`;
+
+const LOCATION_INTERVAL_SECONDS = 15 * 60; // 15 mins
 
 export default function WebviewScreen() {
   const [deviceInfo, setDeviceInfo] = useState<any>(null);
 
+  // 1. Ask for notifications permission once
   useEffect(() => {
     (async () => {
       const { status } = await Notifications.getPermissionsAsync();
@@ -25,43 +34,30 @@ export default function WebviewScreen() {
     })();
   }, []);
 
-
-  useEffect(() => {
-    async function registerNotifications() {
-      const { status } = await Notifications.requestPermissionsAsync();
-      if (status !== 'granted') {
-        console.log("Notification permission not granted");
-      }
-    }
-    registerNotifications();
-  }, []);
-
-  // 1. Load device information asynchronously
+  // 2. Load device info and persist
   useEffect(() => {
     async function loadDeviceInfo() {
-      const androidId = Platform.OS === "android"
-        ? await Application.getAndroidId()
-        : null;
+      const androidId =
+        Platform.OS === "android" ? await Application.getAndroidId() : null;
+      const iosId =
+        Platform.OS === "ios"
+          ? await Application.getIosIdForVendorAsync()
+          : null;
 
-      const iosId = Platform.OS === "ios"
-        ? await Application.getIosIdForVendorAsync()
-        : null;
-
-      setDeviceInfo({
+      const info = {
         deviceId: androidId || iosId || "unknown-device",
         platform: Platform.OS,
         appVersion: Constants.expoConfig?.version ?? "unknown",
-      });
+      };
+
+      setDeviceInfo(info);
+      await AsyncStorage.setItem("rm_device", JSON.stringify(info));
     }
-
-
 
     loadDeviceInfo();
   }, []);
 
-  const [isLoggedIn, setLoggedIn] = useState(false);
-
-  // 2. Prepare injected JavaScript AFTER device info is available
+  // 3. Inject device info into WebView (for NextJS)
   const injectedJavaScript = deviceInfo
     ? `
       window.__MOBILE_CONTEXT__ = ${JSON.stringify(deviceInfo)};
@@ -70,81 +66,82 @@ export default function WebviewScreen() {
     `
     : "";
 
+  // 4. Register background fetch
+  async function registerLocationFetch() {
+    try {
+      const status = await BackgroundFetch.getStatusAsync();
+      console.log("BackgroundFetch raw status:", status);
+
+      if (status !== BackgroundFetch.BackgroundFetchStatus.Available) {
+        console.log("Background fetch unavailable:", status);
+        return;
+      }
+
+      const tasks = await TaskManager.getRegisteredTasksAsync();
+      const exists = tasks.some((t) => t.taskName === LOCATION_FETCH_TASK);
+
+      if (!exists) {
+        await BackgroundFetch.registerTaskAsync(LOCATION_FETCH_TASK, {
+          minimumInterval: LOCATION_INTERVAL_SECONDS,
+          stopOnTerminate: false,
+          startOnBoot: true,
+        });
+
+        console.log("BackgroundFetch task registered!");
+      } else {
+        console.log("BackgroundFetch task already registered");
+      }
+    } catch (e) {
+      console.log("Failed to register BackgroundFetch:", e);
+    }
+
+    console.log(
+      "Registered tasks:",
+      await TaskManager.getRegisteredTasksAsync()
+    );
+  }
+
+  // 5. Ensure permissions before enabling location-fetch
+  async function enableLocationBackgroundFetch() {
+    try {
+      const fg = await Location.requestForegroundPermissionsAsync();
+      console.log("Foreground location perm:", fg.status);
+      if (fg.status !== "granted") return;
+
+      const bg = await Location.requestBackgroundPermissionsAsync();
+      console.log("Background location perm:", bg.status);
+      if (bg.status !== "granted") return;
+
+      await registerLocationFetch();
+    } catch (err) {
+      console.log("Failed enabling BackgroundFetch location:", err);
+    }
+  }
+
   const handleNavChange = (navState: any) => {
+
     const url = navState.url.toLowerCase();
-    if (url === BASE_URL.toLowerCase()) {
-      setLoggedIn(true);
+    if (url === BASE_URL.toLowerCase() + "/") {
       console.log("User logged in inside WebView");
     }
   };
 
-  async function initGeofence() {
-    // await Notifications.scheduleNotificationAsync({
-    //   content: { title: "Test", body: "Foreground OK?" },
-    //   trigger: null,
-    // });
-
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    console.log("status", status)
-    if (status !== "granted") return;
-
-    const bg = await Location.requestBackgroundPermissionsAsync();
-    console.log("bg.status", bg.status)
-
-    if (bg.status !== "granted") return;
-
-
-    // STOP EXISTING GEOFENCE IF ANY (CRITICAL FIX)
-    const tasks = await TaskManager.getRegisteredTasksAsync();
-    const exists = tasks.some(t => t.taskName === GEOFENCE_TASK);
-
-    if (exists) {
-      console.log("Stopping existing geofence task...");
-      await Location.stopGeofencingAsync(GEOFENCE_TASK);
-    }
-
-    console.log("Starting geofence fresh...");
-    const loc = await Location.getLastKnownPositionAsync({});
-    console.log("PHONE LOCATION:", loc?.coords);
-
-    // HOTEL COORDINATES (replace these)
-    //seg :: 13.027015718666998, 77.75148457005004
-    const HOTEL_LAT = 13.0273977; // TODO :: fetch from server 13.027030955745223, 77.75154339986237
-    const HOTEL_LNG = 77.7516429;
-    console.log("^^^^^^^^^^^^^^^^^^^^^", await TaskManager.getRegisteredTasksAsync());
-
-
-    await Location.startGeofencingAsync(GEOFENCE_TASK, [
-      {
-        latitude: HOTEL_LAT,
-        longitude: HOTEL_LNG,
-        radius: 50, // meters // TODO :: fetch from server
-        notifyOnEnter: true,
-        notifyOnExit: true,
-      },
-    ]);
-    console.log("End of initGeofence")
-    console.log(JSON.stringify(await TaskManager.getRegisteredTasksAsync()));
-
-  }
-
-
-
   const handleMessage = async (event: any) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
+
       console.log("msg from app", data);
+
       if (data.type === "LOGIN_DATA") {
-        console.log("Received userId from web:", data.userId);
+        console.log("Received LOGIN_DATA:", data.userId);
 
         await AsyncStorage.setItem("rm_user", JSON.stringify(data));
 
-        console.log("BASE_URL_________", BASE_URL)
-        initGeofence();
-
+        console.log("Enabling BackgroundFetch after login...");
+        await enableLocationBackgroundFetch();
       }
-    } catch (e) {
-      console.log("Failed to parse WebView message:", e);
+    } catch (err) {
+      console.log("Failed to parse WebView message:", err);
     }
   };
 
@@ -155,26 +152,16 @@ export default function WebviewScreen() {
           uri: LOGIN_URL,
           headers: {
             "bypass-tunnel-reminder": "true",
-            "User-Agent": "ExpoMobileApp", // optional but sometimes required
+            "User-Agent": "ExpoMobileApp",
           },
         }}
         onNavigationStateChange={handleNavChange}
         injectedJavaScript={injectedJavaScript}
         onLoadEnd={async () => {
-          if (deviceInfo) {
-            console.log("Injected mobile context into WebView");
-            const loc = await Location.getLastKnownPositionAsync({});
-            console.log("PHONE LOCATION:", loc?.coords);
-            // await Location.watchPositionAsync(
-            //   { accuracy: Location.Accuracy.Highest, distanceInterval: 1 },
-            //   (loc) => {
-            //     console.log("LIVE LOCATION:", loc.coords);
-            //   }
-            // );
-            if (await AsyncStorage.getItem("rm_user")) {
-              initGeofence();
-            }
-
+          const existingUser = await AsyncStorage.getItem("rm_user");
+          if (existingUser) {
+            console.log("Existing rm_user found, ensuring BackgroundFetch setup");
+            await enableLocationBackgroundFetch();
           }
         }}
         onMessage={handleMessage}
@@ -185,8 +172,5 @@ export default function WebviewScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    // paddingTop: Platform.OS === "android" ? 25 : 0,
-  },
+  container: { flex: 1 },
 });

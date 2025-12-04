@@ -41,7 +41,7 @@ export function MobileProvider({ children }) {
             deviceId: mobile.deviceId,
             platform: mobile.platform,
             appVersion: mobile.appVersion,
-            user: user,
+            // user: user,
           }),
         });
 
