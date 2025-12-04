@@ -11,6 +11,8 @@ import { createRequest, listRequestsByBooking } from '#services/Request.service.
 import { ulid } from 'ulid';
 import { summarizeRequests } from './summarizers/request.summarizer.js';
 import { summarizeBookingArgs } from './summarizers/booking.summarizer.js';
+import { summarizeAmenities } from './summarizers/amenity.summarizer.js';
+import { summarizeConciergeServices } from './summarizers/concierge.summarizer.js';
 
 async function create_hotel_requests_handler({
   args,
@@ -151,15 +153,19 @@ export const callFunction = async ({
     case 'fetch_menu_sections':
       return await handleFetchMenuSections({ hotelId, args });
 
-    case 'get_amenities':
-      return await queryHotelMeta({ hotelId, entityType: 'AMENITY' });
+    case 'get_amenities': {
+      const amenities = await queryHotelMeta({ hotelId, entityType: 'AMENITY' });
+      return summarizeAmenities(amenities);
+    }
 
     case 'get_booking_details': {
       return await getBookingById({ hotelId, bookingId });
     }
 
-    case 'get_concierge_services':
-      return await queryHotelMeta({ hotelId, entityType: 'CONCIERGE' });
+    case 'get_concierge_services': {
+      const conciergeServices = await queryHotelMeta({ hotelId, entityType: 'CONCIERGE' });
+      return summarizeConciergeServices(conciergeServices);
+    }
 
     case 'get_hotel_details':
       return await getHotelById(hotelId);
