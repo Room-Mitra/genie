@@ -1,4 +1,4 @@
-// webview.tsx
+// app/(whatever)/webview.tsx
 
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Platform } from "react-native";
@@ -11,161 +11,200 @@ import * as Notifications from "expo-notifications";
 import * as BackgroundFetch from "expo-background-fetch";
 import * as TaskManager from "expo-task-manager";
 
-
-// Must be imported BEFORE anything else runs
+// Ensure tasks are registered at app startup
 import "../tasks/locationTask";
 import { LOCATION_TASK } from "../tasks/locationTask";
 
 import "../tasks/periodicPingTask";
 import { PERIODIC_PING_TASK } from "../tasks/periodicPingTask";
 
+const BASE_URL =
+  Constants.expoConfig?.extra?.WEB_BACKEND_URL || "https://app.roommitra.com";
+
+const LOGIN_URL = `${BASE_URL}/login`;
+
+// 15 minutes in seconds (BackgroundFetch) / milliseconds (Location)
+const LOCATION_UPDATE_INTERVAL_MS = 15 * 60 * 1000;
+const PERIODIC_PING_INTERVAL_SECONDS = 15 * 60;
+
 export default function WebviewScreen() {
   const [deviceInfo, setDeviceInfo] = useState<any>(null);
-
-  const BASE_URL =
-    Constants.expoConfig?.extra?.WEB_BACKEND_URL || `https://app.roommitra.com`;
-
-  const LOGIN_URL = `${BASE_URL}/login`;
 
   // 🔹 Ask notification permission on startup
   useEffect(() => {
     (async () => {
-      const { status } = await Notifications.getPermissionsAsync();
-      if (status !== "granted") {
-        await Notifications.requestPermissionsAsync();
+      try {
+        const { status } = await Notifications.getPermissionsAsync();
+        if (status !== "granted") {
+          const res = await Notifications.requestPermissionsAsync();
+          console.log("Notification permission result:", res.status);
+        } else {
+          console.log(" Notification permission already granted");
+        }
+      } catch (err) {
+        console.log(" Notification permission error:", err);
       }
     })();
   }, []);
 
-  // 🔹 Load & save device info
+  // 🔹 Load & cache device info (one-time per version)
   useEffect(() => {
-    async function loadDeviceInfo() {
-      const androidId =
-        Platform.OS === "android" ? await Application.getAndroidId() : null;
-      const iosId =
-        Platform.OS === "ios"
-          ? await Application.getIosIdForVendorAsync()
-          : null;
+    async function ensureDeviceInfo() {
+      try {
+        const existing = await AsyncStorage.getItem("rm_device");
+        const currentVersion = Constants.expoConfig?.version;
 
-      const info = {
-        deviceId: androidId || iosId || "unknown-device",
-        platform: Platform.OS,
-        appVersion: Constants.expoConfig?.version ?? "unknown",
-      };
+        if (existing) {
+          const parsed = JSON.parse(existing);
+          if (parsed?.appVersion === currentVersion) {
+            console.log("Using existing device info");
+            setDeviceInfo(parsed);
+            return;
+          }
+        }
 
-      console.log("📱 Device Info:", info);
+        console.log(" Capturing device info for this install");
 
-      setDeviceInfo(info);
-      await AsyncStorage.setItem("rm_device", JSON.stringify(info));
+        const androidId =
+          Platform.OS === "android" ? await Application.getAndroidId() : null;
+
+        const iosId =
+          Platform.OS === "ios"
+            ? await Application.getIosIdForVendorAsync()
+            : null;
+
+        const info = {
+          deviceId: androidId || iosId || "unknown-device",
+          platform: Platform.OS,
+          appVersion: currentVersion ?? "unknown",
+          capturedAt: new Date().toISOString(),
+        };
+
+        await AsyncStorage.setItem("rm_device", JSON.stringify(info));
+        setDeviceInfo(info);
+
+        console.log(" Device Info:", info);
+      } catch (err) {
+        console.log("Failed to load device info:", err);
+      }
     }
 
-    loadDeviceInfo();
+    ensureDeviceInfo();
   }, []);
 
-  // 🔹 Inject device context for webapp
+  // 🔹 Inject device context into the web app
   const injectedJavaScript = deviceInfo
     ? `
-      window.__MOBILE_CONTEXT__ = ${JSON.stringify(deviceInfo)};
-      window.dispatchEvent(new Event("mobile-ready"));
+      (function() {
+        try {
+          window.__MOBILE_CONTEXT__ = ${JSON.stringify(deviceInfo)};
+          window.dispatchEvent(new Event("mobile-ready"));
+        } catch (e) {
+          console.log("Failed to set MOBILE_CONTEXT", e);
+        }
+      })();
       true;
     `
     : "";
 
-  // 🔹 Start background location service
+  // 🔹 Start background location service (movement-based)
   async function enableLocationTracking() {
     try {
       console.log("⚙️ Requesting location permissions...");
 
       const fg = await Location.requestForegroundPermissionsAsync();
-      console.log("FG perm:", fg.status);
-
+      console.log(" FG permission:", fg.status);
       if (fg.status !== "granted") {
-        console.log(" Foreground permission denied");
+        console.log("Foreground permission denied");
         return;
       }
 
       const bg = await Location.requestBackgroundPermissionsAsync();
-      console.log("BG perm:", bg.status);
-
+      console.log(" BG permission:", bg.status);
       if (bg.status !== "granted") {
-        console.log(" Background permission denied");
+        console.log("Background permission denied");
         return;
       }
 
-      console.log(" Starting background location listener...");
+      console.log("Starting background location listener...");
 
       await Location.startLocationUpdatesAsync(LOCATION_TASK, {
         accuracy: Location.Accuracy.High,
-        timeInterval: 15 * 60 * 1000, // every 15 mins
-        distanceInterval: 50,
+        timeInterval: LOCATION_UPDATE_INTERVAL_MS,
+        distanceInterval: 50, // meters
         showsBackgroundLocationIndicator: true,
         foregroundService: {
           notificationTitle: "Room Mitra",
-          notificationBody: "Please update your status if you are on duty",
+          notificationBody: "Updating your duty status in the background.",
         },
-        pausesUpdatesAutomatically: false, // keep running even if device idle
+        pausesUpdatesAutomatically: false,
       });
 
-      console.log(" Background location tracking active!");
+      console.log(" Background location tracking active");
     } catch (err) {
       console.log("Failed enabling background tracking:", err);
     }
   }
 
+  // 🔹 Register periodic background fetch (timer-based)
   async function enablePeriodicPing() {
-    console.log("Registering periodic ping task...");
+    try {
+      console.log("Registering periodic ping task...");
 
-    const status = await BackgroundFetch.getStatusAsync();
-    console.log(" BackgroundFetch status:", status);
+      const status = await BackgroundFetch.getStatusAsync();
+      console.log("BackgroundFetch status:", status);
 
-    if (status !== BackgroundFetch.BackgroundFetchStatus.Available) {
-      console.log("Background fetch unavailable, skipping");
-      return;
-    }
+      if (status !== BackgroundFetch.BackgroundFetchStatus.Available) {
+        console.log("Background fetch unavailable, skipping");
+        return;
+      }
 
-    const tasks = await TaskManager.getRegisteredTasksAsync();
-    const exists = tasks.some(t => t.taskName === PERIODIC_PING_TASK);
+      const tasks = await TaskManager.getRegisteredTasksAsync();
+      const exists = tasks.some(
+        (t) => t.taskName === PERIODIC_PING_TASK,
+      );
 
-    if (!exists) {
-      await BackgroundFetch.registerTaskAsync(PERIODIC_PING_TASK, {
-        minimumInterval: 15 * 60, // seconds
-        stopOnTerminate: false,
-        startOnBoot: true,
-      });
+      if (!exists) {
+        await BackgroundFetch.registerTaskAsync(PERIODIC_PING_TASK, {
+          minimumInterval: PERIODIC_PING_INTERVAL_SECONDS,
+          stopOnTerminate: false,
+          startOnBoot: true,
+        });
 
-      console.log("Periodic ping registered");
-    } else {
-      console.log("Periodic task already registered");
+        console.log("Periodic ping registered");
+      } else {
+        console.log("ℹPeriodic ping task already registered");
+      }
+    } catch (err) {
+      console.log("Failed to register periodic ping:", err);
     }
   }
 
-
-
-  // 🔹 Navigation listener
+  // 🔹 Navigation logger (optional)
   const handleNavChange = (navState: any) => {
     const url = navState.url.toLowerCase();
     if (url.startsWith(BASE_URL.toLowerCase())) {
-      console.log("➡ WebView navigation:", url);
+      console.log("WebView navigation:", url);
     }
   };
 
-  // 🔹 Web <-> Native handshake
+  // 🔹 Web <-> Native: receive LOGIN_DATA from Next.js
   const handleMessage = async (event: any) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
-      console.log(" msg from app:", data);
+      console.log("msg from web app:", data);
 
       if (data.type === "LOGIN_DATA") {
         console.log("LOGIN_DATA received:", data.userId);
 
         await AsyncStorage.setItem("rm_user", JSON.stringify(data));
 
-        console.log(" Starting location tracking after login...");
+        console.log("Enabling tracking after login...");
         await enableLocationTracking();  // movement-based
         await enablePeriodicPing();      // timed ping
       }
     } catch (err) {
-      console.log(" Failed to parse message:", err);
+      console.log("Failed to parse WebView message:", err);
     }
   };
 
@@ -182,14 +221,15 @@ export default function WebviewScreen() {
       onNavigationStateChange={handleNavChange}
       onMessage={handleMessage}
       onLoadEnd={async () => {
+        // If user already logged in (rm_user exists), re-enable tracking
         const existingUser = await AsyncStorage.getItem("rm_user");
         if (existingUser) {
-          console.log("Existing rm_user detected, enabling tracking...");
-          await enableLocationTracking();  // movement-based
-          await enablePeriodicPing();      // timed ping
+          console.log("Existing rm_user detected, ensuring tracking...");
+          await enableLocationTracking();
+          await enablePeriodicPing();
         }
       }}
-      style={{ flex: 1 }}
+      style={styles.container}
     />
   );
 }

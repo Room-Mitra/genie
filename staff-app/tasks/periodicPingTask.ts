@@ -12,7 +12,7 @@ const API_BACKEND_URL = Constants.expoConfig?.extra?.API_BACKEND_URL || `https:/
 // DEFINE THE TASK
 TaskManager.defineTask(PERIODIC_PING_TASK, async () => {
   try {
-    console.log("⏱ Periodic Ping Triggered");
+    console.log("Periodic Ping Triggered");
 
     const loc = await Location.getCurrentPositionAsync({});
     const { latitude, longitude } = loc.coords;
