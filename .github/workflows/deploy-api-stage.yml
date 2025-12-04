@@ -11,7 +11,6 @@ on:
   push:
     branches:
       - main
-      - adi/pwa-5
     paths:
       - 'api/**'
       - '.github/workflows/deploy-api-stage.yml'
