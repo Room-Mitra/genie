@@ -1,5 +1,6 @@
 import {
   listStaffForHotel,
+  registerStaffDevice,
   resetStaffPassword,
   updateStaffById,
   updateStaffDuty,
@@ -173,6 +174,27 @@ router.post('/location', async (req, res) => {
   } catch (err) {
     console.error('update location error', err);
     return res.status(400).json({ error: err?.error || 'failed to update location' });
+  }
+});
+
+router.post('/register-device', async (req, res) => {
+  try {
+    const { hotelId, sub: userId } = req.userData;
+    const { deviceId, platform, appVersion } = req.body;
+
+    if (!hotelId || !userId)
+      return res.status(400).json({ error: 'require hotelId and userId to update location' });
+
+    if (!deviceId || !platform || !appVersion)
+      return res
+        .status(400)
+        .json({ error: 'require deviceId, platform, appVersion to register device' });
+
+    const device = await registerStaffDevice({ hotelId, userId, deviceId, platform, appVersion });
+    res.json(device);
+  } catch (err) {
+    console.error('register device error', err);
+    return res.status(500).json({ error: err?.error || 'failed to register staff device' });
   }
 });
 

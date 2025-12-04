@@ -4,7 +4,7 @@ import { DDB, DDBV3 } from '#clients/DynamoDb.client.js';
 import { HotelRoles } from '#Constants/roles.js';
 import { ActiveDutyStatuses, InactiveDutyStatuses } from '#Constants/statuses.constants.js';
 import { ulid } from 'ulid';
-import { TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
+import { PutCommand, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 
 export async function addStaff({
   hotelId,
@@ -327,4 +327,42 @@ export async function updateUserLocation({ hotelId, user, lat, lng, radius, wifi
     updatedAt: nowIso,
     locationId,
   };
+}
+
+export async function registerDevice({ hotelId, user, deviceId, platform, appVersion }) {
+  if (!user || !hotelId || !deviceId || !platform || !appVersion)
+    throw new Error('userId, hotelId, deviceId, platform, appVersion needed to register device');
+
+  const nowIso = toIsoString();
+
+  const deviceSk = `STAFF_DEVICE#${deviceId}`;
+
+  const deviceItem = {
+    pk: user.sk,
+    sk: deviceSk,
+
+    active_pk: user.sk,
+    active_sk: deviceSk,
+
+    entityType: 'STAFF_DEVICE',
+    userId: user.userId,
+
+    deviceId,
+    platform,
+    appVersion,
+    hotelId,
+
+    createdAt: nowIso,
+  };
+
+  await DDBV3.send(
+    new PutCommand({
+      TableName: ENTITY_TABLE_NAME,
+      Item: deviceItem,
+      // idempotency for this transition record
+      ConditionExpression: 'attribute_not_exists(pk) AND attribute_not_exists(sk)',
+    })
+  );
+
+  return deviceItem;
 }
