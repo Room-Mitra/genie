@@ -135,7 +135,7 @@ export default function WebviewScreen() {
         showsBackgroundLocationIndicator: true,
         foregroundService: {
           notificationTitle: "Room Mitra",
-          notificationBody: "Updating your duty status in the background.",
+          notificationBody: "Remember to update your duty status",
         },
         pausesUpdatesAutomatically: false,
       });
