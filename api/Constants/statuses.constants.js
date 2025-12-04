@@ -36,3 +36,14 @@ export const ActiveOrderStatuses = [
 ];
 
 export const InactiveOrderStatuses = [OrderStatus.CANCELLED, OrderStatus.DELIVERED];
+
+export const DutyStatus = {
+  ON_DUTY: 'on_duty',
+  OFF_DUTY: 'off_duty',
+  ON_BREAK: 'on_break',
+};
+
+export const DutyStatuses = Object.values(DutyStatus);
+
+export const ActiveDutyStatuses = [DutyStatus.ON_DUTY];
+export const InactiveDutyStatuses = [DutyStatus.OFF_DUTY, DutyStatus.ON_BREAK];

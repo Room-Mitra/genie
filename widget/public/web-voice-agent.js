@@ -8,11 +8,6 @@
     document.currentScript || document.querySelector('script[src*="web-voice-agent.js"]');
   const data = (scriptTag && scriptTag.dataset) || {};
 
-  const hotelId = data.hotelId || '';
-  const signature = data.signature || '';
-  const theme = data.theme ? JSON.parse(decodeURIComponent(data.theme)) : null;
-  const position = data.position || 'bottom-right';
-
   // Room Mitra image lightbox in parent page
   const LIGHTBOX_ROOT_ID = 'room-mitra-image-lightbox-root';
   let roomMitraPreviousBodyOverflow = null;
@@ -41,10 +36,16 @@
     }
   }
 
+  const hotelId = data.hotelId || '';
+  const signature = data.signature || '';
+  const theme = data.theme ? JSON.parse(decodeURIComponent(data.theme)) : null;
+  const logoUrl = data.logoUrl || `${baseWidgetUrl}/images/square-no-bg.svg`;
+  const position = data.position || 'bottom-right';
+
   const params = {
     hotelId,
     signature,
-    theme,
+    theme: data.theme || null,
     position,
   };
 
@@ -70,7 +71,7 @@
   launcher.style.color = '#fff';
   launcher.innerHTML = `
   <img 
-    src="${baseWidgetUrl}/images/square-no-bg.svg"
+    src="${logoUrl}"
     alt="Room Mitra"
     style="width: 60%; height: 60%; object-fit: contain; pointer-events: none;"
   />

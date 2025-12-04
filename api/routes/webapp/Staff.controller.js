@@ -1,4 +1,11 @@
-import { listStaffForHotel, resetStaffPassword, updateStaffById } from '#services/Staff.service.js';
+import {
+  listStaffForHotel,
+  registerStaffDevice,
+  resetStaffPassword,
+  updateStaffById,
+  updateStaffDuty,
+  updateStaffLocation,
+} from '#services/Staff.service.js';
 import * as hotelService from '#services/Hotel.service.js';
 
 import express from 'express';
@@ -120,6 +127,74 @@ router.put('/:staffUserId', async (req, res) => {
   } catch (err) {
     console.error('update staff error', err);
     return res.status(400).json({ error: err?.error || 'failed to update staff' });
+  }
+});
+
+router.post('/duty', async (req, res) => {
+  try {
+    const { hotelId, sub: userId } = req.userData;
+    const { trigger, status } = req.body;
+
+    if (!hotelId || !userId)
+      return res.status(400).json({ error: 'require hotelId and userId to update duty' });
+
+    if (!trigger || !status)
+      return res.status(400).json({ error: 'require trigger and status to update duty' });
+
+    const dutyUpdate = await updateStaffDuty({ hotelId, userId, trigger, status });
+
+    res.json(dutyUpdate);
+  } catch (err) {
+    console.error('update duty error', err);
+    return res.status(400).json({ error: err?.error || 'failed to update duty' });
+  }
+});
+
+router.post('/location', async (req, res) => {
+  try {
+    const { hotelId, sub: userId } = req.userData;
+    const { lat, lng, radius, wifiSSID } = req.body;
+
+    if (!hotelId || !userId)
+      return res.status(400).json({ error: 'require hotelId and userId to update location' });
+
+    if (!lat || !lng || !radius)
+      return res.status(400).json({ error: 'require lat, lng, radius to update location' });
+
+    const locationUpdate = await updateStaffLocation({
+      hotelId,
+      userId,
+      lat,
+      lng,
+      radius,
+      wifiSSID,
+    });
+
+    res.json(locationUpdate);
+  } catch (err) {
+    console.error('update location error', err);
+    return res.status(400).json({ error: err?.error || 'failed to update location' });
+  }
+});
+
+router.post('/register-device', async (req, res) => {
+  try {
+    const { hotelId, sub: userId } = req.userData;
+    const { deviceId, platform, appVersion } = req.body;
+
+    if (!hotelId || !userId)
+      return res.status(400).json({ error: 'require hotelId and userId to update location' });
+
+    if (!deviceId || !platform || !appVersion)
+      return res
+        .status(400)
+        .json({ error: 'require deviceId, platform, appVersion to register device' });
+
+    const device = await registerStaffDevice({ hotelId, userId, deviceId, platform, appVersion });
+    res.json(device);
+  } catch (err) {
+    console.error('register device error', err);
+    return res.status(500).json({ error: err?.error || 'failed to register staff device' });
   }
 });
 

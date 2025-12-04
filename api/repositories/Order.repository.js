@@ -1,5 +1,6 @@
 import { DDB } from '#clients/DynamoDb.client.js';
 import { buildHotelEntityItem } from '#common/hotelEntity.helper.js';
+import { toIsoString } from '#common/timestamp.helper.js';
 import {
   ENTITY_TABLE_NAME,
   GSI_BOOKINGTYPE_NAME,
@@ -53,7 +54,7 @@ export async function updateOrderStatus({ orderId, hotelId, toStatus, timeOfFulf
   if (!orderId || !toStatus)
     throw new Error('orderId, toStatus are required to update order status');
 
-  const nowIso = new Date().toISOString();
+  const nowIso = toIsoString();
 
   const statusType = ActiveOrderStatuses.includes(toStatus)
     ? 'ACTIVE'
