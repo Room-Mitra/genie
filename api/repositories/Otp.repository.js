@@ -24,14 +24,14 @@ export async function saveOTP(email, name, language, otp, ttl, purpose, hotelId)
     ttl,
   };
 
-  const item = await DDBV3.send(
+  await DDBV3.send(
     new PutCommand({
       TableName: ENTITY_TABLE_NAME,
       Item: otpItem,
     })
   );
 
-  return item;
+  return otpItem;
 }
 
 export async function getOtp(email, code, purpose, hotelId) {
