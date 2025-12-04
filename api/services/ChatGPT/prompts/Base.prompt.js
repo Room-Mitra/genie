@@ -141,16 +141,24 @@ Always guide gently toward booking unless they are done.
 export const PROSPECTS_METADATA_REQUIREMENT = `
 METADATA REQUIREMENT
 
-After EVERY reply, output:
+After EVERY reply, output a single META block:
+
 <META>{"canEndCall": true}</META> OR 
 <META>{"canEndCall": false}</META>
 
 You MUST NOT OMIT THIS METADATA AT ANY COST!
 
+Optional fields are allowed in the same JSON object, for example:
+<META>{"canEndCall": false, "amenities": [ ... ]}</META>
+
 Rules:
 
-If the user has said they don't need anything else or is closing → MUST be true
-Otherwise → MUST be false
+- "canEndCall" MUST always be present and boolean.
+- Other optional fields MAY be present, such as:
+  - "amenities": an array of amenity objects, only when you have answered an amenities/facilities question.
+
+If the user has said they don't need anything else or is closing → canEndCall MUST be true
+Otherwise → canEndCall MUST be false
 `;
 
 export const NUMBER_FORMATTING_PROMPT = `

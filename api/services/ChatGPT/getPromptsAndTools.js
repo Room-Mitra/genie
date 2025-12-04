@@ -10,6 +10,8 @@ import { ROOM_BOOKING_PROMPT } from './prompts/BookRoom.prompt.js';
 import { MENU_ENQUIRY_PROMPT } from './prompts/MenuEnquiry.prompt.js';
 import { MUSIC_PROMPT } from './prompts/Music.prompt.js';
 import { ORDER_FOOD_PROMPT } from './prompts/OrderFood.prompt.js';
+import { AMENITIES_PROMPT } from './prompts/Amenities.prompt.js';
+
 import { book_room } from './tools/book_room.tool.js';
 import { create_hotel_requests } from './tools/create_hotel_requests.tool.js';
 import { fetch_menu_items } from './tools/fetch_menu_items.tool.js';
@@ -70,6 +72,8 @@ export function getPromptsAndTools({ intents, isProspect }) {
 
       case 'get_amenities': {
         toolSet.add(get_amenities);
+
+        promptSet.add(AMENITIES_PROMPT);
         continue;
       }
       case 'get_concierge': {

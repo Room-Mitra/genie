@@ -109,6 +109,7 @@ function collectReplyTexts(resp) {
   let isUserResponseNeeded = null;
   let canEndCall = null;
   let agents = [];
+  let amenities = [];
 
   // 1) Keep only assistant messages in this response
   const assistantMsgs = resp.output.filter((o) => o.type === 'message' && o.role === 'assistant');
@@ -156,6 +157,10 @@ function collectReplyTexts(resp) {
         if (Array.isArray(meta.agents)) {
           agents = meta.agents;
         }
+
+        if (Array.isArray(meta.amenities)) {
+          amenities = meta.amenities;
+        }
       } catch (e) {
         console.error('META parse error:', e);
       }
@@ -184,6 +189,11 @@ function collectReplyTexts(resp) {
             agents = obj.agents;
             continue;
           }
+
+          if (Array.isArray(obj.amenities)) {
+            amenities = obj.amenities;
+            continue;
+          }
         } catch (e) {
           // not valid JSON; keep it
         }
@@ -199,7 +209,7 @@ function collectReplyTexts(resp) {
     isUserResponseNeeded = endsWithQuestion;
   }
 
-  return { replyText: finalText, agents, isUserResponseNeeded, canEndCall };
+  return { replyText: finalText, agents, amenities, isUserResponseNeeded, canEndCall };
 }
 
 export async function askChatGpt({
@@ -351,6 +361,14 @@ export async function askChatGpt({
           conversationState.room_availabilities.push(output);
         }
 
+        if (tc.name === 'get_amenities') {
+          conversationState.amenities = output;
+        }
+
+        if (tc.name === 'get_concierge_services') {
+          conversationState.conciergeServices = output;
+        }
+
         return {
           type: 'function_call_output',
           call_id: tc.call_id,
@@ -376,12 +394,14 @@ export async function askChatGpt({
   let isUserResponseNeeded = false;
   let canEndCall = false;
   let agents = [];
+  let amenities = [];
 
   if (lastReplyMeta) {
     replyText = lastReplyMeta.replyText;
     isUserResponseNeeded = lastReplyMeta.isUserResponseNeeded;
     canEndCall = lastReplyMeta.canEndCall;
     agents = lastReplyMeta.agents;
+    amenities = lastReplyMeta.amenities;
   }
 
   return {
@@ -389,6 +409,7 @@ export async function askChatGpt({
     isUserResponseNeeded,
     canEndCall,
     agents,
+    amenities,
     conversationState,
   };
 }
