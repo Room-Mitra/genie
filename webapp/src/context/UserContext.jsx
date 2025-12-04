@@ -40,6 +40,12 @@ export function UserProvider({ children }) {
     }
   }, []);
 
+  const setOnDuty = useCallback((onDuty) => {
+    setUser((prev) =>
+      prev ? { ...prev, onDuty } : prev
+    );
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -85,8 +91,8 @@ export function UserProvider({ children }) {
   }, [user, pathname]);
 
   const value = useMemo(
-    () => ({ user, loading, refreshUser }),
-    [user, loading, refreshUser],
+    () => ({ user, loading, refreshUser, setOnDuty }),
+    [user, loading, refreshUser, setOnDuty],
   );
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

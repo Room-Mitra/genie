@@ -24,15 +24,51 @@ async function logout() {
 
     window.location.assign("/login");
   } catch (err) {
-    toast.error(
-      "Error logging out user" + (err?.message && `: ${err.message}`),
-    );
+    toast.error("Error logging out user" + (err?.message && `: ${err.message}`));
   }
+}
+
+async function updateOnDuty(onDuty, userId) {
+  const res = await fetch("/api/staff/duty", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, onDuty, trigger: "manual" }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => null);
+    throw new Error(text || "Failed to update onDuty");
+  }
+
+  return res.json(); // { success: true, onDuty: boolean } on success
 }
 
 export function UserInfo() {
   const [isOpen, setIsOpen] = useState(false);
-  const { user } = useUser();
+  const { user, setOnDuty } = useUser(); // we added setUser to context
+  const isOnDuty = user?.onDuty ?? false;
+  // handle toggle change with optimistic update
+  const handleToggle = async () => {
+    const nextValue = !isOnDuty;
+    if (!user) return;
+
+    // Optimistic update: remember old value so we can revert if API fails
+    const prev = user.onDuty;
+
+    // update UI immediately
+    setOnDuty(nextValue);
+
+    try {
+      await updateOnDuty(nextValue, user.userId);
+      toast.success(`You are now ${nextValue ? "On Duty" : "Off Duty"}`);
+    } catch (err) {
+      // revert on failure
+      setOnDuty(prev);
+      console.error("Failed to update onDuty", err);
+      toast.error("Failed to update duty status");
+    }
+  };
 
   return (
     <Dropdown isOpen={isOpen} setIsOpen={setIsOpen}>
@@ -73,21 +109,53 @@ export function UserInfo() {
             className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-[9px] hover:bg-gray-2 hover:text-dark dark:hover:bg-dark-3 dark:hover:text-white"
           >
             <UserIcon />
-
             <span className="mr-auto text-base font-medium">View profile</span>
           </Link>
+        </div>
 
-          {/* <Link
-            href={"/pages/settings"}
-            onClick={() => setIsOpen(false)}
-            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-[9px] hover:bg-gray-2 hover:text-dark dark:hover:bg-dark-3 dark:hover:text-white"
-          >
-            <SettingsIcon />
+        <hr className="border-[#E8E8E8] dark:border-dark-3" />
 
-            <span className="mr-auto text-base font-medium">
-              Account Settings
+        {/* --- DUTY TOGGLE --- */}
+        <div className="px-4 py-3">
+          <div className="flex justify-between items-center">
+            <span
+              className={cn(
+                "font-semibold text-sm",
+                isOnDuty ? "text-green-600" : "text-red-600"
+              )}
+            >
+              {isOnDuty ? "ON DUTY" : "OFF DUTY"}
             </span>
-          </Link> */}
+
+            {/* Toggle UI */}
+            <button
+              onClick={handleToggle}
+              className={cn(
+                "relative inline-flex h-7 w-14 items-center rounded-full transition-colors",
+                isOnDuty ? "bg-green-500" : "bg-gray-400"
+              )}
+            >
+              <span
+                className={cn(
+                  "inline-block h-6 w-6 transform rounded-full bg-white shadow transition-transform",
+                  isOnDuty ? "translate-x-7" : "translate-x-1"
+                )}
+              />
+            </button>
+          </div>
+        </div>
+
+        <hr className="border-[#E8E8E8] dark:border-dark-3 my-1" />
+
+        <div className="p-2 text-base text-[#4B5563] dark:text-dark-6 [&>*]:cursor-pointer">
+          <Link
+            href={"/profile"}
+            onClick={() => setIsOpen(false)}
+            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-[9px] hover:bg-gray-2 dark:hover:bg-dark-3"
+          >
+            <UserIcon />
+            <span className="mr-auto font-medium">View profile</span>
+          </Link>
         </div>
 
         <hr className="border-[#E8E8E8] dark:border-dark-3" />
@@ -100,7 +168,6 @@ export function UserInfo() {
             }}
           >
             <LogOutIcon />
-
             <span className="text-base font-medium">Log out</span>
           </button>
         </div>
