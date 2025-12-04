@@ -21,6 +21,7 @@ import { get_concierge_services } from './tools/get_concierge_services.tool.js';
 import { get_hotel_details } from './tools/get_hotel_details.tool.js';
 import { get_previous_requests } from './tools/get_previous_requests.tool.js';
 import { order_food } from './tools/order_food.tool.js';
+import { AMENITIES_PROMPT } from './prompts/Amenities.prompt.js';
 
 export function getPromptsAndTools({ intents, isProspect }) {
   const tools = [];
@@ -70,6 +71,8 @@ export function getPromptsAndTools({ intents, isProspect }) {
 
       case 'get_amenities': {
         toolSet.add(get_amenities);
+
+        promptSet.add(AMENITIES_PROMPT);
         continue;
       }
       case 'get_concierge': {
