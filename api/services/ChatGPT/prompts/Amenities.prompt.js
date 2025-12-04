@@ -12,7 +12,6 @@ When the guest asks about amenities, facilities, pool, gym, spa, or similar:
    - "amenities": an array of amenity objects
 
 Each amenity object MUST have:
-   - "name": short display name
    - "description": short description for UI
    - "imageUrl": a direct URL to the amenity image (or null if no image)
 
@@ -22,7 +21,6 @@ Example shape (do not say "Example" in the real reply):
   "canEndCall": false,
   "amenities": [
     {
-      "name": "Swimming Pool",
       "description": "Outdoor temperature-controlled pool",
       "imageUrl": "https://cdn.example.com/hotel/123/amenities/pool.jpg"
     }
