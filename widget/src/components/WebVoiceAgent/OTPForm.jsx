@@ -4,7 +4,7 @@ import { cn } from '@/src/lib/utils';
 const OTP_LENGTH = 5;
 const RESEND_COOLDOWN_SECONDS = 60;
 
-export function OTPForm({ email, name, language, onClose, onSuccess }) {
+export function OTPForm({ email, name, language, hotelId, onClose, onSuccess }) {
   const [otpDigits, setOtpDigits] = useState(Array(OTP_LENGTH).fill(''));
   const [submitting, setSubmitting] = useState(false);
   const [resending, setResending] = useState(false);
@@ -144,6 +144,7 @@ export function OTPForm({ email, name, language, onClose, onSuccess }) {
           email,
           name,
           language,
+          hotelId,
         }),
       });
 
@@ -176,6 +177,7 @@ export function OTPForm({ email, name, language, onClose, onSuccess }) {
         body: JSON.stringify({
           email,
           otp: code,
+          hotelId,
         }),
       });
 

@@ -1,7 +1,7 @@
 export function hotelResponse(hotel) {
   if (!hotel) return null;
 
-  const { name, contactPhone, contactEmail, address, hotelId, createdAt, updatedAt } = hotel;
+  const { name, contactPhone, contactEmail, address, hotelId, createdAt, updatedAt, allowedDomains } = hotel;
   return {
     name,
     contactPhone,
@@ -10,5 +10,6 @@ export function hotelResponse(hotel) {
     hotelId,
     createdAt,
     updatedAt,
+    allowedDomains,
   };
 }

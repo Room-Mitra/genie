@@ -15,7 +15,7 @@ import { ENTITY_TABLE_NAME } from '#Constants/DB.constants.js';
 import { toIsoString } from '#common/timestamp.helper.js';
 import { DDB } from '#clients/DynamoDb.client.js';
 
-const ALLOWED_UPDATE_FIELDS = ['name', 'address', 'contactEmail', 'contactPhone'];
+const ALLOWED_UPDATE_FIELDS = ['name', 'address', 'contactEmail', 'contactPhone', 'allowedDomains'];
 
 export async function getHotelById(hotelId) {
   const item = await hotelRepo.queryLatestHotelById(hotelId);

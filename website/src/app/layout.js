@@ -27,15 +27,24 @@ export default function RootLayout({ children }) {
         <main>{children}</main>
         <Footer />
 
-        {/* Room Mitra Support Widget */}
+        {/* Web Voice Agent Widget */}
+        <Script
+          src={`${process.env.NEXT_PUBLIC_WIDGET_BASE_URL}/web-voice-agent.js`}
+          data-hotel-id={process.env.NEXT_PUBLIC_DEMO_HOTEL_ID}
+          data-signature={process.env.NEXT_PUBLIC_DEMO_WIDGET_SIGNATURE}
+          strategy="afterInteractive"
+        />
+
         <Script
           src={
             process.env.ENV === 'production'
-              ? 'https://widget.roommitra.com/web-voice-agent.js'
-              : 'https://widget-stage.roommitra.com/web-voice-agent.js'
+              ? 'https://widget.roommitra.com/request-callback.js'
+              : 'https://widget-stage.roommitra.com/request-callback.js'
           }
           data-hotel-id="ROOMMITRA"
           strategy="afterInteractive"
+          data-height="175"
+          data-primary-color="#e2c044"
         />
       </body>
     </html>

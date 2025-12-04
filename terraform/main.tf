@@ -80,7 +80,7 @@ resource "aws_instance" "web" {
 
   root_block_device {
     volume_type           = "gp3"
-    volume_size           = 16 # <— increase this
+    volume_size           = 32 # <— increase this
     delete_on_termination = true
   }
 

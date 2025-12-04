@@ -12,7 +12,7 @@ variable "aws_profile" {
 
 variable "instance_type" {
   type    = string
-  default = "t3.micro"
+  default = "c7i-flex.large"
 }
 
 variable "create_key_pair" {

@@ -1,7 +1,7 @@
 import { cn } from '@/src/lib/utils';
 import { useMemo, useState } from 'react';
 
-export function LeadForm({ onClose, onSuccess }) {
+export function LeadForm({ hotelId, onClose, onSuccess }) {
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -33,6 +33,7 @@ export function LeadForm({ onClose, onSuccess }) {
           name: data.name,
           email: data.email,
           language: data.language,
+          hotelId,
         }),
       });
       if (!res.ok) {

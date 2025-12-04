@@ -1,15 +1,17 @@
 (function () {
-  // Minimal, idempotent bootloader for Room Mitra widget
-  if (window.RoomMitraWidgetBootloader) return;
-  window.RoomMitraWidgetBootloader = true;
+  // Minimal, idempotent bootloader for Web Voice Agent widget
+  if (window.RoomMitraWebVoiceAgent) return;
+  window.RoomMitraWebVoiceAgent = true;
 
   // Default config (can override via data-* attributes)
-  const scriptTag = document.currentScript || document.querySelector('script[src*="web-voice-agent.js"]');
+  const scriptTag =
+    document.currentScript || document.querySelector('script[src*="web-voice-agent.js"]');
   const data = (scriptTag && scriptTag.dataset) || {};
 
-  const HOTEL_ID = data.hotelId || data.hotelId || '';
-  const THEME = data.theme ? JSON.parse(decodeURIComponent(data.theme)) : null;
-  const POSITION = data.position || 'bottom-right';
+  const hotelId = data.hotelId || '';
+  const signature = data.signature || '';
+  const theme = data.theme ? JSON.parse(decodeURIComponent(data.theme)) : null;
+  const position = data.position || 'bottom-right';
 
   // Room Mitra image lightbox in parent page
   const LIGHTBOX_ROOT_ID = 'room-mitra-image-lightbox-root';
@@ -33,12 +35,22 @@
         baseWidgetUrl = 'http://localhost:3003';
       }
     } catch (e) {
+      console.error('unable to determine widget base url for web voice agent', e);
       // If URL parsing fails, fall back to localhost
       baseWidgetUrl = 'http://localhost:3003';
     }
   }
 
-  const WIDGET_URL = `${baseWidgetUrl}/widget?hotelId=${encodeURIComponent(HOTEL_ID)}`;
+  const params = {
+    hotelId,
+    signature,
+    theme,
+    position,
+  };
+
+  const widgetUrl = `${baseWidgetUrl}/web-voice-agent?${Object.entries(params)
+    .map((p) => `${p[0]}=${encodeURIComponent(p[1])}`)
+    .join('&')}`;
 
   // Create minimized launcher
   const launcher = document.createElement('button');
@@ -51,7 +63,7 @@
   launcher.style.border = 'none';
   launcher.style.cursor = 'pointer';
   launcher.style.boxShadow = '0 6px 18px rgba(0,0,0,0.2)';
-  launcher.style.background = THEME && THEME.primary ? THEME.primary : '#161032';
+  launcher.style.background = theme && theme.primary ? theme.primary : '#161032';
   launcher.style.display = 'flex';
   launcher.style.alignItems = 'center';
   launcher.style.justifyContent = 'center';
@@ -65,7 +77,7 @@
   `;
 
   // position
-  if (POSITION === 'bottom-left') {
+  if (position === 'bottom-left') {
     launcher.style.left = '20px';
     launcher.style.bottom = '20px';
   } else {
@@ -93,7 +105,7 @@
     }
 
     iframe = document.createElement('iframe');
-    iframe.src = WIDGET_URL;
+    iframe.src = widgetUrl;
     iframe.style.position = 'fixed';
     iframe.style.zIndex = 2147483646;
     iframe.style.width = '420px';
@@ -107,7 +119,7 @@
     iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups');
 
     // position near launcher (bottom-right or bottom-left)
-    if (POSITION === 'bottom-left') {
+    if (position === 'bottom-left') {
       iframe.style.left = '20px';
       iframe.style.bottom = '86px';
     } else {
@@ -116,12 +128,6 @@
     }
 
     document.body.appendChild(iframe);
-
-    // Post init config to iframe (we do this after a short delay to allow iframe to be ready)
-    iframe.addEventListener('load', function () {
-      const payload = { hotelId: HOTEL_ID, theme: THEME };
-      iframe.contentWindow?.postMessage({ type: 'ROOMMITRA_INIT', payload }, '*');
-    });
   }
 
   // toggle open/close

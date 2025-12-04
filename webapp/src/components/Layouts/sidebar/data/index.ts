@@ -93,6 +93,10 @@ export const NAV_DATA = [
             title: "Concierge",
             url: "/hotel/concierge",
           },
+          {
+            title: "Vaani - Chat Bot",
+            url: "/hotel/chat-bot",
+          },
           // {
           //   title: "Restaurant Menu",
           //   url: "/hotel/restaurant-menu",

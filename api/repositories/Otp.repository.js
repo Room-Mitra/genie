@@ -2,7 +2,7 @@ import { PutCommand, UpdateCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import { DDBV3 } from '#clients/DynamoDb.client.js';
 import { ENTITY_TABLE_NAME, GSI_ACTIVE_NAME } from '#Constants/DB.constants.js';
 
-export async function saveOTP(email, name, language, otp, ttl, purpose) {
+export async function saveOTP(email, name, language, otp, ttl, purpose, hotelId) {
   const pk = `OTP#${email}`;
   const sk = `${purpose}#CODE#${otp}`;
   const otpItem = {
@@ -15,33 +15,41 @@ export async function saveOTP(email, name, language, otp, ttl, purpose) {
     language,
     code: otp,
     purpose,
+
+    hotelType_pk: `HOTEL#${hotelId}`,
+    hotelType_sk: `${pk}#${sk}`,
+
+    hotelId,
     createdAt: new Date().toISOString(),
     ttl,
   };
 
-  const item = await DDBV3.send(
+  await DDBV3.send(
     new PutCommand({
       TableName: ENTITY_TABLE_NAME,
       Item: otpItem,
     })
   );
 
-  return item;
+  return otpItem;
 }
 
-export async function getOtp(email, code, purpose) {
+export async function getOtp(email, code, purpose, hotelId) {
   const resp = await DDBV3.send(
     new QueryCommand({
       TableName: ENTITY_TABLE_NAME,
       IndexName: GSI_ACTIVE_NAME,
       KeyConditionExpression: '#pk = :p AND #sk = :s',
+      FilterExpression: '#hotelId = :hotelId',
       ExpressionAttributeNames: {
         '#pk': 'active_pk',
         '#sk': 'active_sk',
+        '#hotelId': 'hotelId',
       },
       ExpressionAttributeValues: {
         ':p': `OTP#${email}`,
         ':s': `${purpose}#CODE#${code}`,
+        ':hotelId': hotelId,
       },
     })
   );
@@ -59,7 +67,8 @@ export async function deleteOtp(email, code, purpose) {
       pk,
       sk,
     },
-    UpdateExpression: 'SET deletedAt = :now REMOVE active_pk, active_sk',
+    UpdateExpression:
+      'SET deletedAt = :now REMOVE active_pk, active_sk, hotelType_pk, hotelType_sk',
     ExpressionAttributeValues: {
       ':now': new Date().toISOString(),
     },
