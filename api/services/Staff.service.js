@@ -307,19 +307,6 @@ export async function updateStaffDuty({ hotelId, userId, trigger, status }) {
     throw err;
   }
 
-  if (user.hotelId != hotelId) {
-    const err = new Error("user doesn't belong to hotel");
-    err.code = 'USER_HOTEL_MISMATCH';
-    throw err;
-  }
-
-  const hotel = await getHotelById(hotelId);
-  if (!hotel) {
-    const err = new Error('hotel not found');
-    err.code = 'HOTEL_NOT_FOUND';
-    throw err;
-  }
-
   const dutyUpdate = await staffRepo.updateUserDutyStatus({
     hotelId,
     user,
@@ -341,19 +328,6 @@ export async function updateStaffLocation({ hotelId, userId, lat, lng, radius, w
   if (!user) {
     const err = new Error('user not found');
     err.code = 'USER_NOT_FOUND';
-    throw err;
-  }
-
-  if (user.hotelId != hotelId) {
-    const err = new Error("user doesn't belong to hotel");
-    err.code = 'USER_HOTEL_MISMATCH';
-    throw err;
-  }
-
-  const hotel = await getHotelById(hotelId);
-  if (!hotel) {
-    const err = new Error('hotel not found');
-    err.code = 'HOTEL_NOT_FOUND';
     throw err;
   }
 
@@ -380,19 +354,6 @@ export async function registerStaffDevice({ hotelId, userId, deviceId, platform,
   if (!user) {
     const err = new Error('user not found');
     err.code = 'USER_NOT_FOUND';
-    throw err;
-  }
-
-  if (user.hotelId != hotelId) {
-    const err = new Error("user doesn't belong to hotel");
-    err.code = 'USER_HOTEL_MISMATCH';
-    throw err;
-  }
-
-  const hotel = await getHotelById(hotelId);
-  if (!hotel) {
-    const err = new Error('hotel not found');
-    err.code = 'HOTEL_NOT_FOUND';
     throw err;
   }
 
