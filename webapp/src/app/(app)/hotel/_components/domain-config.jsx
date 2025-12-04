@@ -140,9 +140,11 @@ const DomainConfig = ({ hotelId }) => {
       signatures.get(domain) || "SIGNATURE_FROM_DASHBOARD_OR_API";
 
     return `<script
-  src="https://widget.roommitra.com/request-callback.js"
+  src="https://widget.roommitra.com/vaani.js"
   data-hotel-id="${hotelId}"
   data-signature="${signature}"
+  data-logo-url="<LOGO-URL>"
+  data-theme="{'primary': '<HEX-COLOR-CODE>'}"
 />`;
   };
 

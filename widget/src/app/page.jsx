@@ -21,7 +21,7 @@ export default function Home() {
 
         {/* Vaani - Chat Bot */}
         <Script
-          src="/web-voice-agent.js"
+          src="/vaani.js"
           data-hotel-id={process.env.NEXT_PUBLIC_DEMO_HOTEL_ID}
           data-signature={process.env.NEXT_PUBLIC_DEMO_WIDGET_SIGNATURE}
           data-logo-url={`/images/square-no-bg.svg`}

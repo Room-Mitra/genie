@@ -41,7 +41,7 @@ export const Agent = ({ token, onClose }) => {
     },
   ]);
 
-  // Ask the parent page (web-voice-agent.js) to open a full-screen preview
+  // Ask the parent page (vaani.js) to open a full-screen preview
   const openPreview = useCallback((items, index) => {
     if (typeof window === 'undefined' || !Array.isArray(items) || !items.length) {
       return;
