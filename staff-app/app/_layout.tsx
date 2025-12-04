@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
 import * as Notifications from 'expo-notifications';
+import "../tasks/locationTask";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({

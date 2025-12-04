@@ -1,30 +1,27 @@
 // webview.tsx
 
 import React, { useEffect, useState } from "react";
-import { SafeAreaView, StyleSheet, Platform } from "react-native";
+import { StyleSheet, Platform } from "react-native";
 import { WebView } from "react-native-webview";
 import Constants from "expo-constants";
 import * as Application from "expo-application";
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import "../tasks/locationFetchTask"; // <-- CRITICAL import to register the task!
 import * as Notifications from "expo-notifications";
-import * as BackgroundFetch from "expo-background-fetch";
-import * as TaskManager from "expo-task-manager";
 
-import { LOCATION_FETCH_TASK } from "../tasks/locationFetchTask";
-
-const BASE_URL =
-  Constants.expoConfig?.extra?.WEB_BACKEND_URL || `https://app.roommitra.com`;
-
-const LOGIN_URL = `${BASE_URL}/login`;
-
-const LOCATION_INTERVAL_SECONDS = 15 * 60; // 15 mins
+// Must be imported BEFORE anything else runs
+import "../tasks/locationTask";
+import { LOCATION_TASK } from "../tasks/locationTask";
 
 export default function WebviewScreen() {
   const [deviceInfo, setDeviceInfo] = useState<any>(null);
 
-  // 1. Ask for notifications permission once
+  const BASE_URL =
+    Constants.expoConfig?.extra?.WEB_BACKEND_URL || `https://app.roommitra.com`;
+
+  const LOGIN_URL = `${BASE_URL}/login`;
+
+  // 🔹 Ask notification permission on startup
   useEffect(() => {
     (async () => {
       const { status } = await Notifications.getPermissionsAsync();
@@ -34,7 +31,7 @@ export default function WebviewScreen() {
     })();
   }, []);
 
-  // 2. Load device info and persist
+  // 🔹 Load & save device info
   useEffect(() => {
     async function loadDeviceInfo() {
       const androidId =
@@ -50,6 +47,8 @@ export default function WebviewScreen() {
         appVersion: Constants.expoConfig?.version ?? "unknown",
       };
 
+      console.log("📱 Device Info:", info);
+
       setDeviceInfo(info);
       await AsyncStorage.setItem("rm_device", JSON.stringify(info));
     }
@@ -57,7 +56,7 @@ export default function WebviewScreen() {
     loadDeviceInfo();
   }, []);
 
-  // 3. Inject device info into WebView (for NextJS)
+  // 🔹 Inject device context for webapp
   const injectedJavaScript = deviceInfo
     ? `
       window.__MOBILE_CONTEXT__ = ${JSON.stringify(deviceInfo)};
@@ -66,108 +65,95 @@ export default function WebviewScreen() {
     `
     : "";
 
-  // 4. Register background fetch
-  async function registerLocationFetch() {
+  // 🔹 Start background location service
+  async function enableLocationTracking() {
     try {
-      const status = await BackgroundFetch.getStatusAsync();
-      console.log("BackgroundFetch raw status:", status);
+      console.log("⚙️ Requesting location permissions...");
 
-      if (status !== BackgroundFetch.BackgroundFetchStatus.Available) {
-        console.log("Background fetch unavailable:", status);
+      const fg = await Location.requestForegroundPermissionsAsync();
+      console.log("FG perm:", fg.status);
+
+      if (fg.status !== "granted") {
+        console.log(" Foreground permission denied");
         return;
       }
 
-      const tasks = await TaskManager.getRegisteredTasksAsync();
-      const exists = tasks.some((t) => t.taskName === LOCATION_FETCH_TASK);
-
-      if (!exists) {
-        await BackgroundFetch.registerTaskAsync(LOCATION_FETCH_TASK, {
-          minimumInterval: LOCATION_INTERVAL_SECONDS,
-          stopOnTerminate: false,
-          startOnBoot: true,
-        });
-
-        console.log("BackgroundFetch task registered!");
-      } else {
-        console.log("BackgroundFetch task already registered");
-      }
-    } catch (e) {
-      console.log("Failed to register BackgroundFetch:", e);
-    }
-
-    console.log(
-      "Registered tasks:",
-      await TaskManager.getRegisteredTasksAsync()
-    );
-  }
-
-  // 5. Ensure permissions before enabling location-fetch
-  async function enableLocationBackgroundFetch() {
-    try {
-      const fg = await Location.requestForegroundPermissionsAsync();
-      console.log("Foreground location perm:", fg.status);
-      if (fg.status !== "granted") return;
-
       const bg = await Location.requestBackgroundPermissionsAsync();
-      console.log("Background location perm:", bg.status);
-      if (bg.status !== "granted") return;
+      console.log("BG perm:", bg.status);
 
-      await registerLocationFetch();
+      if (bg.status !== "granted") {
+        console.log(" Background permission denied");
+        return;
+      }
+
+      console.log(" Starting background location listener...");
+
+      await Location.startLocationUpdatesAsync(LOCATION_TASK, {
+        accuracy: Location.Accuracy.High,
+        timeInterval: 15 * 60 * 1000, // every 15 mins
+        distanceInterval: 50,
+        showsBackgroundLocationIndicator: true,
+        foregroundService: {
+          notificationTitle: "Room Mitra",
+          notificationBody: "Please update your status if you are on duty",
+        },
+        pausesUpdatesAutomatically: false, // keep running even if device idle
+      });
+
+      console.log(" Background location tracking active!");
     } catch (err) {
-      console.log("Failed enabling BackgroundFetch location:", err);
+      console.log("Failed enabling background tracking:", err);
     }
   }
 
+  // 🔹 Navigation listener
   const handleNavChange = (navState: any) => {
-
     const url = navState.url.toLowerCase();
-    if (url === BASE_URL.toLowerCase() + "/") {
-      console.log("User logged in inside WebView");
+    if (url.startsWith(BASE_URL.toLowerCase())) {
+      console.log("➡ WebView navigation:", url);
     }
   };
 
+  // 🔹 Web <-> Native handshake
   const handleMessage = async (event: any) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
-
-      console.log("msg from app", data);
+      console.log(" msg from app:", data);
 
       if (data.type === "LOGIN_DATA") {
-        console.log("Received LOGIN_DATA:", data.userId);
+        console.log("LOGIN_DATA received:", data.userId);
 
         await AsyncStorage.setItem("rm_user", JSON.stringify(data));
 
-        console.log("Enabling BackgroundFetch after login...");
-        await enableLocationBackgroundFetch();
+        console.log(" Starting location tracking after login...");
+        await enableLocationTracking();
       }
     } catch (err) {
-      console.log("Failed to parse WebView message:", err);
+      console.log(" Failed to parse message:", err);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <WebView
-        source={{
-          uri: LOGIN_URL,
-          headers: {
-            "bypass-tunnel-reminder": "true",
-            "User-Agent": "ExpoMobileApp",
-          },
-        }}
-        onNavigationStateChange={handleNavChange}
-        injectedJavaScript={injectedJavaScript}
-        onLoadEnd={async () => {
-          const existingUser = await AsyncStorage.getItem("rm_user");
-          if (existingUser) {
-            console.log("Existing rm_user found, ensuring BackgroundFetch setup");
-            await enableLocationBackgroundFetch();
-          }
-        }}
-        onMessage={handleMessage}
-        style={{ flex: 1 }}
-      />
-    </SafeAreaView>
+    <WebView
+      source={{
+        uri: LOGIN_URL,
+        headers: {
+          "User-Agent": "ExpoMobileApp",
+          "bypass-tunnel-reminder": "true",
+        },
+      }}
+      injectedJavaScript={injectedJavaScript}
+      onNavigationStateChange={handleNavChange}
+      onMessage={handleMessage}
+      onLoadEnd={async () => {
+        const existingUser = await AsyncStorage.getItem("rm_user");
+        if (existingUser) {
+          console.log("Existing rm_user detected, enabling tracking...");
+          await enableLocationTracking();
+        }
+      }}
+      style={{ flex: 1 }}
+    />
   );
 }
 
