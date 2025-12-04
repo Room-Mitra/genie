@@ -8,10 +8,16 @@ import * as Application from "expo-application";
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
+import * as BackgroundFetch from "expo-background-fetch";
+import * as TaskManager from "expo-task-manager";
+
 
 // Must be imported BEFORE anything else runs
 import "../tasks/locationTask";
 import { LOCATION_TASK } from "../tasks/locationTask";
+
+import "../tasks/periodicPingTask";
+import { PERIODIC_PING_TASK } from "../tasks/periodicPingTask";
 
 export default function WebviewScreen() {
   const [deviceInfo, setDeviceInfo] = useState<any>(null);
@@ -106,6 +112,35 @@ export default function WebviewScreen() {
     }
   }
 
+  async function enablePeriodicPing() {
+    console.log("Registering periodic ping task...");
+
+    const status = await BackgroundFetch.getStatusAsync();
+    console.log(" BackgroundFetch status:", status);
+
+    if (status !== BackgroundFetch.BackgroundFetchStatus.Available) {
+      console.log("Background fetch unavailable, skipping");
+      return;
+    }
+
+    const tasks = await TaskManager.getRegisteredTasksAsync();
+    const exists = tasks.some(t => t.taskName === PERIODIC_PING_TASK);
+
+    if (!exists) {
+      await BackgroundFetch.registerTaskAsync(PERIODIC_PING_TASK, {
+        minimumInterval: 15 * 60, // seconds
+        stopOnTerminate: false,
+        startOnBoot: true,
+      });
+
+      console.log("Periodic ping registered");
+    } else {
+      console.log("Periodic task already registered");
+    }
+  }
+
+
+
   // 🔹 Navigation listener
   const handleNavChange = (navState: any) => {
     const url = navState.url.toLowerCase();
@@ -126,7 +161,8 @@ export default function WebviewScreen() {
         await AsyncStorage.setItem("rm_user", JSON.stringify(data));
 
         console.log(" Starting location tracking after login...");
-        await enableLocationTracking();
+        await enableLocationTracking();  // movement-based
+        await enablePeriodicPing();      // timed ping
       }
     } catch (err) {
       console.log(" Failed to parse message:", err);
@@ -149,7 +185,8 @@ export default function WebviewScreen() {
         const existingUser = await AsyncStorage.getItem("rm_user");
         if (existingUser) {
           console.log("Existing rm_user detected, enabling tracking...");
-          await enableLocationTracking();
+          await enableLocationTracking();  // movement-based
+          await enablePeriodicPing();      // timed ping
         }
       }}
       style={{ flex: 1 }}

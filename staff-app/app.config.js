@@ -30,6 +30,9 @@ export default ({ config }) => ({
       monochromeImage: "./assets/images/icon.png"
     },
     permissions: [
+      "ACCESS_WIFI_STATE",
+      "CHANGE_WIFI_STATE",
+      "ACCESS_NETWORK_STATE",
       "ACCESS_COARSE_LOCATION",
       "ACCESS_FINE_LOCATION",
       "ACCESS_BACKGROUND_LOCATION",
