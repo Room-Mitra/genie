@@ -360,7 +360,7 @@ export async function registerDevice({ hotelId, user, deviceId, platform, appVer
       TableName: ENTITY_TABLE_NAME,
       Item: deviceItem,
       // idempotency for this transition record
-      ConditionExpression: 'attribute_not_exists(pk) AND attribute_not_exists(sk)',
+      // ConditionExpression: 'attribute_not_exists(pk) AND attribute_not_exists(sk)', // commenting this as app version may change
     })
   );
 
