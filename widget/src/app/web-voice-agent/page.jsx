@@ -9,7 +9,7 @@ export default async function WidgetPage({ searchParams }) {
   const sp = await searchParams;
   const hotelId = sp?.hotelId || '';
   const signature = sp?.signature || '';
-  const theme = sp?.theme || '';
+  const theme = sp?.theme || 'null';
   const position = sp?.position || '';
 
   try {
@@ -37,7 +37,11 @@ export default async function WidgetPage({ searchParams }) {
   return (
     <div className="min-h-screen flex items-stretch justify-center">
       <div className="w-full max-w-md mx-auto h-screen">
-        <WebVoiceAgent hotelId={hotelId} theme={theme} position={position} />
+        <WebVoiceAgent
+          hotelId={hotelId}
+          theme={JSON.parse(decodeURIComponent(theme))}
+          position={position}
+        />
       </div>
     </div>
   );
