@@ -2,15 +2,15 @@ import { PutCommand, UpdateCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import { DDBV3 } from '#clients/DynamoDb.client.js';
 import { ENTITY_TABLE_NAME, GSI_ACTIVE_NAME } from '#Constants/DB.constants.js';
 
-export async function saveOTP(email, name, language, otp, ttl, purpose, hotelId) {
-  const pk = `OTP#${email}`;
+export async function saveOTP(contactInfo, name, language, otp, ttl, purpose, hotelId) {
+  const pk = `OTP#${contactInfo}`;
   const sk = `${purpose}#CODE#${otp}`;
   const otpItem = {
     pk,
     sk,
     active_pk: pk,
     active_sk: sk,
-    email,
+    contactInfo,
     name,
     language,
     code: otp,
@@ -34,7 +34,7 @@ export async function saveOTP(email, name, language, otp, ttl, purpose, hotelId)
   return otpItem;
 }
 
-export async function getOtp(email, code, purpose, hotelId) {
+export async function getOtp(contactInfo, code, purpose, hotelId) {
   const resp = await DDBV3.send(
     new QueryCommand({
       TableName: ENTITY_TABLE_NAME,
@@ -47,7 +47,7 @@ export async function getOtp(email, code, purpose, hotelId) {
         '#hotelId': 'hotelId',
       },
       ExpressionAttributeValues: {
-        ':p': `OTP#${email}`,
+        ':p': `OTP#${contactInfo}`,
         ':s': `${purpose}#CODE#${code}`,
         ':hotelId': hotelId,
       },
@@ -58,8 +58,8 @@ export async function getOtp(email, code, purpose, hotelId) {
   return items && items.length > 0 ? items[0] : null;
 }
 
-export async function deleteOtp(email, code, purpose) {
-  const pk = `OTP#${email}`;
+export async function deleteOtp(contactInfo, code, purpose) {
+  const pk = `OTP#${contactInfo}`;
   const sk = `${purpose}#CODE#${code}`;
   const params = {
     TableName: ENTITY_TABLE_NAME,

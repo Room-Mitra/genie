@@ -4,7 +4,7 @@ import { cn } from '@/src/lib/utils';
 const OTP_LENGTH = 5;
 const RESEND_COOLDOWN_SECONDS = 60;
 
-export function OTPForm({ email, name, language, hotelId, onClose, onSuccess }) {
+export function OTPForm({ phone, name, language, hotelId, onClose, onSuccess }) {
   const [otpDigits, setOtpDigits] = useState(Array(OTP_LENGTH).fill(''));
   const [submitting, setSubmitting] = useState(false);
   const [resending, setResending] = useState(false);
@@ -14,9 +14,9 @@ export function OTPForm({ email, name, language, hotelId, onClose, onSuccess }) 
   const inputsRef = useRef([]);
 
   const storageKey = useMemo(() => {
-    if (!email) return null;
-    return `otp_last_sent_${email}`;
-  }, [email]);
+    if (!phone) return null;
+    return `otp_last_sent_${phone}`;
+  }, [phone]);
 
   // Load cooldown from localStorage on mount
   useEffect(() => {
@@ -141,7 +141,7 @@ export function OTPForm({ email, name, language, hotelId, onClose, onSuccess }) 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email,
+          phone,
           name,
           language,
           hotelId,
@@ -175,7 +175,7 @@ export function OTPForm({ email, name, language, hotelId, onClose, onSuccess }) 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email,
+          phone,
           otp: code,
           hotelId,
         }),
@@ -204,10 +204,10 @@ export function OTPForm({ email, name, language, hotelId, onClose, onSuccess }) 
       </div>
       <div className="flex-1 flex items-center justify-center">
         <div className="px-5 py-10 text-center max-w-sm mx-auto">
-          <h2 className="text-lg font-semibold text-white mb-2">Verify your email</h2>
+          <h2 className="text-lg font-semibold text-white mb-2">Verify your Phone Number</h2>
           <p className="text-sm text-gray-300 mb-4">
             We&apos;ve sent a 5 digit code to{' '}
-            <span className="font-semibold text-white">{email}</span>.
+            <span className="font-semibold text-white">{phone}</span>.
             <br />
             Enter it below to continue.
           </p>

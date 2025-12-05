@@ -7,7 +7,7 @@ import { OTPForm } from './OTPForm';
 
 export default function WebVoiceAgent({ hotelId, theme, position }) {
   const [stage, setStage] = useState('lead'); // "lead" | "otp" | "agent"
-  const [leadData, setLeadData] = useState(null); // { email, name, language }
+  const [leadData, setLeadData] = useState(null); // { phone, name, language }
   const [authToken, setAuthToken] = useState('');
 
   // Let inner components close the whole popup (iframe)
@@ -42,8 +42,8 @@ export default function WebVoiceAgent({ hotelId, theme, position }) {
       <LeadForm
         hotelId={hotelId}
         onClose={handleCloseWidget}
-        onSuccess={({ email, name, language }) => {
-          setLeadData({ email, name, language });
+        onSuccess={({ name, language, phone }) => {
+          setLeadData({ name, language, phone });
           setStage('otp');
         }}
       />
@@ -54,7 +54,7 @@ export default function WebVoiceAgent({ hotelId, theme, position }) {
     return (
       <OTPForm
         hotelId={hotelId}
-        email={leadData.email}
+        phone={leadData.phone}
         name={leadData.name}
         language={leadData.language}
         onClose={handleCloseWidget}

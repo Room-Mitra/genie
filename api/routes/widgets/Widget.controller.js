@@ -1,5 +1,5 @@
 import express from 'express';
-import { generateOtpForEmail, verifyOtpForEmail } from '#services/Otp.service.js';
+import { generateOtpForSMS, verifyOtp } from '#services/Otp.service.js';
 import { OtpPurpose } from '#Constants/OtpPurpose.constants.js';
 import { Languages } from '#Constants/Language.constants.js';
 import { requestCallback } from '#services/Bolna.service.js';
@@ -8,14 +8,14 @@ import { initWidget } from '#services/Widget.service.js';
 const router = express.Router();
 
 router.post('/web-voice-agent', async (req, res) => {
-  const { name, email, language, otp, hotelId } = req.body || {};
+  const { name, phone, language, otp, hotelId } = req.body || {};
 
   if (!hotelId) {
     return res.status(400).json({ ok: false, error: 'hotelId is required' });
   }
 
-  if (!email) {
-    return res.status(400).json({ ok: false, error: 'Email is required' });
+  if (!phone) {
+    return res.status(400).json({ ok: false, error: 'Phone Number is required' });
   }
 
   try {
@@ -29,7 +29,7 @@ router.post('/web-voice-agent', async (req, res) => {
         return res.status(400).json({ error: 'unsupported language' });
       }
 
-      await generateOtpForEmail(email, name, language, OtpPurpose.VOICE_AGENT_TRIAL_REQUEST, hotelId);
+      await generateOtpForSMS(phone, name, language, OtpPurpose.VOICE_AGENT_TRIAL_REQUEST, hotelId);
 
       return res.json({
         message: 'Verification code sent to email',
@@ -38,7 +38,7 @@ router.post('/web-voice-agent', async (req, res) => {
 
     // Case 2: verify OTP
     if (otp && !name) {
-      const token = await verifyOtpForEmail(email, otp, OtpPurpose.VOICE_AGENT_TRIAL_REQUEST, hotelId);
+      const token = await verifyOtp(phone, otp, OtpPurpose.VOICE_AGENT_TRIAL_REQUEST, hotelId);
       return res.json({
         token,
       });
@@ -46,7 +46,7 @@ router.post('/web-voice-agent', async (req, res) => {
 
     // Bad payload
     return res.status(400).json({
-      error: 'Provide either { name, email } to request an OTP, or { email, otp } to verify',
+      error: 'Provide either { name, phone } to request an OTP, or { email, otp } to verify',
     });
   } catch (err) {
     console.error('Error in /web-voice-agent', err);
