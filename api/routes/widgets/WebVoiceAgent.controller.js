@@ -4,6 +4,7 @@ import { handleConversation } from '#services/Conversation.service.js';
 import { ulid } from 'ulid';
 import { sendVoiceAgentTrialNotification } from '#services/Slack.service.js';
 import { Language, VoiceForLanguage } from '#Constants/Language.constants.js';
+import { sendConversationEmail } from '#services/Email/Email.service.js';
 
 const TRIAL_LIMIT_MINS = 5; // 5 minutes
 const TRIAL_LIMIT_MS = TRIAL_LIMIT_MINS * 60 * 1000;
@@ -464,6 +465,17 @@ export function connection(ws, request) {
       conversationId,
       ws.language
     );
+
+    sendConversationEmail({
+      to: ['chai@roommitra.com', 'adithya@roommitra.com'],
+      guest: {
+        name: user.name,
+        email: user.sub,
+      },
+      conversationId,
+      hotelId: ws.hotelId,
+      startedAt: ws.callStartedAt,
+    });
 
     isClosing = true;
     // console.log('[WS] Client disconnected');
