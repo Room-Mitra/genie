@@ -6,6 +6,7 @@ import * as Network from "expo-network";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
 import WifiManager from 'react-native-wifi-reborn';
+import { sendLocationUpdate } from "../services/locationApi";
 
 export const LOCATION_TASK = "rm-location-task";
 const API_BACKEND_URL = Constants.expoConfig?.extra?.API_BACKEND_URL || `https://api.roommitra.com`;
@@ -22,17 +23,6 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
   const { latitude, longitude } = locations[0].coords;
   console.log(" Location Tick:", latitude, longitude);
 
-  const userStr = await AsyncStorage.getItem("rm_user");
-  if (!userStr) {
-    console.log("rm_user missing: skipping API");
-    return;
-  }
-
-  const user = JSON.parse(userStr);
-  const token = user.token;
-
-  const deviceStr = await AsyncStorage.getItem("rm_device");
-  const device = deviceStr ? JSON.parse(deviceStr) : {};
 
   // 🔍 Fetch Wi-Fi SSID
   // let wifiSSID = null;
@@ -54,37 +44,7 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
   // }
 
   try {
-    await fetch(
-      `${API_BACKEND_URL}/staff/location`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          lat: latitude,
-          lng: longitude,
-          // wifiSSID,
-          // bssid,
-          // nearbyWifiList,
-          deviceId: device.deviceId || "unknown-device",
-          source: "background-location",
-        }),
-      }
-    );
-
-    console.log(
-      "Location sent successfully:",
-      JSON.stringify({
-        lat: latitude,
-        lng: longitude,
-        // nearbyWifiList,
-        // wifiSSID,
-        // bssid,
-        deviceId: device.deviceId || "unknown-device",
-      })
-    );
+    await sendLocationUpdate(latitude, longitude, "background-location");
   } catch (err) {
     console.log(" Failed sending location:", err);
   }
