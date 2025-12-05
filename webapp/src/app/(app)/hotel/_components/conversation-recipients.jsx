@@ -83,7 +83,7 @@ const ConversationRecipients = ({ hotelId }) => {
           Transcript Recipients
         </h2>
         <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-          Configure which email addresses should receive the chat transcripts
+          Configure email addresses that should receive the chat transcripts
           from <span className="font-semibold">Vaani - Chat Bot.</span>
         </p>
 
