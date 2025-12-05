@@ -12,3 +12,14 @@ export function minutesAhead(scheduledAt) {
   const diffMs = scheduled - now;
   return Math.floor(diffMs / 60000); // convert ms → minutes
 }
+
+export function formatTimestamp(ts) {
+  return new Date(ts).toLocaleString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
