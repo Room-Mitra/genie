@@ -11,7 +11,7 @@ router.get('/', async (req, res) => {
     return res.status(200).json(rooms);
   } catch (err) {
     console.error('Error listing rooms:', err);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: err?.message || 'Internal server error' });
   }
 });
 

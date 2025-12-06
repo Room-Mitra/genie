@@ -11,7 +11,7 @@ router.get('/web-voice-agent/signatures', async (req, res) => {
 
     res.status(200).json({ signatures });
   } catch (err) {
-    console.log('error fetching web voice agent signatuers', err);
+    console.error('error fetching web voice agent signatures', err);
     return res.status(500).json({ error: err?.message || 'Internal server error' });
   }
 });
