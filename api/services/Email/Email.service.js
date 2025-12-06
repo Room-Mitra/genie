@@ -84,6 +84,10 @@ export async function sendStaffInviteEmail({ to, staffName, hotelName, inviteLin
 }
 
 export async function sendConversationEmail({ to, guest, conversationId, hotel, startedAt }) {
+  if (!to || !to.length) {
+    return
+  }
+
   if (!hotel) {
     const err = new Error('hotel required to send converastion email');
     err.code = 'HOTEL_REQUIRED';
