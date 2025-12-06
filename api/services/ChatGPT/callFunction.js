@@ -103,42 +103,20 @@ export const callFunction = async ({
 
     case 'get_available_rooms': {
       switch (hotelId) {
-        case 'demo': {
-          const rooms = [
-            {
-              roomType: 'Deluxe Room',
-              bedConfigurations: ['one king', 'two twins'],
-              maxOccupancy: 3,
-              pricePerNight: 4500,
-              availableRooms: 4,
-            },
-            {
-              roomType: 'Superior Room',
-              bedConfigurations: ['one queen'],
-              maxOccupancy: 2,
-              pricePerNight: 3800,
-              availableRooms: 2,
-            },
-            {
-              roomType: 'Suite',
-              bedConfigurations: ['one king'],
-              maxOccupancy: 4,
-              pricePerNight: 8200,
-              availableRooms: 1,
-            },
-          ];
-
-          // You can add logic here if you want to simulate no availability for specific dates.
-
-          return {
-            startDate: args.startDate,
-            endDate: args.endDate,
-            availableRooms: rooms,
-          };
-        }
         default: {
-          const availableRooms = await getAvailableRooms(args.startDate, args.endDate);
-          return availableRooms;
+          try {
+            const availableRooms = await getAvailableRooms(args.startDate, args.endDate);
+            return availableRooms;
+          } catch (err) {
+            console.error('error getting available rooms from staah', err);
+            return {
+              startDate: args.startDate,
+              endDate: args.endDate,
+              availableRooms: [],
+              message:
+                'There was an error retrieving room availablity. Someone from our team will reach out to you.',
+            };
+          }
         }
       }
     }

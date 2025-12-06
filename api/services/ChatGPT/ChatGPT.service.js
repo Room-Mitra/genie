@@ -224,7 +224,7 @@ export async function askChatGpt({
   conversationState,
   isProspect,
 }) {
-  // this shouldn't happen. initialize conversationState befor making a call to chatgpt
+  // initialize conversationState before making a call to chatgpt
   if (!conversationState) {
     const err = new Error('conversation state not provided to ask chat gpt');
     err.code = 'CONVERSATION_STATE_REQUIRED';
