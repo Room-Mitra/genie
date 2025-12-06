@@ -11,6 +11,7 @@ import { MENU_ENQUIRY_PROMPT } from './prompts/MenuEnquiry.prompt.js';
 import { MUSIC_PROMPT } from './prompts/Music.prompt.js';
 import { ORDER_FOOD_PROMPT } from './prompts/OrderFood.prompt.js';
 import { AMENITIES_PROMPT } from './prompts/Amenities.prompt.js';
+import { ROOM_AVAILABILITY_PROMPT } from './prompts/RoomAvailability.prompt.js';
 
 import { book_room } from './tools/book_room.tool.js';
 import { create_hotel_requests } from './tools/create_hotel_requests.tool.js';
@@ -114,9 +115,11 @@ export function getPromptsAndTools({ intents, isProspect }) {
       case 'negative_confirmation': {
         continue;
       }
-      
+
       case 'get_available_rooms': {
         toolSet.add(get_available_rooms);
+
+        promptSet.add(ROOM_AVAILABILITY_PROMPT);
         continue;
       }
 

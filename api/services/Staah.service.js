@@ -268,7 +268,7 @@ export async function getAvailableRooms(startDate, endDate) {
     });
   });
 
-  return {
+   return {
     startDate,
     endDate,
     availableRooms: roomsOut,
