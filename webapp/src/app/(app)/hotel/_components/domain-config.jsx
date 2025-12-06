@@ -3,7 +3,7 @@
 import InputGroup from "@/components/FormElements/InputGroup";
 import { DeleteButton } from "@/components/ui/delete-button";
 import { DeleteModal } from "@/components/ui/delete-modal";
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { CopySnippetButton } from "./copy-snippet-button";
 import { Spinner } from "@material-tailwind/react";

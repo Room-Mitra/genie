@@ -4,6 +4,8 @@ import { handleConversation } from '#services/Conversation.service.js';
 import { ulid } from 'ulid';
 import { sendVoiceAgentTrialNotification } from '#services/Slack.service.js';
 import { Language, VoiceForLanguage } from '#Constants/Language.constants.js';
+import { sendConversationEmail } from '#services/Email/Email.service.js';
+import { getHotelById } from '#services/Hotel.service.js';
 
 const TRIAL_LIMIT_MINS = 5; // 5 minutes
 const TRIAL_LIMIT_MS = TRIAL_LIMIT_MINS * 60 * 1000;
@@ -32,6 +34,7 @@ function getGreetingText(language) {
       return 'Hi, I am Vaani, your virtual assistant for the hotel. How can I help you today?';
   }
 }
+
 function getTrialMessage(language, minutes) {
   const baseEnglish = `This was a trial call and is limited to ${minutes} minutes. I will end the call now. To continue, please request a full demo from our website.`;
 
@@ -444,7 +447,7 @@ export function connection(ws, request) {
     }
   });
 
-  ws.on('close', (_code, reasonBuf) => {
+  ws.on('close', async function (_code, reasonBuf) {
     // Always clear the timer so it does not fire after the socket is already closed
     if (ws.trialTimer) {
       clearTimeout(ws.trialTimer);
@@ -464,6 +467,19 @@ export function connection(ws, request) {
       conversationId,
       ws.language
     );
+
+    const hotel = await getHotelById(ws.hotelId);
+
+    sendConversationEmail({
+      to: hotel.transcriptRecipients,
+      guest: {
+        name: user.name,
+        email: user.sub,
+      },
+      conversationId,
+      hotel,
+      startedAt: ws.callStartedAt,
+    });
 
     isClosing = true;
     // console.log('[WS] Client disconnected');

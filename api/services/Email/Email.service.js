@@ -1,4 +1,8 @@
 import SES from '#clients/SES.client.js';
+import { formatTimestamp } from '#common/timestamp.helper.js';
+import { getMessagesByConversationIds } from '#repositories/Message.repository.js';
+import { getHotelById } from '#services/Hotel.service.js';
+import { conversationEmail } from './templates/conversationEmail.js';
 import { staffInviteEmail } from './templates/staffInviteEmail.js';
 import { verificationEmail } from './templates/verificationEmail.js';
 import { SendEmailCommand } from '@aws-sdk/client-ses';
@@ -77,4 +81,37 @@ export async function sendVerificationEmail({ to, name, code }) {
 export async function sendStaffInviteEmail({ to, staffName, hotelName, inviteLink }) {
   const { subject, html, text } = staffInviteEmail({ staffName, hotelName, inviteLink });
   return sendEmail({ to, subject, html, text, from: 'no-reply@roommitra.com' });
+}
+
+export async function sendConversationEmail({ to, guest, conversationId, hotel, startedAt }) {
+  if (!to || !to.length) {
+    return
+  }
+
+  if (!hotel) {
+    const err = new Error('hotel required to send converastion email');
+    err.code = 'HOTEL_REQUIRED';
+    throw err;
+  }
+
+  const messages = await getMessagesByConversationIds([conversationId]);
+
+  const { subject, html, text } = conversationEmail({
+    guestName: guest.name,
+    guestEmail: guest.email,
+    transcript: messages.get(conversationId).map(({ content, createdAt, messageId, role }) => ({
+      content,
+      createdAt,
+      role,
+      messageId,
+    })),
+    conversationId,
+    hotelName: hotel.name,
+    startedAt: formatTimestamp(startedAt),
+  });
+
+  to = Array.isArray(to) ? to : [to];
+  await Promise.all(
+    to.map((t) => sendEmail({ to: t, subject, html, text, from: 'no-reply@roommitra.com' }))
+  );
 }
