@@ -235,7 +235,7 @@ export async function getAvailableRooms(startDate, endDate) {
             ratePlanName: 'Room only',
             breakfastIncluded: false,
             pricePerNight: avgWithout,
-            totalForStay: totalWithout,
+            // totalForStay: totalWithout,
           }
         : null;
 
@@ -246,7 +246,7 @@ export async function getAvailableRooms(startDate, endDate) {
             ratePlanName: 'With breakfast',
             breakfastIncluded: true,
             pricePerNight: avgWith,
-            totalForStay: totalWith,
+            // totalForStay: totalWith,
           }
         : null;
 
