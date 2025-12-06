@@ -83,11 +83,10 @@ export async function sendStaffInviteEmail({ to, staffName, hotelName, inviteLin
   return sendEmail({ to, subject, html, text, from: 'no-reply@roommitra.com' });
 }
 
-export async function sendConversationEmail({ to, guest, conversationId, hotelId, startedAt }) {
-  const hotel = await getHotelById(hotelId);
+export async function sendConversationEmail({ to, guest, conversationId, hotel, startedAt }) {
   if (!hotel) {
-    const err = new Error('hotel not found to send converastion email');
-    err.code = 'HOTEL_NOT_FOUND';
+    const err = new Error('hotel required to send converastion email');
+    err.code = 'HOTEL_REQUIRED';
     throw err;
   }
 
