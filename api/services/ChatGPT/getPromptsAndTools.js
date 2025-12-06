@@ -114,7 +114,8 @@ export function getPromptsAndTools({ intents, isProspect }) {
       case 'negative_confirmation': {
         continue;
       }
-      case 'room_availability': {
+      
+      case 'get_available_rooms': {
         toolSet.add(get_available_rooms);
         continue;
       }

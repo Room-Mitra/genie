@@ -37,7 +37,7 @@ export async function discoverIntents({ userText, messagesInConversation, isPros
                   'out_of_scope',
                   'unknown',
                   'negative_confirmation',
-                  'room_availability',
+                  'get_available_rooms',
                   'book_room',
                   'inquire_pricing',
                   ...(isProspect
@@ -224,11 +224,11 @@ export async function askChatGpt({
   conversationState,
   isProspect,
 }) {
-  // 1) Default conversation state
+  // this shouldn't happen. initialize conversationState befor making a call to chatgpt
   if (!conversationState) {
-    conversationState = {
-      menu_items: [],
-    };
+    const err = new Error('conversation state not provided to ask chat gpt');
+    err.code = 'CONVERSATION_STATE_REQUIRED';
+    throw err;
   }
 
   // 2) Discover intents and tools/prompts
@@ -357,8 +357,8 @@ export async function askChatGpt({
           conversationState.hotel_requests.push(output);
         }
 
-        if (tc.name === 'room_availability') {
-          conversationState.room_availabilities.push(output);
+        if (tc.name === 'get_available_rooms') {
+          conversationState.room_availability.push(output);
         }
 
         if (tc.name === 'get_amenities') {

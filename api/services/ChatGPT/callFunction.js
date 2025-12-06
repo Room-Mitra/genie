@@ -13,6 +13,7 @@ import { summarizeRequests } from './summarizers/request.summarizer.js';
 import { summarizeBookingArgs } from './summarizers/booking.summarizer.js';
 import { summarizeAmenities } from './summarizers/amenity.summarizer.js';
 import { summarizeConciergeServices } from './summarizers/concierge.summarizer.js';
+import { getAvailableRooms } from '#services/Staah.service.js';
 
 async function create_hotel_requests_handler({
   args,
@@ -101,37 +102,45 @@ export const callFunction = async ({
     }
 
     case 'get_available_rooms': {
-      const rooms = [
-        {
-          roomType: 'Deluxe Room',
-          bedConfigurations: ['one king', 'two twins'],
-          maxOccupancy: 3,
-          pricePerNight: 4500,
-          availableRooms: 4,
-        },
-        {
-          roomType: 'Superior Room',
-          bedConfigurations: ['one queen'],
-          maxOccupancy: 2,
-          pricePerNight: 3800,
-          availableRooms: 2,
-        },
-        {
-          roomType: 'Suite',
-          bedConfigurations: ['one king'],
-          maxOccupancy: 4,
-          pricePerNight: 8200,
-          availableRooms: 1,
-        },
-      ];
+      switch (hotelId) {
+        case 'demo': {
+          const rooms = [
+            {
+              roomType: 'Deluxe Room',
+              bedConfigurations: ['one king', 'two twins'],
+              maxOccupancy: 3,
+              pricePerNight: 4500,
+              availableRooms: 4,
+            },
+            {
+              roomType: 'Superior Room',
+              bedConfigurations: ['one queen'],
+              maxOccupancy: 2,
+              pricePerNight: 3800,
+              availableRooms: 2,
+            },
+            {
+              roomType: 'Suite',
+              bedConfigurations: ['one king'],
+              maxOccupancy: 4,
+              pricePerNight: 8200,
+              availableRooms: 1,
+            },
+          ];
 
-      // You can add logic here if you want to simulate no availability for specific dates.
+          // You can add logic here if you want to simulate no availability for specific dates.
 
-      return {
-        startDate: args.startDate,
-        endDate: args.endDate,
-        availableRooms: rooms,
-      };
+          return {
+            startDate: args.startDate,
+            endDate: args.endDate,
+            availableRooms: rooms,
+          };
+        }
+        default: {
+          const availableRooms = await getAvailableRooms(args.startDate, args.endDate);
+          return availableRooms;
+        }
+      }
     }
 
     case 'fetch_menu_items': {
