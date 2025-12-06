@@ -34,6 +34,7 @@ import hotelRoutes from '#routes/webapp/Hotel.controller.js';
 import imageRoutes from '#routes/webapp/Image.controller.js';
 import orderRoutes from '#routes/webapp/Order.controller.js';
 import widgetConfigRoutes from '#routes/webapp/WidgetConfig.controller.js';
+import staahRoutes from '#routes/webapp/Staah.controller.js';
 
 import widgetRoutes from '#routes/widgets/Widget.controller.js';
 
@@ -110,6 +111,7 @@ app.use('/hotel', authenticator, hotelRoutes);
 app.use('/image', authenticator, imageRoutes);
 app.use('/orders', authenticator, orderRoutes);
 app.use('/widget-config', authenticator, widgetConfigRoutes);
+app.use('/staah', authenticator, staahRoutes);
 
 // Android Routes
 app.use('/android/login', androidLoginRoutes);
